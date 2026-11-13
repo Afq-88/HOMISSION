@@ -4,40 +4,201 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KPTC — بوابة الموظفين</title>
+<!--kptc:core-css--><style id="kptc-core">
+/* ==========================================================================
+   KPTC — Design system core  ·  "لغة المحطّة" (Station Language)
+   Official palette: KPTC indigo #2E2C78 · signal yellow #FFC93C
+   Shared by every page; injected by tools/build.py between kptc:core markers.
+   ========================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap");
+
+:root{
+  /* identity */
+  --kp-indigo:#2E2C78;      /* KPTC official */
+  --kp-indigo-2:#3D3B95;
+  --kp-deep:#1F1D5C;
+  --kp-ink:#14133A;
+  --kp-sign:#FFC93C;        /* KPTC signal yellow */
+  --kp-sign-2:#F2B705;
+  --kp-gold:#C9971A;
+  /* surfaces — warm "ticket paper" rather than cold app-grey */
+  --kp-paper:#F3F2EC;
+  --kp-paper-2:#FAF9F5;
+  --kp-card:#FFFFFF;
+  --kp-line:#E0DED4;
+  --kp-line-2:#CFCCBF;
+  --kp-muted:#5F5E78;
+  /* status */
+  --kp-ok:#1E7F55; --kp-warn:#C77A12; --kp-bad:#C2352E; --kp-info:#2E5AAC;
+  /* type */
+  --f-display:"Noto Kufi Arabic","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Arabic",-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif;
+  /* elevation — crisp, printed, never glowing */
+  --sh-1:0 1px 0 rgba(20,19,58,.06);
+  --sh-2:0 1px 0 rgba(20,19,58,.05),0 6px 18px -10px rgba(20,19,58,.28);
+  --sh-3:0 2px 0 rgba(20,19,58,.04),0 24px 48px -24px rgba(20,19,58,.45);
+  /* motifs */
+  --kp-route:repeating-linear-gradient(90deg,var(--kp-sign) 0 22px,transparent 22px 30px);
+}
+
+html,body{overflow-x:clip}
+body{font-family:var(--f-body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-feature-settings:"kern"}
+h1,h2,h3{font-family:var(--f-display);letter-spacing:0}
+h1{line-height:1.25}
+:where(button,input,select,textarea){font-family:inherit}
+::selection{background:var(--kp-sign);color:var(--kp-ink)}
+:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid var(--kp-sign);outline-offset:2px}
+:where(.num,time){font-variant-numeric:tabular-nums}
+*{scrollbar-width:thin;scrollbar-color:#B9B6A8 transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#C9C6B8;border-radius:10px;border:3px solid transparent;background-clip:content-box}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* --------------------------------------------------------------------------
+   Icons (emoji are swapped for these by core.js)
+   -------------------------------------------------------------------------- */
+.ki{display:inline-flex;width:1.1em;height:1.1em;vertical-align:-.17em;flex-shrink:0;line-height:1}
+.ki svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.ki.ki-ok{color:var(--kp-ok)} .ki.ki-bad{color:var(--kp-bad)} .ki.ki-warn{color:var(--kp-warn)}
+.ki-dot{display:inline-block;width:.62em;height:.62em;border-radius:50%;background:currentColor;vertical-align:.05em;flex-shrink:0}
+.ki-dot.d-bad{color:var(--kp-bad)} .ki-dot.d-warn{color:var(--kp-sign-2)} .ki-dot.d-ok{color:var(--kp-ok)} .ki-dot.d-info{color:var(--kp-info)}
+.ki + *:not(.ki){margin-inline-start:0}
+
+/* --------------------------------------------------------------------------
+   Public-site chrome (k2-*) — rebuilt
+   -------------------------------------------------------------------------- */
+.k2-w{max-width:1240px;margin:0 auto;padding:0 28px;box-sizing:border-box}
+
+.k2-util{background:var(--kp-ink);color:#B7B5D6;font:500 12.5px/1 var(--f-body)}
+.k2-util .k2-w{display:flex;align-items:center;justify-content:space-between;gap:16px;height:36px}
+.k2-util .k2-ul{display:flex;gap:0;white-space:nowrap}
+.k2-util .k2-ul>*{padding-inline:14px;border-inline-start:1px solid rgba(255,255,255,.12)}
+.k2-util .k2-ul>*:first-child{padding-inline-start:0;border:0}
+.k2-util a{color:inherit;text-decoration:none}
+.k2-util a:hover{color:var(--kp-sign)}
+.k2-lang{background:transparent;border:0;border-inline-start:1px solid rgba(255,255,255,.14);border-radius:0;padding:4px 12px;color:#fff;font:500 12.5px var(--f-body);cursor:pointer}
+.k2-lang option{color:#000}
+
+.k2-head{background:#fff;color:var(--kp-ink);position:sticky;top:0;z-index:400;border-bottom:1px solid var(--kp-line);font-family:var(--f-body)}
+.k2-head::after{content:"";position:absolute;inset-inline:0;bottom:-1px;height:3px;background:var(--kp-indigo);transform:scaleX(0);transform-origin:right}
+.k2-head .k2-w{display:flex;align-items:center;gap:32px;height:76px}
+.k2-brand{display:flex;align-items:center;gap:12px;flex-shrink:0;color:var(--kp-ink);text-decoration:none}
+.k2-brand svg{width:44px;height:44px;padding:8px 10px;background:var(--kp-indigo);border-radius:4px;box-sizing:border-box}
+.k2-brand b{font:800 22px/1.05 var(--f-body);letter-spacing:.12em;direction:ltr;display:block;color:var(--kp-indigo)}
+.k2-brand small{display:block;font-size:11.5px;color:var(--kp-muted);font-weight:500;line-height:1.4;margin-top:2px}
+.k2-nav{display:flex;gap:2px;flex:1;margin:0;padding:0;background:none;position:static;border:0;height:100%}
+.k2-nav a{display:flex;align-items:center;padding:0 14px;font-size:15px;color:var(--kp-ink);font-weight:500;text-decoration:none;position:relative;height:100%}
+.k2-nav a::after{content:"";position:absolute;inset-inline:14px;bottom:0;height:4px;background:var(--kp-sign);transform:scaleY(0);transform-origin:bottom;transition:transform .18s}
+.k2-nav a:hover{color:var(--kp-indigo)}
+.k2-nav a:hover::after{transform:scaleY(.5)}
+.k2-nav a[aria-current]{color:var(--kp-indigo);font-weight:700;background:none;box-shadow:none}
+.k2-nav a[aria-current]::after{transform:none}
+.k2-act{display:flex;gap:10px;align-items:center}
+.k2-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:4px;font:700 14.5px var(--f-body);padding:11px 18px;border:0;cursor:pointer;text-decoration:none;position:relative;line-height:1.3;transition:background .15s,color .15s,border-color .15s}
+.k2-btn-sign{background:var(--kp-sign);color:var(--kp-ink)}
+.k2-btn-sign:hover{background:var(--kp-ink);color:var(--kp-sign)}
+.k2-btn-ghost{background:transparent;color:var(--kp-indigo);border:1.5px solid var(--kp-line-2)}
+.k2-btn-ghost:hover{border-color:var(--kp-indigo)}
+.k2-cnt{position:absolute;top:-8px;left:-8px;min-width:20px;height:20px;border-radius:10px;background:var(--kp-bad);color:#fff;font:700 11px/20px var(--f-body);text-align:center;padding:0 5px;box-shadow:0 0 0 2px #fff}
+.k2-menu{display:none;background:none;border:0;color:var(--kp-indigo);padding:8px;cursor:pointer}
+.k2-menu svg{width:26px;height:26px}
+
+.k2-drawer{position:fixed;inset:0;z-index:1000;display:none;font-family:var(--f-body)}
+.k2-drawer.open{display:block}
+.k2-scrim{position:absolute;inset:0;background:rgba(20,19,58,.6)}
+.k2-panel{position:absolute;top:0;bottom:0;right:0;width:min(340px,88vw);background:var(--kp-paper-2);padding:22px 22px 30px;display:flex;flex-direction:column;overflow:auto;counter-reset:stop;animation:k2in .22s ease-out}
+@keyframes k2in{from{transform:translateX(30px);opacity:0}}
+.k2-panel::before{content:"";position:absolute;top:84px;bottom:34px;right:33px;width:3px;background:var(--kp-indigo)}
+.k2-panel a{position:relative;padding:12px 40px 12px 8px;font-weight:600;font-size:16.5px;color:var(--kp-ink);text-decoration:none;border:0}
+.k2-panel a::before{content:"";position:absolute;right:5px;top:50%;width:11px;height:11px;margin-top:-7px;border-radius:50%;background:#fff;border:3px solid var(--kp-indigo)}
+.k2-panel a:hover{color:var(--kp-indigo)}
+.k2-panel a[aria-current]{color:var(--kp-indigo);background:none;font-weight:800}
+.k2-panel a[aria-current]::before{background:var(--kp-sign);border-color:var(--kp-ink);transform:scale(1.25)}
+.k2-close{align-self:flex-start;background:none;border:1.5px solid var(--kp-line-2);border-radius:4px;font-size:22px;line-height:1;cursor:pointer;color:var(--kp-indigo);padding:6px 12px;margin-bottom:22px}
+
+.k2-foot{background:var(--kp-ink);color:#A9A7C9;font:14px/1.8 var(--f-body);padding:0 0 26px;margin-top:0;position:relative}
+.k2-foot .k2-w{position:relative}
+.kp-strip{display:flex;justify-content:space-between;position:relative;margin:0 0 48px;padding-top:52px}
+.kp-strip::before{content:"";position:absolute;top:58px;inset-inline:0;height:4px;background:var(--kp-sign)}
+.kp-strip span{position:relative;font-size:12px;color:#CFCDEA;padding-top:22px;text-align:center;min-width:0}
+.kp-strip span::before{content:"";position:absolute;top:0;left:50%;width:10px;height:10px;margin-left:-8px;border-radius:50%;background:var(--kp-ink);border:3px solid var(--kp-sign)}
+.k2-fg{display:grid;grid-template-columns:1.5fr repeat(3,1fr);gap:44px;margin-bottom:44px}
+.k2-fg h4{color:#fff;font:700 14px var(--f-display);margin:0 0 16px;display:flex;align-items:center;gap:10px}
+.k2-fg h4::before{content:"";width:8px;height:8px;background:var(--kp-sign)}
+.k2-fg ul{list-style:none;display:grid;gap:9px;margin:0;padding:0}
+.k2-fg a{color:inherit;text-decoration:none}
+.k2-fg a:hover{color:var(--kp-sign)}
+.k2-fg .k2-brand{color:#fff}
+.k2-fg .k2-brand b{color:#fff}
+.k2-fg .k2-brand svg{background:transparent;border:1.5px solid rgba(255,201,60,.5)}
+.k2-fg p{margin:16px 0 0;max-width:26em;line-height:1.9}
+.k2-fb{border-top:1px solid rgba(255,255,255,.1);padding-top:22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12.5px}
+.k2-head :focus-visible,.k2-foot :focus-visible,.k2-util :focus-visible{outline:3px solid var(--kp-sign);outline-offset:2px}
+
+@media(max-width:1100px){.k2-nav a{padding:0 10px;font-size:14px}.k2-nav a::after{inset-inline:10px}.k2-head .k2-w{gap:20px}}
+@media(max-width:920px){
+  .k2-nav,.k2-act .k2-btn-ghost{display:none}
+  .k2-menu{display:block}
+  .k2-head .k2-w{justify-content:space-between;height:66px}
+  .k2-fg{grid-template-columns:1fr 1fr}
+  .kp-strip span{font-size:10.5px}
+}
+@media(max-width:560px){
+  .k2-w{padding:0 16px}
+  .k2-util .k2-ul>*:not(:first-child){display:none}
+  .k2-act .k2-hide-m{display:none}
+  .k2-fg{grid-template-columns:1fr;gap:28px}
+  .k2-brand small{display:none}
+  .kp-strip span{font-size:0;padding-top:0}
+}
+
+/* --------------------------------------------------------------------------
+   Shared page furniture — low specificity so page styles always win
+   -------------------------------------------------------------------------- */
+:where(table){border-collapse:collapse}
+:where(input,select,textarea){accent-color:var(--kp-indigo)}
+
+/* toasts: one quiet signage style everywhere */
+.toast{font-family:var(--f-body)!important}
+
+/* the standalone-preview ribbon (shown when a page is opened directly) */
+.kp-solo{position:fixed;left:16px;bottom:16px;z-index:9000;display:flex;align-items:center;gap:8px;background:var(--kp-ink);color:#fff;font:600 12.5px var(--f-body);padding:9px 14px;border-radius:4px;text-decoration:none;box-shadow:var(--sh-2);border-inline-start:4px solid var(--kp-sign)}
+.kp-solo:hover{background:var(--kp-indigo)}
+</style><!--/kptc:core-css-->
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
   --navy:#2E2C78;--navy-l:#3D3B95;--navy-d:#1F1D5C;
-  --yellow:#FFC93C;--white:#fff;--light:#F5F5FA;
-  --gray:#5D5C80;--dark:#14133A;--border:#DEDDEC;
-  --green:#10B981;--red:#EF4444;--orange:#F59E0B;
-  --purple:#7C3AED;--sidebar-w:240px;
+  --yellow:#FFC93C;--white:#fff;--light:#F3F2EC;
+  --gray:#5D5C80;--dark:#14133A;--border:#E0DED4;
+  --green:#1E7F55;--red:#C2352E;--orange:#C77A12;
+  --purple:#4B49A6;--sidebar-w:240px;
 }
 html{scroll-behavior:smooth}
-body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;background:var(--light);color:var(--dark);min-height:100vh}
+body{font-family:var(--f-body);background:var(--light);color:var(--dark);min-height:100vh}
 
 /* ══ LOGIN PAGE ══ */
-.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#050c24,#1F1D5C 40%,#1a2d80 70%,#0d1845);position:relative;overflow:hidden}
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#050c24;position:relative;overflow:hidden}
 .login-bg-1{position:absolute;width:500px;height:500px;border-radius:50%;border:1px solid rgba(255,201,60,.06);top:-200px;right:-100px}
 .login-bg-2{position:absolute;width:300px;height:300px;border-radius:50%;border:1px solid rgba(255,255,255,.04);bottom:-100px;left:100px}
-.login-card{background:white;border-radius:24px;padding:0;width:100%;max-width:420px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.4);position:relative;z-index:2}
-.lc-top{background:linear-gradient(135deg,var(--navy-d),var(--navy));padding:32px;text-align:center}
-.lc-logo{width:64px;height:64px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;color:var(--navy);font-size:1.5rem;margin:0 auto 14px}
-.lc-title{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--yellow);margin-bottom:4px}
+.login-card{background:white;border-radius:8px;padding:0;width:100%;max-width:420px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.4);position:relative;z-index:2}
+.lc-top{background:var(--navy-d);padding:32px;text-align:center}
+.lc-logo{width:64px;height:64px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--f-body);color:var(--navy);font-size:1.5rem;margin:0 auto 14px}
+.lc-title{font-family:var(--f-body);font-size:1.4rem;letter-spacing:2px;color:var(--yellow);margin-bottom:4px}
 .lc-sub{font-size:.75rem;color:rgba(255,255,255,.55);letter-spacing:.5px}
 .lc-body{padding:28px}
 .lc-field{margin-bottom:16px}
 .lc-label{font-size:.72rem;font-weight:700;color:var(--gray);display:block;margin-bottom:6px;letter-spacing:.3px}
-.lc-input{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:12px 16px;font-size:.9rem;font-family:inherit;outline:none;transition:.2s;background:#fafafa}
+.lc-input{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:12px 16px;font-size:.9rem;font-family:inherit;outline:none;transition:.2s;background:#fafafa}
 .lc-input:focus{border-color:var(--navy);background:white;box-shadow:0 0 0 3px rgba(46,44,120,.08)}
 .lc-role{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px}
-.role-btn{border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:.2s;background:white;font-family:inherit}
+.role-btn{border:1.5px solid var(--border);border-radius:6px;padding:10px 6px;text-align:center;cursor:pointer;transition:.2s;background:white;font-family:inherit}
 .role-btn:hover{border-color:var(--navy-l)}
 .role-btn.active{border-color:var(--navy);background:rgba(46,44,120,.04)}
 .role-icon{font-size:1.5rem;display:block;margin-bottom:4px}
 .role-name{font-size:.68rem;font-weight:700;color:var(--navy)}
-.btn-login{width:100%;background:var(--yellow);color:var(--navy);border:none;border-radius:12px;padding:14px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn-login:hover{background:#ffd700;box-shadow:0 6px 20px rgba(255,201,60,.4);transform:translateY(-1px)}
+.btn-login{width:100%;background:var(--yellow);color:var(--navy);border:none;border-radius:6px;padding:14px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-login:hover{background:#ffd700;box-shadow:none;transform:translateY(-1px)}
 .lc-forgot{text-align:center;margin-top:12px;font-size:.75rem;color:var(--gray)}
 .lc-forgot a{color:var(--navy);cursor:pointer;font-weight:600}
 
@@ -48,11 +209,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
 /* SIDEBAR */
 .sidebar{width:var(--sidebar-w);background:var(--navy-d);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;right:0;z-index:200;transition:transform .3s}
 .sb-logo{padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
-.sb-logo-icon{width:36px;height:36px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;color:var(--navy);font-size:.85rem;flex-shrink:0}
-.sb-logo-text .name{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1rem;letter-spacing:2px;color:var(--yellow)}
+.sb-logo-icon{width:36px;height:36px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--f-body);color:var(--navy);font-size:.85rem;flex-shrink:0}
+.sb-logo-text .name{font-family:var(--f-body);font-size:1rem;letter-spacing:2px;color:var(--yellow)}
 .sb-logo-text .sub{font-size:.55rem;color:rgba(255,255,255,.4);letter-spacing:.5px}
 .sb-user{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
-.sb-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),#f0a500);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--navy);font-size:.95rem;flex-shrink:0}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--navy);font-size:.95rem;flex-shrink:0}
 .sb-user-info .uname{font-size:.82rem;font-weight:700;color:white}
 .sb-user-info .urole{font-size:.65rem;color:rgba(255,255,255,.45)}
 .sb-status{width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:auto;flex-shrink:0}
@@ -62,7 +223,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
 .sb-item:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.9)}
 .sb-item.active{background:rgba(255,201,60,.1);color:var(--yellow);border-right-color:var(--yellow)}
 .sb-item .si-icon{font-size:1rem;flex-shrink:0;width:20px;text-align:center}
-.sb-badge{background:var(--red);color:white;font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:10px;margin-right:auto}
+.sb-badge{background:var(--red);color:white;font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:6px;margin-right:auto}
 .sb-bottom{padding:14px 18px;border-top:1px solid rgba(255,255,255,.07)}
 .sb-logout{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.45);font-size:.78rem;cursor:pointer;transition:.2s}
 .sb-logout:hover{color:var(--red)}
@@ -70,13 +231,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
 /* TOP BAR */
 .topbar{background:white;border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
 .tb-title{font-size:1rem;font-weight:700;color:var(--navy);flex:1}
-.tb-search{flex:1;max-width:300px;border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-size:.82rem;font-family:inherit;outline:none;transition:.2s;display:flex;align-items:center;gap:8px}
+.tb-search{flex:1;max-width:300px;border:1.5px solid var(--border);border-radius:6px;padding:8px 14px;font-size:.82rem;font-family:inherit;outline:none;transition:.2s;display:flex;align-items:center;gap:8px}
 .tb-search input{border:none;outline:none;font-family:inherit;font-size:.82rem;width:100%;background:transparent}
-.tb-btn{width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:.2s;position:relative}
+.tb-btn{width:36px;height:36px;border-radius:4px;border:1px solid var(--border);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:.2s;position:relative}
 .tb-btn:hover{background:var(--light)}
 .notif-dot{position:absolute;top:6px;left:6px;width:8px;height:8px;background:var(--red);border-radius:50%;border:2px solid white}
 .tb-user{display:flex;align-items:center;gap:8px;cursor:pointer}
-.tb-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),#f0a500);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--navy);font-size:.85rem}
+.tb-avatar{width:34px;height:34px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--navy);font-size:.85rem}
 .tb-uname{font-size:.82rem;font-weight:700;color:var(--navy)}
 .tb-urole{font-size:.65rem;color:var(--gray)}
 
@@ -86,29 +247,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
 .page-view.active{display:block}
 
 /* ══ DASHBOARD ══ */
-.welcome-banner{background:linear-gradient(135deg,var(--navy-d),var(--navy));border-radius:18px;padding:24px 28px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+.welcome-banner{background:var(--navy-d);border-radius:6px;padding:24px 28px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
 .wb-bg{position:absolute;left:-30px;top:-30px;width:180px;height:180px;border-radius:50%;border:30px solid rgba(255,201,60,.07);pointer-events:none}
 .wb-text h2{font-size:1.3rem;color:white;font-weight:700;margin-bottom:4px}
 .wb-text p{font-size:.8rem;color:rgba(255,255,255,.6)}
 .wb-time{text-align:center}
-.wb-clock{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:2rem;color:var(--yellow);letter-spacing:2px}
+.wb-clock{font-family:var(--f-body);font-size:2rem;color:var(--yellow);letter-spacing:2px}
 .wb-date{font-size:.72rem;color:rgba(255,255,255,.5);margin-top:4px}
 
 /* KPI Cards */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
-.kpi-card{background:white;border-radius:14px;padding:18px;border:1.5px solid var(--border);display:flex;align-items:center;gap:14px;transition:.2s;cursor:pointer}
+.kpi-card{background:white;border-radius:6px;padding:18px;border:1.5px solid var(--border);display:flex;align-items:center;gap:14px;transition:.2s;cursor:pointer}
 .kpi-card:hover{border-color:var(--navy-l);box-shadow:0 4px 16px rgba(46,44,120,.08);transform:translateY(-2px)}
-.kpi-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.kpi-icon{width:46px;height:46px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
 .kpi-info{}
-.kpi-val{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.6rem;color:var(--navy);line-height:1}
+.kpi-val{font-family:var(--f-body);font-size:1.6rem;color:var(--navy);line-height:1}
 .kpi-label{font-size:.7rem;color:var(--gray);margin-top:2px}
 .kpi-change{font-size:.65rem;margin-top:4px;font-weight:600}
 .up{color:var(--green)}.down{color:var(--red)}
 
 /* Quick Actions */
 .quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
-.qa-card{background:white;border-radius:14px;padding:18px;text-align:center;border:1.5px solid var(--border);cursor:pointer;transition:.25s}
-.qa-card:hover{border-color:var(--yellow);box-shadow:0 6px 20px rgba(255,201,60,.15);transform:translateY(-3px)}
+.qa-card{background:white;border-radius:6px;padding:18px;text-align:center;border:1.5px solid var(--border);cursor:pointer;transition:.25s}
+.qa-card:hover{border-color:var(--yellow);box-shadow:none;transform:translateY(-3px)}
 .qa-card:hover .qa-icon{transform:scale(1.15)}
 .qa-icon{font-size:2.2rem;margin-bottom:8px;transition:.2s;display:block}
 .qa-name{font-size:.8rem;font-weight:700;color:var(--navy)}
@@ -116,20 +277,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
 
 /* Activity feed */
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.widget{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden}
+.widget{background:white;border-radius:6px;border:1.5px solid var(--border);overflow:hidden}
 .widget-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .widget-title{font-size:.86rem;font-weight:700;color:var(--navy)}
 .widget-link{font-size:.72rem;color:var(--navy);cursor:pointer;font-weight:600}
 .widget-body{padding:14px 18px}
 .feed-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:.78rem}
 .feed-item:last-child{border:none}
-.feed-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.feed-icon{width:30px;height:30px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
 .feed-text{flex:1;color:var(--dark);line-height:1.55}
 .feed-time{font-size:.65rem;color:var(--gray);flex-shrink:0;margin-top:2px}
 .announcement-item{padding:10px 0;border-bottom:1px dashed var(--border)}
 .announcement-item:last-child{border:none}
-.ann-tag{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:5px}
-.ann-tag.urgent{background:rgba(239,68,68,.1);color:var(--red)}
+.ann-tag{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:6px;display:inline-block;margin-bottom:5px}
+.ann-tag.urgent{background:rgba(194,53,46,.1);color:var(--red)}
 .ann-tag.info{background:rgba(46,44,120,.08);color:var(--navy)}
 .ann-tag.event{background:rgba(255,201,60,.15);color:#92400E}
 .ann-title{font-size:.8rem;font-weight:700;color:var(--dark);margin-bottom:3px}
@@ -138,13 +299,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
 /* ══ LEAVE REQUEST ══ */
 .leave-layout{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
 .leave-types{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
-.ltype{border:2px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;transition:.2s;background:white}
+.ltype{border:2px solid var(--border);border-radius:6px;padding:14px 10px;text-align:center;cursor:pointer;transition:.2s;background:white}
 .ltype:hover{border-color:var(--navy-l);transform:translateY(-2px)}
 .ltype.sel{border-color:var(--yellow);background:rgba(255,201,60,.05)}
 .lt-icon{font-size:1.8rem;margin-bottom:6px}
 .lt-name{font-size:.76rem;font-weight:700;color:var(--navy);margin-bottom:3px}
 .lt-balance{font-size:.68rem;color:var(--green);font-weight:600}
-.fcard{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:14px}
+.fcard{background:white;border-radius:6px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:14px}
 .fcard-head{background:var(--light);padding:12px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:.84rem;color:var(--navy);display:flex;align-items:center;gap:7px}
 .fcard-body{padding:16px 18px}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -153,46 +314,46 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
 .f{display:flex;flex-direction:column;gap:4px}
 .f.span2{grid-column:span 2}
 .f label{font-size:.7rem;font-weight:700;color:var(--gray)}
-.f input,.f select,.f textarea{border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:.83rem;font-family:inherit;outline:none;transition:.2s;width:100%}
+.f input,.f select,.f textarea{border:1.5px solid var(--border);border-radius:4px;padding:10px 12px;font-size:.83rem;font-family:inherit;outline:none;transition:.2s;width:100%}
 .f input:focus,.f select:focus,.f textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,44,120,.07)}
 .f textarea{resize:vertical;min-height:70px}
-.leave-balance-card{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;position:sticky;top:72px}
+.leave-balance-card{background:white;border-radius:6px;border:1.5px solid var(--border);overflow:hidden;position:sticky;top:72px}
 .lbc-head{background:var(--navy);color:white;padding:14px 18px;font-size:.86rem;font-weight:700}
 .lbc-body{padding:16px}
 .lb-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border)}
 .lb-item:last-child{border:none}
 .lb-type{font-size:.78rem;color:var(--dark);display:flex;align-items:center;gap:6px}
-.lb-days{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.2rem;color:var(--navy)}
+.lb-days{font-family:var(--f-body);font-size:1.2rem;color:var(--navy)}
 .lb-sub{font-size:.62rem;color:var(--gray)}
-.bar-wrap{height:5px;background:var(--border);border-radius:10px;margin-top:4px;overflow:hidden}
-.bar-fill{height:100%;border-radius:10px}
-.btn-submit-leave{width:100%;background:var(--yellow);color:var(--navy);border:none;border-radius:12px;padding:13px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
-.btn-submit-leave:hover{background:#ffd700;box-shadow:0 6px 20px rgba(255,201,60,.35);transform:translateY(-1px)}
+.bar-wrap{height:5px;background:var(--border);border-radius:6px;margin-top:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px}
+.btn-submit-leave{width:100%;background:var(--yellow);color:var(--navy);border:none;border-radius:6px;padding:13px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+.btn-submit-leave:hover{background:#ffd700;box-shadow:none;transform:translateY(-1px)}
 
 /* ══ REQUESTS TABLE ══ */
 .req-toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.req-filter{border:1.5px solid var(--border);border-radius:20px;padding:7px 16px;font-size:.76rem;font-weight:600;cursor:pointer;background:white;color:var(--gray);font-family:inherit;transition:.2s}
+.req-filter{border:1.5px solid var(--border);border-radius:8px;padding:7px 16px;font-size:.76rem;font-weight:600;cursor:pointer;background:white;color:var(--gray);font-family:inherit;transition:.2s}
 .req-filter.active,.req-filter:hover{background:var(--navy);color:var(--yellow);border-color:var(--navy)}
-.requests-table{width:100%;border-collapse:collapse;font-size:.82rem;background:white;border-radius:14px;overflow:hidden;border:1.5px solid var(--border)}
+.requests-table{width:100%;border-collapse:collapse;font-size:.82rem;background:white;border-radius:6px;overflow:hidden;border:1.5px solid var(--border)}
 .requests-table th{background:var(--navy);color:var(--yellow);padding:12px 16px;text-align:right;font-weight:700}
 .requests-table td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
 .requests-table tr:last-child td{border:none}
 .requests-table tr:hover td{background:#f9fafb}
-.status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700}
-.s-pending{background:rgba(245,158,11,.1);color:var(--orange)}
-.s-approved{background:rgba(16,185,129,.1);color:var(--green)}
-.s-rejected{background:rgba(239,68,68,.1);color:var(--red)}
-.s-processing{background:rgba(124,58,237,.1);color:var(--purple)}
-.req-action{color:var(--navy);background:none;border:none;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit;transition:.2s;padding:4px 10px;border-radius:6px}
+.status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:700}
+.s-pending{background:rgba(199,122,18,.1);color:var(--orange)}
+.s-approved{background:rgba(30,127,85,.1);color:var(--green)}
+.s-rejected{background:rgba(194,53,46,.1);color:var(--red)}
+.s-processing{background:rgba(75,73,166,.1);color:var(--purple)}
+.req-action{color:var(--navy);background:none;border:none;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit;transition:.2s;padding:4px 10px;border-radius:4px}
 .req-action:hover{background:var(--light)}
 
 /* ══ PAYSLIP ══ */
 .payslip-selector{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
-.ps-month{border:1.5px solid var(--border);border-radius:20px;padding:7px 18px;font-size:.78rem;font-weight:600;cursor:pointer;background:white;color:var(--gray);font-family:inherit;transition:.2s}
+.ps-month{border:1.5px solid var(--border);border-radius:8px;padding:7px 18px;font-size:.78rem;font-weight:600;cursor:pointer;background:white;color:var(--gray);font-family:inherit;transition:.2s}
 .ps-month.active{background:var(--navy);color:var(--yellow);border-color:var(--navy)}
-.payslip-card{background:white;border-radius:16px;border:1.5px solid var(--border);overflow:hidden;max-width:680px}
-.ps-header{background:linear-gradient(135deg,var(--navy-d),var(--navy));padding:24px 28px;color:white;display:flex;justify-content:space-between;align-items:flex-start}
-.ps-company{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--yellow);margin-bottom:4px}
+.payslip-card{background:white;border-radius:6px;border:1.5px solid var(--border);overflow:hidden;max-width:680px}
+.ps-header{background:var(--navy-d);padding:24px 28px;color:white;display:flex;justify-content:space-between;align-items:flex-start}
+.ps-company{font-family:var(--f-body);font-size:1.1rem;letter-spacing:2px;color:var(--yellow);margin-bottom:4px}
 .ps-doc{font-size:.72rem;color:rgba(255,255,255,.5)}
 .ps-period{text-align:left;font-size:.78rem;color:rgba(255,255,255,.7)}
 .ps-period strong{display:block;font-size:1rem;color:white;font-weight:700}
@@ -206,18 +367,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
 .ps-row span{color:var(--gray)}
 .ps-row strong{color:var(--dark)}
 .ps-total-row{display:flex;justify-content:space-between;padding:12px 0;font-weight:700;font-size:.95rem;color:var(--navy);border-top:2px solid var(--navy)}
-.ps-net{background:linear-gradient(135deg,var(--navy),var(--navy-l));border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-top:16px}
+.ps-net{background:var(--navy);border-radius:6px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-top:16px}
 .ps-net-label{color:rgba(255,255,255,.7);font-size:.82rem}
-.ps-net-amount{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:2rem;color:var(--yellow);letter-spacing:1px}
-.btn-download{display:flex;align-items:center;gap:8px;background:var(--light);border:1.5px solid var(--border);border-radius:10px;padding:9px 18px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;color:var(--navy);margin-top:14px}
+.ps-net-amount{font-family:var(--f-body);font-size:2rem;color:var(--yellow);letter-spacing:1px}
+.btn-download{display:flex;align-items:center;gap:8px;background:var(--light);border:1.5px solid var(--border);border-radius:6px;padding:9px 18px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;color:var(--navy);margin-top:14px}
 .btn-download:hover{background:var(--navy);color:white;border-color:var(--navy)}
 
 /* ══ NOTIFICATIONS ══ */
 .notif-list{display:flex;flex-direction:column;gap:8px}
-.notif-item{background:white;border-radius:12px;border:1.5px solid var(--border);padding:14px 16px;display:flex;gap:12px;cursor:pointer;transition:.2s}
+.notif-item{background:white;border-radius:6px;border:1.5px solid var(--border);padding:14px 16px;display:flex;gap:12px;cursor:pointer;transition:.2s}
 .notif-item:hover{border-color:var(--navy-l);box-shadow:0 4px 12px rgba(46,44,120,.08)}
 .notif-item.unread{border-right:3px solid var(--yellow);background:rgba(255,201,60,.02)}
-.ni-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.ni-icon{width:38px;height:38px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
 .ni-content{flex:1}
 .ni-title{font-size:.84rem;font-weight:600;color:var(--dark);margin-bottom:3px}
 .ni-item.unread .ni-title{font-weight:700}
@@ -226,31 +387,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
 .ni-dot{width:8px;height:8px;background:var(--yellow);border-radius:50%;flex-shrink:0;margin-top:8px}
 
 /* ══ PROFILE ══ */
-.profile-hero{background:linear-gradient(135deg,var(--navy-d),var(--navy));border-radius:16px;padding:28px;margin-bottom:18px;display:flex;align-items:center;gap:20px}
-.ph-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),#f0a500);display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.8rem;color:var(--navy);flex-shrink:0}
+.profile-hero{background:var(--navy-d);border-radius:6px;padding:28px;margin-bottom:18px;display:flex;align-items:center;gap:20px}
+.ph-avatar{width:72px;height:72px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-family:var(--f-body);font-size:1.8rem;color:var(--navy);flex-shrink:0}
 .ph-info h2{color:white;font-size:1.2rem;font-weight:700;margin-bottom:4px}
 .ph-info p{color:rgba(255,255,255,.6);font-size:.8rem;margin-bottom:8px}
 .ph-badges{display:flex;gap:8px;flex-wrap:wrap}
-.ph-badge{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);font-size:.68rem;padding:3px 10px;border-radius:20px;font-weight:600}
+.ph-badge{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);font-size:.68rem;padding:3px 10px;border-radius:8px;font-weight:600}
 .profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 
 /* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 .modal-overlay.show{display:flex}
-.modal{background:white;border-radius:20px;width:90%;max-width:460px;overflow:hidden;animation:popIn .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 30px 80px rgba(0,0,0,.3)}
+.modal{background:white;border-radius:8px;width:90%;max-width:460px;overflow:hidden;animation:popIn .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 30px 80px rgba(0,0,0,.3)}
 @keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
-.modal-head{background:linear-gradient(135deg,var(--navy-d),var(--navy));color:white;padding:18px 22px;display:flex;align-items:center;justify-content:space-between}
+.modal-head{background:var(--navy-d);color:white;padding:18px 22px;display:flex;align-items:center;justify-content:space-between}
 .modal-head h3{font-size:.92rem;font-weight:700}
-.mclose{background:rgba(255,255,255,.1);border:none;color:white;width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center}
+.mclose{background:rgba(255,255,255,.1);border:none;color:white;width:28px;height:28px;border-radius:4px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center}
 .modal-body{padding:20px}
 .modal-success{text-align:center;padding:28px}
 .ms-icon{font-size:4rem;display:block;margin-bottom:12px;animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
 @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
-.ms-ref{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.4rem;color:var(--navy);letter-spacing:2px;margin:12px 0 4px}
+.ms-ref{font-family:var(--f-body);font-size:1.4rem;color:var(--navy);letter-spacing:2px;margin:12px 0 4px}
 .ms-sub{font-size:.78rem;color:var(--gray)}
 
 /* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--navy);color:white;padding:11px 22px;border-radius:12px;font-size:.83rem;font-weight:600;z-index:600;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 28px rgba(0,0,0,.25);pointer-events:none;white-space:nowrap}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--navy);color:white;padding:11px 22px;border-radius:6px;font-size:.83rem;font-weight:600;z-index:600;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 28px rgba(0,0,0,.25);pointer-events:none;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .spinner{width:18px;height:18px;border:2.5px solid rgba(46,44,120,.2);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -384,11 +545,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
       <!-- KPIs -->
       <div class="kpi-grid">
         <div class="kpi-card" onclick="goTo('leave',null)">
-          <div class="kpi-icon" style="background:rgba(16,185,129,.1)">🏖️</div>
+          <div class="kpi-icon" style="background:rgba(30,127,85,.1)">🏖️</div>
           <div class="kpi-info"><div class="kpi-val">18</div><div class="kpi-label">أيام إجازة متبقية</div><div class="kpi-change up">↑ استخدمت 3 أيام</div></div>
         </div>
         <div class="kpi-card" onclick="goTo('myrequests',null)">
-          <div class="kpi-icon" style="background:rgba(245,158,11,.1)">📋</div>
+          <div class="kpi-icon" style="background:rgba(199,122,18,.1)">📋</div>
           <div class="kpi-info"><div class="kpi-val">2</div><div class="kpi-label">طلبات قيد المراجعة</div><div class="kpi-change" style="color:var(--orange)">⏳ بانتظار الموافقة</div></div>
         </div>
         <div class="kpi-card" onclick="goTo('payslip',null)">
@@ -396,7 +557,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
           <div class="kpi-info"><div class="kpi-val">850</div><div class="kpi-label">الراتب الصافي (د.ك)</div><div class="kpi-change up">صُرف 1 أبريل ✓</div></div>
         </div>
         <div class="kpi-card" onclick="goTo('notifications',null)">
-          <div class="kpi-icon" style="background:rgba(239,68,68,.1)">🔔</div>
+          <div class="kpi-icon" style="background:rgba(194,53,46,.1)">🔔</div>
           <div class="kpi-info"><div class="kpi-val">4</div><div class="kpi-label">إشعارات جديدة</div><div class="kpi-change down">منها 1 عاجلة</div></div>
         </div>
       </div>
@@ -415,11 +576,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
         <div class="widget">
           <div class="widget-head"><div class="widget-title">🕐 آخر النشاطات</div><div class="widget-link" onclick="goTo('myrequests',null)">عرض الكل</div></div>
           <div class="widget-body">
-            <div class="feed-item"><div class="feed-icon" style="background:rgba(16,185,129,.1)">✅</div><div class="feed-text">تمت الموافقة على طلب الإجازة السنوية (3 أيام)</div><div class="feed-time">اليوم</div></div>
-            <div class="feed-item"><div class="feed-icon" style="background:rgba(245,158,11,.1)">⏳</div><div class="feed-text">طلب صرف فاتورة قيد المراجعة — 45 د.ك</div><div class="feed-time">أمس</div></div>
+            <div class="feed-item"><div class="feed-icon" style="background:rgba(30,127,85,.1)">✅</div><div class="feed-text">تمت الموافقة على طلب الإجازة السنوية (3 أيام)</div><div class="feed-time">اليوم</div></div>
+            <div class="feed-item"><div class="feed-icon" style="background:rgba(199,122,18,.1)">⏳</div><div class="feed-text">طلب صرف فاتورة قيد المراجعة — 45 د.ك</div><div class="feed-time">أمس</div></div>
             <div class="feed-item"><div class="feed-icon" style="background:rgba(46,44,120,.08)">📦</div><div class="feed-text">تم استلام طلب المستلزمات المكتبية</div><div class="feed-time">8 أبريل</div></div>
             <div class="feed-item"><div class="feed-icon" style="background:rgba(255,201,60,.15)">🎉</div><div class="feed-text">تم صرف راتب شهر أبريل 2026</div><div class="feed-time">1 أبريل</div></div>
-            <div class="feed-item"><div class="feed-icon" style="background:rgba(124,58,237,.1)">📢</div><div class="feed-text">مؤتمر UITP الدولي — الكويت 2025</div><div class="feed-time">مارس</div></div>
+            <div class="feed-item"><div class="feed-icon" style="background:rgba(75,73,166,.1)">📢</div><div class="feed-text">مؤتمر UITP الدولي — الكويت 2025</div><div class="feed-time">مارس</div></div>
           </div>
         </div>
         <div class="widget">
@@ -624,12 +785,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
         <button style="background:none;border:none;color:var(--navy);font-size:.78rem;cursor:pointer;font-weight:600;font-family:inherit" onclick="showToast('✅ تم تمييز الكل كمقروء')">تمييز الكل كمقروء</button>
       </div>
       <div class="notif-list">
-        <div class="notif-item unread"><div class="ni-dot"></div><div class="ni-icon" style="background:rgba(16,185,129,.1)">✅</div><div class="ni-content"><div class="ni-title">تمت الموافقة على إجازتك</div><div class="ni-body">تمت الموافقة على طلب الإجازة السنوية من 20-23 أبريل 2026 من قِبل مديرك المباشر.</div></div><div class="ni-time">منذ ساعة</div></div>
+        <div class="notif-item unread"><div class="ni-dot"></div><div class="ni-icon" style="background:rgba(30,127,85,.1)">✅</div><div class="ni-content"><div class="ni-title">تمت الموافقة على إجازتك</div><div class="ni-body">تمت الموافقة على طلب الإجازة السنوية من 20-23 أبريل 2026 من قِبل مديرك المباشر.</div></div><div class="ni-time">منذ ساعة</div></div>
         <div class="notif-item unread"><div class="ni-dot"></div><div class="ni-icon" style="background:rgba(255,201,60,.15)">💵</div><div class="ni-content"><div class="ni-title">تم صرف راتب أبريل</div><div class="ni-body">تم تحويل راتبك الشهري (850.000 د.ك) إلى حسابك البنكي بتاريخ 1 أبريل 2026.</div></div><div class="ni-time">منذ 10 أيام</div></div>
-        <div class="notif-item unread"><div class="ni-dot"></div><div class="ni-icon" style="background:rgba(239,68,68,.1)">🔴</div><div class="ni-content"><div class="ni-title">تحديث عاجل — سياسة الحضور</div><div class="ni-body">يرجى الاطلاع على التحديثات الجديدة لسياسة الحضور والانصراف لعام 2026. آخر موعد للإقرار: 15 أبريل.</div></div><div class="ni-time">منذ يوم</div></div>
-        <div class="notif-item unread"><div class="ni-dot"></div><div class="ni-icon" style="background:rgba(124,58,237,.1)">🎉</div><div class="ni-content"><div class="ni-title">دعوة: مؤتمر UITP الدولي</div><div class="ni-body">تشرفنا بدعوتك للمشاركة في مؤتمر UITP الدولي الذي تستضيفه KPTC. التفاصيل في المرفق.</div></div><div class="ni-time">منذ 3 أيام</div></div>
+        <div class="notif-item unread"><div class="ni-dot"></div><div class="ni-icon" style="background:rgba(194,53,46,.1)">🔴</div><div class="ni-content"><div class="ni-title">تحديث عاجل — سياسة الحضور</div><div class="ni-body">يرجى الاطلاع على التحديثات الجديدة لسياسة الحضور والانصراف لعام 2026. آخر موعد للإقرار: 15 أبريل.</div></div><div class="ni-time">منذ يوم</div></div>
+        <div class="notif-item unread"><div class="ni-dot"></div><div class="ni-icon" style="background:rgba(75,73,166,.1)">🎉</div><div class="ni-content"><div class="ni-title">دعوة: مؤتمر UITP الدولي</div><div class="ni-body">تشرفنا بدعوتك للمشاركة في مؤتمر UITP الدولي الذي تستضيفه KPTC. التفاصيل في المرفق.</div></div><div class="ni-time">منذ 3 أيام</div></div>
         <div class="notif-item"><div class="ni-icon" style="background:rgba(46,44,120,.08)">📦</div><div class="ni-content"><div class="ni-title">طلب المستلزمات جاهز للاستلام</div><div class="ni-body">طلب المستلزمات رقم SUP-2026-018 جاهز للاستلام من مستودع المقر الرئيسي.</div></div><div class="ni-time">منذ 5 أيام</div></div>
-        <div class="notif-item"><div class="ni-icon" style="background:rgba(16,185,129,.1)">🏆</div><div class="ni-content"><div class="ni-title">تكريم: موظف الشهر</div><div class="ni-body">يسعدنا إبلاغك بترشحك لجائزة موظف الشهر لمارس 2026 من قبل مديرك المباشر.</div></div><div class="ni-time">منذ أسبوع</div></div>
+        <div class="notif-item"><div class="ni-icon" style="background:rgba(30,127,85,.1)">🏆</div><div class="ni-content"><div class="ni-title">تكريم: موظف الشهر</div><div class="ni-body">يسعدنا إبلاغك بترشحك لجائزة موظف الشهر لمارس 2026 من قبل مديرك المباشر.</div></div><div class="ni-time">منذ أسبوع</div></div>
       </div>
     </div>
 
@@ -657,12 +818,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
     <!-- ══ DIRECTORY ══ -->
     <div class="page-view" id="view-directory">
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
-        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:linear-gradient(135deg,var(--yellow),#f0a500);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--navy);margin:0 auto 10px">أ</div><div style="font-weight:700;color:var(--navy)">أحمد القطان</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مدير التسويق والعلاقات العامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-4821</div></div>
-        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:linear-gradient(135deg,#a0c4ff,#7cb9ff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">ط</div><div style="font-weight:700;color:var(--navy)">طلال الهاجري</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مكتب الدراسات الاستراتيجية</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-3142</div></div>
-        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:linear-gradient(135deg,#c4a0ff,#a07cff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">أ</div><div style="font-weight:700;color:var(--navy)">أوراد الياسين</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مشرفة التسويق والعلاقات العامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2891</div></div>
-        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:linear-gradient(135deg,#a0ffd6,#7cffb9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--dark);margin:0 auto 10px">ع</div><div style="font-weight:700;color:var(--navy)">عبدالله صالح</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مهندس أول</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-1756</div></div>
-        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:linear-gradient(135deg,#ffd6a0,#ffb97c);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--dark);margin:0 auto 10px">إ</div><div style="font-weight:700;color:var(--navy)">إبراهيم الضعيان</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">موظف علاقات عامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2044</div></div>
-        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:linear-gradient(135deg,#ffa0c4,#ff7cb9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">ع</div><div style="font-weight:700;color:var(--navy)">عبدالله الزبن</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">موظف تسويق</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2201</div></div>
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--navy);margin:0 auto 10px">أ</div><div style="font-weight:700;color:var(--navy)">أحمد القطان</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مدير التسويق والعلاقات العامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-4821</div></div>
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#a0c4ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">ط</div><div style="font-weight:700;color:var(--navy)">طلال الهاجري</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مكتب الدراسات الاستراتيجية</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-3142</div></div>
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#c4a0ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">أ</div><div style="font-weight:700;color:var(--navy)">أوراد الياسين</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مشرفة التسويق والعلاقات العامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2891</div></div>
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#a0ffd6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--dark);margin:0 auto 10px">ع</div><div style="font-weight:700;color:var(--navy)">عبدالله صالح</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مهندس أول</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-1756</div></div>
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#ffd6a0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--dark);margin:0 auto 10px">إ</div><div style="font-weight:700;color:var(--navy)">إبراهيم الضعيان</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">موظف علاقات عامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2044</div></div>
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#ffa0c4;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">ع</div><div style="font-weight:700;color:var(--navy)">عبدالله الزبن</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">موظف تسويق</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2201</div></div>
       </div>
     </div>
 
@@ -670,8 +831,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe
     <div class="page-view" id="view-policies">
       <div style="display:flex;flex-direction:column;gap:10px">
         <div class="notif-item" onclick="showToast('📖 فتح سياسة الإجازات')"><div class="ni-icon" style="background:rgba(46,44,120,.08)">📅</div><div class="ni-content"><div class="ni-title">سياسة الإجازات 2026</div><div class="ni-body">آخر تحديث: أبريل 2026 — يشمل أنواع الإجازات والرصيد السنوي</div></div><div class="ni-time">PDF ↗</div></div>
-        <div class="notif-item" onclick="showToast('📖 فتح سياسة الحضور')"><div class="ni-icon" style="background:rgba(245,158,11,.1)">🕐</div><div class="ni-content"><div class="ni-title">سياسة الحضور والانصراف</div><div class="ni-body">تحديث مارس 2026 — ساعات العمل، الدوام المرن، التأخير</div></div><div class="ni-time">PDF ↗</div></div>
-        <div class="notif-item" onclick="showToast('📖 فتح قواعد السلوك')"><div class="ni-icon" style="background:rgba(16,185,129,.1)">✅</div><div class="ni-content"><div class="ni-title">قواعد السلوك الوظيفي</div><div class="ni-body">يناير 2026 — ضوابط التعامل، الزي الرسمي، الخصوصية</div></div><div class="ni-time">PDF ↗</div></div>
+        <div class="notif-item" onclick="showToast('📖 فتح سياسة الحضور')"><div class="ni-icon" style="background:rgba(199,122,18,.1)">🕐</div><div class="ni-content"><div class="ni-title">سياسة الحضور والانصراف</div><div class="ni-body">تحديث مارس 2026 — ساعات العمل، الدوام المرن، التأخير</div></div><div class="ni-time">PDF ↗</div></div>
+        <div class="notif-item" onclick="showToast('📖 فتح قواعد السلوك')"><div class="ni-icon" style="background:rgba(30,127,85,.1)">✅</div><div class="ni-content"><div class="ni-title">قواعد السلوك الوظيفي</div><div class="ni-body">يناير 2026 — ضوابط التعامل، الزي الرسمي، الخصوصية</div></div><div class="ni-time">PDF ↗</div></div>
         <div class="notif-item" onclick="showToast('📖 فتح سياسة المصروفات')"><div class="ni-icon" style="background:rgba(255,201,60,.15)">💰</div><div class="ni-content"><div class="ni-title">سياسة المصروفات والتعويضات</div><div class="ni-body">ديسمبر 2025 — حدود الصرف، إجراءات المطالبة</div></div><div class="ni-time">PDF ↗</div></div>
       </div>
     </div>
@@ -912,5 +1073,216 @@ function showToast(msg){
 // init
 renderRequests('all');
 </script>
-<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script><!--kptc:core-js--><script id="kptc-core-js">
+/* KPTC design-system runtime.
+   1) Replaces emoji pictographs with one consistent line-icon set (presentation only:
+      no ids, handlers or data are touched; form values/options are left as data).
+   2) Adds the governorate route strip to the public footer.
+   3) When a page is opened on its own (outside the gateway), internal links still work. */
+(function(){
+  if (window.__kptcCore) return; window.__kptcCore = 1;
+
+  var P = {
+    check:'<path d="M20 6 9 17l-5-5"/>',
+    x:'<path d="M18 6 6 18M6 6l12 12"/>',
+    alert:'<path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5M12 17.3v.2"/>',
+    clip:'<rect x="8" y="2.5" width="8" height="4" rx="1"/><path d="M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2M8.5 12h7M8.5 16h5"/>',
+    bus:'<rect x="4" y="3" width="16" height="14.5" rx="2.5"/><path d="M4 10.5h16M8 3v7.5M16 3v7.5M7.5 14h1M15.5 14h1M6.5 17.5V20M17.5 17.5V20"/>',
+    chart:'<path d="M3.5 20.5h17M6.5 20.5V12M11 20.5V5M15.5 20.5v-6M20 20.5V9"/>',
+    money:'<rect x="2.5" y="6" width="19" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.8"/><path d="M6 9.5v5M18 9.5v5"/>',
+    card:'<rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 10h19M6 15h4"/>',
+    wrench:'<path d="M14.7 6.3a4.5 4.5 0 0 0-5.6 5.6L3 18l3 3 6.1-6.1a4.5 4.5 0 0 0 5.6-5.6l-2.7 2.7-2.5-.5-.5-2.5z"/>',
+    download:'<path d="M12 3v12M7 10l5 5 5-5M4 20.5h16"/>',
+    upload:'<path d="M12 20V8M7 13l5-5 5 5M4 3.5h16"/>',
+    phone:'<path d="M21.5 16.6v3a2 2 0 0 1-2.2 2A19.5 19.5 0 0 1 2.4 4.7 2 2 0 0 1 4.4 2.5h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.4 10.3a16 16 0 0 0 5.3 5.3l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+    search:'<circle cx="11" cy="11" r="6.5"/><path d="m20.5 20.5-4.8-4.8"/>',
+    pin:'<path d="M12 21.5s-7-6.3-7-11.8a7 7 0 0 1 14 0c0 5.5-7 11.8-7 11.8z"/><circle cx="12" cy="9.6" r="2.5"/>',
+    mail:'<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/>',
+    cal:'<rect x="3" y="4.5" width="18" height="16.5" rx="1.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 17h2M11 17h2"/>',
+    map:'<path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
+    user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M18 13.8a6.5 6.5 0 0 1 3.5 6.2"/>',
+    mobile:'<rect x="6.5" y="2.5" width="11" height="19" rx="2"/><path d="M11 18h2"/>',
+    edit:'<path d="M4 20h4.5L19.5 9 15 4.5 4 15.5z"/><path d="m13 6.5 4.5 4.5"/>',
+    building:'<path d="M4.5 21V4.5A1.5 1.5 0 0 1 6 3h8a1.5 1.5 0 0 1 1.5 1.5V21M15.5 9h3a1.5 1.5 0 0 1 1.5 1.5V21M3 21h18M8 7h4M8 11h4M8 15h4"/>',
+    eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    mega:'<path d="M3.5 10v4a1 1 0 0 0 1 1H7l7 4.5v-15L7 9H4.5a1 1 0 0 0-1 1zM7 15l1 5h2.5M18 8.5a5 5 0 0 1 0 7"/>',
+    doc:'<path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z"/><path d="M14 2.5V8h5.5M8.5 13h7M8.5 17h5"/>',
+    crown:'<path d="M3 7.5 7 12l5-7 5 7 4-4.5-1.8 11H4.8z"/><path d="M5 21h14"/>',
+    refresh:'<path d="M20 11.5A8 8 0 0 0 5.4 7M4 3.5V8h4.5M4 12.5A8 8 0 0 0 18.6 17M20 20.5V16h-4.5"/>',
+    bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.1V16h5v-.1c0-.8.4-1.6 1.1-2.1A6 6 0 0 0 12 3z"/>',
+    bolt:'<path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11H12z"/>',
+    mosque:'<path d="M12 2.5v2M7.5 11.5C7.5 8 12 6.5 12 4.5c0 2 4.5 3.5 4.5 7M6 11.5h12M4 21V9.5M20 21V9.5M3 21h18M6 11.5V21M18 11.5V21M10 21v-3.5a2 2 0 0 1 4 0V21"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>',
+    trend:'<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    timer:'<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 1.5M9 2.5h6"/>',
+    store:'<path d="M4 10.5V21h16V10.5M2.8 10.5 4.5 4h15l1.7 6.5zM9.5 21v-5.5h5V21"/>',
+    chat:'<path d="M20.5 12a8.5 8.5 0 0 1-12.3 7.6L3.5 21l1.4-4.6A8.5 8.5 0 1 1 20.5 12z"/>',
+    bell:'<path d="M6 9a6 6 0 0 1 12 0c0 6.5 2.5 8.5 2.5 8.5h-17S6 15.5 6 9M10 21a2.2 2.2 0 0 0 4 0"/>',
+    home:'<path d="m3 11 9-7.5 9 7.5"/><path d="M5.5 9V21h13V9M10 21v-6h4v6"/>',
+    cpu:'<rect x="5.5" y="5.5" width="13" height="13" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2.5v3M15 2.5v3M9 18.5v3M15 18.5v3M2.5 9h3M2.5 15h3M18.5 9h3M18.5 15h3"/>',
+    truck:'<path d="M2.5 17V6h11v11M13.5 9.5h4L21 13v4h-2"/><circle cx="6.5" cy="17.5" r="2"/><circle cx="16.5" cy="17.5" r="2"/><path d="M8.5 17.5h6"/>',
+    gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+    box:'<path d="M21 7.5 12 3 3 7.5v9L12 21l9-4.5z"/><path d="m3 7.5 9 4.5 9-4.5M12 12v9"/>',
+    lock:'<rect x="4.5" y="10.5" width="15" height="10.5" rx="1.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5M12 14.5v2.5"/>',
+    unlock:'<rect x="4.5" y="10.5" width="15" height="10.5" rx="1.5"/><path d="M8 10.5V7a4 4 0 0 1 7.6-1.7M12 14.5v2.5"/>',
+    star:'<path d="m12 3 2.8 5.8 6.2.9-4.5 4.4 1.1 6.2L12 17.4l-5.6 2.9 1.1-6.2L3 9.7l6.2-.9z"/>',
+    save:'<path d="M5 3h11.5L20 6.5V21H5z"/><path d="M8 3v5h7M8 21v-7h8v7"/>',
+    plane:'<path d="M21 3.5 3 10.5l6.5 2.5L12 20l3-6 6-10.5zM9.5 13 21 3.5"/>',
+    bank:'<path d="m3 9.5 9-6 9 6zM5 9.5V18M9.5 9.5V18M14.5 9.5V18M19 9.5V18M3 21h18M4 18h16"/>',
+    trash:'<path d="M4 6.5h16M9.5 6.5V3.5h5v3M6 6.5 7 21h10l1-14.5M10 11v6M14 11v6"/>',
+    ticket:'<path d="M3 6h18v3.5a2.5 2.5 0 0 0 0 5V18H3v-3.5a2.5 2.5 0 0 0 0-5z"/><path d="M14.5 6v12" stroke-dasharray="2 2"/>',
+    siren:'<path d="M7 18v-5.5a5 5 0 0 1 10 0V18M4.5 21h15v-3h-15zM12 2.5v2M4.5 6.5l1.5 1M19.5 6.5 18 7.5"/>',
+    globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    seat:'<path d="M7 3.5v9.5h9.5M7 13l-1.5 7.5M16.5 13l1.5 7.5M7 17h10"/>',
+    target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+    food:'<path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3M17 21V3c-2.2 1-3.5 4-3.5 8.5H17"/>',
+    shield:'<path d="M12 3 4.5 6v5.5c0 5 3.3 8.3 7.5 9.5 4.2-1.2 7.5-4.5 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/>',
+    crane:'<path d="M5 21V5.5l10-3V21M5 5.5h15V9M18 9v4.5M3 21h14M8.5 9h3M8.5 13h3"/>',
+    brush:'<path d="M14 4 20 10l-9.5 9.5H4.5v-6z"/><path d="m12 6 6 6"/>',
+    car:'<path d="M4.5 16.5h15V12l-2-5.5h-11L4.5 12zM3 12h18"/><circle cx="8" cy="16.5" r="1.8"/><circle cx="16" cy="16.5" r="1.8"/>',
+    book:'<path d="M3.5 4.5h6a2.5 2.5 0 0 1 2.5 2.5v13.5a2 2 0 0 0-2-2H3.5zM20.5 4.5h-6A2.5 2.5 0 0 0 12 7v13.5a2 2 0 0 1 2-2h6.5z"/>',
+    hourglass:'<path d="M6 2.5h12M6 21.5h12M7 2.5c0 5 10 5.5 10 9.5s-10 4.5-10 9.5M17 2.5c0 5-10 5.5-10 9.5s10 4.5 10 9.5"/>',
+    bag:'<path d="M5 8h14l-1.2 13H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
+    down:'<path d="M12 4v16M6 14l6 6 6-6"/>',
+    up:'<path d="M12 20V4M6 10l6-6 6 6"/>',
+    stop:'<path d="M12 21.5V10M7.5 2.5h9v7.5h-9zM9 21.5h6M10 5.5h4"/>',
+    folder:'<path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.2l2 2h8.8A1.5 1.5 0 0 1 21 8.5v10a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/>',
+    medical:'<path d="M4.5 21V5h15v16M3 21h18M12 8.5v6M9 11.5h6"/>',
+    medal:'<circle cx="12" cy="15" r="5.5"/><path d="M8.5 10.5 6 3h4l2 5 2-5h4l-2.5 7.5M12 12.8v4.4"/>',
+    school:'<path d="M3 21V10l9-6 9 6v11M3 21h18M9.5 21v-5h5v5M12 4v3"/>',
+    tire:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 3v5.5M12 15.5V21M3 12h5.5M15.5 12H21"/>',
+    receipt:'<path d="M5.5 2.5h13v19l-2.6-1.8-2.2 1.8-2.2-1.8-2.2 1.8-2.2-1.8-1.6 1.8z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+    key:'<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.8 12.2 9.7-9.7M17 6l3 3M14.5 8.5l2 2"/>',
+    flag:'<path d="M5 21.5V3.5M5 4h13l-2.5 4.5L18 13H5"/>',
+    camera:'<path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13.5" r="3.8"/>',
+    attach:'<path d="m20.5 11.5-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/>',
+    coffee:'<path d="M4 8.5h13V14a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10.5h1.5a2.5 2.5 0 0 1 0 5H17M8 2.5v3M12 2.5v3"/>',
+    bed:'<path d="M3 20V5.5M3 14.5h18V20M3 10.5h6.5v4M21 14.5v-1.5a3.5 3.5 0 0 0-3.5-3.5h-8"/>',
+    cart:'<circle cx="9" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/><path d="M2.5 3.5h3l2.3 11.5h11l2-8H6.3"/>',
+    battery:'<rect x="2.5" y="7" width="16.5" height="10" rx="1.5"/><path d="M21.5 10.5v3M6 10v4M9.5 10v4"/>',
+    moon:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>',
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+    door:'<path d="M5.5 21V3h11v18M3 21h16.5M13 12.5v.5"/>',
+    snow:'<path d="M12 2.5v19M3.8 7.2l16.4 9.6M20.2 7.2 3.8 16.8M9.5 4.5 12 7l2.5-2.5M9.5 19.5 12 17l2.5 2.5"/>',
+    idcard:'<rect x="2.5" y="5" width="19" height="14" rx="1.5"/><circle cx="8.5" cy="11" r="2"/><path d="M5.5 16a3 3 0 0 1 6 0M14 10h4.5M14 13.5h3"/>',
+    signal:'<path d="M4.5 11.5a11 11 0 0 1 15 0M7.8 14.8a6.4 6.4 0 0 1 8.4 0M12 18.5v.3"/>',
+    screen:'<rect x="2.5" y="4" width="19" height="12.5" rx="1.5"/><path d="M8 20.5h8M12 16.5v4"/>',
+    fuel:'<path d="M4 21V4.5A1.5 1.5 0 0 1 5.5 3h6A1.5 1.5 0 0 1 13 4.5V21M3 21h11.5M4 9.5h9M13 10.5h2a2 2 0 0 1 2 2V16a1.5 1.5 0 0 0 3 0V8l-3-3"/>',
+    link:'<path d="M10 14a4.2 4.2 0 0 0 6 0l3-3a4.2 4.2 0 0 0-6-6l-1 1M14 10a4.2 4.2 0 0 0-6 0l-3 3a4.2 4.2 0 0 0 6 6l1-1"/>',
+    pause:'<path d="M9 5v14M15 5v14"/>',
+    glasses:'<circle cx="6.5" cy="15" r="3.5"/><circle cx="17.5" cy="15" r="3.5"/><path d="M10 15h4M3 15l1.5-7M21 15l-1.5-7"/>',
+    drop:'<path d="M12 3s6.5 7 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10 12 3 12 3z"/>',
+    compass:'<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
+    image:'<rect x="3" y="4" width="18" height="16" rx="1.5"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9.5 9"/>',
+    gift:'<rect x="3" y="8" width="18" height="4.5"/><path d="M5 12.5V21h14v-8.5M12 8v13M12 8C10 4 6.5 4 6.5 6.3S10 8 12 8c2 0 5.5 0 5.5-1.7S14 4 12 8z"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>',
+    tag:'<path d="M3 3h8.5l9.5 9.5-8.5 8.5L3 11.5z"/><circle cx="7.5" cy="7.5" r="1.4"/>',
+    diamond:'<path d="M6.5 3.5h11l3.5 5.5-9 12-9-12z"/><path d="M3 9h18M9.5 3.5 12 9l2.5-5.5M12 9v12"/>',
+    help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 0 1 4.8.8c0 1.7-2.4 2.2-2.4 4M12 17v.3"/>',
+    send:'<path d="M20.5 3.5 3.5 10.5l7 3 3 7z"/><path d="m10.5 13.5 4-4"/>',
+    flagkw:'<path d="M5 21.5V3.5M5 4h14v9H5"/><path d="M5 4l3.5 4.5L5 13"/>',
+    square:'<rect x="4.5" y="4.5" width="15" height="15" rx="1"/>'
+  };
+
+  // emoji → icon name ; null = decorative, removed ; "dot:x" = coloured status dot
+  var E = {
+    '✅':'check|ok','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
+    '💳':'card','🔧':'wrench','🔩':'wrench','🛠':'wrench','📥':'download','📤':'upload','📞':'phone','🔍':'search','🔎':'search','📍':'pin','📌':'pin',
+    '📧':'mail','📬':'mail','📭':'mail','📅':'cal','📆':'cal','🗺':'map','👤':'user','🧑':'user','👔':'user','👷':'user','👶':'user','📱':'mobile','🍎':'mobile',
+    '✏':'edit','📝':'doc','📄':'doc','🏢':'building','🏙':'building','🏭':'building','🏨':'building','🏬':'store','👁':'eye','📢':'mega','👑':'crown',
+    '🔄':'refresh','🔁':'refresh','💡':'bulb','⚡':'bolt','🔥':'bolt','🕌':'mosque','☪':'mosque','🕐':'clock','⏰':'clock','📈':'trend','🚀':'trend','⏱':'timer',
+    '🏪':'store','💬':'chat','🔔':'bell','🏠':'home','🧠':'cpu','🤖':'cpu','🚛':'truck','⚙':'gear','📦':'box','🔒':'lock','🔐':'lock','🔓':'unlock',
+    '⭐':'star','🌟':'star','🆕':'star','💾':'save','✈':'plane','🏦':'bank','🏛':'bank','🗑':'trash','🎫':'ticket','🎟':'ticket','🚨':'siren',
+    '🌐':'globe','🌍':'globe','💺':'seat','🪑':'seat','🎯':'target','🍽':'food','🍔':'food','🥧':'food','🥤':'food','🛡':'shield','🏗':'crane','🎨':'brush',
+    '🚗':'car','🚙':'car','🛻':'car','📖':'book','📚':'book','⏳':'hourglass','⌛':'hourglass','🛍':'bag','👜':'bag','🎒':'bag','👛':'bag','⬇':'down','👇':'down',
+    '⬆':'up','🔝':'up','🚉':'stop','🚏':'stop','📁':'folder','🏥':'medical','💊':'medical','🦷':'medical','🏆':'medal','🥇':'medal','🥈':'medal','🥉':'medal',
+    '🏫':'school','🎓':'school','🛞':'tire','🧾':'receipt','🔑':'key','🗝':'key','🏁':'flag','📸':'camera','📷':'camera','🎥':'camera','📎':'attach',
+    '☕':'coffee','🛏':'bed','🛒':'cart','🔋':'battery','🌙':'moon','☀':'sun','🏖':'sun','🚪':'door','❄':'snow','🛂':'idcard','📡':'signal','📶':'signal',
+    '🖥':'screen','💻':'screen','📺':'screen','⛽':'fuel','🛢':'fuel','🔗':'link','⏸':'pause','👓':'glasses','🚿':'drop','🧭':'compass','🖼':'image',
+    '🎁':'gift','➕':'plus','🏷':'tag','💎':'diamond','❓':'help','💥':'alert','📐':'square','🔲':'square','🅿':'square',
+    '🔴':'dot:bad','🟥':'dot:bad','🟡':'dot:warn','🟢':'dot:ok','🟩':'dot:ok','🔵':'dot:info','🟦':'dot:info',
+    '👋':null,'😊':null,'😔':null,'🤔':null,'🎉':null,'✨':null,'💛':null,'🌸':null,'💐':null,'🙏':null,'👆':null,'💪':null,'💨':null
+  };
+  var FLAG = /(?:\uD83C[\uDDE6-\uDDFF]){2}/;
+  var RX = /(?:\uD83C[\uDDE6-\uDDFF]){2}|(?:[⌀-⏿☀-✒✔✖✘-➣➥-➿⬀-⯿]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|\uD83E[\uDD00-\uDEFF])️?/g;
+  var SKIP = {SCRIPT:1,STYLE:1,TEXTAREA:1,OPTION:1,TITLE:1,NOSCRIPT:1,svg:1,SVG:1,CODE:1,PRE:1};
+
+  function icon(ch){
+    var k = FLAG.test(ch) ? 'flagkw' : E[ch.replace('️','')];
+    if (k === null) return null;
+    if (k === undefined) return document.createTextNode(ch);
+    if (k.indexOf('dot:') === 0){ var d=document.createElement('i'); d.className='ki-dot d-'+k.slice(4); d.setAttribute('aria-hidden','true'); return d; }
+    var p = k.split('|'), i = document.createElement('i');
+    i.className = 'ki' + (p[1] ? ' ki-'+p[1] : '');
+    i.setAttribute('aria-hidden','true');
+    i.innerHTML = '<svg viewBox="0 0 24 24">' + (P[p[0]]||P.square) + '</svg>';
+    return i;
+  }
+  function swapText(t){
+    var v = t.nodeValue; RX.lastIndex = 0;
+    if (!v || !RX.test(v)) return;
+    var par = t.parentNode; if (!par || SKIP[par.nodeName] || (par.closest && par.closest('svg,textarea,[contenteditable],.ki'))) return;
+    var f = document.createDocumentFragment(), last = 0; RX.lastIndex = 0; var m;
+    while ((m = RX.exec(v))){
+      if (m.index > last) f.appendChild(document.createTextNode(v.slice(last, m.index)));
+      var n = icon(m[0]);
+      if (n) f.appendChild(n);
+      else if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++;   // eat the trailing space of a removed decoration
+      last = RX.lastIndex;
+    }
+    if (last < v.length) f.appendChild(document.createTextNode(v.slice(last)));
+    par.replaceChild(f, t);
+  }
+  function walk(root){
+    if (root.nodeType === 3) return swapText(root);
+    if (root.nodeType !== 1 || SKIP[root.nodeName]) return;
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), list = [], n;
+    while ((n = w.nextNode())) list.push(n);
+    list.forEach(swapText);
+    // presentation-only attributes
+    root.querySelectorAll && root.querySelectorAll('[placeholder],[title]').forEach(function(el){
+      ['placeholder','title'].forEach(function(a){ var v = el.getAttribute(a); if (v){ RX.lastIndex=0; if (RX.test(v)) el.setAttribute(a, v.replace(RX,'').replace(/^\s+/,'')); } });
+    });
+    root.querySelectorAll && root.querySelectorAll('option').forEach(function(o){ RX.lastIndex=0; if (RX.test(o.text) && !o.hasAttribute('value')) { o.value = o.value; o.text = o.text.replace(RX,'').replace(/^\s+/,''); } });
+  }
+
+  function footerStrip(){
+    var f = document.querySelector('.k2-foot .k2-w, body > footer > .wrap');
+    if (!f || f.querySelector('.kp-strip')) return;
+    var s = document.createElement('div'); s.className = 'kp-strip'; s.setAttribute('aria-hidden','true');
+    ['العاصمة','حولي','الفروانية','مبارك الكبير','الأحمدي','الجهراء'].forEach(function(g){ var e=document.createElement('span'); e.textContent=g; s.appendChild(e); });
+    f.insertBefore(s, f.firstChild);
+  }
+
+  var MAP = {"KPTC_Executive_Landing.html":"exec","KPTC_Home.html":"home","KPTC_Routes.html":"routes","KPTC_Subscriptions.html":"subs","KPTC_Umrah.html":"umrah","KPTC_VIP.html":"vip","KPTC_Winch.html":"winch","KPTC_LostFound.html":"lost","KPTC_Advertising.html":"ads","KPTC_AI_Assistant.html":"assistant","KPTC_Admin_Dashboard_v3.html":"dashboard","KPTC_Admin_AI.html":"adminai","KPTC_Portal.html":"portal","KPTC_RealEstate.html":"realestate","KPTC_RE_AI.html":"reai","KPTC_RE_Client.html":"reclient","KPTC_Client_Portal.html":"tenant","KPTC_Website_Prototype.html":"home","KPTC_Subscriptions_v2.html":"subs"};
+  function standalone(){
+    if (window.parent !== window) return;
+    // inside the gateway, the page posts kptcNav to the parent; on its own, go through the gateway
+    document.addEventListener('click', function(e){
+      var a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
+      var raw = a.getAttribute('href'), h = raw.split('#')[0].split('/').pop(), hash = raw.split('#')[1];
+      if (!MAP[h]) return;
+      e.preventDefault();
+      var own = location.pathname.split('/').pop().replace('.html','');
+      if (MAP[h] === own && hash){ var t = document.getElementById(hash); if (t) t.scrollIntoView({behavior:'smooth'}); return; }
+      location.href = '../index.html#/' + MAP[h];
+    });
+  }
+
+  function init(){
+    walk(document.body);
+    footerStrip();
+    standalone();
+    new MutationObserver(function(ms){
+      ms.forEach(function(m){
+        if (m.type === 'characterData') return swapText(m.target);
+        m.addedNodes.forEach(function(n){ if (!(n.nodeType===1 && n.classList && (n.classList.contains('ki')||n.classList.contains('ki-dot')))) walk(n); });
+      });
+    }).observe(document.body, {childList:true, subtree:true, characterData:true});
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script><!--/kptc:core-js-->
+</body>
 </html>
