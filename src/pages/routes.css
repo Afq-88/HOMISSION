@@ -1,0 +1,25 @@
+/* الخطوط والمسارات — page layer */
+.page-hero{padding-bottom:28px!important}
+.page-hero h1{font-size:2.5rem}
+.search-box{border-radius:6px!important;box-shadow:var(--sh-3)!important;border:0!important}
+.s-field label{font-size:.74rem;color:var(--kp-muted);font-weight:600}
+.s-input{background:#fff!important;border-width:0 0 2px!important;border-color:var(--kp-ink)!important;border-radius:0!important;font-weight:600;color:var(--kp-indigo)!important;font-size:1rem!important}
+.s-input:focus{border-color:var(--kp-sign)!important;box-shadow:none!important}
+.swap-btn{border-radius:50%!important;width:42px!important;background:#fff!important}
+.btn-search:hover{background:var(--kp-ink)!important;transform:none!important;box-shadow:none!important}
+.quick-tag{background:transparent!important;border:0!important;border-bottom:2px solid var(--kp-sign)!important;border-radius:0!important;padding:3px 2px!important;color:var(--kp-indigo)!important;font-weight:600}
+.quick-tag:hover{color:var(--kp-ink)!important;background:transparent!important}
+/* the map reads like a printed network sheet */
+.fake-map{background:#EAE7DC!important}
+.map-road{background:#fff!important;border-radius:0!important}
+.map-road.thick{background:#FFF4D6!important;box-shadow:0 0 0 2px #fff}
+.map-stop{border-color:var(--kp-ink)!important}
+.map-overlay{border-radius:4px!important;box-shadow:var(--sh-2)!important}
+.map-toolbar{border-bottom:2px solid var(--kp-ink)!important}
+/* route list: stop markers */
+.route-card{border-radius:4px!important;border:1px solid var(--kp-line)!important;position:relative}
+.route-card:hover{transform:none!important;box-shadow:none!important;border-color:var(--kp-indigo)!important}
+.route-card.active{box-shadow:inset -5px 0 0 var(--kp-sign)!important;border-color:var(--kp-indigo)!important;background:#fff!important}
+.rc-num{border-radius:3px!important;font-family:var(--f-display)!important}
+.rc-badge{border-radius:2px!important}
+.filter-tab.active{border-bottom-width:3px!important;background:none!important}

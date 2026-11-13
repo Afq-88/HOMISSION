@@ -1,0 +1,9 @@
+/* مساعد العملاء الذكي — page layer */
+.demo-hero{text-align:right!important;padding:56px 32px 64px!important}
+.demo-hero h1{font-size:2.3rem!important;font-weight:700!important}
+.demo-hero p{margin:0!important;max-width:560px!important}
+.demo-hero>*{max-width:900px;margin-inline:auto!important}
+.demo-card{border-radius:4px!important;border-inline-start:5px solid var(--kp-indigo)!important}
+.dc-title{font-family:var(--f-display)}
+.dc-tag{border-radius:2px!important}
+.chat-window{border-radius:6px!important}

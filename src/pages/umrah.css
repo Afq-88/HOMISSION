@@ -1,0 +1,7 @@
+/* رحلات العمرة — page layer */
+.hstat-div{display:none}
+.kp-stats{padding-top:18px}
+.trip-card{border-width:1px!important;border-radius:4px!important}
+.trip-card.selected{box-shadow:inset 0 0 0 2px var(--kp-sign)!important}
+.filter-btn{border-radius:3px!important}
+.hstat-num{font-family:var(--f-display)!important;font-weight:700}

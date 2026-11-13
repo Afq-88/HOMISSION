@@ -1,0 +1,73 @@
+{
+ "routes": {
+  "page-hero": "kp-hero",
+  "live-badge": "kp-tag",
+  "live-dot": "kp-pulse"
+ },
+ "subs": {
+  "page-hero": "kp-hero",
+  "hero-tag": "kp-tag"
+ },
+ "umrah": {
+  "hero": "kp-hero",
+  "hero-bg": "kp-deco",
+  "hero-badge": "kp-tag",
+  "dot": "kp-pulse",
+  "hero-stats": "kp-stats",
+  "hero-crescent": "kp-deco"
+ },
+ "vip": {
+  "hero": "kp-hero kp-ink",
+  "hero-stars": "kp-deco",
+  "hero-glow": "kp-deco",
+  "hero-crown": "kp-deco",
+  "vip-label": "kp-tag",
+  "vip-dot": "kp-pulse"
+ },
+ "winch": {
+  "hero": "kp-hero kp-alert",
+  "hero-bg": "kp-deco",
+  "hero-glow": "kp-deco",
+  "hero-badge": "kp-tag",
+  "emergency-pulse": "kp-pulse",
+  "hero-circle": "kp-deco"
+ },
+ "lost": {
+  "hero": "kp-hero",
+  "hero-tag": "kp-tag",
+  "hero-stats": "kp-stats",
+  "btn-primary": "kp-cta",
+  "btn-secondary": "kp-cta2"
+ },
+ "ads": {
+  "hero": "kp-hero",
+  "hero-bg-shapes": "kp-deco",
+  "hero-tag": "kp-tag",
+  "pulse": "kp-pulse",
+  "hero-nums": "kp-stats",
+  "hero-circle": "kp-deco"
+ },
+ "assistant": {
+  "demo-hero": "kp-hero",
+  "dh-chip": "kp-tag",
+  "chat-fab": "kp-fab"
+ },
+ "reclient": {
+  "hero": "kp-hero kp-ink",
+  "hero-glow": "kp-deco",
+  "hero-glow2": "kp-deco",
+  "h-chip": "kp-tag",
+  "h-chip-dot": "kp-pulse",
+  "btn-gold": "kp-cta",
+  "chat-fab": "kp-fab"
+ },
+ "adminai": {
+  "ai-fab": "kp-fab"
+ },
+ "tenant": {
+  "ai-fab": "kp-fab"
+ },
+ "reai": {
+  "fab-main": "kp-fab"
+ }
+}

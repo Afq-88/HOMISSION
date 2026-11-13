@@ -23,8 +23,39 @@ def inject(html):
     html = html[:i] + JS_BLOCK + '\n' + html[i:]
     return html
 
+import json
+DECOR = json.load(open(os.path.join(ROOT, 'src/decorate.json'), encoding='utf-8'))
+
+def decorate(html, page):
+    """Add design-system classes to existing elements (by one of their class tokens).
+    Additive only: never removes or renames a class, id or attribute."""
+    for token, extra in DECOR.get(page, {}).items():
+        def add(m):
+            classes = m.group(2).split()
+            for c in extra.split():
+                if c not in classes:
+                    classes.append(c)
+            return m.group(1) + ' '.join(classes) + m.group(3)
+        html = re.sub(r'(<[a-zA-Z][^<>]*?\sclass=")([^"]*\b' + re.escape(token) + r'\b[^"]*)(")',
+                      lambda m: add(m) if token in m.group(2).split() else m.group(0), html)
+    return html
+
+def page_layer(html, page):
+    """Per-page redesign layer from src/pages/<page>.css, placed after the page's own styles."""
+    html = re.sub(r'<!--kptc:page-css-->.*?<!--/kptc:page-css-->\n?', '', html, flags=re.S)
+    f = os.path.join(ROOT, 'src/pages', page + '.css')
+    if not os.path.exists(f):
+        return html
+    css = open(f, encoding='utf-8').read()
+    if page == 'home':   # home's stylesheet was rewritten wholesale
+        return re.sub(r'(<style id="kptc-page">).*?(</style>)', lambda m: m.group(1) + '\n' + css + m.group(2), html, flags=re.S)
+    i = html.find('</head>')
+    return html[:i] + '<!--kptc:page-css--><style id="kptc-layer">\n' + css + '</style><!--/kptc:page-css-->\n' + html[i:]
+
 if __name__ == '__main__':
     for p in sorted(glob.glob(os.path.join(ROOT, 'pages/*.html'))):
+        page = os.path.basename(p)[:-5]
         s = open(p, encoding='utf-8').read()
-        open(p, 'w', encoding='utf-8').write(inject(s))
+        s = page_layer(decorate(inject(s), page), page)
+        open(p, 'w', encoding='utf-8').write(s)
     print('core injected into', len(glob.glob(os.path.join(ROOT, 'pages/*.html'))), 'pages')

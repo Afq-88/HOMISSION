@@ -1,0 +1,14 @@
+/* مساحات للإيجار — page layer: leasing brochure */
+.hero-grid{display:none!important}
+.hero-card{background:#1D1C45!important;backdrop-filter:none!important;border-color:rgba(255,255,255,.12)!important;border-top:4px solid var(--kp-sign)!important;border-radius:4px!important}
+.hc-title{font-family:var(--f-display)}
+.unit-card{border-radius:4px!important;border-width:1px!important;animation:none!important}
+.unit-card:hover{box-shadow:var(--sh-2)!important;border-color:var(--kp-indigo)!important}
+/* unit banners: one architectural treatment instead of a random colour per type */
+.uc-banner{background:var(--kp-indigo)!important;color:var(--kp-sign);border-bottom:4px solid var(--kp-sign);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 39.5h40M39.5 0v40' stroke='%23ffffff' stroke-opacity='.07'/%3E%3C/svg%3E")!important}
+.uc-status,.uc-location{border-radius:2px!important;backdrop-filter:none!important}
+.wc-ic{background:transparent!important;color:var(--kp-indigo)!important;border:1.5px solid var(--kp-line-2)!important;border-radius:4px!important}
+.why-card{border-radius:4px!important;border-top:4px solid var(--kp-indigo)!important}
+.cta-sec::before,.cta-sec::after{display:none!important}
+.cta-chip{border-radius:2px!important}

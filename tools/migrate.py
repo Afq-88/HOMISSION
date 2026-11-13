@@ -9,6 +9,7 @@ classes, handlers or script logic:
   * replaces soft "glow" shadows with the crisp elevation tokens
   * tightens corner radii to the signage scale (4 / 6 / 8 px)
   * points every font stack at the design-system fonts
+  * drops letter-spacing on Arabic text (it breaks the joined script)
   * removes the legacy k2 chrome stylesheet (the core layer now owns it)
 """
 import re, sys
@@ -136,7 +137,27 @@ def fonts(css):
     css = re.sub(r'(font\s*:\s*[^;{}]*?)(-apple-system[^;}]*)', r'\1var(--f-body)', css)
     return css
 
+def arabic_spacing(css):
+    """Positive letter-spacing tears Arabic letters apart; keep it only for Latin caps/mono."""
+    def rule(r):
+        body = r.group(2)
+        if 'uppercase' in body or 'direction:ltr' in body or 'monospace' in body:
+            return r.group(0)
+        return r.group(1) + re.sub(r'letter-spacing\s*:\s*(?!0[;}\s]|-|normal)[\d.]+(px|em|rem)', 'letter-spacing:0', body) + '}'
+    return re.sub(r'([^{}]+\{)([^{}]*)\}', rule, css)
+
+def calm_hover(css):
+    """Cards that float up on hover are a template tell; keep the colour change, drop the lift."""
+    def rule(r):
+        if ':hover' not in r.group(1):
+            return r.group(0)
+        body = re.sub(r'transform\s*:\s*(?:translate[XY]?\([^)]*\)\s*|scale\([^)]*\)\s*)+(?=[;}]|$)', 'transform:none', r.group(2))
+        return r.group(1) + body + '}'
+    return re.sub(r'([^{}]+\{)([^{}]*)\}', rule, css)
+
 def migrate_style(css):
+    css = calm_hover(css)
+    css = arabic_spacing(css)
     css = tame_shadows(css)
     css = tame_radii(css)
     css = fonts(css)

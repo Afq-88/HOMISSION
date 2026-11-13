@@ -164,6 +164,45 @@ h1{line-height:1.25}
 /* the standalone-preview ribbon (shown when a page is opened directly) */
 .kp-solo{position:fixed;left:16px;bottom:16px;z-index:9000;display:flex;align-items:center;gap:8px;background:var(--kp-ink);color:#fff;font:600 12.5px var(--f-body);padding:9px 14px;border-radius:4px;text-decoration:none;box-shadow:var(--sh-2);border-inline-start:4px solid var(--kp-sign)}
 .kp-solo:hover{background:var(--kp-indigo)}
+
+/* --------------------------------------------------------------------------
+   Public page hero kit — classes added to each page's existing hero markup
+   kp-hero  : the band          kp-tag   : the kicker line
+   kp-deco  : ornamental layers (glows, orbs, stars) — retired
+   kp-stats : figures row        kp-pulse : status dot (steady, not pulsing)
+   -------------------------------------------------------------------------- */
+.kp-hero{background-color:var(--kp-indigo)!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='420' viewBox='0 0 900 420' fill='none' stroke='%23ffffff' stroke-opacity='.055' stroke-width='9'%3E%3Cpath d='M-20 90h260l70 70h240l60-60h310'/%3E%3Cpath d='M160 -20v150l80 80v230'/%3E%3Cpath d='M-20 330h340l60-60h540'/%3E%3Cpath d='M640 -20v110l-60 60v290'/%3E%3Cg stroke-opacity='.1' stroke-width='5'%3E%3Ccircle cx='240' cy='90' r='12'/%3E%3Ccircle cx='550' cy='160' r='12'/%3E%3Ccircle cx='240' cy='210' r='12'/%3E%3Ccircle cx='380' cy='270' r='12'/%3E%3Ccircle cx='580' cy='330' r='12'/%3E%3C/g%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat!important;background-position:left -60px top!important;background-size:900px auto!important;
+  position:relative;border-bottom:6px solid var(--kp-sign)!important;box-shadow:none!important}
+.kp-hero::before,.kp-hero::after{content:none!important;display:none!important}
+.kp-hero.kp-ink{background-color:var(--kp-ink)!important}
+.kp-hero.kp-alert{background-color:var(--kp-ink)!important;border-bottom:0!important}
+.kp-hero.kp-alert::after{content:""!important;display:block!important;position:absolute;left:0;right:0;bottom:0;height:12px;background:repeating-linear-gradient(-45deg,var(--kp-sign) 0 14px,var(--kp-ink) 14px 28px);font-size:0}
+.kp-hero h1{font-family:var(--f-display)!important;font-weight:700!important;letter-spacing:0!important;text-shadow:none!important}
+.kp-hero h1 span,.kp-hero h1 em{color:var(--kp-sign)!important;-webkit-text-fill-color:currentColor!important;background:none!important;text-shadow:none!important}
+.kp-deco{display:none!important}
+.kp-tag{display:inline-flex!important;align-items:center;gap:10px;background:none!important;border:0!important;padding:0!important;border-radius:0!important;box-shadow:none!important;color:#D7D5F0!important;font:600 .82rem/1.4 var(--f-body)!important;letter-spacing:0!important;text-transform:none!important}
+.kp-tag::before{content:"";width:10px;height:10px;background:var(--kp-sign);flex-shrink:0}
+.kp-tag .ki{color:var(--kp-sign)}
+.kp-pulse{animation:none!important;box-shadow:none!important;border-radius:0!important;width:8px!important;height:8px!important;background:var(--kp-sign)!important}
+.kp-stats{border-top:1px solid rgba(255,255,255,.22)!important;background:none!important;border-radius:0!important;box-shadow:none!important;gap:0!important}
+.kp-stats>*{padding-inline:22px!important;background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+.kp-stats>*:first-child{padding-inline-start:0!important}
+.kp-stats>*+*{border-inline-start:1px solid rgba(255,255,255,.18)!important}
+.kp-stats b,.kp-stats [class*="num"],.kp-stats [class*="val"]{font-family:var(--f-display)!important;color:var(--kp-sign)!important;text-shadow:none!important;-webkit-text-fill-color:currentColor!important}
+
+/* buttons placed on a hero */
+.kp-hero .kp-cta{background:var(--kp-sign)!important;color:var(--kp-ink)!important;border:0!important;border-radius:4px!important;box-shadow:none!important;font-weight:700!important;transition:background .15s,color .15s}
+.kp-hero .kp-cta:hover{background:#fff!important;transform:none!important}
+.kp-hero .kp-cta2{background:transparent!important;color:#fff!important;border:1.5px solid rgba(255,255,255,.4)!important;border-radius:4px!important;box-shadow:none!important}
+.kp-hero .kp-cta2:hover{border-color:#fff!important;transform:none!important}
+
+/* floating assistant launcher used on several pages */
+.kp-fab{border-radius:6px!important;background:var(--kp-ink)!important;color:var(--kp-sign)!important;border:2px solid var(--kp-sign)!important;box-shadow:var(--sh-2)!important;animation:none!important}
+.kp-fab::before,.kp-fab::after{display:none!important;animation:none!important}
+.kp-fab:hover{transform:none!important;background:var(--kp-indigo)!important}
+.kp-fab [class*="label"]{color:#fff!important}
 </style><!--/kptc:core-css-->
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -182,14 +221,14 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
 .logo-icon{width:36px;height:36px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--f-body);color:var(--navy);font-size:.85rem}
-.logo-name{font-family:var(--f-body);font-size:1.1rem;letter-spacing:2px;color:var(--yellow)}
-.logo-sub{font-size:.58rem;color:rgba(255,255,255,.5);letter-spacing:1px}
+.logo-name{font-family:var(--f-body);font-size:1.1rem;letter-spacing:0;color:var(--yellow)}
+.logo-sub{font-size:.58rem;color:rgba(255,255,255,.5);letter-spacing:0}
 .nav-links{display:flex;gap:4px;list-style:none}
 .nav-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.8rem;padding:6px 12px;border-radius:4px;transition:.2s}
 .nav-links a:hover,.nav-links a.active{color:var(--yellow);background:rgba(255,201,60,.1)}
 .emergency-btn{background:var(--red);color:white;border:none;border-radius:6px;padding:8px 18px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;display:flex;align-items:center;gap:7px;animation:emergencyGlow 2s infinite}
 @keyframes emergencyGlow{0%,100%{box-shadow:0 0 0 0 rgba(194,53,46,.5)}50%{box-shadow:0 0 0 10px rgba(194,53,46,0)}}
-.emergency-btn:hover{background:var(--red-d);transform:scale(1.04)}
+.emergency-btn:hover{background:var(--red-d);transform:none}
 
 /* ═══ HERO ═══ */
 .hero{background:#0a0000;min-height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden}
@@ -199,25 +238,25 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 .hero-circle:nth-child(2){width:400px;height:400px;bottom:-150px;right:-100px;border-color:rgba(255,255,255,.03)}
 .hero-glow{position:absolute;top:30%;left:20%;width:300px;height:300px;background:transparent;pointer-events:none}
 .hero-content{position:relative;z-index:2;padding:52px 36px 0;flex:1;display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(194,53,46,.15);border:1px solid rgba(194,53,46,.35);color:#f87171;padding:7px 18px;border-radius:8px;font-size:.76rem;font-weight:700;margin-bottom:20px;letter-spacing:.5px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(194,53,46,.15);border:1px solid rgba(194,53,46,.35);color:#f87171;padding:7px 18px;border-radius:8px;font-size:.76rem;font-weight:700;margin-bottom:20px;letter-spacing:0}
 .emergency-pulse{width:8px;height:8px;background:var(--red);border-radius:50%;animation:pulse 1.2s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
 .hero h1{font-size:clamp(2rem,4vw,3.2rem);color:white;font-weight:700;line-height:1.22;margin-bottom:12px}
-.hero h1 .red{color:#f87171;font-family:var(--f-body);letter-spacing:1px}
+.hero h1 .red{color:#f87171;font-family:var(--f-body);letter-spacing:0}
 .hero h1 .yellow{color:var(--yellow)}
 .hero-sub{color:rgba(255,255,255,.6);font-size:.92rem;line-height:1.85;max-width:520px;margin-bottom:28px}
 
 /* Emergency number */
 .emergency-number{background:rgba(194,53,46,.12);border:2px solid rgba(194,53,46,.4);border-radius:6px;padding:22px 28px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:.2s}
-.emergency-number:hover{background:rgba(194,53,46,.2);transform:translateY(-2px)}
+.emergency-number:hover{background:rgba(194,53,46,.2);transform:none}
 .en-left small{display:block;color:rgba(255,255,255,.5);font-size:.72rem;margin-bottom:4px}
-.en-num{font-family:var(--f-body);font-size:2.4rem;color:#f87171;letter-spacing:3px}
+.en-num{font-family:var(--f-body);font-size:2.4rem;color:#f87171;letter-spacing:0}
 .en-right{text-align:center}
 .en-badge{background:var(--red);color:white;font-size:.7rem;font-weight:700;padding:5px 14px;border-radius:8px;display:block;margin-bottom:5px;animation:emergencyGlow 2s infinite}
 .en-hours{color:rgba(255,255,255,.45);font-size:.65rem}
 .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:36px}
 .btn-emergency{background:var(--red);color:white;font-weight:700;padding:14px 26px;border-radius:6px;font-size:.92rem;border:none;cursor:pointer;font-family:inherit;transition:.25s;display:inline-flex;align-items:center;gap:8px;animation:emergencyGlow 2s infinite}
-.btn-emergency:hover{background:var(--red-d);transform:translateY(-2px)}
+.btn-emergency:hover{background:var(--red-d);transform:none}
 .btn-secondary{background:rgba(255,255,255,.08);color:white;font-weight:600;padding:14px 22px;border-radius:6px;font-size:.92rem;border:1px solid rgba(255,255,255,.2);cursor:pointer;font-family:inherit;transition:.25s;display:inline-flex;align-items:center;gap:8px}
 .btn-secondary:hover{background:rgba(255,255,255,.15)}
 
@@ -265,7 +304,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 /* Car type selector */
 .car-types{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:4px}
 .ctype{border:2px solid var(--border);border-radius:6px;padding:14px 8px;text-align:center;cursor:pointer;transition:.22s;background:white}
-.ctype:hover{border-color:var(--red);transform:translateY(-2px)}
+.ctype:hover{border-color:var(--red);transform:none}
 .ctype.sel{border-color:var(--red);background:rgba(194,53,46,.03)}
 .ct-icon{font-size:2rem;margin-bottom:6px}
 .ct-name{font-size:.72rem;font-weight:700;color:var(--navy)}
@@ -296,7 +335,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 .fg.tri{grid-template-columns:1fr 1fr 1fr}
 .fg.one{grid-template-columns:1fr}
 .ff{display:flex;flex-direction:column;gap:4px}
-.ff label{font-size:.7rem;font-weight:700;color:var(--gray);letter-spacing:.3px}
+.ff label{font-size:.7rem;font-weight:700;color:var(--gray);letter-spacing:0}
 .ff input,.ff select,.ff textarea{border:1.5px solid var(--border);border-radius:4px;padding:10px 13px;font-size:.84rem;font-family:inherit;outline:none;transition:.2s;background:white;width:100%}
 .ff input:focus,.ff select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(194,53,46,.07)}
 
@@ -314,14 +353,14 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 .op-divider{height:1px;background:var(--border);margin:10px 0}
 .op-total{display:flex;justify-content:space-between;font-size:.95rem;font-weight:700;color:var(--navy);margin-bottom:14px}
 .btn-request{width:100%;background:var(--red);color:white;border:none;border-radius:6px;padding:14px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;animation:emergencyGlow 2s infinite}
-.btn-request:hover{background:var(--red-d);transform:translateY(-1px)}
+.btn-request:hover{background:var(--red-d);transform:none}
 .eta-estimate{background:rgba(30,127,85,.06);border:1px solid rgba(30,127,85,.2);border-radius:6px;padding:10px 14px;font-size:.75rem;color:var(--green);font-weight:700;text-align:center;margin-bottom:10px}
 
 /* ═══ LIVE TRACKING ═══ */
 .tracking-page{display:none}
 .tracking-page.show{display:block}
 .track-form-row{display:flex;gap:10px;margin-bottom:20px}
-.track-input{flex:1;border:2px solid var(--border);border-radius:6px;padding:12px 16px;font-size:.9rem;font-family:inherit;outline:none;transition:.2s;background:white;letter-spacing:1px}
+.track-input{flex:1;border:2px solid var(--border);border-radius:6px;padding:12px 16px;font-size:.9rem;font-family:inherit;outline:none;transition:.2s;background:white;letter-spacing:0}
 .track-input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(194,53,46,.07)}
 .btn-track{background:var(--navy);color:white;border:none;border-radius:6px;padding:12px 24px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;white-space:nowrap}
 .btn-track:hover{background:var(--navy-l)}
@@ -338,7 +377,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 @keyframes youPulse{0%,100%{box-shadow:0 0 0 6px rgba(194,53,46,.2)}50%{box-shadow:0 0 0 12px rgba(194,53,46,.05)}}
 .you-label{background:white;border-radius:4px;padding:3px 8px;font-size:.65rem;font-weight:700;color:var(--red);margin-top:4px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 .route-line{position:absolute;height:3px;background:var(--red);border-radius:3px;top:47%;right:20%;width:46%;opacity:.6}
-.map-eta-badge{position:absolute;top:14px;right:50%;transform:translateX(50%);background:var(--navy);color:var(--yellow);border-radius:8px;padding:6px 16px;font-family:var(--f-body);font-size:.95rem;letter-spacing:1px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.map-eta-badge{position:absolute;top:14px;right:50%;transform:translateX(50%);background:var(--navy);color:var(--yellow);border-radius:8px;padding:6px 16px;font-family:var(--f-body);font-size:.95rem;letter-spacing:0;box-shadow:0 4px 16px rgba(0,0,0,.15)}
 .map-zoom-btns{position:absolute;bottom:14px;left:14px;display:flex;flex-direction:column;gap:4px}
 .mzb{width:34px;height:34px;background:white;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.08);font-family:inherit;transition:.2s}
 .mzb:hover{background:var(--navy);color:white}
@@ -378,7 +417,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 /* Workshop services grid */
 .services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
 .service-card{background:white;border:1.5px solid var(--border);border-radius:6px;padding:20px;cursor:pointer;transition:.25s;text-align:center}
-.service-card:hover{border-color:var(--green);transform:translateY(-3px);box-shadow:0 8px 24px rgba(30,127,85,.1)}
+.service-card:hover{border-color:var(--green);transform:none;box-shadow:0 8px 24px rgba(30,127,85,.1)}
 .service-card.sel{border-color:var(--green);background:rgba(30,127,85,.02)}
 .sc-icon{font-size:2.5rem;margin-bottom:10px}
 .sc-name{font-size:.88rem;font-weight:700;color:var(--navy);margin-bottom:5px}
@@ -388,7 +427,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 /* Booking form */
 .booking-layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
 .btn-book-ws{width:100%;background:var(--green);color:white;border:none;border-radius:6px;padding:14px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn-book-ws:hover{background:#1E7F55;box-shadow:0 6px 20px rgba(30,127,85,.35);transform:translateY(-1px)}
+.btn-book-ws:hover{background:#1E7F55;box-shadow:0 6px 20px rgba(30,127,85,.35);transform:none}
 
 /* ═══ PRICES ═══ */
 .prices-section{background:var(--light);padding:28px 32px}
@@ -411,7 +450,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 .modal-sub{font-size:.8rem;color:var(--gray);line-height:1.7}
 .modal-ref{background:var(--light);border-radius:6px;padding:14px;text-align:center;margin:16px 24px}
 .modal-ref-label{font-size:.68rem;color:var(--gray);margin-bottom:5px}
-.modal-ref-num{font-family:var(--f-body);font-size:1.5rem;color:var(--navy);letter-spacing:2px}
+.modal-ref-num{font-family:var(--f-body);font-size:1.5rem;color:var(--navy);letter-spacing:0}
 .modal-eta-box{background:rgba(194,53,46,.08);border:1px solid rgba(194,53,46,.2);border-radius:6px;padding:14px;margin:0 24px 16px;display:flex;align-items:center;gap:12px}
 .modal-eta-icon{font-size:2rem}
 .modal-eta-num{font-family:var(--f-body);font-size:1.8rem;color:var(--red)}
@@ -434,7 +473,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 /* FLOATING CALL */
 .floating-call{position:fixed;bottom:28px;left:28px;z-index:400;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .fc-btn{background:var(--red);color:white;border:none;border-radius:8px;padding:14px 22px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 6px 24px rgba(194,53,46,.5);animation:emergencyGlow 2s infinite}
-.fc-btn:hover{background:var(--red-d);transform:scale(1.05)}
+.fc-btn:hover{background:var(--red-d);transform:none}
 .fc-label{background:var(--dark);color:white;border-radius:4px;padding:5px 12px;font-size:.7rem;font-weight:600}
 
 @media(max-width:900px){
@@ -452,6 +491,16 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 </style>
 
 
+<!--kptc:page-css--><style id="kptc-layer">
+/* الونش والورشة — page layer: emergency band with hazard edge */
+.dispatch-panel{background:#1D1C45!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-color:rgba(255,255,255,.12)!important;border-top:4px solid var(--kp-bad)!important;border-radius:4px!important}
+.emergency-number{border-radius:4px!important;background:transparent!important;border:2px solid var(--kp-bad)!important}
+.en-num{font-family:var(--f-display)!important;color:#fff!important;font-weight:700}
+.en-badge,.btn-emergency{animation:none!important;border-radius:3px!important}
+.hstat{border-radius:0!important;background:none!important;border:0!important;border-inline-start:1px solid rgba(255,255,255,.18)!important}
+.hstat-num{font-family:var(--f-display)!important;color:var(--kp-sign)!important;font-weight:700}
+.floating-call{border-radius:4px!important;animation:none!important;box-shadow:var(--sh-2)!important}
+</style><!--/kptc:page-css-->
 </head>
 <body>
 
@@ -464,15 +513,15 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 <script>function k2Drawer(o){var d=document.getElementById('k2Drawer');d.classList.toggle('open',!!o);d.setAttribute('aria-hidden',o?'false':'true');var b=document.querySelector('.k2-menu');if(b)b.setAttribute('aria-expanded',o?'true':'false')}document.addEventListener('keydown',function(e){if(e.key==='Escape')k2Drawer(0)});</script>
 
 <!-- ═══ HERO ═══ -->
-<div class="hero">
-  <div class="hero-bg">
-    <div class="hero-circle"></div>
-    <div class="hero-circle"></div>
-    <div class="hero-glow"></div>
+<div class="hero kp-hero kp-alert">
+  <div class="hero-bg kp-deco">
+    <div class="hero-circle kp-deco"></div>
+    <div class="hero-circle kp-deco"></div>
+    <div class="hero-glow kp-deco"></div>
   </div>
   <div class="hero-content">
     <div>
-      <div class="hero-badge"><div class="emergency-pulse"></div>خدمة طوارئ — تعمل 24/7/365</div>
+      <div class="hero-badge kp-tag"><div class="emergency-pulse kp-pulse"></div>خدمة طوارئ — تعمل 24/7/365</div>
       <h1>تعطّلت سيارتك؟<br><span class="red">نصلك</span> في أسرع<br>وقت <span class="yellow">ممكن</span></h1>
       <p class="hero-sub">خدمة الونش والإنقاذ الفوري في جميع أنحاء الكويت — بالإضافة لورشة متكاملة لصيانة وتصليح جميع أنواع السيارات.</p>
 

@@ -1,0 +1,21 @@
+/* الاشتراكات والتذاكر — page layer: fare cards as printed tickets */
+.sub-card{border-radius:6px!important;border:1px solid var(--kp-line-2)!important;border-top:6px solid var(--kp-indigo)!important;transition:border-color .15s!important}
+.sub-card:hover{transform:none!important;box-shadow:var(--sh-2)!important}
+.sub-card.featured{transform:none!important;border-color:var(--kp-indigo)!important;border-top-color:var(--kp-sign)!important}
+.sub-card.featured:hover{transform:none!important}
+.sub-card.selected{box-shadow:inset 0 0 0 2px var(--kp-ok)!important}
+.featured-badge{border-radius:2px!important;background:var(--kp-ink)!important;color:var(--kp-sign)!important;top:-18px!important}
+.sub-icon{font-size:1.9rem!important;color:var(--kp-indigo)}
+.sub-card.featured .sub-icon{color:var(--kp-sign)}
+.sub-title{font-family:var(--f-display);font-size:1.08rem!important}
+.sub-price{font-family:var(--f-display)!important;font-weight:700;letter-spacing:0!important;font-size:3rem!important}
+.btn-sub{border-radius:4px!important;position:relative}
+.sub-feats{border-bottom:1px dashed var(--kp-line-2);padding-bottom:14px}
+.sub-card.featured .sub-feats{border-color:rgba(255,255,255,.25)}
+.compare-table th{font-family:var(--f-display);font-weight:700}
+.compare-table th.featured-col,.compare-table td.featured-col{background:rgba(255,201,60,.13)!important}
+.faq-item{border-radius:0!important;border-width:0 0 1px!important;background:transparent!important}
+.faq-q{padding:16px 4px!important}
+.faq-q:hover{background:transparent!important;color:var(--kp-indigo)}
+.hero-tab{font-weight:600}
+.hero-tab .tab-badge{border-radius:2px!important}

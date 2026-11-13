@@ -1,0 +1,8 @@
+/* الونش والورشة — page layer: emergency band with hazard edge */
+.dispatch-panel{background:#1D1C45!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-color:rgba(255,255,255,.12)!important;border-top:4px solid var(--kp-bad)!important;border-radius:4px!important}
+.emergency-number{border-radius:4px!important;background:transparent!important;border:2px solid var(--kp-bad)!important}
+.en-num{font-family:var(--f-display)!important;color:#fff!important;font-weight:700}
+.en-badge,.btn-emergency{animation:none!important;border-radius:3px!important}
+.hstat{border-radius:0!important;background:none!important;border:0!important;border-inline-start:1px solid rgba(255,255,255,.18)!important}
+.hstat-num{font-family:var(--f-display)!important;color:var(--kp-sign)!important;font-weight:700}
+.floating-call{border-radius:4px!important;animation:none!important;box-shadow:var(--sh-2)!important}
