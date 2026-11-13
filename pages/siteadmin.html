@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مركز إدارة الموقع — KPTC</title>
+<!--kptc:head-js--><script id="kptc-store">
+/* KPTC shared data layer (runs in <head>, before any page script).
+   - Latin digits everywhere: date/number formatting and anything typed.
+   - One small database shared by every page, kept in the browser (localStorage).
+     The same shape maps 1:1 onto Firestore collections when the site is connected
+     to Firebase (see FIREBASE.txt): users, wallets, bookings, news, tenders, jobs,
+     applications, settings/pages. */
+(function(){
+  if (window.KPTC) return;
+
+  /* ---- 1) digits: always 0-9 ------------------------------------------- */
+  var AR = /[٠-٩۰-۹]/g;
+  function latin(s){ return String(s).replace(AR, function(c){ var n = c.charCodeAt(0); return String(n >= 0x06F0 ? n - 0x06F0 : n - 0x0660); }); }
+  function loc(l){ if (typeof l !== 'string' || !/^(ar|fa|ur)/i.test(l) || /-u-.*nu-/.test(l)) return l; return l + (l.indexOf('-u-') > -1 ? '-nu-latn' : '-u-nu-latn'); }
+  ['toLocaleString','toLocaleDateString','toLocaleTimeString'].forEach(function(m){
+    var o = Date.prototype[m]; Date.prototype[m] = function(l, opt){ return latin(o.call(this, Array.isArray(l) ? l.map(loc) : loc(l), opt)); };
+  });
+  var nl = Number.prototype.toLocaleString; Number.prototype.toLocaleString = function(l, opt){ return latin(nl.call(this, Array.isArray(l) ? l.map(loc) : loc(l), opt)); };
+  ['DateTimeFormat','NumberFormat'].forEach(function(k){
+    if (!window.Intl || !Intl[k]) return; var O = Intl[k];
+    var W = function(l, opt){ return new O(Array.isArray(l) ? l.map(loc) : loc(l), opt); };
+    W.prototype = O.prototype; W.supportedLocalesOf = O.supportedLocalesOf; Intl[k] = W;
+  });
+  // whatever keyboard is used, typed digits are stored and shown as 0-9
+  document.addEventListener('input', function(e){
+    var t = e.target; if (!t || e.isComposing) return;
+    if ((t.tagName === 'INPUT' && !/^(checkbox|radio|file|range|color|date|time|datetime-local|month|week)$/.test(t.type)) || t.tagName === 'TEXTAREA'){
+      var v = t.value; AR.lastIndex = 0;
+      if (AR.test(v)){ var s = null, en = null; try { s = t.selectionStart; en = t.selectionEnd; } catch(x){} t.value = latin(v); try { if (s !== null) t.setSelectionRange(s, en); } catch(x){} }
+    }
+  }, true);
+
+  /* ---- 2) database ------------------------------------------------------ */
+  var KEY = 'kptc.db.v2', mem = null, subs = [];
+  function today(off){ var d = new Date(Date.now() + (off||0)*864e5); return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2); }
+  function seed(){
+    return {
+      pages: {},                                   // id -> false when hidden from visitors
+      notice: {on:false, text:''},                 // site-wide announcement bar
+      users: { 'u-demo': {id:'u-demo', name:'أحمد العلي', phone:'55501234', email:'demo@kptc.com.kw', pass:'123456', civil:'', joined:today(-190)} },
+      session: null,
+      wallets: { 'u-demo': {balance:12.75, frozen:false, tx:[
+        {id:'TX-1003', d:today(-2),  t:'خصم',  a:-0.25, note:'تذكرة فردية — خط 15', by:'النظام'},
+        {id:'TX-1002', d:today(-9),  t:'خصم',  a:-15,   note:'تجديد الاشتراك الشهري', by:'النظام'},
+        {id:'TX-1001', d:today(-10), t:'تعبئة', a:28,    note:'تعبئة عبر كي نت', by:'العميل'}
+      ]}},
+      bookings: [
+        {id:'SUB-240611', uid:'u-demo', type:'اشتراك', page:'subs',  title:'الباقة الأساسية — شهري', d:today(-9),  status:'فعّال', amount:15,  until:today(21)},
+        {id:'UMR-58213',  uid:'u-demo', type:'عمرة',  page:'umrah', title:'مكة المكرمة + المدينة (11 يوماً) — مقعدان', d:today(-4), status:'مؤكد', amount:216},
+        {id:'LF-30418',   uid:'u-demo', type:'مفقودات', page:'lost', title:'محفظة جلد بنية — خط 21', d:today(-16), status:'وُجد الغرض', amount:0}
+      ],
+      news: [
+        {id:'N-5', d:today(-3),  cat:'أخبار الشركة', title:'تشغيل حافلات K-BUS الكهربائية الصديقة للبيئة', body:'انضمت حافلات K-eBus عديمة الانبعاثات إلى الأسطول ضمن خطة الشركة للنقل المستدام.', img:'kbus-ev.jpg', pub:true},
+        {id:'N-4', d:today(-12), cat:'بيانات صحفية', title:'تحديث شبكة خطوط K-Bus وإضافة مسارات سريعة', body:'تحديث يشمل المسارات السريعة X ويربط المناطق السكنية الجديدة بمراكز الأعمال.', img:'kbus-fleet.jpg', pub:true},
+        {id:'N-3', d:today(-25), cat:'المسؤولية الاجتماعية', title:'حملة «السلامة أولاً» لتوعية الركاب والسائقين', body:'حملة توعوية ميدانية وإلكترونية حول قواعد السلامة داخل الحافلات وفي المحطات.', img:'kbus-street.jpg', pub:true},
+        {id:'N-2', d:today(-40), cat:'أخبار الشركة', title:'انطلاق موسم رحلات العمرة بحافلات حديثة', body:'رحلات أسبوعية تشمل التأشيرة والسكن والمواصلات، مع حجز إلكتروني للمقاعد.', img:'umrah-art.jpg', pub:true},
+        {id:'N-1', d:today(-61), cat:'بيانات صحفية', title:'مركز الأوناش يعمل على مدار الساعة في المحافظات الست', body:'خدمة سحب ونقل المركبات متاحة 24 ساعة طوال أيام الأسبوع وخلال العطل الرسمية.', img:'tow-1.jpg', pub:true}
+      ],
+      tenders: [
+        {id:'T-2026-7', no:'2026/7', kind:'مناقصة',  title:'توريد وتركيب مظلات انتظار في محطات الحافلات', meet:today(6),  place:'مكتب مساعد المدير لشؤون المرافق والصيانة — صبحان الصناعية', close:today(21), box:'3', fee:75,  status:'مفتوحة'},
+        {id:'T-2026-6', no:'2026/6', kind:'ممارسة',  title:'صيانة وإصلاح شبكات الإنذار والحريق في مواقع الشركة', meet:today(3),  place:'المبنى الرئيسي — إدارة المشتريات', close:today(12), box:'2', fee:75,  status:'مفتوحة'},
+        {id:'T-2026-5', no:'2026/5', kind:'مزايدة',  title:'بيع حافلات خارجة عن الخدمة', meet:today(-2), place:'كراج صبحان', close:today(9),  box:'5', fee:100, status:'مفتوحة'},
+        {id:'T-2026-4', no:'2026/4', kind:'مناقصة',  title:'توريد زي موحد للسائقين والفنيين', meet:today(-30), place:'المبنى الرئيسي — إدارة المشتريات', close:today(-12), box:'1', fee:50, status:'مغلقة'}
+      ],
+      bids: [],
+      jobs: [
+        {id:'J-104', title:'سائق حافلة نقل عام', dept:'شؤون النقل', loc:'جميع المحافظات', type:'دوام كامل', close:today(18), open:true, req:'رخصة قيادة حافلات سارية · خبرة سنتين · إجادة العربية أو الإنجليزية'},
+        {id:'J-103', title:'فني ميكانيكا حافلات', dept:'الورشة المركزية', loc:'صبحان', type:'دوام كامل', close:today(25), open:true, req:'دبلوم ميكانيكا · خبرة 3 سنوات في المركبات الثقيلة'},
+        {id:'J-102', title:'موظف خدمة عملاء', dept:'التسويق وخدمة العملاء', loc:'المبنى الرئيسي', type:'دوام كامل', close:today(10), open:true, req:'شهادة جامعية أو دبلوم · مهارات تواصل · العمل بنظام الورديات'},
+        {id:'J-101', title:'محلل بيانات تشغيلية', dept:'المكتب الاستراتيجي وتطوير الأعمال', loc:'المبنى الرئيسي', type:'دوام كامل', close:today(30), open:true, req:'بكالوريوس في الإحصاء أو علوم الحاسب · خبرة في أدوات التحليل'}
+      ],
+      applications: [
+        {id:'AP-9001', job:'J-102', name:'خالد المطيري', phone:'66012345', email:'k.m@example.com', exp:'4', note:'خبرة في مراكز الاتصال', d:today(-2), status:'قيد المراجعة'}
+      ],
+      log: []
+    };
+  }
+  function load(){
+    if (mem) return mem;
+    try { var raw = localStorage.getItem(KEY); if (raw) mem = JSON.parse(raw); } catch(x){}
+    if (!mem) { mem = seed(); }
+    var s = seed(); for (var k in s) if (!(k in mem)) mem[k] = s[k];   // forward-compatible
+    return mem;
+  }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch(x){} subs.forEach(function(f){ try { f(mem); } catch(x){} }); }
+  window.addEventListener('storage', function(e){ if (e.key === KEY){ mem = null; load(); subs.forEach(function(f){ try { f(mem); } catch(x){} }); } });
+
+  function id(p){ return p + '-' + String(Date.now()).slice(-6) + Math.floor(Math.random()*90+10); }
+  function money(n){ return (Math.round(n*1000)/1000).toFixed(3) + ' د.ك'; }
+  function fdate(s){ if (!s) return '—'; var p = String(s).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : s; }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function log(msg){ var d = load(); d.log.unshift({d:new Date().toISOString(), msg:msg}); d.log = d.log.slice(0, 80); }
+
+  var K = window.KPTC = {
+    db: load, save: save, seed: seed, id: id, money: money, date: fdate, esc: esc, latin: latin, today: today,
+    onChange: function(f){ subs.push(f); },
+    reset: function(){ mem = seed(); save(); },
+
+    /* accounts (demo: stored in this browser; Firebase Auth replaces this) */
+    user: function(){ var d = load(); return d.session && d.users[d.session] || null; },
+    register: function(o){
+      var d = load(), phone = latin(o.phone||'').replace(/\D/g,'');
+      if (!o.name || phone.length < 8 || !o.pass || o.pass.length < 6) return {error:'أكمل الاسم ورقم الهاتف (8 أرقام) وكلمة مرور من 6 أحرف على الأقل.'};
+      for (var k in d.users) if (d.users[k].phone === phone) return {error:'هذا الرقم مسجّل من قبل. سجّل الدخول.'};
+      var u = {id:id('u'), name:o.name.trim(), phone:phone, email:(o.email||'').trim(), pass:o.pass, civil:'', joined:today()};
+      d.users[u.id] = u; d.wallets[u.id] = {balance:0, frozen:false, tx:[]}; d.session = u.id; log('حساب جديد: ' + u.name); save(); return {user:u};
+    },
+    login: function(phone, pass){
+      var d = load(); phone = latin(phone||'').replace(/\D/g,'');
+      for (var k in d.users) if (d.users[k].phone === phone && d.users[k].pass === pass){ d.session = k; save(); return {user:d.users[k]}; }
+      return {error:'رقم الهاتف أو كلمة المرور غير صحيحة.'};
+    },
+    logout: function(){ load().session = null; save(); },
+
+    /* wallet */
+    wallet: function(uid){ var d = load(); uid = uid || d.session; if (!uid) return null; if (!d.wallets[uid]) d.wallets[uid] = {balance:0, frozen:false, tx:[]}; return d.wallets[uid]; },
+    walletTx: function(uid, amount, type, note, by){
+      var w = K.wallet(uid); if (!w) return {error:'لا يوجد حساب.'};
+      amount = Math.round(Number(amount)*1000)/1000; if (!amount) return {error:'أدخل مبلغاً صحيحاً.'};
+      if (w.frozen && by !== 'الإدارة') return {error:'المحفظة موقوفة مؤقتاً. تواصل مع خدمة العملاء.'};
+      if (amount < 0 && w.balance + amount < 0) return {error:'الرصيد غير كافٍ.'};
+      w.balance = Math.round((w.balance + amount)*1000)/1000;
+      var tx = {id:id('TX'), d:today(), t:type, a:amount, note:note||'', by:by||'العميل'}; w.tx.unshift(tx);
+      log((by||'العميل') + ': ' + type + ' ' + money(Math.abs(amount)) + ' — ' + (load().users[uid]||{}).name); save(); return {tx:tx, balance:w.balance};
+    },
+
+    /* bookings made on the service pages */
+    addBooking: function(b){ var d = load(); b.uid = b.uid || d.session || 'guest'; b.d = b.d || today(); b.status = b.status || 'قيد المعالجة'; d.bookings.unshift(b); log('طلب جديد ' + b.id + ' — ' + b.type); save(); return b; },
+
+    /* page visibility */
+    isHidden: function(pid){ return load().pages[pid] === false; },
+    log: log
+  };
+})();
+</script><!--/kptc:head-js-->
+<!--kptc:core-css--><style id="kptc-core">
+/* ==========================================================================
+   KPTC — Design system core  ·  "لغة المحطّة" (Station Language)
+   Official palette: KPTC indigo #2E2C78 · signal yellow #FFC93C
+   Shared by every page; injected by tools/build.py between kptc:core markers.
+   ========================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap");
+
+:root{
+  /* identity */
+  --kp-indigo:#2E2C78;      /* KPTC official */
+  --kp-indigo-2:#3D3B95;
+  --kp-deep:#1F1D5C;
+  --kp-ink:#14133A;
+  --kp-sign:#FFC93C;        /* KPTC signal yellow */
+  --kp-sign-2:#F2B705;
+  --kp-gold:#C9971A;
+  /* surfaces — warm "ticket paper" rather than cold app-grey */
+  --kp-paper:#F3F2EC;
+  --kp-paper-2:#FAF9F5;
+  --kp-card:#FFFFFF;
+  --kp-line:#E0DED4;
+  --kp-line-2:#CFCCBF;
+  --kp-muted:#5F5E78;
+  /* status */
+  --kp-ok:#1E7F55; --kp-warn:#C77A12; --kp-bad:#C2352E; --kp-info:#2E5AAC;
+  /* type */
+  --f-display:"Noto Kufi Arabic","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Arabic",-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif;
+  /* elevation — crisp, printed, never glowing */
+  --sh-1:0 1px 0 rgba(20,19,58,.06);
+  --sh-2:0 1px 0 rgba(20,19,58,.05),0 6px 18px -10px rgba(20,19,58,.28);
+  --sh-3:0 2px 0 rgba(20,19,58,.04),0 24px 48px -24px rgba(20,19,58,.45);
+  /* motifs */
+  --kp-route:repeating-linear-gradient(90deg,var(--kp-sign) 0 22px,transparent 22px 30px);
+}
+
+html,body{overflow-x:clip}
+body{font-family:var(--f-body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-feature-settings:"kern"}
+h1,h2,h3{font-family:var(--f-display);letter-spacing:0}
+h1{line-height:1.25}
+:where(button,input,select,textarea){font-family:inherit}
+::selection{background:var(--kp-sign);color:var(--kp-ink)}
+:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid var(--kp-sign);outline-offset:2px}
+:where(.num,time){font-variant-numeric:tabular-nums}
+*{scrollbar-width:thin;scrollbar-color:#B9B6A8 transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#C9C6B8;border-radius:10px;border:3px solid transparent;background-clip:content-box}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* --------------------------------------------------------------------------
+   Icons (emoji are swapped for these by core.js)
+   -------------------------------------------------------------------------- */
+.ki{display:inline-flex;width:1.1em;height:1.1em;vertical-align:-.17em;flex-shrink:0;line-height:1}
+.ki svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.ki.ki-ok{color:var(--kp-ok)} .ki.ki-bad{color:var(--kp-bad)} .ki.ki-warn{color:var(--kp-warn)}
+.ki-dot{display:inline-block;width:.62em;height:.62em;border-radius:50%;background:currentColor;vertical-align:.05em;flex-shrink:0}
+.ki-dot.d-bad{color:var(--kp-bad)} .ki-dot.d-warn{color:var(--kp-sign-2)} .ki-dot.d-ok{color:var(--kp-ok)} .ki-dot.d-info{color:var(--kp-info)}
+.ki + *:not(.ki){margin-inline-start:0}
+
+/* --------------------------------------------------------------------------
+   Public-site chrome (k2-*) — rebuilt
+   -------------------------------------------------------------------------- */
+.k2-w{max-width:1240px;margin:0 auto;padding:0 28px;box-sizing:border-box}
+
+.k2-util{background:var(--kp-ink);color:#B7B5D6;font:500 12.5px/1 var(--f-body)}
+.k2-util .k2-w{display:flex;align-items:center;justify-content:space-between;gap:16px;height:36px}
+.k2-util .k2-ul{display:flex;gap:0;white-space:nowrap}
+.k2-util .k2-ul>*{padding-inline:14px;border-inline-start:1px solid rgba(255,255,255,.12)}
+.k2-util .k2-ul>*:first-child{padding-inline-start:0;border:0}
+.k2-util a{color:inherit;text-decoration:none}
+.k2-util a:hover{color:var(--kp-sign)}
+.k2-lang{background:transparent;border:0;border-inline-start:1px solid rgba(255,255,255,.14);border-radius:0;padding:4px 12px;color:#fff;font:500 12.5px var(--f-body);cursor:pointer}
+.k2-lang option{color:#000}
+
+.k2-head{background:#fff;color:var(--kp-ink);position:sticky;top:0;z-index:400;border-bottom:1px solid var(--kp-line);font-family:var(--f-body)}
+.k2-head::after{content:"";position:absolute;inset-inline:0;bottom:-1px;height:3px;background:var(--kp-indigo);transform:scaleX(0);transform-origin:right}
+.k2-head .k2-w{display:flex;align-items:center;gap:32px;height:76px}
+.k2-brand{display:flex;align-items:center;gap:12px;flex-shrink:0;color:var(--kp-ink);text-decoration:none}
+.k2-brand svg{width:44px;height:44px;padding:8px 10px;background:var(--kp-indigo);border-radius:4px;box-sizing:border-box}
+.k2-brand b{font:800 22px/1.05 var(--f-body);letter-spacing:.12em;direction:ltr;display:block;color:var(--kp-indigo)}
+.k2-brand small{display:block;font-size:11.5px;color:var(--kp-muted);font-weight:500;line-height:1.4;margin-top:2px}
+.k2-nav{display:flex;gap:2px;flex:1;margin:0;padding:0;background:none;position:static;border:0;height:100%}
+.k2-nav a{display:flex;align-items:center;padding:0 14px;font-size:15px;color:var(--kp-ink);font-weight:500;text-decoration:none;position:relative;height:100%}
+.k2-nav a::after{content:"";position:absolute;inset-inline:14px;bottom:0;height:4px;background:var(--kp-sign);transform:scaleY(0);transform-origin:bottom;transition:transform .18s}
+.k2-nav a:hover{color:var(--kp-indigo)}
+.k2-nav a:hover::after{transform:scaleY(.5)}
+.k2-nav a[aria-current]{color:var(--kp-indigo);font-weight:700;background:none;box-shadow:none}
+.k2-nav a[aria-current]::after{transform:none}
+.k2-act{display:flex;gap:10px;align-items:center}
+.k2-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:4px;font:700 14.5px var(--f-body);padding:11px 18px;border:0;cursor:pointer;text-decoration:none;position:relative;line-height:1.3;transition:background .15s,color .15s,border-color .15s}
+.k2-btn-sign{background:var(--kp-sign);color:var(--kp-ink)}
+.k2-btn-sign:hover{background:var(--kp-ink);color:var(--kp-sign)}
+.k2-btn-ghost{background:transparent;color:var(--kp-indigo);border:1.5px solid var(--kp-line-2)}
+.k2-btn-ghost:hover{border-color:var(--kp-indigo)}
+.k2-cnt{position:absolute;top:-8px;left:-8px;min-width:20px;height:20px;border-radius:10px;background:var(--kp-bad);color:#fff;font:700 11px/20px var(--f-body);text-align:center;padding:0 5px;box-shadow:0 0 0 2px #fff}
+.k2-menu{display:none;background:none;border:0;color:var(--kp-indigo);padding:8px;cursor:pointer}
+.k2-menu svg{width:26px;height:26px}
+
+.k2-drawer{position:fixed;inset:0;z-index:1000;display:none;font-family:var(--f-body)}
+.k2-drawer.open{display:block}
+.k2-scrim{position:absolute;inset:0;background:rgba(20,19,58,.6)}
+.k2-panel{position:absolute;top:0;bottom:0;right:0;width:min(340px,88vw);background:var(--kp-paper-2);padding:22px 22px 30px;display:flex;flex-direction:column;overflow:auto;counter-reset:stop;animation:k2in .22s ease-out}
+@keyframes k2in{from{transform:translateX(30px);opacity:0}}
+.k2-panel::before{content:"";position:absolute;top:84px;bottom:34px;right:33px;width:3px;background:var(--kp-indigo)}
+.k2-panel a{position:relative;padding:12px 40px 12px 8px;font-weight:600;font-size:16.5px;color:var(--kp-ink);text-decoration:none;border:0}
+.k2-panel a::before{content:"";position:absolute;right:5px;top:50%;width:11px;height:11px;margin-top:-7px;border-radius:50%;background:#fff;border:3px solid var(--kp-indigo)}
+.k2-panel a:hover{color:var(--kp-indigo)}
+.k2-panel a[aria-current]{color:var(--kp-indigo);background:none;font-weight:800}
+.k2-panel a[aria-current]::before{background:var(--kp-sign);border-color:var(--kp-ink);transform:scale(1.25)}
+.k2-close{align-self:flex-start;background:none;border:1.5px solid var(--kp-line-2);border-radius:4px;font-size:22px;line-height:1;cursor:pointer;color:var(--kp-indigo);padding:6px 12px;margin-bottom:22px}
+
+.k2-foot{background:var(--kp-ink);color:#A9A7C9;font:14px/1.8 var(--f-body);padding:0 0 26px;margin-top:0;position:relative}
+.k2-foot .k2-w{position:relative}
+.kp-strip{display:flex;justify-content:space-between;position:relative;margin:0 0 48px;padding-top:52px}
+.kp-strip::before{content:"";position:absolute;top:58px;inset-inline:0;height:4px;background:var(--kp-sign)}
+.kp-strip span{position:relative;font-size:12px;color:#CFCDEA;padding-top:22px;text-align:center;min-width:0}
+.kp-strip span::before{content:"";position:absolute;top:0;left:50%;width:10px;height:10px;margin-left:-8px;border-radius:50%;background:var(--kp-ink);border:3px solid var(--kp-sign)}
+.k2-fg{display:grid;grid-template-columns:1.5fr repeat(3,1fr);gap:44px;margin-bottom:44px}
+.k2-fg h4{color:#fff;font:700 14px var(--f-display);margin:0 0 16px;display:flex;align-items:center;gap:10px}
+.k2-fg h4::before{content:"";width:8px;height:8px;background:var(--kp-sign)}
+.k2-fg ul{list-style:none;display:grid;gap:9px;margin:0;padding:0}
+.k2-fg a{color:inherit;text-decoration:none}
+.k2-fg a:hover{color:var(--kp-sign)}
+.k2-fg .k2-brand{color:#fff}
+.k2-fg .k2-brand b{color:#fff}
+.k2-fg .k2-brand svg{background:transparent;border:1.5px solid rgba(255,201,60,.5)}
+.k2-fg p{margin:16px 0 0;max-width:26em;line-height:1.9}
+.k2-fb{border-top:1px solid rgba(255,255,255,.1);padding-top:22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12.5px}
+.k2-head :focus-visible,.k2-foot :focus-visible,.k2-util :focus-visible{outline:3px solid var(--kp-sign);outline-offset:2px}
+
+@media(max-width:1100px){.k2-nav a{padding:0 10px;font-size:14px}.k2-nav a::after{inset-inline:10px}.k2-head .k2-w{gap:20px}}
+@media(max-width:920px){
+  .k2-nav,.k2-act .k2-btn-ghost{display:none}
+  .k2-menu{display:block}
+  .k2-head .k2-w{justify-content:space-between;height:66px}
+  .k2-fg{grid-template-columns:1fr 1fr}
+  .kp-strip span{font-size:10.5px}
+}
+@media(max-width:560px){
+  .k2-w{padding:0 16px}
+  .k2-util .k2-ul>*:not(:first-child){display:none}
+  .k2-act .k2-hide-m{display:none}
+  .k2-fg{grid-template-columns:1fr;gap:28px}
+  .k2-brand small{display:none}
+  .kp-strip span{font-size:0;padding-top:0}
+}
+
+/* --------------------------------------------------------------------------
+   Shared page furniture — low specificity so page styles always win
+   -------------------------------------------------------------------------- */
+:where(table){border-collapse:collapse}
+:where(input,select,textarea){accent-color:var(--kp-indigo)}
+
+/* toasts: one quiet signage style everywhere */
+.toast{font-family:var(--f-body)!important}
+
+/* the standalone-preview ribbon (shown when a page is opened directly) */
+.kp-solo{position:fixed;left:16px;bottom:16px;z-index:9000;display:flex;align-items:center;gap:8px;background:var(--kp-ink);color:#fff;font:600 12.5px var(--f-body);padding:9px 14px;border-radius:4px;text-decoration:none;box-shadow:var(--sh-2);border-inline-start:4px solid var(--kp-sign)}
+.kp-solo:hover{background:var(--kp-indigo)}
+
+/* --------------------------------------------------------------------------
+   Public page hero kit — classes added to each page's existing hero markup
+   kp-hero  : the band          kp-tag   : the kicker line
+   kp-deco  : ornamental layers (glows, orbs, stars) — retired
+   kp-stats : figures row        kp-pulse : status dot (steady, not pulsing)
+   -------------------------------------------------------------------------- */
+.kp-hero{background-color:var(--kp-indigo)!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='420' viewBox='0 0 900 420' fill='none' stroke='%23ffffff' stroke-opacity='.055' stroke-width='9'%3E%3Cpath d='M-20 90h260l70 70h240l60-60h310'/%3E%3Cpath d='M160 -20v150l80 80v230'/%3E%3Cpath d='M-20 330h340l60-60h540'/%3E%3Cpath d='M640 -20v110l-60 60v290'/%3E%3Cg stroke-opacity='.1' stroke-width='5'%3E%3Ccircle cx='240' cy='90' r='12'/%3E%3Ccircle cx='550' cy='160' r='12'/%3E%3Ccircle cx='240' cy='210' r='12'/%3E%3Ccircle cx='380' cy='270' r='12'/%3E%3Ccircle cx='580' cy='330' r='12'/%3E%3C/g%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat!important;background-position:left -60px top!important;background-size:900px auto!important;
+  position:relative;border-bottom:6px solid var(--kp-sign)!important;box-shadow:none!important}
+.kp-hero::before,.kp-hero::after{content:none!important;display:none!important}
+.kp-hero.kp-ink{background-color:var(--kp-ink)!important}
+.kp-hero.kp-alert{background-color:var(--kp-ink)!important;border-bottom:0!important}
+.kp-hero.kp-alert::after{content:""!important;display:block!important;position:absolute;left:0;right:0;bottom:0;height:12px;background:repeating-linear-gradient(-45deg,var(--kp-sign) 0 14px,var(--kp-ink) 14px 28px);font-size:0}
+.kp-hero h1{font-family:var(--f-display)!important;font-weight:700!important;letter-spacing:0!important;text-shadow:none!important}
+.kp-hero h1 span,.kp-hero h1 em{color:var(--kp-sign)!important;-webkit-text-fill-color:currentColor!important;background:none!important;text-shadow:none!important}
+.kp-deco{display:none!important}
+.kp-tag{display:inline-flex!important;align-items:center;gap:10px;background:none!important;border:0!important;padding:0!important;border-radius:0!important;box-shadow:none!important;color:#D7D5F0!important;font:600 .82rem/1.4 var(--f-body)!important;letter-spacing:0!important;text-transform:none!important}
+.kp-tag::before{content:"";width:10px;height:10px;background:var(--kp-sign);flex-shrink:0}
+.kp-tag .ki{color:var(--kp-sign)}
+.kp-pulse{animation:none!important;box-shadow:none!important;border-radius:0!important;width:8px!important;height:8px!important;background:var(--kp-sign)!important}
+.kp-stats{border-top:1px solid rgba(255,255,255,.22)!important;background:none!important;border-radius:0!important;box-shadow:none!important;gap:0!important}
+.kp-stats>*{padding-inline:22px!important;background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+.kp-stats>*:first-child{padding-inline-start:0!important}
+.kp-stats>*+*{border-inline-start:1px solid rgba(255,255,255,.18)!important}
+.kp-stats b,.kp-stats [class*="num"],.kp-stats [class*="val"]{font-family:var(--f-display)!important;color:var(--kp-sign)!important;text-shadow:none!important;-webkit-text-fill-color:currentColor!important}
+
+/* buttons placed on a hero */
+.kp-hero .kp-cta{background:var(--kp-sign)!important;color:var(--kp-ink)!important;border:0!important;border-radius:4px!important;box-shadow:none!important;font-weight:700!important;transition:background .15s,color .15s}
+.kp-hero .kp-cta:hover{background:#fff!important;transform:none!important}
+.kp-hero .kp-cta2{background:transparent!important;color:#fff!important;border:1.5px solid rgba(255,255,255,.4)!important;border-radius:4px!important;box-shadow:none!important}
+.kp-hero .kp-cta2:hover{border-color:#fff!important;transform:none!important}
+
+/* floating assistant launcher used on several pages */
+.kp-fab{border-radius:6px!important;background:var(--kp-ink)!important;color:var(--kp-sign)!important;border:2px solid var(--kp-sign)!important;box-shadow:var(--sh-2)!important;animation:none!important}
+.kp-fab::before,.kp-fab::after{display:none!important;animation:none!important}
+.kp-fab:hover{transform:none!important;background:var(--kp-indigo)!important}
+.kp-fab [class*="label"]{color:#fff!important}
+
+/* The official KPTC pin replaces generic letter monograms */
+.kp-mark{font-size:0!important;color:transparent!important;text-shadow:none!important;box-shadow:none!important;border-radius:4px!important;
+  background:var(--kp-indigo) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 38'%3E%3Cpath d='M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z' fill='none' stroke='%23FFC93C' stroke-width='2.8'/%3E%3Ccircle cx='15' cy='14.5' r='5' fill='%23FFC93C'/%3E%3C/svg%3E") center/auto 58% no-repeat!important}
+.kp-mark::before,.kp-mark::after{display:none!important}
+
+/* Admin shell — operations room: ink rail, yellow position marker */
+.kp-rail{background:var(--kp-ink)!important;box-shadow:none!important}
+.kp-rail-item.active,.kp-rail-item.on{background:rgba(255,201,60,.1)!important;color:#fff!important;box-shadow:inset -4px 0 0 var(--kp-sign)!important;border-color:transparent!important}
+.kp-kpi{border-radius:4px!important;box-shadow:none!important;border:1px solid var(--kp-line)!important;border-top:3px solid var(--kp-indigo)!important}
+.kp-kpi b,.kp-kpi [class*="val"],.kp-kpi [class*="num"]{font-family:var(--f-display)!important;letter-spacing:0!important}
+.kp-panel{border-radius:4px!important;box-shadow:none!important;border:1px solid var(--kp-line)!important}
+@media(max-width:700px){.kp-stats{flex-wrap:wrap;row-gap:16px}.kp-stats>*{padding-inline:14px!important}}
+
+/* ==========================================================================
+   Motion & delight layer — "الحركة على الخط"
+   Everything here is progressive: without support (or with reduced motion)
+   the page is simply still and complete.
+   ========================================================================== */
+:root{
+  --kp-ease:cubic-bezier(.2,.7,.2,1);
+  --kp-bus:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 24'%3E%3Crect x='1' y='1.5' width='44' height='17' rx='4.5' fill='%232E2C78'/%3E%3Cpath d='M1 9.5V6a4.5 4.5 0 0 1 4.5-4.5H9v8z' fill='%23BFD4FF'/%3E%3Crect x='12' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='21' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='30' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='1' y='13' width='44' height='2' fill='%23FFC93C'/%3E%3Ccircle cx='11' cy='19' r='3.6' fill='%2314133A' stroke='%23fff' stroke-width='1.4'/%3E%3Ccircle cx='34' cy='19' r='3.6' fill='%2314133A' stroke='%23fff' stroke-width='1.4'/%3E%3C/svg%3E");
+}
+
+/* tactile press — uses the independent `scale` property so it never fights a page's own transform */
+:where(button,.k2-btn,.btn,[role="button"]){transition-property:background,color,border-color,box-shadow,scale;transition-duration:.15s}
+:where(button,.k2-btn,.btn,[role="button"]):active{scale:.96}
+
+/* reading progress: the header's bottom edge is a route, and a bus rides it as you scroll */
+@supports (animation-timeline:scroll()){
+  .k2-head::after,body>header::after{content:"";position:absolute;inset-inline:0;bottom:-1px;height:3px;background:var(--kp-sign);transform-origin:right;transform:scaleX(0);animation:kp-prog linear both;animation-timeline:scroll(root)}
+  .k2-head::before,body>header::before{content:"";position:absolute;bottom:-3px;inset-inline-start:0;width:30px;height:16px;margin-inline-start:-4px;background:var(--kp-bus) center/contain no-repeat;z-index:2;opacity:0;animation:kp-ride linear both;animation-timeline:scroll(root);pointer-events:none}
+}
+@keyframes kp-prog{to{transform:scaleX(1)}}
+@keyframes kp-ride{0%{inset-inline-start:0;opacity:0}3%{opacity:1}100%{inset-inline-start:calc(100% - 26px);opacity:1}}
+
+/* sections arrive as they enter the viewport (only a `from` state, so resting styles always win) */
+@supports (animation-timeline:view()){
+  :where(.kp-rise,.sec-head,.net-line,.fares,.contact-grid,.sub-card,.trip-card,.unit-card,.why-card,.demo-card,.impact-card,.faq-item,.route-card,.pkg-card,.pos-card,.feat-card,.loc-card,.kpi-c,.k2-fg>*){animation:kp-rise linear both;animation-timeline:view();animation-range:entry 0% entry 42%}
+  .kp-strip::after{content:"";position:absolute;top:44px;width:34px;height:18px;background:var(--kp-bus) center/contain no-repeat;animation:kp-strip-bus linear both;animation-timeline:view();animation-range:entry 20% cover 70%}
+}
+@keyframes kp-rise{from{opacity:0;translate:0 22px}}
+@keyframes kp-strip-bus{from{right:0}to{right:calc(100% - 34px)}}
+
+/* heroes: staged arrival on load */
+.kp-hero h1{animation:kp-in .7s var(--kp-ease) both}
+.kp-hero .kp-tag{animation:kp-in .6s var(--kp-ease) both}
+.kp-hero p{animation:kp-in .7s .08s var(--kp-ease) both}
+.kp-hero h1 span,.kp-hero h1 em{background:linear-gradient(var(--kp-sign),var(--kp-sign)) right 100%/0 .09em no-repeat!important;animation:kp-under .6s .55s var(--kp-ease) forwards;padding-bottom:.04em}
+.kp-stats>*{animation:kp-in .6s var(--kp-ease) both}
+.kp-stats>*:nth-child(2){animation-delay:.07s}.kp-stats>*:nth-child(3){animation-delay:.14s}.kp-stats>*:nth-child(4){animation-delay:.21s}.kp-stats>*:nth-child(n+5){animation-delay:.28s}
+@keyframes kp-in{from{opacity:0;translate:0 16px}}
+@keyframes kp-under{to{background-size:100% .09em}}
+
+/* switching a tab / step / dashboard page: content slides in from the direction of travel */
+:where(.tab-page.active,.step-page.active,.tab-content.active,.page.on,.pg.on,.pg.active,.section.active){animation:kp-swap .34s var(--kp-ease) both}
+@keyframes kp-swap{from{opacity:0;translate:-14px 0}}
+
+/* dialogs settle like a card placed on a counter */
+:where(.modal-overlay.show,.modal-bg.open,.success-overlay.show,.overlay.show)>*{animation:kp-pop .32s var(--kp-ease) both}
+@keyframes kp-pop{from{opacity:0;scale:.94;translate:0 14px}}
+
+/* toasts: a departure slip with a countdown edge */
+.toast{background:var(--kp-ink)!important;color:#fff!important;border-radius:4px!important;border-inline-start:5px solid var(--kp-sign)!important;box-shadow:var(--sh-3)!important;overflow:hidden;display:flex;align-items:center;gap:8px}
+.toast .ki{color:var(--kp-sign)}
+.toast .ki.ki-ok{color:#5FD3A2}.toast .ki.ki-bad{color:#FF8A84}
+.toast::after{content:"";position:absolute;inset-inline:0;bottom:0;height:2px;background:var(--kp-sign);transform-origin:right;transform:scaleX(0)}
+.toast.show::after{animation:kp-count 2.8s linear both}
+@keyframes kp-count{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+
+/* icons respond when their control is hovered */
+:where(button,a,.card,[onclick]):hover>.ki{animation:kp-nudge .45s var(--kp-ease)}
+@keyframes kp-nudge{40%{translate:0 -3px}}
+
+/* form focus: the underline travels in */
+:where(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){transition:border-color .2s,box-shadow .2s,background-color .2s}
+
+/* footer stops light up in sequence when hovered */
+.kp-strip span::before{transition:background .2s,scale .2s}
+.kp-strip span:hover::before{background:var(--kp-sign);scale:1.3}
+
+/* back-to-top: a small lift at the end of the line */
+.kp-top{border:1px solid rgba(255,201,60,.55)!important;position:fixed;inset-inline-end:max(16px,env(safe-area-inset-right,0px));bottom:88px;z-index:350;width:44px;height:44px;border-radius:4px;background:var(--kp-ink);color:var(--kp-sign);cursor:pointer;display:grid;place-items:center;box-shadow:var(--sh-2);opacity:0;translate:0 12px;pointer-events:none;transition:opacity .25s,translate .25s,background .15s}
+.kp-top.on{opacity:1;translate:0 0;pointer-events:auto}
+.kp-top:hover{background:var(--kp-indigo)}
+.kp-top svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* a bus that glides along a stop list to the hovered stop */
+.kp-linebus{position:absolute;inset-inline-start:-6px;top:0;width:30px;height:16px;background:var(--kp-bus) center/contain no-repeat;rotate:-90deg;opacity:0;transition:top .45s var(--kp-ease),opacity .25s;pointer-events:none;z-index:2}
+
+/* --------------------------------------------------------------------------
+   Site sections added in v4: account button, util links, visibility, notices
+   -------------------------------------------------------------------------- */
+.kp-off{display:none!important}
+.kp-acct{gap:8px!important}
+.kp-acct b{font-weight:700;font-size:12px;background:var(--kp-sign);color:var(--kp-ink);padding:2px 7px;border-radius:2px;font-variant-numeric:tabular-nums;direction:rtl}
+.kp-acct .ki{width:18px;height:18px}
+.kp-notice{background:var(--kp-sign);color:var(--kp-ink);font:600 13.5px/1.6 var(--f-body);text-align:center;padding:8px 16px}
+.kp-closed{position:fixed;inset:0;z-index:5000;background:var(--kp-paper);display:grid;place-items:center;padding:24px;text-align:center;font-family:var(--f-body)}
+.kp-closed>div{display:grid;gap:12px;justify-items:center;max-width:420px}
+.kp-closed .kp-mark{width:64px;height:64px}
+.kp-closed h2{font:700 24px/1.4 var(--f-display);color:var(--kp-ink)}
+.kp-closed p{color:var(--kp-muted)}
+.kp-saved{position:fixed;inset-inline-start:16px;bottom:16px;z-index:4000;display:grid;gap:1px;background:#fff;color:var(--kp-ink);border:1px solid var(--kp-line);border-inline-start:5px solid var(--kp-ok);border-radius:4px;padding:11px 16px;box-shadow:var(--sh-3);text-decoration:none;font-family:var(--f-body);translate:0 20px;opacity:0;transition:translate .35s var(--kp-ease),opacity .3s}
+.kp-saved.on{translate:0 0;opacity:1}
+.kp-saved b{font-size:14px}.kp-saved span{font-size:12.5px;color:var(--kp-indigo);font-weight:600}
+@media(max-width:920px){.kp-acct b{display:none}.k2-act .kp-acct{display:inline-flex!important;padding:9px 12px}}
+@media(max-width:560px){.k2-util .k2-ul>.kp-xl,.util-l>.kp-xl{display:none!important}}
+/* real-photo ad stage */
+.kp-stagebox{position:relative;width:100%;overflow:hidden;border-radius:6px;background:#8D8F92}
+.kp-stage{position:absolute;top:0;left:0;width:650px;height:364px;transform-origin:0 0;direction:ltr}
+</style><!--/kptc:core-css-->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--kp-paper);color:var(--kp-ink);line-height:1.75;font-size:15.5px}
+a{color:inherit}
+.w{max-width:1240px;margin:0 auto;padding:0 28px}
+.ph{padding:46px 0 34px}
+.ph h1{font-size:clamp(30px,4.2vw,48px);color:#fff}
+.ph p{color:#D7D5F0;max-width:40em;margin-top:8px;font-size:17px}
+.ph .kp-tag{margin-bottom:12px}
+.sub{background:#fff;border-bottom:1px solid var(--kp-line);position:sticky;top:76px;z-index:300}
+.sub .w{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.sub button,.sub a{background:none;border:0;padding:14px 16px;font:600 14.5px var(--f-body);color:var(--kp-muted);cursor:pointer;white-space:nowrap;border-bottom:4px solid transparent;text-decoration:none}
+.sub button:hover,.sub a:hover{color:var(--kp-indigo)}
+.sub .on{color:var(--kp-indigo);border-bottom-color:var(--kp-sign)}
+main{padding:34px 0 80px;min-height:50vh}
+h2.st{font-size:24px;margin:0 0 6px}
+p.sd{color:var(--kp-muted);margin-bottom:22px}
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.box{background:#fff;border:1px solid var(--kp-line);border-radius:6px;padding:22px}
+.box h3{font-size:17px;margin-bottom:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:4px;padding:11px 18px;font:700 14.5px var(--f-body);cursor:pointer;text-decoration:none;background:var(--kp-indigo);color:#fff}
+.btn:hover{background:var(--kp-ink)}
+.btn.y{background:var(--kp-sign);color:var(--kp-ink)}.btn.y:hover{background:var(--kp-ink);color:var(--kp-sign)}
+.btn.o{background:#fff;color:var(--kp-indigo);border:1.5px solid var(--kp-line-2)}.btn.o:hover{border-color:var(--kp-indigo);background:#fff}
+.btn.r{background:var(--kp-bad)}.btn.sm{padding:6px 11px;font-size:13px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+label.f{display:grid;gap:5px;font-size:13px;font-weight:600;color:var(--kp-muted)}
+label.f input,label.f select,label.f textarea{border:1.5px solid var(--kp-line-2);border-radius:4px;padding:10px 12px;font:500 15px var(--f-body);color:var(--kp-ink);background:#fff;width:100%}
+label.f input:focus,label.f select:focus,label.f textarea:focus{outline:0;border-color:var(--kp-indigo);box-shadow:0 0 0 3px rgba(46,44,120,.12)}
+.form{display:grid;gap:14px}
+.err{color:var(--kp-bad);font-size:13.5px;font-weight:600;min-height:1.4em}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:2px;background:var(--kp-paper);color:var(--kp-ink);white-space:nowrap}
+.tag.ok{background:#E3F3EB;color:var(--kp-ok)}.tag.warn{background:#FBEFD9;color:#8A5407}.tag.bad{background:#F9E2E0;color:var(--kp-bad)}.tag.in{background:#E4E3F5;color:var(--kp-indigo)}
+table.t{width:100%;border-collapse:collapse;background:#fff;font-size:14.5px}
+table.t th{text-align:start;background:var(--kp-ink);color:#fff;font-size:12.5px;font-weight:600;padding:10px 14px;white-space:nowrap}
+table.t td{padding:13px 14px;border-bottom:1px solid var(--kp-line);vertical-align:middle}
+table.t tr:hover td{background:var(--kp-paper-2)}
+.tw{overflow-x:auto;border:1px solid var(--kp-line);border-radius:6px}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.empty{padding:34px;text-align:center;color:var(--kp-muted)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chips button{background:#fff;border:1.5px solid var(--kp-line-2);border-radius:3px;padding:6px 13px;font:600 13.5px var(--f-body);color:var(--kp-muted);cursor:pointer}
+.chips button.on{background:var(--kp-ink);color:var(--kp-sign);border-color:var(--kp-ink)}
+.dlg{position:fixed;inset:0;z-index:900;background:rgba(20,19,58,.6);display:none;align-items:flex-start;justify-content:center;padding:8vh 16px;overflow:auto}
+.dlg.on{display:flex}
+.dlg>div{background:#fff;border-radius:6px;border-top:6px solid var(--kp-sign);width:min(560px,100%);padding:26px;animation:kp-pop .3s var(--kp-ease) both}
+.dlg h3{font-size:20px;margin-bottom:4px}
+.dlg .x{float:left;background:none;border:1.5px solid var(--kp-line-2);border-radius:4px;width:34px;height:34px;font-size:18px;cursor:pointer;color:var(--kp-indigo)}
+.pane{display:none}.pane.on{display:block;animation:kp-swap .34s var(--kp-ease) both}
+.flash{position:fixed;bottom:24px;left:50%;translate:-50% 30px;background:var(--kp-ink);color:#fff;border-inline-start:5px solid var(--kp-sign);border-radius:4px;padding:12px 20px;font-weight:600;font-size:14px;opacity:0;transition:.3s var(--kp-ease);z-index:2000;pointer-events:none;box-shadow:var(--sh-3)}
+.flash.on{opacity:1;translate:-50% 0}
+@media(max-width:920px){.g2,.g3,.g4{grid-template-columns:1fr}.sub{top:66px}.w{padding:0 16px}}
+
+body{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+aside{background:var(--kp-ink);color:#fff;position:sticky;top:0;height:100vh;overflow:auto;padding-bottom:20px}
+.ab{display:flex;gap:10px;align-items:center;padding:16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.ab .kp-mark{width:38px;height:38px}.ab b{letter-spacing:.14em;direction:ltr}.ab small{display:block;color:#A9A7C9;font-size:11.5px}
+aside h4{font:600 11.5px var(--f-body);color:#8E8CB8;padding:16px 16px 6px}
+aside button{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;border:0;border-right:4px solid transparent;color:#C9C8E6;padding:10px 16px;font:500 14px var(--f-body);cursor:pointer;text-align:right}
+aside button:hover{background:rgba(255,255,255,.05);color:#fff}
+aside button.on{background:rgba(255,201,60,.1);color:#fff;border-right-color:var(--kp-sign);font-weight:700}
+aside button em{font-style:normal;font-size:11px;font-weight:700;background:var(--kp-sign);color:var(--kp-ink);border-radius:2px;padding:0 6px}
+.mn{padding:26px 30px 60px;min-width:0}
+.mh{display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.mh h1{font-size:26px}.mh p{color:var(--kp-muted)}
+.row{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--kp-line);background:#fff}
+.row:last-child{border:0}.row b{display:block}.row small{color:var(--kp-muted)}
+.sw{position:relative;width:50px;height:28px;border-radius:20px;background:var(--kp-line-2);border:0;cursor:pointer;transition:background .25s;flex-shrink:0}
+.sw::after{content:"";position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:right .25s var(--kp-ease);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sw.on{background:var(--kp-ok)}.sw.on::after{right:25px}
+.kp4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kp4 div{background:#fff;border:1px solid var(--kp-line);border-top:3px solid var(--kp-indigo);border-radius:4px;padding:14px 16px}
+.kp4 b{display:block;font:700 26px/1.2 var(--f-display);color:var(--kp-indigo)}.kp4 span{font-size:12.5px;color:var(--kp-muted)}
+td .btn{margin-inline-end:4px}
+select.s{border:1.5px solid var(--kp-line-2);border-radius:4px;padding:5px 8px;font:600 13px var(--f-body);background:#fff}
+@media(max-width:900px){body{grid-template-columns:1fr}aside{position:static;height:auto}aside nav{display:flex;overflow-x:auto}aside h4{display:none}aside button{white-space:nowrap;border-right:0;border-bottom:4px solid transparent}aside button.on{border-bottom-color:var(--kp-sign)}.kp4{grid-template-columns:1fr 1fr}.mn{padding:18px 14px 50px}}
+</style>
+</head>
+<body>
+<aside>
+  <div class="ab"><div class="kp-mark"></div><div><b>KPTC</b><small>مركز إدارة الموقع</small></div></div>
+  <nav id="nav"></nav>
+</aside>
+<div class="mn">
+  <div class="mh"><div><h1 id="hT"></h1><p id="hD"></p></div><div id="hA"></div></div>
+  <div id="view"></div>
+</div>
+<div class="dlg" id="dlg"><div><button class="x" type="button" data-close>×</button><h3 id="dT"></h3><form class="form" id="dF" novalidate style="margin-top:12px"></form></div></div>
+<div class="flash" id="flash"></div>
+<script>
+(function(){
+  var K = KPTC, $ = function(i){ return document.getElementById(i); }, E = K.esc, tab = 'pages';
+  function flash(t){ var x = $('flash'); x.textContent = t; x.classList.add('on'); clearTimeout(flash.t); flash.t = setTimeout(function(){ x.classList.remove('on'); }, 2400); }
+  var PAGES = [['home','الصفحة الرئيسية','واجهة الزوار'],['routes','الخطوط والمسارات','البحث والخريطة'],['subs','الاشتراكات والتذاكر','الباقات والدفع'],['umrah','رحلات العمرة','الحجز والمقاعد'],['vip','باصات VIP والتأجير','الحجز والمعاينة'],['winch','الونش والورشة','الطلبات الطارئة'],['lost','المفقودات','البلاغات'],['ads','الإعلان على الحافلات','باقات المعلنين'],['reclient','مساحات للإيجار','العقارات للزوار'],['assistant','المساعد الذكي','كابتن كويت'],['media','المركز الإعلامي','الأخبار والصور'],['tenders','المناقصات','الفرص المطروحة'],['careers','الوظائف','الشواغر والتقديم'],['account','حسابي والمحفظة','تسجيل العملاء'],['tenant','بوابة المستأجر','المستأجرون الحاليون'],['portal','بوابة الموظفين','الدخول الوظيفي']];
+  var TABS = {
+    pages:['الصفحات والظهور','أظهر أو أخفِ أي صفحة من الموقع. الصفحة المخفية تختفي روابطها من القوائم ويرى من يفتحها رسالة «غير متاحة».'],
+    news:['الأخبار والمركز الإعلامي','أضف خبراً أو بياناً صحفياً، عدّله، أو أوقف نشره.'],
+    tenders:['المناقصات','اطرح مناقصة جديدة، غيّر حالتها، وراجع الشركات المهتمة.'],
+    jobs:['الوظائف وطلبات التوظيف','أعلن عن وظيفة، وأدر طلبات المتقدمين وحالاتها.'],
+    wallets:['المحافظ','أرصدة العملاء: تعبئة، خصم، استرجاع، وإيقاف مؤقت.'],
+    bookings:['الحجوزات والطلبات','كل ما يحجزه العملاء من صفحات الخدمات، مع تغيير الحالة.'],
+    log:['سجل النشاط','آخر ما حدث في الموقع.']
+  };
+  function nav(){
+    var d = K.db(), c = {tenders:d.bids.filter(function(b){ return b.status === 'جديد'; }).length, jobs:d.applications.filter(function(a){ return a.status === 'قيد المراجعة'; }).length, bookings:d.bookings.filter(function(b){ return b.status === 'قيد المعالجة'; }).length};
+    $('nav').innerHTML = '<h4>الموقع</h4>' + ['pages','news','tenders','jobs'].map(btn).join('') + '<h4>العملاء</h4>' + ['wallets','bookings'].map(btn).join('') + '<h4>النظام</h4>' + btn('log');
+    function btn(k){ return '<button type="button" class="' + (k === tab ? 'on' : '') + '" data-tab="' + k + '">' + TABS[k][0] + (c[k] ? '<em class="num">' + c[k] + '</em>' : '') + '</button>'; }
+  }
+  function tag(s){ var c = /منشور|مفتوح|فعّال|مؤكد|مدفوع|مكتمل|مقبول|مقابلة|نشطة/.test(s) ? 'ok' : /مغلق|ملغ|مرفوض|موقوف|مخفي/.test(s) ? 'bad' : 'warn'; return '<span class="tag ' + c + '">' + E(s) + '</span>'; }
+  function sel(list, cur, attrs){ return '<select class="s" ' + attrs + '>' + list.map(function(o){ return '<option' + (o === cur ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>'; }
+  var V = {
+    pages: function(d){
+      $('hA').innerHTML = '<a class="btn o" href="KPTC_Home.html">افتح الموقع</a>';
+      var on = PAGES.filter(function(p){ return d.pages[p[0]] !== false; }).length;
+      return '<div class="kp4"><div><b class="num">' + PAGES.length + '</b><span>صفحة في الموقع</span></div><div><b class="num">' + on + '</b><span>ظاهرة للزوار</span></div><div><b class="num">' + (PAGES.length - on) + '</b><span>مخفية</span></div><div><b>' + (d.notice.on ? 'مفعّل' : 'متوقف') + '</b><span>شريط التنبيه العام</span></div></div>' +
+        '<div class="box" style="margin-bottom:18px"><h3>شريط تنبيه أعلى الموقع</h3><div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center"><label class="f" style="margin:0"><input id="ntx" placeholder="مثال: تعديل مؤقت على مسار خط 15 حتى نهاية الأسبوع" value="' + E(d.notice.text) + '"></label><button class="btn sm" data-act="ntsave">حفظ النص</button><button class="sw ' + (d.notice.on ? 'on' : '') + '" data-act="nt" aria-label="تفعيل الشريط"></button></div></div>' +
+        '<div class="tw">' + PAGES.map(function(p){ var vis = d.pages[p[0]] !== false; return '<div class="row"><div><b>' + p[1] + '</b><small>' + p[2] + '</small></div>' + tag(vis ? 'منشورة' : 'مخفية') + '<button class="sw ' + (vis ? 'on' : '') + '" data-act="pg" data-id="' + p[0] + '" aria-label="إظهار ' + p[1] + '"' + (p[0] === 'home' ? ' disabled title="الصفحة الرئيسية لا تُخفى"' : '') + '></button></div>'; }).join('') + '</div>';
+    },
+    news: function(d){
+      $('hA').innerHTML = '<button class="btn y" data-act="new" data-k="news">خبر جديد</button>';
+      return '<div class="tw"><table class="t"><thead><tr><th>العنوان</th><th>القسم</th><th>التاريخ</th><th>الحالة</th><th></th></tr></thead><tbody>' + d.news.map(function(n){ return '<tr><td style="min-width:260px"><b>' + E(n.title) + '</b></td><td>' + E(n.cat) + '</td><td class="num">' + K.date(n.d) + '</td><td>' + tag(n.pub ? 'منشور' : 'مخفي') + '</td><td style="white-space:nowrap"><button class="btn sm o" data-act="edit" data-k="news" data-id="' + n.id + '">تعديل</button><button class="btn sm o" data-act="pub" data-id="' + n.id + '">' + (n.pub ? 'إخفاء' : 'نشر') + '</button><button class="btn sm r" data-act="del" data-k="news" data-id="' + n.id + '">حذف</button></td></tr>'; }).join('') + '</tbody></table></div>';
+    },
+    tenders: function(d){
+      $('hA').innerHTML = '<button class="btn y" data-act="new" data-k="tenders">طرح جديد</button>';
+      return '<div class="tw" style="margin-bottom:22px"><table class="t"><thead><tr><th>الرقم</th><th>النوع</th><th>العنوان</th><th>آخر موعد</th><th>المهتمون</th><th>الحالة</th><th></th></tr></thead><tbody>' + d.tenders.map(function(t){ var n = d.bids.filter(function(b){ return b.tender === t.id; }).length; return '<tr><td class="num"><b>' + E(t.no) + '</b></td><td>' + E(t.kind) + '</td><td style="min-width:240px">' + E(t.title) + '</td><td class="num">' + K.date(t.close) + '</td><td class="num">' + n + '</td><td>' + sel(['مفتوحة','مغلقة','ملغاة','تمت الترسية'], t.status, 'data-act="tst" data-id="' + t.id + '"') + '</td><td style="white-space:nowrap"><button class="btn sm o" data-act="edit" data-k="tenders" data-id="' + t.id + '">تعديل</button><button class="btn sm r" data-act="del" data-k="tenders" data-id="' + t.id + '">حذف</button></td></tr>'; }).join('') + '</tbody></table></div><h2 class="st" style="font-size:19px">الشركات المهتمة</h2><div class="tw"><table class="t"><thead><tr><th>الشركة</th><th>المسؤول</th><th>الهاتف</th><th>السجل التجاري</th><th>المناقصة</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>' + (d.bids.length ? d.bids.map(function(b){ var t = d.tenders.filter(function(x){ return x.id === b.tender; })[0] || {no:'—'}; return '<tr><td><b>' + E(b.co) + '</b></td><td>' + E(b.name) + '</td><td class="num">' + E(b.phone) + '</td><td class="num">' + E(b.cr || '—') + '</td><td class="num">' + E(t.no) + '</td><td class="num">' + K.date(b.d) + '</td><td>' + sel(['جديد','استلم الوثائق','قدّم عطاءً','مستبعد'], b.status, 'data-act="bst" data-id="' + b.id + '"') + '</td></tr>'; }).join('') : '<tr><td colspan="7" class="empty">لم تسجّل أي شركة اهتمامها بعد. جرّب من صفحة المناقصات.</td></tr>') + '</tbody></table></div>';
+    },
+    jobs: function(d){
+      $('hA').innerHTML = '<button class="btn y" data-act="new" data-k="jobs">وظيفة جديدة</button>';
+      return '<div class="tw" style="margin-bottom:22px"><table class="t"><thead><tr><th>الوظيفة</th><th>الإدارة</th><th>آخر موعد</th><th>المتقدمون</th><th>الحالة</th><th></th></tr></thead><tbody>' + d.jobs.map(function(j){ var n = d.applications.filter(function(a){ return a.job === j.id; }).length; return '<tr><td><b>' + E(j.title) + '</b></td><td>' + E(j.dept) + '</td><td class="num">' + K.date(j.close) + '</td><td class="num">' + n + '</td><td>' + tag(j.open ? 'مفتوحة' : 'مغلقة') + '</td><td style="white-space:nowrap"><button class="btn sm o" data-act="edit" data-k="jobs" data-id="' + j.id + '">تعديل</button><button class="btn sm o" data-act="jopen" data-id="' + j.id + '">' + (j.open ? 'إغلاق' : 'فتح') + '</button><button class="btn sm r" data-act="del" data-k="jobs" data-id="' + j.id + '">حذف</button></td></tr>'; }).join('') + '</tbody></table></div><h2 class="st" style="font-size:19px">طلبات التوظيف</h2><div class="tw"><table class="t"><thead><tr><th>المتقدم</th><th>الوظيفة</th><th>الهاتف</th><th>الخبرة</th><th>السيرة</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>' + (d.applications.length ? d.applications.map(function(a){ var j = d.jobs.filter(function(x){ return x.id === a.job; })[0] || {title:'—'}; return '<tr><td><b>' + E(a.name) + '</b><br><small style="color:var(--kp-muted)">' + E(a.note || '') + '</small></td><td>' + E(j.title) + '</td><td class="num">' + E(a.phone) + '</td><td class="num">' + E(a.exp || '—') + '</td><td>' + E(a.cv || '—') + '</td><td class="num">' + K.date(a.d) + '</td><td>' + sel(['قيد المراجعة','مرشح للمقابلة','مقبول','اعتذار'], a.status, 'data-act="ast" data-id="' + a.id + '"') + '</td></tr>'; }).join('') : '<tr><td colspan="7" class="empty">لا توجد طلبات.</td></tr>') + '</tbody></table></div>';
+    },
+    wallets: function(d){
+      $('hA').innerHTML = '';
+      var ids = Object.keys(d.users), total = 0, tx = 0; ids.forEach(function(i){ var w = K.wallet(i); total += w.balance; tx += w.tx.length; });
+      return '<div class="kp4"><div><b class="num">' + ids.length + '</b><span>محفظة</span></div><div><b class="num">' + K.money(total) + '</b><span>إجمالي الأرصدة</span></div><div><b class="num">' + tx + '</b><span>حركة مسجلة</span></div><div><b class="num">' + ids.filter(function(i){ return K.wallet(i).frozen; }).length + '</b><span>موقوفة</span></div></div><div class="tw"><table class="t"><thead><tr><th>العميل</th><th>الهاتف</th><th>الرصيد</th><th>آخر حركة</th><th>الحالة</th><th>إجراء من الإدارة</th></tr></thead><tbody>' + ids.map(function(i){ var u = d.users[i], w = K.wallet(i), l = w.tx[0]; return '<tr><td><b>' + E(u.name) + '</b></td><td class="num">' + E(u.phone) + '</td><td class="num"><b>' + K.money(w.balance) + '</b></td><td>' + (l ? E(l.t) + ' <span class="num">' + K.money(Math.abs(l.a)) + '</span> · <span class="num">' + K.date(l.d) + '</span>' : '—') + '</td><td>' + tag(w.frozen ? 'موقوفة' : 'نشطة') + '</td><td style="white-space:nowrap"><button class="btn sm" data-act="wadd" data-id="' + i + '">تعبئة</button><button class="btn sm o" data-act="wsub" data-id="' + i + '">خصم</button><button class="btn sm o" data-act="wref" data-id="' + i + '">استرجاع</button><button class="btn sm ' + (w.frozen ? 'y' : 'r') + '" data-act="wfrz" data-id="' + i + '">' + (w.frozen ? 'تفعيل' : 'إيقاف') + '</button></td></tr>'; }).join('') + '</tbody></table></div>';
+    },
+    bookings: function(d){
+      $('hA').innerHTML = '';
+      return '<div class="tw"><table class="t"><thead><tr><th>الرقم</th><th>النوع</th><th>التفاصيل</th><th>العميل</th><th>التاريخ</th><th>المبلغ</th><th>الحالة</th></tr></thead><tbody>' + (d.bookings.length ? d.bookings.map(function(b){ var u = d.users[b.uid]; return '<tr><td class="num"><b>' + E(b.id) + '</b></td><td><span class="tag in">' + E(b.type) + '</span></td><td>' + E(b.title) + '</td><td>' + E(u ? u.name : 'زائر غير مسجل') + '</td><td class="num">' + K.date(b.d) + '</td><td class="num">' + (b.amount ? K.money(b.amount) : '—') + '</td><td>' + sel(['قيد المعالجة','مؤكد','مدفوع','فعّال','مكتمل','ملغى'].indexOf(b.status) < 0 ? [b.status,'قيد المعالجة','مؤكد','مكتمل','ملغى'] : ['قيد المعالجة','مؤكد','مدفوع','فعّال','مكتمل','ملغى'], b.status, 'data-act="kst" data-id="' + b.id + '"') + '</td></tr>'; }).join('') : '<tr><td colspan="7" class="empty">لا توجد طلبات.</td></tr>') + '</tbody></table></div>';
+    },
+    log: function(d){
+      $('hA').innerHTML = '<button class="btn r" data-act="reset">إعادة البيانات التجريبية</button>';
+      return '<div class="tw">' + (d.log.length ? d.log.map(function(l){ return '<div class="row" style="grid-template-columns:1fr auto"><div>' + E(l.msg) + '</div><small class="num">' + E(l.d.replace('T',' ').slice(0,16)) + '</small></div>'; }).join('') : '<div class="empty">لا يوجد نشاط مسجل بعد.</div>') + '</div>';
+    }
+  };
+  function render(){ nav(); $('hT').textContent = TABS[tab][0]; $('hD').textContent = TABS[tab][1]; $('view').innerHTML = V[tab](K.db()); }
+  var FORMS = {
+    news:{t:'خبر', f:[['title','العنوان'],['cat','القسم','select',['أخبار الشركة','بيانات صحفية','المسؤولية الاجتماعية']],['d','التاريخ','date'],['img','الصورة','select',['kbus-fleet.jpg','kbus-ev.jpg','kbus-street.jpg','kbus-depot.jpg','coach-1.jpg','tow-1.jpg','workshop-1.jpg','hq.jpg','umrah-art.jpg']],['body','النص','textarea']], d:function(){ return {id:K.id('N'), pub:true, d:K.today(), cat:'أخبار الشركة', img:'kbus-fleet.jpg'}; }},
+    tenders:{t:'مناقصة', f:[['no','الرقم / السنة'],['kind','النوع','select',['مناقصة','ممارسة','مزايدة']],['title','العنوان'],['meet','الاجتماع التمهيدي','date'],['place','مكان الاجتماع'],['close','آخر موعد للعطاءات','date'],['box','رقم الصندوق'],['fee','قيمة الوثائق (د.ك)','number']], d:function(){ return {id:K.id('T'), status:'مفتوحة', kind:'مناقصة', meet:K.today(7), close:K.today(21), fee:75, box:'1'}; }},
+    jobs:{t:'وظيفة', f:[['title','المسمى الوظيفي'],['dept','الإدارة'],['loc','مكان العمل'],['type','نوع الدوام','select',['دوام كامل','دوام جزئي','عقد مؤقت']],['close','آخر موعد للتقديم','date'],['req','المتطلبات','textarea']], d:function(){ return {id:K.id('J'), open:true, type:'دوام كامل', close:K.today(30)}; }}
+  };
+  var editing = null;
+  function openForm(k, id){
+    var F = FORMS[k], item = id ? K.db()[k].filter(function(x){ return x.id === id; })[0] : F.d(); editing = {k:k, item:item, isNew:!id};
+    $('dT').textContent = (id ? 'تعديل ' : 'إضافة ') + F.t;
+    $('dF').innerHTML = F.f.map(function(f){ var v = item[f[0]] == null ? '' : item[f[0]], c;
+      if (f[2] === 'select') c = '<select name="' + f[0] + '">' + f[3].map(function(o){ return '<option' + (o === v ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>';
+      else if (f[2] === 'textarea') c = '<textarea name="' + f[0] + '" rows="3">' + E(v) + '</textarea>';
+      else c = '<input name="' + f[0] + '" ' + (f[2] === 'date' ? 'type="date"' : f[2] === 'number' ? 'inputmode="decimal" dir="ltr"' : '') + ' value="' + E(v) + '">';
+      return '<label class="f">' + f[1] + c + '</label>'; }).join('') + '<div class="err" id="dE"></div><button class="btn y" type="submit">حفظ</button>';
+    $('dlg').classList.add('on');
+  }
+  $('dF').addEventListener('submit', function(e){ e.preventDefault(); if (!editing) return; var F = FORMS[editing.k], ok = true;
+    F.f.forEach(function(f){ var el = $('dF').elements[f[0]], v = el.value.trim(); if (f[2] === 'number') v = parseFloat(K.latin(v)) || 0; if (!v && f[2] !== 'number' && f[0] !== 'place' && f[0] !== 'box') ok = false; editing.item[f[0]] = v; });
+    if (!ok){ $('dE').textContent = 'أكمل كل الحقول.'; return; }
+    if (editing.isNew) K.db()[editing.k].unshift(editing.item); K.log((editing.isNew ? 'إضافة ' : 'تعديل ') + F.t + ': ' + (editing.item.title || '')); K.save(); $('dlg').classList.remove('on'); flash('تم الحفظ. التغيير ظاهر في الموقع الآن.'); });
+  function amount(label, cb){ editing = null; $('dT').textContent = label; $('dF').innerHTML = '<label class="f">المبلغ (د.ك)<input name="a" inputmode="decimal" dir="ltr" autofocus></label><label class="f">السبب / البيان<input name="n"></label><div class="err" id="dE"></div><button class="btn y" type="submit">تنفيذ</button>'; $('dlg').classList.add('on');
+    $('dF').onsubmit = function(e){ e.preventDefault(); e.stopImmediatePropagation(); var a = parseFloat(K.latin($('dF').elements.a.value)); if (!(a > 0)){ $('dE').textContent = 'أدخل مبلغاً أكبر من صفر.'; return; } var r = cb(a, $('dF').elements.n.value.trim()); if (r && r.error){ $('dE').textContent = r.error; return; } $('dF').onsubmit = null; $('dlg').classList.remove('on'); flash('تم تنفيذ العملية.'); }; }
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-tab]'); if (t){ tab = t.getAttribute('data-tab'); render(); return; }
+    if (e.target.closest('[data-close]')){ $('dlg').classList.remove('on'); $('dF').onsubmit = null; return; }
+    var b = e.target.closest('button[data-act]'); if (!b) return; var a = b.getAttribute('data-act'), id = b.getAttribute('data-id'), k = b.getAttribute('data-k'), d = K.db();
+    function find(list){ return list.filter(function(x){ return x.id === id; })[0]; }
+    if (a === 'pg'){ var vis = d.pages[id] !== false; d.pages[id] = vis ? false : true; K.log((vis ? 'إخفاء' : 'إظهار') + ' صفحة: ' + PAGES.filter(function(p){ return p[0] === id; })[0][1]); K.save(); flash(vis ? 'أُخفيت الصفحة عن الزوار.' : 'الصفحة ظاهرة الآن.'); }
+    else if (a === 'nt'){ d.notice.on = !d.notice.on; d.notice.text = $('ntx').value.trim(); K.save(); }
+    else if (a === 'ntsave'){ d.notice.text = $('ntx').value.trim(); K.save(); flash('حُفظ نص التنبيه.'); }
+    else if (a === 'new') openForm(k);
+    else if (a === 'edit') openForm(k, id);
+    else if (a === 'del'){ if (b.getAttribute('data-sure')){ d[k] = d[k].filter(function(x){ return x.id !== id; }); K.log('حذف من ' + k); K.save(); flash('تم الحذف.'); } else { b.setAttribute('data-sure','1'); b.textContent = 'تأكيد الحذف'; } }
+    else if (a === 'pub'){ var n = find(d.news); n.pub = !n.pub; K.save(); }
+    else if (a === 'jopen'){ var j = find(d.jobs); j.open = !j.open; K.save(); }
+    else if (a === 'wfrz'){ var w = K.wallet(id); w.frozen = !w.frozen; K.log((w.frozen ? 'إيقاف' : 'تفعيل') + ' محفظة ' + d.users[id].name); K.save(); flash(w.frozen ? 'أُوقفت المحفظة.' : 'فُعّلت المحفظة.'); }
+    else if (a === 'wadd') amount('تعبئة محفظة ' + d.users[id].name, function(v, n){ return K.walletTx(id, v, 'تعبئة', n || 'تعبئة من الإدارة', 'الإدارة'); });
+    else if (a === 'wsub') amount('خصم من محفظة ' + d.users[id].name, function(v, n){ return K.walletTx(id, -v, 'خصم', n || 'خصم من الإدارة', 'الإدارة'); });
+    else if (a === 'wref') amount('استرجاع إلى محفظة ' + d.users[id].name, function(v, n){ return K.walletTx(id, v, 'استرجاع', n || 'استرجاع مبلغ', 'الإدارة'); });
+    else if (a === 'reset'){ if (b.getAttribute('data-sure')){ K.reset(); flash('أُعيدت البيانات التجريبية.'); } else { b.setAttribute('data-sure','1'); b.textContent = 'تأكيد: امسح كل التعديلات'; } }
+  });
+  document.addEventListener('change', function(e){ var s = e.target.closest('select[data-act]'); if (!s) return; var a = s.getAttribute('data-act'), id = s.getAttribute('data-id'), d = K.db(), L = {tst:d.tenders, bst:d.bids, ast:d.applications, kst:d.bookings}[a], it = L.filter(function(x){ return x.id === id; })[0]; it.status = s.value; K.log('تغيير حالة ' + id + ' إلى ' + s.value); K.save(); flash('حُدّثت الحالة.'); });
+  K.onChange(render); render();
+})();
+</script>
+<!--kptc:core-js--><script id="kptc-core-js">
+/* KPTC design-system runtime.
+   1) Replaces emoji pictographs with one consistent line-icon set (presentation only:
+      no ids, handlers or data are touched; form values/options are left as data).
+   2) Adds the governorate route strip to the public footer.
+   3) When a page is opened on its own (outside the gateway), internal links still work. */
+(function(){
+  if (window.__kptcCore) return; window.__kptcCore = 1;
+
+  var P = {
+    check:'<path d="M20 6 9 17l-5-5"/>',
+    x:'<path d="M18 6 6 18M6 6l12 12"/>',
+    alert:'<path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5M12 17.3v.2"/>',
+    clip:'<rect x="8" y="2.5" width="8" height="4" rx="1"/><path d="M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2M8.5 12h7M8.5 16h5"/>',
+    bus:'<rect x="4" y="3" width="16" height="14.5" rx="2.5"/><path d="M4 10.5h16M8 3v7.5M16 3v7.5M7.5 14h1M15.5 14h1M6.5 17.5V20M17.5 17.5V20"/>',
+    chart:'<path d="M3.5 20.5h17M6.5 20.5V12M11 20.5V5M15.5 20.5v-6M20 20.5V9"/>',
+    money:'<rect x="2.5" y="6" width="19" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.8"/><path d="M6 9.5v5M18 9.5v5"/>',
+    card:'<rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 10h19M6 15h4"/>',
+    wrench:'<path d="M14.7 6.3a4.5 4.5 0 0 0-5.6 5.6L3 18l3 3 6.1-6.1a4.5 4.5 0 0 0 5.6-5.6l-2.7 2.7-2.5-.5-.5-2.5z"/>',
+    download:'<path d="M12 3v12M7 10l5 5 5-5M4 20.5h16"/>',
+    upload:'<path d="M12 20V8M7 13l5-5 5 5M4 3.5h16"/>',
+    phone:'<path d="M21.5 16.6v3a2 2 0 0 1-2.2 2A19.5 19.5 0 0 1 2.4 4.7 2 2 0 0 1 4.4 2.5h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.4 10.3a16 16 0 0 0 5.3 5.3l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+    search:'<circle cx="11" cy="11" r="6.5"/><path d="m20.5 20.5-4.8-4.8"/>',
+    pin:'<path d="M12 21.5s-7-6.3-7-11.8a7 7 0 0 1 14 0c0 5.5-7 11.8-7 11.8z"/><circle cx="12" cy="9.6" r="2.5"/>',
+    mail:'<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/>',
+    cal:'<rect x="3" y="4.5" width="18" height="16.5" rx="1.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 17h2M11 17h2"/>',
+    map:'<path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
+    user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M18 13.8a6.5 6.5 0 0 1 3.5 6.2"/>',
+    mobile:'<rect x="6.5" y="2.5" width="11" height="19" rx="2"/><path d="M11 18h2"/>',
+    edit:'<path d="M4 20h4.5L19.5 9 15 4.5 4 15.5z"/><path d="m13 6.5 4.5 4.5"/>',
+    building:'<path d="M4.5 21V4.5A1.5 1.5 0 0 1 6 3h8a1.5 1.5 0 0 1 1.5 1.5V21M15.5 9h3a1.5 1.5 0 0 1 1.5 1.5V21M3 21h18M8 7h4M8 11h4M8 15h4"/>',
+    eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    mega:'<path d="M3.5 10v4a1 1 0 0 0 1 1H7l7 4.5v-15L7 9H4.5a1 1 0 0 0-1 1zM7 15l1 5h2.5M18 8.5a5 5 0 0 1 0 7"/>',
+    doc:'<path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z"/><path d="M14 2.5V8h5.5M8.5 13h7M8.5 17h5"/>',
+    crown:'<path d="M3 7.5 7 12l5-7 5 7 4-4.5-1.8 11H4.8z"/><path d="M5 21h14"/>',
+    refresh:'<path d="M20 11.5A8 8 0 0 0 5.4 7M4 3.5V8h4.5M4 12.5A8 8 0 0 0 18.6 17M20 20.5V16h-4.5"/>',
+    bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.1V16h5v-.1c0-.8.4-1.6 1.1-2.1A6 6 0 0 0 12 3z"/>',
+    bolt:'<path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11H12z"/>',
+    mosque:'<path d="M12 2.5v2M7.5 11.5C7.5 8 12 6.5 12 4.5c0 2 4.5 3.5 4.5 7M6 11.5h12M4 21V9.5M20 21V9.5M3 21h18M6 11.5V21M18 11.5V21M10 21v-3.5a2 2 0 0 1 4 0V21"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>',
+    trend:'<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    timer:'<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 1.5M9 2.5h6"/>',
+    store:'<path d="M4 10.5V21h16V10.5M2.8 10.5 4.5 4h15l1.7 6.5zM9.5 21v-5.5h5V21"/>',
+    chat:'<path d="M20.5 12a8.5 8.5 0 0 1-12.3 7.6L3.5 21l1.4-4.6A8.5 8.5 0 1 1 20.5 12z"/>',
+    bell:'<path d="M6 9a6 6 0 0 1 12 0c0 6.5 2.5 8.5 2.5 8.5h-17S6 15.5 6 9M10 21a2.2 2.2 0 0 0 4 0"/>',
+    home:'<path d="m3 11 9-7.5 9 7.5"/><path d="M5.5 9V21h13V9M10 21v-6h4v6"/>',
+    cpu:'<rect x="5.5" y="5.5" width="13" height="13" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2.5v3M15 2.5v3M9 18.5v3M15 18.5v3M2.5 9h3M2.5 15h3M18.5 9h3M18.5 15h3"/>',
+    truck:'<path d="M2.5 17V6h11v11M13.5 9.5h4L21 13v4h-2"/><circle cx="6.5" cy="17.5" r="2"/><circle cx="16.5" cy="17.5" r="2"/><path d="M8.5 17.5h6"/>',
+    gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+    box:'<path d="M21 7.5 12 3 3 7.5v9L12 21l9-4.5z"/><path d="m3 7.5 9 4.5 9-4.5M12 12v9"/>',
+    lock:'<rect x="4.5" y="10.5" width="15" height="10.5" rx="1.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5M12 14.5v2.5"/>',
+    unlock:'<rect x="4.5" y="10.5" width="15" height="10.5" rx="1.5"/><path d="M8 10.5V7a4 4 0 0 1 7.6-1.7M12 14.5v2.5"/>',
+    star:'<path d="m12 3 2.8 5.8 6.2.9-4.5 4.4 1.1 6.2L12 17.4l-5.6 2.9 1.1-6.2L3 9.7l6.2-.9z"/>',
+    save:'<path d="M5 3h11.5L20 6.5V21H5z"/><path d="M8 3v5h7M8 21v-7h8v7"/>',
+    plane:'<path d="M21 3.5 3 10.5l6.5 2.5L12 20l3-6 6-10.5zM9.5 13 21 3.5"/>',
+    bank:'<path d="m3 9.5 9-6 9 6zM5 9.5V18M9.5 9.5V18M14.5 9.5V18M19 9.5V18M3 21h18M4 18h16"/>',
+    trash:'<path d="M4 6.5h16M9.5 6.5V3.5h5v3M6 6.5 7 21h10l1-14.5M10 11v6M14 11v6"/>',
+    ticket:'<path d="M3 6h18v3.5a2.5 2.5 0 0 0 0 5V18H3v-3.5a2.5 2.5 0 0 0 0-5z"/><path d="M14.5 6v12" stroke-dasharray="2 2"/>',
+    siren:'<path d="M7 18v-5.5a5 5 0 0 1 10 0V18M4.5 21h15v-3h-15zM12 2.5v2M4.5 6.5l1.5 1M19.5 6.5 18 7.5"/>',
+    globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    seat:'<path d="M7 3.5v9.5h9.5M7 13l-1.5 7.5M16.5 13l1.5 7.5M7 17h10"/>',
+    target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+    food:'<path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3M17 21V3c-2.2 1-3.5 4-3.5 8.5H17"/>',
+    shield:'<path d="M12 3 4.5 6v5.5c0 5 3.3 8.3 7.5 9.5 4.2-1.2 7.5-4.5 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/>',
+    crane:'<path d="M5 21V5.5l10-3V21M5 5.5h15V9M18 9v4.5M3 21h14M8.5 9h3M8.5 13h3"/>',
+    brush:'<path d="M14 4 20 10l-9.5 9.5H4.5v-6z"/><path d="m12 6 6 6"/>',
+    car:'<path d="M4.5 16.5h15V12l-2-5.5h-11L4.5 12zM3 12h18"/><circle cx="8" cy="16.5" r="1.8"/><circle cx="16" cy="16.5" r="1.8"/>',
+    book:'<path d="M3.5 4.5h6a2.5 2.5 0 0 1 2.5 2.5v13.5a2 2 0 0 0-2-2H3.5zM20.5 4.5h-6A2.5 2.5 0 0 0 12 7v13.5a2 2 0 0 1 2-2h6.5z"/>',
+    hourglass:'<path d="M6 2.5h12M6 21.5h12M7 2.5c0 5 10 5.5 10 9.5s-10 4.5-10 9.5M17 2.5c0 5-10 5.5-10 9.5s10 4.5 10 9.5"/>',
+    bag:'<path d="M5 8h14l-1.2 13H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
+    down:'<path d="M12 4v16M6 14l6 6 6-6"/>',
+    up:'<path d="M12 20V4M6 10l6-6 6 6"/>',
+    stop:'<path d="M12 21.5V10M7.5 2.5h9v7.5h-9zM9 21.5h6M10 5.5h4"/>',
+    folder:'<path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.2l2 2h8.8A1.5 1.5 0 0 1 21 8.5v10a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/>',
+    medical:'<path d="M4.5 21V5h15v16M3 21h18M12 8.5v6M9 11.5h6"/>',
+    medal:'<circle cx="12" cy="15" r="5.5"/><path d="M8.5 10.5 6 3h4l2 5 2-5h4l-2.5 7.5M12 12.8v4.4"/>',
+    school:'<path d="M3 21V10l9-6 9 6v11M3 21h18M9.5 21v-5h5v5M12 4v3"/>',
+    tire:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 3v5.5M12 15.5V21M3 12h5.5M15.5 12H21"/>',
+    receipt:'<path d="M5.5 2.5h13v19l-2.6-1.8-2.2 1.8-2.2-1.8-2.2 1.8-2.2-1.8-1.6 1.8z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+    key:'<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.8 12.2 9.7-9.7M17 6l3 3M14.5 8.5l2 2"/>',
+    flag:'<path d="M5 21.5V3.5M5 4h13l-2.5 4.5L18 13H5"/>',
+    camera:'<path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13.5" r="3.8"/>',
+    attach:'<path d="m20.5 11.5-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/>',
+    coffee:'<path d="M4 8.5h13V14a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10.5h1.5a2.5 2.5 0 0 1 0 5H17M8 2.5v3M12 2.5v3"/>',
+    bed:'<path d="M3 20V5.5M3 14.5h18V20M3 10.5h6.5v4M21 14.5v-1.5a3.5 3.5 0 0 0-3.5-3.5h-8"/>',
+    cart:'<circle cx="9" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/><path d="M2.5 3.5h3l2.3 11.5h11l2-8H6.3"/>',
+    battery:'<rect x="2.5" y="7" width="16.5" height="10" rx="1.5"/><path d="M21.5 10.5v3M6 10v4M9.5 10v4"/>',
+    moon:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>',
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+    door:'<path d="M5.5 21V3h11v18M3 21h16.5M13 12.5v.5"/>',
+    snow:'<path d="M12 2.5v19M3.8 7.2l16.4 9.6M20.2 7.2 3.8 16.8M9.5 4.5 12 7l2.5-2.5M9.5 19.5 12 17l2.5 2.5"/>',
+    idcard:'<rect x="2.5" y="5" width="19" height="14" rx="1.5"/><circle cx="8.5" cy="11" r="2"/><path d="M5.5 16a3 3 0 0 1 6 0M14 10h4.5M14 13.5h3"/>',
+    signal:'<path d="M4.5 11.5a11 11 0 0 1 15 0M7.8 14.8a6.4 6.4 0 0 1 8.4 0M12 18.5v.3"/>',
+    screen:'<rect x="2.5" y="4" width="19" height="12.5" rx="1.5"/><path d="M8 20.5h8M12 16.5v4"/>',
+    fuel:'<path d="M4 21V4.5A1.5 1.5 0 0 1 5.5 3h6A1.5 1.5 0 0 1 13 4.5V21M3 21h11.5M4 9.5h9M13 10.5h2a2 2 0 0 1 2 2V16a1.5 1.5 0 0 0 3 0V8l-3-3"/>',
+    link:'<path d="M10 14a4.2 4.2 0 0 0 6 0l3-3a4.2 4.2 0 0 0-6-6l-1 1M14 10a4.2 4.2 0 0 0-6 0l-3 3a4.2 4.2 0 0 0 6 6l1-1"/>',
+    pause:'<path d="M9 5v14M15 5v14"/>',
+    glasses:'<circle cx="6.5" cy="15" r="3.5"/><circle cx="17.5" cy="15" r="3.5"/><path d="M10 15h4M3 15l1.5-7M21 15l-1.5-7"/>',
+    drop:'<path d="M12 3s6.5 7 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10 12 3 12 3z"/>',
+    compass:'<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
+    image:'<rect x="3" y="4" width="18" height="16" rx="1.5"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9.5 9"/>',
+    gift:'<rect x="3" y="8" width="18" height="4.5"/><path d="M5 12.5V21h14v-8.5M12 8v13M12 8C10 4 6.5 4 6.5 6.3S10 8 12 8c2 0 5.5 0 5.5-1.7S14 4 12 8z"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>',
+    tag:'<path d="M3 3h8.5l9.5 9.5-8.5 8.5L3 11.5z"/><circle cx="7.5" cy="7.5" r="1.4"/>',
+    diamond:'<path d="M6.5 3.5h11l3.5 5.5-9 12-9-12z"/><path d="M3 9h18M9.5 3.5 12 9l2.5-5.5M12 9v12"/>',
+    help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 0 1 4.8.8c0 1.7-2.4 2.2-2.4 4M12 17v.3"/>',
+    send:'<path d="M20.5 3.5 3.5 10.5l7 3 3 7z"/><path d="m10.5 13.5 4-4"/>',
+    flagkw:'<path d="M5 21.5V3.5M5 4h14v9H5"/><path d="M5 4l3.5 4.5L5 13"/>',
+    square:'<rect x="4.5" y="4.5" width="15" height="15" rx="1"/>'
+  };
+
+  // emoji → icon name ; null = decorative, removed ; "dot:x" = coloured status dot
+  var E = {
+    '✅':'check|ok','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
+    '💳':'card','🔧':'wrench','🔩':'wrench','🛠':'wrench','📥':'download','📤':'upload','📞':'phone','🔍':'search','🔎':'search','📍':'pin','📌':'pin',
+    '📧':'mail','📬':'mail','📭':'mail','📅':'cal','📆':'cal','🗺':'map','👤':'user','👥':'users','🧑':'user','👔':'user','👷':'user','👶':'user','📱':'mobile','🍎':'mobile',
+    '✏':'edit','📝':'doc','📄':'doc','🏢':'building','🏙':'building','🏭':'building','🏨':'building','🏬':'store','👁':'eye','📢':'mega','👑':'crown',
+    '🔄':'refresh','🔁':'refresh','💡':'bulb','⚡':'bolt','🔥':'bolt','🕌':'mosque','☪':'mosque','🕐':'clock','⏰':'clock','📈':'trend','🚀':'trend','⏱':'timer',
+    '🏪':'store','💬':'chat','🔔':'bell','🏠':'home','🧠':'cpu','🤖':'cpu','🚛':'truck','⚙':'gear','📦':'box','🔒':'lock','🔐':'lock','🔓':'unlock',
+    '⭐':'star','🌟':'star','🆕':'star','💾':'save','✈':'plane','🏦':'bank','🏛':'bank','🗑':'trash','🎫':'ticket','🎟':'ticket','🚨':'siren',
+    '🌐':'globe','🌍':'globe','💺':'seat','🪑':'seat','🎯':'target','🍽':'food','🍔':'food','🥧':'food','🥤':'food','🛡':'shield','🏗':'crane','🎨':'brush',
+    '🚗':'car','🚙':'car','🛻':'car','📖':'book','📚':'book','⏳':'hourglass','⌛':'hourglass','🛍':'bag','👜':'bag','🎒':'bag','👛':'bag','⬇':'down','👇':'down',
+    '⬆':'up','🔝':'up','🚉':'stop','🚏':'stop','📁':'folder','🏥':'medical','💊':'medical','🦷':'medical','🏆':'medal','🥇':'medal','🥈':'medal','🥉':'medal',
+    '🏫':'school','🎓':'school','🛞':'tire','🧾':'receipt','🔑':'key','🗝':'key','🏁':'flag','📸':'camera','📷':'camera','🎥':'camera','📎':'attach',
+    '☕':'coffee','🛏':'bed','🛒':'cart','🔋':'battery','🌙':'moon','☀':'sun','🏖':'sun','🚪':'door','❄':'snow','🛂':'idcard','📡':'signal','📶':'signal',
+    '🖥':'screen','💻':'screen','📺':'screen','⛽':'fuel','🛢':'fuel','🔗':'link','⏸':'pause','👓':'glasses','🚿':'drop','🧭':'compass','🖼':'image',
+    '🎁':'gift','➕':'plus','🏷':'tag','💎':'diamond','❓':'help','💥':'alert','📐':'square','🔲':'square','🅿':'square',
+    '🔴':'dot:bad','🟥':'dot:bad','🟡':'dot:warn','🟢':'dot:ok','🟩':'dot:ok','🔵':'dot:info','🟦':'dot:info',
+    '👋':null,'😊':null,'😔':null,'🤔':null,'🎉':null,'✨':null,'💛':null,'🌸':null,'💐':null,'🙏':null,'👆':null,'💪':null,'💨':null
+  };
+  var FLAG = /(?:\uD83C[\uDDE6-\uDDFF]){2}/;
+  var RX = /(?:\uD83C[\uDDE6-\uDDFF]){2}|(?:[⌀-⏿☀-✒✔✖✘-➣➥-➿⬀-⯿]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|\uD83E[\uDD00-\uDEFF])️?/g;
+  var SKIP = {SCRIPT:1,STYLE:1,TEXTAREA:1,OPTION:1,TITLE:1,NOSCRIPT:1,svg:1,SVG:1,CODE:1,PRE:1};
+
+  function icon(ch){
+    var k = FLAG.test(ch) ? 'flagkw' : E[ch.replace('️','')];
+    if (k === null) return null;
+    if (k === undefined) return document.createTextNode(ch);
+    if (k.indexOf('dot:') === 0){ var d=document.createElement('i'); d.className='ki-dot d-'+k.slice(4); d.setAttribute('aria-hidden','true'); return d; }
+    var p = k.split('|'), i = document.createElement('i');
+    i.className = 'ki' + (p[1] ? ' ki-'+p[1] : '');
+    i.setAttribute('aria-hidden','true');
+    i.innerHTML = '<svg viewBox="0 0 24 24">' + (P[p[0]]||P.square) + '</svg>';
+    return i;
+  }
+  var ARD = /[\u0660-\u0669\u06F0-\u06F9]/;
+  function swapText(t){
+    var v = t.nodeValue;
+    if (v && ARD.test(v) && window.KPTC && t.parentNode && !SKIP[t.parentNode.nodeName]) { v = KPTC.latin(v); t.nodeValue = v; }
+    RX.lastIndex = 0;
+    if (!v || !RX.test(v)) return;
+    var par = t.parentNode; if (!par || SKIP[par.nodeName] || (par.closest && par.closest('svg,textarea,[contenteditable],.ki'))) return;
+    var f = document.createDocumentFragment(), last = 0; RX.lastIndex = 0; var m;
+    while ((m = RX.exec(v))){
+      if (m.index > last) f.appendChild(document.createTextNode(v.slice(last, m.index)));
+      var n = icon(m[0]);
+      if (n) f.appendChild(n);
+      else if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++;   // eat the trailing space of a removed decoration
+      last = RX.lastIndex;
+    }
+    if (last < v.length) f.appendChild(document.createTextNode(v.slice(last)));
+    par.replaceChild(f, t);
+  }
+  function walk(root){
+    if (root.nodeType === 3) return swapText(root);
+    if (root.nodeType !== 1 || SKIP[root.nodeName]) return;
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), list = [], n;
+    while ((n = w.nextNode())) list.push(n);
+    list.forEach(swapText);
+    // presentation-only attributes
+    root.querySelectorAll && root.querySelectorAll('[placeholder],[title]').forEach(function(el){
+      ['placeholder','title'].forEach(function(a){ var v = el.getAttribute(a); if (v){ RX.lastIndex=0; if (RX.test(v)) el.setAttribute(a, v.replace(RX,'').replace(/^\s+/,'')); } });
+    });
+    root.querySelectorAll && root.querySelectorAll('option').forEach(function(o){ RX.lastIndex=0; if (RX.test(o.text) && !o.hasAttribute('value')) { o.value = o.value; o.text = o.text.replace(RX,'').replace(/^\s+/,''); } });
+  }
+
+  function footerStrip(){
+    var f = document.querySelector('.k2-foot .k2-w, body > footer > .wrap');
+    if (!f || f.querySelector('.kp-strip')) return;
+    var s = document.createElement('div'); s.className = 'kp-strip'; s.setAttribute('aria-hidden','true');
+    ['العاصمة','حولي','الفروانية','مبارك الكبير','الأحمدي','الجهراء'].forEach(function(g){ var e=document.createElement('span'); e.textContent=g; s.appendChild(e); });
+    f.insertBefore(s, f.firstChild);
+  }
+
+  var MAP = {"KPTC_Executive_Landing.html":"exec","KPTC_Home.html":"home","KPTC_Routes.html":"routes","KPTC_Subscriptions.html":"subs","KPTC_Umrah.html":"umrah","KPTC_VIP.html":"vip","KPTC_Winch.html":"winch","KPTC_LostFound.html":"lost","KPTC_Advertising.html":"ads","KPTC_AI_Assistant.html":"assistant","KPTC_Admin_Dashboard_v3.html":"dashboard","KPTC_Admin_AI.html":"adminai","KPTC_Portal.html":"portal","KPTC_RealEstate.html":"realestate","KPTC_RE_AI.html":"reai","KPTC_RE_Client.html":"reclient","KPTC_Client_Portal.html":"tenant","KPTC_Website_Prototype.html":"home","KPTC_Subscriptions_v2.html":"subs","KPTC_Account.html":"account","KPTC_Media.html":"media","KPTC_Tenders.html":"tenders","KPTC_Careers.html":"careers","KPTC_SiteAdmin.html":"siteadmin"};
+  function standalone(){
+    if (window.parent !== window){
+      document.addEventListener('click', function(e){
+        var a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
+        var h = a.getAttribute('href').split('#')[0].split('/').pop();
+        if (MAP[h]){ e.preventDefault(); try { parent.postMessage({kptcNav: MAP[h]}, '*'); } catch(x){} }
+      });
+      return;
+    }
+    // inside the gateway, the page posts kptcNav to the parent; on its own, go through the gateway
+    document.addEventListener('click', function(e){
+      var a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
+      var raw = a.getAttribute('href'), h = raw.split('#')[0].split('/').pop(), hash = raw.split('#')[1];
+      if (!MAP[h]) return;
+      e.preventDefault();
+      var own = location.pathname.split('/').pop().replace('.html','');
+      if (MAP[h] === own && hash){ var t = document.getElementById(hash); if (t) t.scrollIntoView({behavior:'smooth'}); return; }
+      location.href = '../index.html#/' + MAP[h];
+    });
+  }
+
+
+  /* ---- motion & workflow helpers ---------------------------------------- */
+  function countUp(){
+    // only static display figures that no page script reads back
+    var els = document.querySelectorAll('.facts strong.num, .facts .since b, .kp-stats .hstat-num, .kp-stats .hnum-val, .kp-stats .hstat-val');
+    if (!els.length || !('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (!e.isIntersecting) return; io.unobserve(e.target); run(e.target); }); }, {threshold:.6});
+    function run(el){
+      var txt = el.textContent, m = txt.match(/^(\D*)([\d,]+)(.*)$/); if (!m || el.children.length) return;
+      var end = parseInt(m[2].replace(/,/g,''),10); if (!(end > 9)) return;
+      var comma = m[2].indexOf(',') > -1, t0 = performance.now(), dur = 900;
+      (function tick(t){
+        var k = Math.min(1,(t - t0)/dur), v = Math.round(end * (1 - Math.pow(1-k,3)));
+        el.textContent = m[1] + (comma ? v.toLocaleString('en-US') : v) + m[3];
+        if (k < 1) requestAnimationFrame(tick); else el.textContent = txt;
+      })(t0);
+    }
+    els.forEach(function(el){ io.observe(el); });
+  }
+  function backToTop(){
+    if (!document.querySelector('.k2-foot, body > footer')) return;
+    var b = document.createElement('button'); b.className = 'kp-top'; b.type = 'button'; b.setAttribute('aria-label','العودة إلى أعلى الصفحة');
+    b.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
+    b.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+    document.body.appendChild(b);
+    var tick = false;
+    window.addEventListener('scroll', function(){ if (tick) return; tick = true; requestAnimationFrame(function(){ b.classList.toggle('on', window.scrollY > 700); tick = false; }); }, {passive:true});
+  }
+  function lineBus(){
+    document.querySelectorAll('.network .stops').forEach(function(list){
+      var bus = document.createElement('i'); bus.className = 'kp-linebus'; bus.setAttribute('aria-hidden','true'); list.appendChild(bus);
+      list.querySelectorAll('li').forEach(function(li){
+        li.addEventListener('mouseenter', function(){ bus.style.top = (li.offsetTop - 8) + 'px'; bus.style.opacity = 1; });
+      });
+      list.addEventListener('mouseleave', function(){ bus.style.opacity = 0; });
+    });
+  }
+  function gatewayKeys(){
+    // inside the gateway the page has keyboard focus; hand presentation shortcuts up to it
+    if (window.parent === window) return;
+    document.addEventListener('keydown', function(e){
+      var msg = null;
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) msg = {kptcPalette:1};
+      else if (e.altKey && e.key === 'ArrowLeft') msg = {kptcStep:1};
+      else if (e.altKey && e.key === 'ArrowRight') msg = {kptcStep:-1};
+      if (!msg) return;
+      e.preventDefault(); try { parent.postMessage(msg, '*'); } catch(x){}
+    });
+  }
+
+
+  function homeExtras(){
+    var hero = document.querySelector('main > section.hero'); if (!hero) return;
+    var road = document.createElement('div'); road.className = 'hero-road'; road.setAttribute('aria-hidden','true'); road.innerHTML = '<i></i>'; hero.appendChild(road);
+    var sw = document.getElementById('swap'), f = document.getElementById('finder');
+    if (sw && f) sw.addEventListener('click', function(){ f.classList.remove('swapped'); void f.offsetWidth; f.classList.add('swapped'); });
+  }
+
+
+  function forms(){
+    // forms that point at another page (the home trip finder) go through the same routing as links
+    document.addEventListener('submit', function(e){
+      var f = e.target, act = (f.getAttribute && f.getAttribute('action') || '').split('/').pop().split('#')[0];
+      if (!MAP[act]) return;
+      e.preventDefault();
+      f.classList.add('kp-punched');
+      setTimeout(function(){
+        f.classList.remove('kp-punched');
+        if (window.parent !== window) { try { parent.postMessage({kptcNav: MAP[act]}, '*'); } catch(x){} }
+        else location.href = '../index.html#/' + MAP[act];
+      }, 420);
+    });
+  }
+
+
+  /* ---- site chrome: links to the new sections, account button, page visibility ---- */
+  var OWN = location.pathname.split('/').pop().replace('.html','');
+  function link(href, text, cls){ var a = document.createElement('a'); a.href = href; a.textContent = text; if (cls) a.className = cls; return a; }
+  function chrome(){
+    var K = window.KPTC; if (!K) return;
+    var util = document.querySelector('.k2-util .k2-ul, .util .util-l');
+    if (util && !util.querySelector('.kp-xl')){
+      [['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف'],['KPTC_Portal.html','بوابة الموظفين']].forEach(function(x){ util.appendChild(link(x[0], x[1], 'kp-xl')); });
+    }
+    var act = document.querySelector('.k2-act, header .h-actions');
+    if (act && !act.querySelector('.kp-acct')){
+      var ghost = act.querySelector('.k2-btn-ghost, .btn-ghost'), u = K.user(), w = u && K.wallet();
+      var b = link('KPTC_Account.html', '', (ghost ? ghost.className : 'k2-btn k2-btn-ghost') + ' kp-acct');
+      var paint = function(){ var u = K.user(), w = u && K.wallet(); b.innerHTML = '<i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></i>' + (u ? '<span>' + K.esc(u.name.split(' ')[0]) + '</span><b>' + K.money(w.balance) + '</b>' : '<span>حسابي</span>'); };
+      paint(); K.onChange(paint);
+      if (ghost && /Portal/.test(ghost.getAttribute('href')||'')) ghost.replaceWith(b); else act.insertBefore(b, act.firstChild);
+    }
+    var panel = document.querySelector('.k2-panel, .drawer .panel');
+    if (panel && !panel.querySelector('.kp-xl')){
+      [['KPTC_Account.html','حسابي ومحفظتي'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ panel.appendChild(link(x[0], x[1], 'kp-xl')); });
+    }
+    var cols = document.querySelectorAll('.k2-fg > div ul, .f-grid > div ul'), last = cols[cols.length-1];
+    if (last && !last.querySelector('.kp-xl')){
+      [['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ var li = document.createElement('li'); li.appendChild(link(x[0], x[1], 'kp-xl')); last.appendChild(li); });
+    }
+    visibility();
+    var n = K.db().notice;
+    if (n && n.on && n.text && document.querySelector('.k2-head, body > header') && !document.querySelector('.kp-notice')){
+      var bar = document.createElement('div'); bar.className = 'kp-notice'; bar.textContent = n.text; document.body.insertBefore(bar, document.body.firstChild);
+    }
+  }
+  function visibility(){
+    var K = window.KPTC, hidden = K.db().pages, preview = /[?&]preview=1/.test(location.search);
+    document.querySelectorAll('a[href]').forEach(function(a){
+      var id = MAP[a.getAttribute('href').split('#')[0].split('/').pop()];
+      if (!id) return;
+      var off = hidden[id] === false;
+      a.classList.toggle('kp-off', off);
+      var li = a.parentNode && a.parentNode.tagName === 'LI' && a.parentNode.children.length === 1 ? a.parentNode : null;
+      if (li) li.classList.toggle('kp-off', off);
+    });
+    var gate = document.querySelector('.kp-closed');
+    if (hidden[OWN] === false && !preview){
+      if (!gate){
+        gate = document.createElement('div'); gate.className = 'kp-closed';
+        gate.innerHTML = '<div><div class="kp-mark"></div><h2>هذه الصفحة غير متاحة حالياً</h2><p>أوقفتها إدارة الموقع مؤقتاً. يمكنك العودة إلى الصفحة الرئيسية.</p><a href="KPTC_Home.html" class="k2-btn k2-btn-sign">الصفحة الرئيسية</a></div>';
+        document.body.appendChild(gate);
+      }
+    } else if (gate) gate.remove();
+  }
+
+  /* ---- bookings made on service pages are saved to the visitor's account ---- */
+  function capture(){
+    var K = window.KPTC; if (!K) return;
+    var RXID = /\b(UMR|VIP|TOW|WS|LF|AD|SUB|TKT|CL)-[A-Z0-9-]{3,}/;
+    var defs = {
+      subs:{fn:['confirmPayment'], type:'اشتراك', title:'اشتراك / تذاكر', pre:'SUB'},
+      umrah:{fn:['processPayment'], type:'عمرة', title:'حجز رحلة عمرة', pre:'UMR'},
+      vip:{fn:['confirmBooking'], type:'VIP', title:'حجز حافلة VIP', pre:'VIP'},
+      winch:{fn:['submitWinch','submitWorkshop'], type:'ونش وورشة', title:'طلب ونش / ورشة', pre:'TOW'},
+      lost:{fn:['submitReport','submitClaim'], type:'مفقودات', title:'بلاغ مفقودات', pre:'LF'},
+      ads:{fn:['submitOrder'], type:'إعلان', title:'طلب حملة إعلانية', pre:'AD'}
+    }, def = defs[OWN]; if (!def) return;
+    function refs(){ var m = {}, t = document.body.innerText || ''; (t.match(new RegExp(RXID.source, 'g')) || []).forEach(function(x){ m[x] = 1; }); return m; }
+    function successShown(){ return !!document.querySelector('.success-overlay.show, .modal-overlay.show, .modal-bg.open, .success-screen.show, .step-page.active .success, #successModal.show, .done-screen'); }
+    def.fn.forEach(function(name){
+      var orig = window[name]; if (typeof orig !== 'function') return;
+      window[name] = function(){
+        var before = refs(), hadSuccess = successShown(), r = orig.apply(this, arguments), tries = 0;
+        var timer = setInterval(function(){
+          tries++;
+          var now = refs(), fresh = Object.keys(now).filter(function(k){ return !before[k]; })[0];
+          if (fresh || (!hadSuccess && successShown())){
+            clearInterval(timer);
+            var h = document.querySelector('.summary-title, .order-title, .bs-title'), sum = document.querySelector('#summaryTotal, #orderTotal, .total-val, #totalPrice, #bsTotal');
+            var amt = sum ? parseFloat(K.latin(sum.textContent).replace(/[^\d.]/g,'')) || 0 : 0;
+            K.addBooking({id: fresh || K.id(def.pre), type: def.type, page: OWN, title: def.title, amount: amt});
+            toastSaved();
+          } else if (tries > 24) clearInterval(timer);
+        }, 250);
+        return r;
+      };
+    });
+  }
+  function toastSaved(){
+    var t = document.createElement('a'); t.className = 'kp-saved'; t.href = 'KPTC_Account.html';
+    t.innerHTML = '<b>حُفظ الطلب في حسابك</b><span>' + (KPTC.user() ? 'تابعه من «حسابي»' : 'سجّل الدخول لمتابعته') + '</span>';
+    document.body.appendChild(t); setTimeout(function(){ t.classList.add('on'); }, 30); setTimeout(function(){ t.classList.remove('on'); setTimeout(function(){ t.remove(); }, 400); }, 6000);
+  }
+
+  /* ---- the ad preview sits on the real bus photo; keep the perspective stage scaled ---- */
+  function stages(){
+    var list = document.querySelectorAll('.kp-stage'); if (!list.length) return;
+    function fit(){ list.forEach(function(st){ var w = st.parentNode.clientWidth; st.style.transform = 'scale(' + (w / 650) + ')'; st.parentNode.style.height = (w * 364 / 650) + 'px'; }); }
+    fit(); window.addEventListener('resize', fit);
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(list[0].parentNode);
+  }
+
+  function init(){
+    chrome(); capture();
+    walk(document.body);
+    stages();
+    if (window.KPTC) KPTC.onChange(function(){ visibility(); });
+    forms();
+    homeExtras();
+    footerStrip();
+    standalone();
+    countUp(); backToTop(); lineBus(); gatewayKeys();
+    new MutationObserver(function(ms){
+      ms.forEach(function(m){
+        if (m.type === 'characterData') return swapText(m.target);
+        m.addedNodes.forEach(function(n){ if (!(n.nodeType===1 && n.classList && (n.classList.contains('ki')||n.classList.contains('ki-dot')))) walk(n); });
+      });
+    }).observe(document.body, {childList:true, subtree:true, characterData:true});
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script><!--/kptc:core-js-->
+</body>
+</html>

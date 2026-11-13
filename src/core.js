@@ -143,8 +143,11 @@
     i.innerHTML = '<svg viewBox="0 0 24 24">' + (P[p[0]]||P.square) + '</svg>';
     return i;
   }
+  var ARD = /[\u0660-\u0669\u06F0-\u06F9]/;
   function swapText(t){
-    var v = t.nodeValue; RX.lastIndex = 0;
+    var v = t.nodeValue;
+    if (v && ARD.test(v) && window.KPTC && t.parentNode && !SKIP[t.parentNode.nodeName]) { v = KPTC.latin(v); t.nodeValue = v; }
+    RX.lastIndex = 0;
     if (!v || !RX.test(v)) return;
     var par = t.parentNode; if (!par || SKIP[par.nodeName] || (par.closest && par.closest('svg,textarea,[contenteditable],.ki'))) return;
     var f = document.createDocumentFragment(), last = 0; RX.lastIndex = 0; var m;
@@ -179,9 +182,16 @@
     f.insertBefore(s, f.firstChild);
   }
 
-  var MAP = {"KPTC_Executive_Landing.html":"exec","KPTC_Home.html":"home","KPTC_Routes.html":"routes","KPTC_Subscriptions.html":"subs","KPTC_Umrah.html":"umrah","KPTC_VIP.html":"vip","KPTC_Winch.html":"winch","KPTC_LostFound.html":"lost","KPTC_Advertising.html":"ads","KPTC_AI_Assistant.html":"assistant","KPTC_Admin_Dashboard_v3.html":"dashboard","KPTC_Admin_AI.html":"adminai","KPTC_Portal.html":"portal","KPTC_RealEstate.html":"realestate","KPTC_RE_AI.html":"reai","KPTC_RE_Client.html":"reclient","KPTC_Client_Portal.html":"tenant","KPTC_Website_Prototype.html":"home","KPTC_Subscriptions_v2.html":"subs"};
+  var MAP = {"KPTC_Executive_Landing.html":"exec","KPTC_Home.html":"home","KPTC_Routes.html":"routes","KPTC_Subscriptions.html":"subs","KPTC_Umrah.html":"umrah","KPTC_VIP.html":"vip","KPTC_Winch.html":"winch","KPTC_LostFound.html":"lost","KPTC_Advertising.html":"ads","KPTC_AI_Assistant.html":"assistant","KPTC_Admin_Dashboard_v3.html":"dashboard","KPTC_Admin_AI.html":"adminai","KPTC_Portal.html":"portal","KPTC_RealEstate.html":"realestate","KPTC_RE_AI.html":"reai","KPTC_RE_Client.html":"reclient","KPTC_Client_Portal.html":"tenant","KPTC_Website_Prototype.html":"home","KPTC_Subscriptions_v2.html":"subs","KPTC_Account.html":"account","KPTC_Media.html":"media","KPTC_Tenders.html":"tenders","KPTC_Careers.html":"careers","KPTC_SiteAdmin.html":"siteadmin"};
   function standalone(){
-    if (window.parent !== window) return;
+    if (window.parent !== window){
+      document.addEventListener('click', function(e){
+        var a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
+        var h = a.getAttribute('href').split('#')[0].split('/').pop();
+        if (MAP[h]){ e.preventDefault(); try { parent.postMessage({kptcNav: MAP[h]}, '*'); } catch(x){} }
+      });
+      return;
+    }
     // inside the gateway, the page posts kptcNav to the parent; on its own, go through the gateway
     document.addEventListener('click', function(e){
       var a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
@@ -268,8 +278,110 @@
     });
   }
 
+
+  /* ---- site chrome: links to the new sections, account button, page visibility ---- */
+  var OWN = location.pathname.split('/').pop().replace('.html','');
+  function link(href, text, cls){ var a = document.createElement('a'); a.href = href; a.textContent = text; if (cls) a.className = cls; return a; }
+  function chrome(){
+    var K = window.KPTC; if (!K) return;
+    var util = document.querySelector('.k2-util .k2-ul, .util .util-l');
+    if (util && !util.querySelector('.kp-xl')){
+      [['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف'],['KPTC_Portal.html','بوابة الموظفين']].forEach(function(x){ util.appendChild(link(x[0], x[1], 'kp-xl')); });
+    }
+    var act = document.querySelector('.k2-act, header .h-actions');
+    if (act && !act.querySelector('.kp-acct')){
+      var ghost = act.querySelector('.k2-btn-ghost, .btn-ghost'), u = K.user(), w = u && K.wallet();
+      var b = link('KPTC_Account.html', '', (ghost ? ghost.className : 'k2-btn k2-btn-ghost') + ' kp-acct');
+      var paint = function(){ var u = K.user(), w = u && K.wallet(); b.innerHTML = '<i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></i>' + (u ? '<span>' + K.esc(u.name.split(' ')[0]) + '</span><b>' + K.money(w.balance) + '</b>' : '<span>حسابي</span>'); };
+      paint(); K.onChange(paint);
+      if (ghost && /Portal/.test(ghost.getAttribute('href')||'')) ghost.replaceWith(b); else act.insertBefore(b, act.firstChild);
+    }
+    var panel = document.querySelector('.k2-panel, .drawer .panel');
+    if (panel && !panel.querySelector('.kp-xl')){
+      [['KPTC_Account.html','حسابي ومحفظتي'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ panel.appendChild(link(x[0], x[1], 'kp-xl')); });
+    }
+    var cols = document.querySelectorAll('.k2-fg > div ul, .f-grid > div ul'), last = cols[cols.length-1];
+    if (last && !last.querySelector('.kp-xl')){
+      [['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ var li = document.createElement('li'); li.appendChild(link(x[0], x[1], 'kp-xl')); last.appendChild(li); });
+    }
+    visibility();
+    var n = K.db().notice;
+    if (n && n.on && n.text && document.querySelector('.k2-head, body > header') && !document.querySelector('.kp-notice')){
+      var bar = document.createElement('div'); bar.className = 'kp-notice'; bar.textContent = n.text; document.body.insertBefore(bar, document.body.firstChild);
+    }
+  }
+  function visibility(){
+    var K = window.KPTC, hidden = K.db().pages, preview = /[?&]preview=1/.test(location.search);
+    document.querySelectorAll('a[href]').forEach(function(a){
+      var id = MAP[a.getAttribute('href').split('#')[0].split('/').pop()];
+      if (!id) return;
+      var off = hidden[id] === false;
+      a.classList.toggle('kp-off', off);
+      var li = a.parentNode && a.parentNode.tagName === 'LI' && a.parentNode.children.length === 1 ? a.parentNode : null;
+      if (li) li.classList.toggle('kp-off', off);
+    });
+    var gate = document.querySelector('.kp-closed');
+    if (hidden[OWN] === false && !preview){
+      if (!gate){
+        gate = document.createElement('div'); gate.className = 'kp-closed';
+        gate.innerHTML = '<div><div class="kp-mark"></div><h2>هذه الصفحة غير متاحة حالياً</h2><p>أوقفتها إدارة الموقع مؤقتاً. يمكنك العودة إلى الصفحة الرئيسية.</p><a href="KPTC_Home.html" class="k2-btn k2-btn-sign">الصفحة الرئيسية</a></div>';
+        document.body.appendChild(gate);
+      }
+    } else if (gate) gate.remove();
+  }
+
+  /* ---- bookings made on service pages are saved to the visitor's account ---- */
+  function capture(){
+    var K = window.KPTC; if (!K) return;
+    var RXID = /\b(UMR|VIP|TOW|WS|LF|AD|SUB|TKT|CL)-[A-Z0-9-]{3,}/;
+    var defs = {
+      subs:{fn:['confirmPayment'], type:'اشتراك', title:'اشتراك / تذاكر', pre:'SUB'},
+      umrah:{fn:['processPayment'], type:'عمرة', title:'حجز رحلة عمرة', pre:'UMR'},
+      vip:{fn:['confirmBooking'], type:'VIP', title:'حجز حافلة VIP', pre:'VIP'},
+      winch:{fn:['submitWinch','submitWorkshop'], type:'ونش وورشة', title:'طلب ونش / ورشة', pre:'TOW'},
+      lost:{fn:['submitReport','submitClaim'], type:'مفقودات', title:'بلاغ مفقودات', pre:'LF'},
+      ads:{fn:['submitOrder'], type:'إعلان', title:'طلب حملة إعلانية', pre:'AD'}
+    }, def = defs[OWN]; if (!def) return;
+    function refs(){ var m = {}, t = document.body.innerText || ''; (t.match(new RegExp(RXID.source, 'g')) || []).forEach(function(x){ m[x] = 1; }); return m; }
+    function successShown(){ return !!document.querySelector('.success-overlay.show, .modal-overlay.show, .modal-bg.open, .success-screen.show, .step-page.active .success, #successModal.show, .done-screen'); }
+    def.fn.forEach(function(name){
+      var orig = window[name]; if (typeof orig !== 'function') return;
+      window[name] = function(){
+        var before = refs(), hadSuccess = successShown(), r = orig.apply(this, arguments), tries = 0;
+        var timer = setInterval(function(){
+          tries++;
+          var now = refs(), fresh = Object.keys(now).filter(function(k){ return !before[k]; })[0];
+          if (fresh || (!hadSuccess && successShown())){
+            clearInterval(timer);
+            var h = document.querySelector('.summary-title, .order-title, .bs-title'), sum = document.querySelector('#summaryTotal, #orderTotal, .total-val, #totalPrice, #bsTotal');
+            var amt = sum ? parseFloat(K.latin(sum.textContent).replace(/[^\d.]/g,'')) || 0 : 0;
+            K.addBooking({id: fresh || K.id(def.pre), type: def.type, page: OWN, title: def.title, amount: amt});
+            toastSaved();
+          } else if (tries > 24) clearInterval(timer);
+        }, 250);
+        return r;
+      };
+    });
+  }
+  function toastSaved(){
+    var t = document.createElement('a'); t.className = 'kp-saved'; t.href = 'KPTC_Account.html';
+    t.innerHTML = '<b>حُفظ الطلب في حسابك</b><span>' + (KPTC.user() ? 'تابعه من «حسابي»' : 'سجّل الدخول لمتابعته') + '</span>';
+    document.body.appendChild(t); setTimeout(function(){ t.classList.add('on'); }, 30); setTimeout(function(){ t.classList.remove('on'); setTimeout(function(){ t.remove(); }, 400); }, 6000);
+  }
+
+  /* ---- the ad preview sits on the real bus photo; keep the perspective stage scaled ---- */
+  function stages(){
+    var list = document.querySelectorAll('.kp-stage'); if (!list.length) return;
+    function fit(){ list.forEach(function(st){ var w = st.parentNode.clientWidth; st.style.transform = 'scale(' + (w / 650) + ')'; st.parentNode.style.height = (w * 364 / 650) + 'px'; }); }
+    fit(); window.addEventListener('resize', fit);
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(list[0].parentNode);
+  }
+
   function init(){
+    chrome(); capture();
     walk(document.body);
+    stages();
+    if (window.KPTC) KPTC.onChange(function(){ visibility(); });
     forms();
     homeExtras();
     footerStrip();

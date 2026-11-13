@@ -23,6 +23,7 @@ def strip_injected(s):
     # shared design-system blocks are additive; ignore them
     s = re.sub(r'<!--kptc:core-css-->.*?<!--/kptc:core-css-->', '', s, flags=re.S)
     s = re.sub(r'<!--kptc:core-js-->.*?<!--/kptc:core-js-->', '', s, flags=re.S)
+    s = re.sub(r'<!--kptc:head-js-->.*?<!--/kptc:head-js-->', '', s, flags=re.S)
     return s
 
 def facts(s):

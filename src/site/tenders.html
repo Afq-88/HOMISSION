@@ -1,0 +1,67 @@
+<!--title:المناقصات — KPTC-->
+<style>
+.left{font-family:var(--f-display);font-weight:700;font-size:20px;color:var(--kp-indigo)}
+.left small{display:block;font:500 12px var(--f-body);color:var(--kp-muted)}
+.left.soon{color:var(--kp-bad)}
+.bar{height:5px;background:var(--kp-line);border-radius:3px;overflow:hidden;margin-top:6px;min-width:90px}
+.bar i{display:block;height:100%;background:var(--kp-indigo);transform-origin:right;animation:growx 1s var(--kp-ease) both}
+@keyframes growx{from{transform:scaleX(0)}}
+.how{counter-reset:s;list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:2px solid var(--kp-ink)}
+.how li{counter-increment:s;padding:18px 18px 0 0;border-inline-start:1px solid var(--kp-line-2);padding-inline-start:18px}
+.how li:first-child{border:0;padding-inline-start:0}
+.how li::before{content:counter(s);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:3px solid var(--kp-indigo);font:800 15px var(--f-display);color:var(--kp-indigo);margin-bottom:8px}
+.how b{display:block}.how span{color:var(--kp-muted);font-size:14px}
+dl.d{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:14px 0;font-size:14.5px}
+dl.d dt{color:var(--kp-muted)}dl.d dd{font-weight:600}
+@media(max-width:920px){.how{grid-template-columns:1fr 1fr}.how li:nth-child(3){border:0;padding-inline-start:0}}
+</style>
+<div class="kp-hero"><div class="w ph"><div class="kp-tag">المشتريات والعقود</div><h1>المناقصات والممارسات والمزايدات</h1><p>الفرص المطروحة من شركة النقل العام الكويتية، مواعيد الاجتماعات التمهيدية وآخر موعد لتقديم العطاءات.</p></div></div>
+<main><div class="w">
+  <ol class="how" style="margin-bottom:34px">
+    <li><b>اطّلع على الإعلان</b><span>الرقم، النوع، والمواعيد.</span></li>
+    <li><b>سجّل اهتمامك</b><span>واستلم وثائق الطرح بعد دفع قيمتها.</span></li>
+    <li><b>احضر الاجتماع التمهيدي</b><span>في المكان والموعد المحددين.</span></li>
+    <li><b>قدّم عطاءك</b><span>في الصندوق المخصص قبل الموعد النهائي.</span></li>
+  </ol>
+  <div class="chips" id="tF"></div>
+  <div class="tw"><table class="t"><thead><tr><th>الرقم / السنة</th><th>النوع</th><th>العنوان</th><th>الاجتماع التمهيدي</th><th>آخر موعد للعطاءات</th><th>الصندوق</th><th>قيمة الوثائق</th><th>المتبقي</th><th></th></tr></thead><tbody id="tR"></tbody></table></div>
+  <p class="sd" style="margin-top:14px">بعض المناقصات محدودة للشركات المؤهلة لدى الشركة فقط. للاستفسار: <b class="num">22328866</b>.</p>
+</div></main>
+<div class="dlg" id="dT"><div><button class="x" type="button" data-close>×</button><div id="dTB"></div>
+  <form class="form" id="fBid" novalidate><h3 style="font-size:16px;margin-top:6px">سجّل اهتمام شركتك</h3>
+    <label class="f">اسم الشركة<input id="bCo"></label>
+    <div class="grid g2" style="gap:12px"><label class="f">الشخص المسؤول<input id="bName"></label><label class="f">رقم الهاتف<input id="bPhone" dir="ltr" inputmode="numeric"></label></div>
+    <label class="f">رقم السجل التجاري<input id="bCr" dir="ltr" inputmode="numeric"></label>
+    <div class="err" id="bErr"></div><button class="btn y" type="submit">أرسل وسجّل الاهتمام</button></form>
+</div></div>
+<div class="flash" id="flash"></div>
+<script>
+(function(){
+  var K = KPTC, $ = function(i){ return document.getElementById(i); }, f = 'المفتوحة', cur = null;
+  function flash(t){ var x = $('flash'); x.textContent = t; x.classList.add('on'); setTimeout(function(){ x.classList.remove('on'); }, 2800); }
+  function days(d){ return Math.ceil((new Date(d + 'T23:59:59') - Date.now()) / 864e5); }
+  function open(t){ return t.status === 'مفتوحة' && days(t.close) >= 0; }
+  function render(){
+    var all = K.db().tenders, kinds = ['المفتوحة','الكل','مناقصة','ممارسة','مزايدة','المغلقة'];
+    $('tF').innerHTML = kinds.map(function(k){ return '<button type="button" class="' + (k === f ? 'on' : '') + '" data-f="' + k + '">' + k + '</button>'; }).join('');
+    var list = all.filter(function(t){ return f === 'الكل' || (f === 'المفتوحة' && open(t)) || (f === 'المغلقة' && !open(t)) || t.kind === f; });
+    $('tR').innerHTML = list.length ? list.map(function(t){
+      var n = days(t.close), o = open(t);
+      return '<tr><td class="num"><b>' + K.esc(t.no) + '</b></td><td><span class="tag in">' + K.esc(t.kind) + '</span></td><td style="min-width:240px">' + K.esc(t.title) + '</td><td class="num">' + K.date(t.meet) + '</td><td class="num">' + K.date(t.close) + '</td><td class="num">' + K.esc(t.box) + '</td><td class="num">' + K.money(t.fee) + '</td><td>' + (o ? '<div class="left' + (n <= 7 ? ' soon' : '') + '"><span class="num">' + n + '</span> يوماً<div class="bar"><i style="width:' + Math.max(6, Math.min(100, n / 30 * 100)) + '%"></i></div></div>' : '<span class="tag bad">مغلقة</span>') + '</td><td><button class="btn sm ' + (o ? '' : 'o') + '" data-t="' + K.esc(t.id) + '">التفاصيل</button></td></tr>';
+    }).join('') : '<tr><td colspan="9" class="empty">لا توجد فرص في هذا التصنيف حالياً.</td></tr>';
+  }
+  $('tF').addEventListener('click', function(e){ var b = e.target.closest('[data-f]'); if (b){ f = b.getAttribute('data-f'); render(); } });
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-t]');
+    if (b){ cur = K.db().tenders.filter(function(t){ return t.id === b.getAttribute('data-t'); })[0]; var o = open(cur);
+      $('dTB').innerHTML = '<span class="tag in">' + K.esc(cur.kind) + '</span> <span class="tag ' + (o ? 'ok' : 'bad') + '">' + (o ? 'مفتوحة' : 'مغلقة') + '</span><h3 style="margin:10px 0 0">' + K.esc(cur.title) + '</h3><dl class="d"><dt>الرقم / السنة</dt><dd class="num">' + K.esc(cur.no) + '</dd><dt>الاجتماع التمهيدي</dt><dd><span class="num">' + K.date(cur.meet) + '</span> — ' + K.esc(cur.place) + '</dd><dt>آخر موعد للعطاءات</dt><dd class="num">' + K.date(cur.close) + '</dd><dt>رقم الصندوق</dt><dd class="num">' + K.esc(cur.box) + '</dd><dt>قيمة الوثائق</dt><dd class="num">' + K.money(cur.fee) + '</dd></dl>';
+      $('fBid').hidden = !o; $('bErr').textContent = ''; $('dT').classList.add('on'); }
+    if (e.target.closest('[data-close]')) e.target.closest('.dlg').classList.remove('on');
+  });
+  $('fBid').addEventListener('submit', function(e){ e.preventDefault();
+    if (!$('bCo').value.trim() || !$('bName').value.trim() || K.latin($('bPhone').value).replace(/\D/g,'').length < 8){ $('bErr').textContent = 'أكمل اسم الشركة والمسؤول ورقم الهاتف.'; return; }
+    K.db().bids.unshift({id:K.id('BID'), tender:cur.id, co:$('bCo').value.trim(), name:$('bName').value.trim(), phone:K.latin($('bPhone').value), cr:$('bCr').value.trim(), d:K.today(), status:'جديد'}); K.log('اهتمام بمناقصة ' + cur.no + ' — ' + $('bCo').value.trim()); K.save();
+    e.target.reset(); $('dT').classList.remove('on'); flash('سُجّل اهتمام شركتك. ستتواصل معكم إدارة المشتريات.'); });
+  K.onChange(render); render();
+})();
+</script>

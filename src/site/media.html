@@ -1,0 +1,138 @@
+<!--title:المركز الإعلامي — KPTC-->
+<style>
+.news{display:grid;grid-template-columns:1.4fr 1fr;gap:22px}
+.lead-n{background:#fff;border:1px solid var(--kp-line);border-radius:6px;overflow:hidden;cursor:pointer}
+.lead-n img{width:100%;height:320px;object-fit:cover;display:block}
+.lead-n div{padding:20px 22px}
+.lead-n h3{font-size:24px;line-height:1.45;margin:8px 0}
+.n-list{display:grid;gap:0;background:#fff;border:1px solid var(--kp-line);border-radius:6px}
+.n-it{display:grid;grid-template-columns:96px 1fr;gap:14px;padding:14px;border-bottom:1px solid var(--kp-line);cursor:pointer;transition:background .2s}
+.n-it:last-child{border:0}.n-it:hover{background:var(--kp-paper-2)}
+.n-it img{width:96px;height:68px;object-fit:cover;border-radius:3px}
+.n-it b{display:block;font-size:15px;line-height:1.5}
+.meta{font-size:12.5px;color:var(--kp-muted);display:flex;gap:10px;align-items:center}
+.gal{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.gal button{border:0;padding:0;background:#ddd;border-radius:4px;overflow:hidden;cursor:zoom-in;position:relative;aspect-ratio:3/2}
+.gal img{width:100%;height:100%;object-fit:cover;display:block;transition:scale .5s var(--kp-ease)}
+.gal button:hover img{scale:1.07}
+.gal span{position:absolute;inset:auto 0 0 0;background:linear-gradient(transparent,rgba(20,19,58,.85));color:#fff;font-size:12.5px;font-weight:600;padding:18px 10px 8px;text-align:start}
+.gal .wide{grid-column:span 2;grid-row:span 2}
+.doc{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--kp-line)}
+.doc:last-child{border:0}
+.doc b{display:block}.doc small{color:var(--kp-muted)}
+.soc{display:flex;gap:10px;flex-wrap:wrap}
+.soc a{border:1.5px solid var(--kp-line-2);border-radius:4px;padding:9px 14px;font-weight:700;text-decoration:none;color:var(--kp-indigo);direction:ltr}
+.soc a:hover{border-color:var(--kp-indigo)}
+.tl{list-style:none;border-inline-start:4px solid var(--kp-indigo);padding-inline-start:22px;display:grid;gap:16px}
+.tl li{position:relative}.tl li::before{content:"";position:absolute;inset-inline-start:-33px;top:6px;width:14px;height:14px;border-radius:50%;background:#fff;border:4px solid var(--kp-indigo)}
+.tl b{font-family:var(--f-display);color:var(--kp-indigo);font-size:18px}
+.lb{position:fixed;inset:0;z-index:950;background:rgba(20,19,58,.92);display:none;place-items:center;padding:20px;cursor:zoom-out}
+.lb.on{display:grid}.lb img{max-width:min(1100px,96vw);max-height:84vh;border-radius:4px;animation:kp-pop .3s var(--kp-ease) both}
+.lb p{color:#fff;text-align:center;margin-top:10px;font-weight:600}
+section.sec{padding:8px 0 46px;scroll-margin-top:150px}
+@media(max-width:920px){.news{grid-template-columns:1fr}.gal{grid-template-columns:1fr 1fr}.lead-n img{height:210px}}
+</style>
+<div class="kp-hero"><div class="w ph"><div class="kp-tag">المركز الإعلامي</div><h1>أخبار الشركة وموادها الإعلامية</h1><p>الأخبار والبيانات الصحفية، ألبوم الصور، المطبوعات، المسؤولية الاجتماعية، الحوكمة وحق الاطلاع، وبيانات التواصل الإعلامي.</p></div></div>
+<nav class="sub"><div class="w">
+  <a href="#news" class="on">الأخبار والبيانات</a><a href="#gallery">ألبوم الصور</a><a href="#video">الفيديو</a><a href="#pubs">المطبوعات والتقارير</a><a href="#about">عن الشركة</a><a href="#csr">المسؤولية الاجتماعية</a><a href="#gov">الحوكمة وحق الاطلاع</a><a href="#press">التواصل الإعلامي</a>
+</div></nav>
+<main><div class="w">
+  <section class="sec" id="news">
+    <h2 class="st">الأخبار والبيانات الصحفية</h2><p class="sd">آخر ما تنشره الشركة. تُدار هذه الأخبار من مركز إدارة الموقع.</p>
+    <div class="chips" id="nCats"></div>
+    <div class="news"><div id="nLead"></div><div class="n-list" id="nList"></div></div>
+  </section>
+  <section class="sec" id="gallery">
+    <h2 class="st">ألبوم الصور</h2><p class="sd">صور رسمية من أسطول الشركة ومرافقها. اضغط أي صورة لتكبيرها.</p>
+    <div class="gal" id="gal"></div>
+  </section>
+  <section class="sec" id="video">
+    <h2 class="st">الفيديو</h2><p class="sd">مواد مرئية من قنوات الشركة.</p>
+    <div class="grid g3">
+      <div class="box"><span class="tag in">توعوي</span><h3 style="margin-top:8px">معاً.. نعود بنقل آمن</h3><p class="sd" style="margin:0">فيلم توعوي عن إجراءات السلامة داخل الحافلات.</p></div>
+      <div class="box"><span class="tag in">تعريفي</span><h3 style="margin-top:8px">حافلات K-Bus الجديدة</h3><p class="sd" style="margin:0">جولة داخل الحافلة: المقاعد، الشاشات، ومنافذ الدفع.</p></div>
+      <div class="box"><span class="tag in">خدمات</span><h3 style="margin-top:8px">مركز الأوناش على مدار الساعة</h3><p class="sd" style="margin:0">كيف يُستقبل البلاغ وتتحرك أقرب شاحنة.</p></div>
+    </div>
+    <p class="sd" style="margin-top:12px">تُشاهد المقاطع على حساب الشركة في إنستغرام <b dir="ltr">@kptckuwait</b>.</p>
+  </section>
+  <section class="sec" id="pubs">
+    <h2 class="st">المطبوعات والتقارير</h2><p class="sd">ملفات للتنزيل. تُرفع الملفات الفعلية عند ربط الموقع بالتخزين.</p>
+    <div class="box">
+      <div class="doc"><div><b>خريطة شبكة خطوط K-Bus</b><small>خريطة المسارات والمحطات · PDF</small></div><a class="btn o sm" href="KPTC_Routes.html">افتح الخريطة التفاعلية</a></div>
+      <div class="doc"><div><b>لائحة أسعار تأجير الحافلات</b><small>الحافلات السياحية الكبيرة 45 راكباً، مناطق سكنية وحدودية</small></div><a class="btn o sm" href="KPTC_VIP.html">صفحة التأجير</a></div>
+      <div class="doc"><div><b>لائحة أسعار الأوناش والإصلاح للغير</b><small>أسعار نقل المركبات داخل المحافظات الست</small></div><a class="btn o sm" href="KPTC_Winch.html">صفحة الونش</a></div>
+      <div class="doc"><div><b>دليل الهوية البصرية للإعلاميين</b><small>الشعار والألوان الرسمية</small></div><button class="btn o sm" type="button" data-soon>اطلب الملف</button></div>
+    </div>
+  </section>
+  <section class="sec" id="about">
+    <h2 class="st">عن الشركة</h2><p class="sd">محطات في تاريخ شركة النقل العام الكويتية.</p>
+    <div class="grid g2">
+      <ul class="tl">
+        <li><b class="num">1962</b><p>تأسست بموجب المرسوم الأميري رقم (60) باسم «شركة المواصلات الكويتية».</p></li>
+        <li><b class="num">1980</b><p>أصبحت جميع أسهم الشركة مملوكة بالكامل للدولة بموجب المرسوم بالقانون رقم (34).</p></li>
+        <li><b class="num">1985</b><p>تغيّر الاسم إلى «شركة النقل العام الكويتية».</p></li>
+        <li><b>اليوم</b><p>نقل عام، تأجير داخلي وإقليمي، رحلات عمرة، أوناش وإصلاح للغير.</p></li>
+      </ul>
+      <img src="../assets/hq.jpg" alt="المبنى الرئيسي لشركة النقل العام الكويتية" style="width:100%;border-radius:6px;display:block">
+    </div>
+  </section>
+  <section class="sec" id="csr">
+    <h2 class="st">المسؤولية الاجتماعية</h2><p class="sd">مبادرات الشركة تجاه المجتمع والبيئة.</p>
+    <div class="grid g3">
+      <div class="box"><h3>السلامة أولاً</h3><p>حملات توعية للركاب والسائقين بقواعد السلامة في الحافلات والمحطات.</p></div>
+      <div class="box"><h3>بيئة صحية</h3><p>حافلات كهربائية عديمة الانبعاثات، وصيانة دورية تقلل استهلاك الوقود.</p></div>
+      <div class="box"><h3>خدمة المجتمع</h3><p>نقل الطلبة والمناسبات الوطنية، وخطوط خاصة مثل محطات سوق المباركية.</p></div>
+    </div>
+  </section>
+  <section class="sec" id="gov">
+    <h2 class="st">الحوكمة وحق الاطلاع</h2><p class="sd">تطبّق الشركة منظومة وقواعد الحوكمة، وتستقبل طلبات الاطلاع على المعلومات وفق القانون رقم (12) لسنة 2020.</p>
+    <div class="grid g2">
+      <div class="box"><h3>قانون حق الاطلاع</h3><p>يحق لكل شخص طلب الاطلاع على المعلومات والوثائق التي بحوزة الشركة، وفق القانون رقم (12) لسنة 2020 ولائحته التنفيذية الصادرة بالقرار الوزاري رقم (62) لسنة 2021.</p></div>
+      <form class="box form" id="fGov" novalidate><h3>قدّم طلب اطلاع</h3>
+        <label class="f">الاسم<input id="gName"></label><label class="f">رقم الهاتف<input id="gPhone" dir="ltr" inputmode="numeric"></label>
+        <label class="f">المعلومة أو الوثيقة المطلوبة<textarea id="gText" rows="3"></textarea></label>
+        <div class="err" id="gErr"></div><button class="btn" type="submit" style="justify-self:start">أرسل الطلب</button></form>
+    </div>
+  </section>
+  <section class="sec" id="press">
+    <h2 class="st">التواصل الإعلامي</h2><p class="sd">للصحفيين وطلبات المقابلات والتصوير.</p>
+    <div class="grid g3">
+      <div class="box"><h3>إدارة التسويق والعلاقات العامة</h3><p>الهاتف: <b class="num">22328866</b><br>الخط الساخن: <b class="num">1880001</b><br>البريد: <b dir="ltr">info@kptc.com.kw</b></p></div>
+      <div class="box"><h3>العنوان البريدي</h3><p>صندوق بريد <span class="num">375</span> الصفاة، <span class="num">13004</span> الكويت<br>الفاكس: <span class="num">22328870</span></p></div>
+      <div class="box"><h3>حسابات الشركة</h3><div class="soc"><a href="https://www.instagram.com/kptckuwait" target="_blank" rel="noopener">Instagram @kptckuwait</a><a href="https://twitter.com/kptckuwait" target="_blank" rel="noopener">X @kptckuwait</a><a href="https://www.facebook.com/kptckuwait" target="_blank" rel="noopener">Facebook</a></div></div>
+    </div>
+  </section>
+</div></main>
+<div class="dlg" id="dNews"><div><button class="x" type="button" data-close>×</button><div id="dNewsB"></div></div></div>
+<div class="lb" id="lb"><div><img id="lbImg" alt=""><p id="lbCap"></p></div></div>
+<div class="flash" id="flash"></div>
+<script>
+(function(){
+  var K = KPTC, $ = function(i){ return document.getElementById(i); }, cat = 'الكل';
+  function flash(t){ var f = $('flash'); f.textContent = t; f.classList.add('on'); setTimeout(function(){ f.classList.remove('on'); }, 2600); }
+  function render(){
+    var all = K.db().news.filter(function(n){ return n.pub; }), cats = ['الكل'].concat(all.map(function(n){ return n.cat; }).filter(function(v,i,a){ return a.indexOf(v) === i; }));
+    $('nCats').innerHTML = cats.map(function(c){ return '<button type="button" class="' + (c === cat ? 'on' : '') + '" data-c="' + K.esc(c) + '">' + K.esc(c) + '</button>'; }).join('');
+    var list = all.filter(function(n){ return cat === 'الكل' || n.cat === cat; });
+    if (!list.length){ $('nLead').innerHTML = '<div class="box empty">لا توجد أخبار في هذا القسم.</div>'; $('nList').innerHTML = ''; return; }
+    var L = list[0];
+    $('nLead').innerHTML = '<article class="lead-n" data-n="' + K.esc(L.id) + '"><img src="../assets/' + K.esc(L.img || 'kbus-fleet.jpg') + '" alt=""><div><div class="meta"><span class="tag in">' + K.esc(L.cat) + '</span><span class="num">' + K.date(L.d) + '</span></div><h3>' + K.esc(L.title) + '</h3><p>' + K.esc(L.body) + '</p></div></article>';
+    $('nList').innerHTML = list.slice(1).map(function(n){ return '<div class="n-it" data-n="' + K.esc(n.id) + '"><img src="../assets/' + K.esc(n.img || 'kbus-fleet.jpg') + '" alt=""><div><b>' + K.esc(n.title) + '</b><div class="meta"><span>' + K.esc(n.cat) + '</span><span class="num">' + K.date(n.d) + '</span></div></div></div>'; }).join('') || '<div class="empty">لا توجد أخبار أخرى.</div>';
+  }
+  $('nCats').addEventListener('click', function(e){ var b = e.target.closest('[data-c]'); if (b){ cat = b.getAttribute('data-c'); render(); } });
+  document.addEventListener('click', function(e){
+    var n = e.target.closest('[data-n]'); if (n){ var x = K.db().news.filter(function(v){ return v.id === n.getAttribute('data-n'); })[0]; $('dNewsB').innerHTML = '<span class="tag in">' + K.esc(x.cat) + '</span> <span class="num" style="color:var(--kp-muted);font-size:13px">' + K.date(x.d) + '</span><h3 style="margin:10px 0">' + K.esc(x.title) + '</h3><img src="../assets/' + K.esc(x.img || 'kbus-fleet.jpg') + '" alt="" style="width:100%;border-radius:4px;margin-bottom:12px"><p>' + K.esc(x.body) + '</p>'; $('dNews').classList.add('on'); }
+    if (e.target.closest('[data-close]')) e.target.closest('.dlg').classList.remove('on');
+    if (e.target.closest('[data-soon]')) flash('سُجّل طلبك، وسيتواصل معك فريق الإعلام.');
+  });
+  var G = [['kbus-fleet.jpg','أسطول حافلات K-Bus','wide'],['kbus-ev.jpg','الحافلة الكهربائية K-eBus'],['kbus-street.jpg','K-Bus في شوارع الكويت'],['kbus-depot.jpg','الحافلات في المحطة'],['coach-1.jpg','حافلة سياحية للتأجير'],['coach-interior.jpg','مقصورة الحافلة السياحية'],['school-bus.jpg','حافلات نقل الطلبة'],['tow-1.jpg','مركز الأوناش'],['workshop-1.jpg','الورشة المركزية'],['hq.jpg','المبنى الرئيسي'],['kptc-classic.jpg','من أرشيف الشركة']];
+  $('gal').innerHTML = G.map(function(g){ return '<button type="button" class="' + (g[2]||'') + '" data-img="' + g[0] + '" data-cap="' + g[1] + '"><img src="../assets/' + g[0] + '" alt="' + g[1] + '" loading="lazy"><span>' + g[1] + '</span></button>'; }).join('');
+  $('gal').addEventListener('click', function(e){ var b = e.target.closest('[data-img]'); if (!b) return; $('lbImg').src = '../assets/' + b.getAttribute('data-img'); $('lbCap').textContent = b.getAttribute('data-cap'); $('lb').classList.add('on'); });
+  $('lb').onclick = function(){ $('lb').classList.remove('on'); };
+  $('fGov').addEventListener('submit', function(e){ e.preventDefault(); if (!$('gName').value.trim() || K.latin($('gPhone').value).replace(/\D/g,'').length < 8 || !$('gText').value.trim()){ $('gErr').textContent = 'أكمل الاسم ورقم الهاتف ونص الطلب.'; return; } $('gErr').textContent = ''; K.addBooking({id:K.id('INF'), type:'حق الاطلاع', page:'media', title:$('gText').value.trim().slice(0,80), amount:0}); e.target.reset(); flash('استُلم طلبك وسيُرد عليه خلال المدة القانونية.'); });
+  var links = document.querySelectorAll('.sub a');
+  window.addEventListener('scroll', function(){ var cur = links[0]; links.forEach(function(a){ var s = document.querySelector(a.getAttribute('href')); if (s && s.getBoundingClientRect().top < 200) cur = a; }); links.forEach(function(a){ a.classList.toggle('on', a === cur); }); }, {passive:true});
+  links.forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'}); }); });
+  K.onChange(render); render();
+})();
+</script>

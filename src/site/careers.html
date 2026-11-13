@@ -1,0 +1,74 @@
+<!--title:الوظائف — KPTC-->
+<style>
+.job{background:#fff;border:1px solid var(--kp-line);border-inline-start:6px solid var(--kp-indigo);border-radius:6px;padding:20px 22px;display:grid;grid-template-columns:1fr auto;gap:8px 20px;align-items:center;transition:border-color .2s,box-shadow .25s}
+.job:hover{border-inline-start-color:var(--kp-sign);box-shadow:var(--sh-2)}
+.job h3{font-size:20px}
+.job .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.job p{color:var(--kp-muted);font-size:14.5px;grid-column:1/-1}
+.why{display:grid;grid-template-columns:1.1fr 1fr;gap:26px;align-items:center;margin-bottom:38px}
+.why img{width:100%;border-radius:6px;display:block}
+.why li{list-style:none;padding:10px 0;border-bottom:1px solid var(--kp-line-2);display:flex;gap:12px;font-weight:500}
+.why li::before{content:"";width:11px;height:11px;border-radius:50%;border:3px solid var(--kp-indigo);margin-top:8px;flex-shrink:0}
+.steps{display:flex;gap:6px;margin:10px 0 16px}
+.steps i{flex:1;height:5px;background:var(--kp-line);border-radius:3px;transition:background .3s}
+.steps i.on{background:var(--kp-indigo)}
+@media(max-width:920px){.why{grid-template-columns:1fr}.job{grid-template-columns:1fr}}
+</style>
+<div class="kp-hero"><div class="w ph"><div class="kp-tag">الوظائف</div><h1>انضم إلى من يحرّك الكويت</h1><p>الوظائف الشاغرة في شركة النقل العام الكويتية. قدّم طلبك إلكترونياً وتابع حالته برقم هاتفك.</p></div></div>
+<main><div class="w">
+  <div class="why">
+    <div><h2 class="st">لماذا KPTC؟</h2><ul>
+      <li>شركة وطنية مملوكة للدولة منذ <span class="num">1962</span></li>
+      <li>مجالات متنوعة: تشغيل، هندسة وصيانة، خدمة عملاء، إدارة</li>
+      <li>تدريب مستمر على أنظمة الحافلات الحديثة والكهربائية</li>
+    </ul></div>
+    <img src="../assets/workshop-1.jpg" alt="فنيون في الورشة المركزية">
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap"><div><h2 class="st">الوظائف المتاحة</h2><p class="sd" id="jCount"></p></div><button class="btn o" type="button" id="trkBtn">تابع طلبك</button></div>
+  <div class="chips" id="jF"></div>
+  <div class="grid" id="jL"></div>
+</div></main>
+<div class="dlg" id="dA"><div><button class="x" type="button" data-close>×</button><h3 id="aT"></h3><p class="sd" id="aS" style="margin:0"></p>
+  <div class="steps"><i class="on"></i><i id="s2"></i><i id="s3"></i></div>
+  <form class="form" id="fA" novalidate>
+    <label class="f">الاسم الكامل<input id="aName" autocomplete="name"></label>
+    <div class="grid g2" style="gap:12px"><label class="f">رقم الهاتف<input id="aPhone" dir="ltr" inputmode="numeric"></label><label class="f">البريد الإلكتروني<input id="aEmail" type="email" dir="ltr"></label></div>
+    <div class="grid g2" style="gap:12px"><label class="f">سنوات الخبرة<input id="aExp" dir="ltr" inputmode="numeric" maxlength="2"></label><label class="f">السيرة الذاتية (PDF)<input id="aCv" type="file" accept=".pdf,.doc,.docx"></label></div>
+    <label class="f">نبذة مختصرة<textarea id="aNote" rows="3" placeholder="خبرتك ولماذا تناسبك الوظيفة"></textarea></label>
+    <div class="err" id="aErr"></div><button class="btn y" type="submit">أرسل الطلب</button>
+  </form>
+</div></div>
+<div class="dlg" id="dK"><div><button class="x" type="button" data-close>×</button><h3>تابع طلب التوظيف</h3><p class="sd">أدخل رقم الهاتف الذي قدّمت به.</p>
+  <form class="form" id="fK"><label class="f">رقم الهاتف<input id="kPhone" dir="ltr" inputmode="numeric"></label><button class="btn" type="submit">ابحث</button></form><div id="kR" style="margin-top:14px"></div></div></div>
+<div class="flash" id="flash"></div>
+<script>
+(function(){
+  var K = KPTC, $ = function(i){ return document.getElementById(i); }, f = 'الكل', cur = null;
+  function flash(t){ var x = $('flash'); x.textContent = t; x.classList.add('on'); setTimeout(function(){ x.classList.remove('on'); }, 2800); }
+  function live(j){ return j.open && new Date(j.close + 'T23:59:59') >= new Date(); }
+  function render(){
+    var all = K.db().jobs.filter(live), depts = ['الكل'].concat(all.map(function(j){ return j.dept; }).filter(function(v,i,a){ return a.indexOf(v) === i; }));
+    $('jCount').textContent = all.length ? all.length + ' وظائف مفتوحة للتقديم الآن' : 'لا توجد وظائف مفتوحة حالياً. تابع الصفحة لاحقاً.';
+    $('jF').innerHTML = depts.map(function(d){ return '<button type="button" class="' + (d === f ? 'on' : '') + '" data-f="' + K.esc(d) + '">' + K.esc(d) + '</button>'; }).join('');
+    $('jL').innerHTML = all.filter(function(j){ return f === 'الكل' || j.dept === f; }).map(function(j){ return '<article class="job kp-rise"><div><h3>' + K.esc(j.title) + '</h3><div class="meta"><span class="tag in">' + K.esc(j.dept) + '</span><span class="tag">' + K.esc(j.loc) + '</span><span class="tag">' + K.esc(j.type) + '</span><span class="tag warn">آخر موعد <span class="num">' + K.date(j.close) + '</span></span></div></div><button class="btn" data-j="' + K.esc(j.id) + '">قدّم الآن</button><p>' + K.esc(j.req) + '</p></article>'; }).join('');
+  }
+  $('jF').addEventListener('click', function(e){ var b = e.target.closest('[data-f]'); if (b){ f = b.getAttribute('data-f'); render(); } });
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-j]');
+    if (b){ cur = K.db().jobs.filter(function(j){ return j.id === b.getAttribute('data-j'); })[0]; $('aT').textContent = cur.title; $('aS').textContent = cur.dept + ' · ' + cur.loc; $('aErr').textContent = ''; var u = K.user(); if (u){ $('aName').value = u.name; $('aPhone').value = u.phone; $('aEmail').value = u.email || ''; } prog(); $('dA').classList.add('on'); }
+    if (e.target.closest('[data-close]')) e.target.closest('.dlg').classList.remove('on');
+  });
+  function prog(){ $('s2').classList.toggle('on', !!($('aName').value.trim() && $('aPhone').value.trim())); $('s3').classList.toggle('on', !!$('aNote').value.trim()); }
+  $('fA').addEventListener('input', prog);
+  $('fA').addEventListener('submit', function(e){ e.preventDefault();
+    var ph = K.latin($('aPhone').value).replace(/\D/g,'');
+    if (!$('aName').value.trim() || ph.length < 8){ $('aErr').textContent = 'أدخل الاسم ورقم هاتف من 8 أرقام.'; return; }
+    var cv = $('aCv').files && $('aCv').files[0] ? $('aCv').files[0].name : '';
+    var a = {id:K.id('AP'), job:cur.id, name:$('aName').value.trim(), phone:ph, email:$('aEmail').value.trim(), exp:K.latin($('aExp').value), note:$('aNote').value.trim(), cv:cv, d:K.today(), status:'قيد المراجعة'};
+    K.db().applications.unshift(a); K.log('طلب توظيف: ' + a.name + ' — ' + cur.title); K.save(); e.target.reset(); $('dA').classList.remove('on'); flash('استلمنا طلبك رقم ' + a.id + '. تابعه برقم هاتفك.'); });
+  $('trkBtn').onclick = function(){ $('kR').innerHTML = ''; $('dK').classList.add('on'); };
+  $('fK').addEventListener('submit', function(e){ e.preventDefault(); var ph = K.latin($('kPhone').value).replace(/\D/g,''), d = K.db(), r = d.applications.filter(function(a){ return a.phone === ph; });
+    $('kR').innerHTML = r.length ? r.map(function(a){ var j = d.jobs.filter(function(x){ return x.id === a.job; })[0] || {title:'—'}; return '<div class="box" style="margin-bottom:8px;padding:14px"><b>' + K.esc(j.title) + '</b><div style="display:flex;gap:8px;margin-top:6px;align-items:center"><span class="num" style="font-size:13px;color:var(--kp-muted)">' + K.esc(a.id) + ' · ' + K.date(a.d) + '</span><span class="tag ' + (/مقبول|مقابلة/.test(a.status) ? 'ok' : /مرفوض|اعتذار/.test(a.status) ? 'bad' : 'warn') + '">' + K.esc(a.status) + '</span></div></div>'; }).join('') : '<p class="empty">لا يوجد طلب بهذا الرقم.</p>'; });
+  K.onChange(render); render();
+})();
+</script>

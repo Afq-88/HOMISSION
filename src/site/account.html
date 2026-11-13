@@ -1,0 +1,193 @@
+<!--title:حسابي — KPTC-->
+<!--hero:kp-hero-->
+<style>
+.auth{display:grid;grid-template-columns:1fr 1fr;gap:0;background:#fff;border:1px solid var(--kp-line);border-radius:6px;overflow:hidden;max-width:920px;margin:0 auto;box-shadow:var(--sh-2)}
+.auth-a{background:var(--kp-indigo);color:#fff;padding:38px 34px;display:grid;gap:14px;align-content:center}
+.auth-a h2{font-size:26px;line-height:1.4}
+.auth-a li{list-style:none;display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.16);font-weight:500}
+.auth-a li::before{content:"";width:10px;height:10px;border-radius:50%;border:3px solid var(--kp-sign);flex-shrink:0}
+.auth-b{padding:30px 34px}
+.seg{display:flex;border:1.5px solid var(--kp-line-2);border-radius:4px;overflow:hidden;margin-bottom:18px}
+.seg button{flex:1;border:0;background:#fff;padding:10px;font:700 14px var(--f-body);color:var(--kp-muted);cursor:pointer}
+.seg button.on{background:var(--kp-ink);color:var(--kp-sign)}
+.demo{font-size:12.5px;color:var(--kp-muted);background:var(--kp-paper-2);border:1px dashed var(--kp-line-2);border-radius:4px;padding:9px 12px;margin-top:6px}
+.top{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;margin-bottom:22px}
+.hello{background:#fff;border:1px solid var(--kp-line);border-radius:6px;padding:24px;display:grid;gap:14px;align-content:space-between}
+.hello h2{font-size:26px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);border-top:2px solid var(--kp-ink)}
+.kpis div{padding:12px 0 0;border-inline-start:1px solid var(--kp-line-2);padding-inline-start:14px}
+.kpis div:first-child{border:0;padding-inline-start:0}
+.kpis b{display:block;font:700 26px/1.2 var(--f-display);color:var(--kp-indigo)}
+.kpis span{font-size:12.5px;color:var(--kp-muted)}
+/* wallet card: a transit smart card */
+.card{position:relative;background:var(--kp-indigo);color:#fff;border-radius:12px;padding:22px 24px;overflow:hidden;min-height:214px;display:grid;align-content:space-between;box-shadow:var(--sh-3)}
+.card::before{content:"";position:absolute;inset:auto -40px -70px auto;width:240px;height:240px;border-radius:50%;border:34px solid rgba(255,201,60,.16)}
+.card::after{content:"";position:absolute;top:0;inset-inline:0;height:6px;background:var(--kp-sign)}
+.card.frz{background:#55546B}
+.card-h{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#CFCDEA}
+.card-h b{letter-spacing:.14em;color:#fff;direction:ltr}
+.bal small{display:block;color:#CFCDEA;font-size:13px}
+.bal strong{font:800 44px/1.15 var(--f-display);color:var(--kp-sign);display:inline-block}
+.bal strong.bump{animation:bump .4s var(--kp-ease)}
+@keyframes bump{40%{scale:1.08}}
+.card-f{display:flex;justify-content:space-between;align-items:end;gap:10px;position:relative;z-index:1;flex-wrap:wrap}
+.card-f span{font-size:12.5px;color:#CFCDEA;direction:ltr}
+.amts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0 4px}
+.amts button{border:1.5px solid var(--kp-line-2);background:#fff;border-radius:4px;padding:12px 4px;font:700 16px var(--f-display);color:var(--kp-indigo);cursor:pointer}
+.amts button.on{background:var(--kp-indigo);color:#fff;border-color:var(--kp-indigo)}
+.pay{display:flex;gap:8px;flex-wrap:wrap}
+.pay label{flex:1;display:flex;gap:8px;align-items:center;border:1.5px solid var(--kp-line-2);border-radius:4px;padding:10px 12px;font-weight:600;font-size:14px;cursor:pointer}
+.pay input:checked+span{color:var(--kp-indigo)}
+.coin{position:fixed;width:16px;height:16px;border-radius:50%;background:var(--kp-sign);border:2px solid var(--kp-ink);z-index:3000;pointer-events:none;transition:all .7s cubic-bezier(.3,.7,.3,1)}
+@media(max-width:920px){.auth,.top{grid-template-columns:1fr}.amts{grid-template-columns:1fr 1fr}}
+</style>
+
+<div class="kp-hero"><div class="w ph">
+  <div class="kp-tag">حسابي</div>
+  <h1 id="acTitle">كل ما يخصّك في مكان واحد</h1>
+  <p id="acLead">حجوزاتك، اشتراكك، بلاغاتك ومحفظتك. سجّل مرة واحدة وتابع كل شيء من هنا.</p>
+</div></div>
+
+<main><div class="w">
+  <!-- signed out -->
+  <section id="vAuth">
+    <div class="auth">
+      <div class="auth-a">
+        <h2>حساب واحد لكل خدمات KPTC</h2>
+        <ul>
+          <li>تابع حجوزات العمرة و VIP وطلبات الونش</li>
+          <li>جدّد اشتراكك وادفع من محفظتك</li>
+          <li>تابع بلاغات المفقودات برقمها</li>
+          <li>اشحن محفظتك عبر كي نت</li>
+        </ul>
+      </div>
+      <div class="auth-b">
+        <div class="seg"><button type="button" id="tabIn" class="on">تسجيل الدخول</button><button type="button" id="tabUp">حساب جديد</button></div>
+        <form class="form" id="fIn" novalidate>
+          <label class="f">رقم الهاتف<input id="inPhone" inputmode="numeric" autocomplete="tel" placeholder="8 أرقام" dir="ltr"></label>
+          <label class="f">كلمة المرور<input id="inPass" type="password" autocomplete="current-password" dir="ltr"></label>
+          <div class="err" id="inErr"></div>
+          <button class="btn" type="submit">دخول</button>
+          <p class="demo">للتجربة: الهاتف <b class="num">55501234</b> وكلمة المرور <b class="num">123456</b> <button type="button" class="btn sm o" id="demoBtn">ادخل بالحساب التجريبي</button></p>
+        </form>
+        <form class="form" id="fUp" novalidate hidden>
+          <label class="f">الاسم الكامل<input id="upName" autocomplete="name"></label>
+          <label class="f">رقم الهاتف<input id="upPhone" inputmode="numeric" autocomplete="tel" placeholder="8 أرقام" dir="ltr"></label>
+          <label class="f">البريد الإلكتروني (اختياري)<input id="upEmail" type="email" autocomplete="email" dir="ltr"></label>
+          <label class="f">كلمة المرور<input id="upPass" type="password" autocomplete="new-password" dir="ltr" placeholder="6 أحرف على الأقل"></label>
+          <div class="err" id="upErr"></div>
+          <button class="btn y" type="submit">أنشئ حسابي</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- signed in -->
+  <section id="vMe" hidden>
+    <div class="top">
+      <div class="hello">
+        <div><h2 id="meName"></h2><p class="sd" id="meSince" style="margin:0"></p></div>
+        <div class="kpis"><div><b class="num" id="kAct">0</b><span>طلبات نشطة</span></div><div><b class="num" id="kAll">0</b><span>إجمالي الطلبات</span></div><div><b id="kSub">—</b><span>اشتراكك</span></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn o sm" href="KPTC_Subscriptions.html">اشتراك جديد</a><a class="btn o sm" href="KPTC_Umrah.html">حجز عمرة</a><a class="btn o sm" href="KPTC_VIP.html">حجز VIP</a><a class="btn o sm" href="KPTC_Winch.html">طلب ونش</a><button class="btn o sm" type="button" id="outBtn">تسجيل الخروج</button></div>
+      </div>
+      <div class="card" id="wCard">
+        <div class="card-h"><span>محفظة KPTC</span><b>K-PASS</b></div>
+        <div class="bal"><small id="wState">الرصيد المتاح</small><strong class="num" id="wBal">0.000 د.ك</strong></div>
+        <div class="card-f"><span id="wNo"></span><button class="btn y" type="button" id="topBtn">اشحن المحفظة</button></div>
+      </div>
+    </div>
+
+    <div class="sub" style="position:static;border:1px solid var(--kp-line);border-radius:6px 6px 0 0;border-bottom:0"><div style="display:flex;overflow-x:auto">
+      <button type="button" class="on" data-pane="pBook">حجوزاتي وطلباتي</button><button type="button" data-pane="pWal">حركات المحفظة</button><button type="button" data-pane="pInfo">بياناتي</button>
+    </div></div>
+    <div class="box" style="border-radius:0 0 6px 6px">
+      <div class="pane on" id="pBook">
+        <div class="chips" id="bFilter"></div>
+        <div class="tw"><table class="t"><thead><tr><th>الرقم</th><th>النوع</th><th>التفاصيل</th><th>التاريخ</th><th>المبلغ</th><th>الحالة</th><th></th></tr></thead><tbody id="bRows"></tbody></table></div>
+      </div>
+      <div class="pane" id="pWal">
+        <div class="tw"><table class="t"><thead><tr><th>العملية</th><th>التاريخ</th><th>النوع</th><th>البيان</th><th>المبلغ</th></tr></thead><tbody id="tRows"></tbody></table></div>
+      </div>
+      <div class="pane" id="pInfo">
+        <form class="form" id="fInfo" style="max-width:520px">
+          <label class="f">الاسم الكامل<input id="pfName"></label>
+          <label class="f">رقم الهاتف<input id="pfPhone" dir="ltr" disabled></label>
+          <label class="f">البريد الإلكتروني<input id="pfEmail" type="email" dir="ltr"></label>
+          <label class="f">الرقم المدني (اختياري)<input id="pfCivil" inputmode="numeric" dir="ltr" maxlength="12"></label>
+          <button class="btn" type="submit" style="justify-self:start">حفظ التعديلات</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</div></main>
+
+<div class="dlg" id="dTop"><div>
+  <button class="x" type="button" data-close>×</button>
+  <h3>شحن المحفظة</h3><p class="sd">اختر المبلغ وطريقة الدفع. الدفع هنا تجريبي ولا يُخصم أي مبلغ فعلي.</p>
+  <div class="amts" id="amts"><button type="button" data-a="5">5</button><button type="button" data-a="10" class="on">10</button><button type="button" data-a="20">20</button><button type="button" data-a="50">50</button></div>
+  <label class="f">أو مبلغ آخر (د.ك)<input id="topAmt" inputmode="decimal" dir="ltr" value="10"></label>
+  <div class="pay" style="margin:14px 0"><label><input type="radio" name="pm" value="كي نت" checked><span>كي نت</span></label><label><input type="radio" name="pm" value="بطاقة ائتمانية"><span>بطاقة ائتمانية</span></label><label><input type="radio" name="pm" value="Apple Pay"><span dir="ltr">Apple Pay</span></label></div>
+  <div class="err" id="topErr"></div>
+  <button class="btn y" type="button" id="topGo" style="width:100%">ادفع واشحن</button>
+</div></div>
+<div class="flash" id="flash"></div>
+
+<script>
+(function(){
+  var K = KPTC, $ = function(id){ return document.getElementById(id); }, filter = 'الكل';
+  function flash(t){ var f = $('flash'); f.textContent = t; f.classList.add('on'); clearTimeout(flash.t); flash.t = setTimeout(function(){ f.classList.remove('on'); }, 2600); }
+  function stTag(s){ var c = /فعّال|مؤكد|مدفوع|مكتمل|وُجد/.test(s) ? 'ok' : /ملغ|مرفوض/.test(s) ? 'bad' : 'warn'; return '<span class="tag ' + c + '">' + K.esc(s) + '</span>'; }
+  var PG = {subs:'KPTC_Subscriptions.html', umrah:'KPTC_Umrah.html', vip:'KPTC_VIP.html', winch:'KPTC_Winch.html', lost:'KPTC_LostFound.html', ads:'KPTC_Advertising.html'};
+  function render(){
+    var u = K.user(); $('vAuth').hidden = !!u; $('vMe').hidden = !u;
+    if (!u){ $('acTitle').textContent = 'كل ما يخصّك في مكان واحد'; return; }
+    var d = K.db(), w = K.wallet(), mine = d.bookings.filter(function(b){ return b.uid === u.id; });
+    $('acTitle').textContent = 'أهلاً ' + u.name.split(' ')[0]; $('acLead').textContent = 'هذه حجوزاتك وطلباتك ومحفظتك. كل ما تحجزه في الموقع يظهر هنا مباشرة.';
+    $('meName').textContent = u.name; $('meSince').textContent = 'عضو منذ ' + K.date(u.joined) + ' · ' + u.phone;
+    $('kAll').textContent = mine.length; $('kAct').textContent = mine.filter(function(b){ return !/مكتمل|ملغ|وُجد/.test(b.status); }).length;
+    var sub = mine.filter(function(b){ return b.page === 'subs' && /فعّال/.test(b.status); })[0]; $('kSub').textContent = sub ? 'حتى ' + K.date(sub.until || '') : 'لا يوجد';
+    $('wBal').textContent = K.money(w.balance); $('wNo').textContent = 'KP ' + u.phone.replace(/(\d{4})(\d+)/, '$1 $2');
+    $('wCard').classList.toggle('frz', !!w.frozen); $('wState').textContent = w.frozen ? 'المحفظة موقوفة مؤقتاً من الإدارة' : 'الرصيد المتاح'; $('topBtn').disabled = !!w.frozen;
+    var types = ['الكل'].concat(mine.map(function(b){ return b.type; }).filter(function(v, i, a){ return a.indexOf(v) === i; }));
+    $('bFilter').innerHTML = types.map(function(t){ return '<button type="button" class="' + (t === filter ? 'on' : '') + '" data-f="' + K.esc(t) + '">' + K.esc(t) + '</button>'; }).join('');
+    var rows = mine.filter(function(b){ return filter === 'الكل' || b.type === filter; });
+    $('bRows').innerHTML = rows.length ? rows.map(function(b){
+      var canPay = b.amount > 0 && /قيد المعالجة/.test(b.status);
+      return '<tr><td class="num"><b>' + K.esc(b.id) + '</b></td><td><span class="tag in">' + K.esc(b.type) + '</span></td><td>' + K.esc(b.title) + '</td><td class="num">' + K.date(b.d) + '</td><td class="num">' + (b.amount ? K.money(b.amount) : '—') + '</td><td>' + stTag(b.status) + '</td><td style="white-space:nowrap">' +
+        (canPay ? '<button class="btn sm y" data-pay="' + K.esc(b.id) + '">ادفع من المحفظة</button> ' : '') + (PG[b.page] ? '<a class="btn sm o" href="' + PG[b.page] + '">الخدمة</a>' : '') + '</td></tr>';
+    }).join('') : '<tr><td colspan="7" class="empty">لا توجد طلبات بعد. احجز من أي خدمة وسيظهر طلبك هنا.</td></tr>';
+    $('tRows').innerHTML = w.tx.length ? w.tx.map(function(t){ return '<tr><td class="num">' + K.esc(t.id) + '</td><td class="num">' + K.date(t.d) + '</td><td><span class="tag ' + (t.a > 0 ? 'ok' : 'in') + '">' + K.esc(t.t) + '</span></td><td>' + K.esc(t.note) + '</td><td class="num" style="font-weight:700;color:' + (t.a > 0 ? 'var(--kp-ok)' : 'var(--kp-ink)') + '">' + (t.a > 0 ? '+' : '−') + K.money(Math.abs(t.a)) + '</td></tr>'; }).join('') : '<tr><td colspan="5" class="empty">لا توجد حركات بعد.</td></tr>';
+    $('pfName').value = u.name; $('pfPhone').value = u.phone; $('pfEmail').value = u.email || ''; $('pfCivil').value = u.civil || '';
+  }
+  $('tabIn').onclick = function(){ $('tabIn').classList.add('on'); $('tabUp').classList.remove('on'); $('fIn').hidden = false; $('fUp').hidden = true; };
+  $('tabUp').onclick = function(){ $('tabUp').classList.add('on'); $('tabIn').classList.remove('on'); $('fUp').hidden = false; $('fIn').hidden = true; };
+  $('fIn').addEventListener('submit', function(e){ e.preventDefault(); var r = K.login($('inPhone').value, $('inPass').value); $('inErr').textContent = r.error || ''; if (!r.error){ render(); flash('أهلاً بعودتك'); } });
+  $('demoBtn').onclick = function(){ K.login('55501234', '123456'); render(); flash('دخلت بالحساب التجريبي'); };
+  $('fUp').addEventListener('submit', function(e){ e.preventDefault(); var r = K.register({name:$('upName').value, phone:$('upPhone').value, email:$('upEmail').value, pass:$('upPass').value}); $('upErr').textContent = r.error || ''; if (!r.error){ render(); flash('تم إنشاء حسابك'); } });
+  $('outBtn').onclick = function(){ K.logout(); render(); };
+  document.querySelectorAll('[data-pane]').forEach(function(b){ b.onclick = function(){ document.querySelectorAll('[data-pane]').forEach(function(x){ x.classList.toggle('on', x === b); }); document.querySelectorAll('.pane').forEach(function(p){ p.classList.toggle('on', p.id === b.getAttribute('data-pane')); }); }; });
+  $('bFilter').addEventListener('click', function(e){ var b = e.target.closest('[data-f]'); if (b){ filter = b.getAttribute('data-f'); render(); } });
+  $('bRows').addEventListener('click', function(e){
+    var b = e.target.closest('[data-pay]'); if (!b) return;
+    var bk = K.db().bookings.filter(function(x){ return x.id === b.getAttribute('data-pay'); })[0], r = K.walletTx(K.user().id, -bk.amount, 'خصم', 'دفع ' + bk.type + ' ' + bk.id, 'العميل');
+    if (r.error) return flash(r.error); bk.status = 'مدفوع'; K.save(); render(); flash('تم الدفع من المحفظة');
+  });
+  $('fInfo').addEventListener('submit', function(e){ e.preventDefault(); var u = K.user(); u.name = $('pfName').value.trim() || u.name; u.email = $('pfEmail').value.trim(); u.civil = $('pfCivil').value.trim(); K.save(); render(); flash('حُفظت بياناتك'); });
+  /* top-up */
+  $('topBtn').onclick = function(){ $('topErr').textContent = ''; $('dTop').classList.add('on'); };
+  document.querySelectorAll('[data-close]').forEach(function(b){ b.onclick = function(){ b.closest('.dlg').classList.remove('on'); }; });
+  $('amts').addEventListener('click', function(e){ var b = e.target.closest('[data-a]'); if (!b) return; $('amts').querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x === b); }); $('topAmt').value = b.getAttribute('data-a'); });
+  $('topAmt').addEventListener('input', function(){ $('amts').querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-a') === $('topAmt').value); }); });
+  $('topGo').onclick = function(){
+    var a = parseFloat(K.latin($('topAmt').value)); if (!(a >= 1 && a <= 500)){ $('topErr').textContent = 'المبلغ بين 1 و 500 د.ك.'; return; }
+    var pm = document.querySelector('input[name=pm]:checked').value, from = $('topGo').getBoundingClientRect(), r = K.walletTx(K.user().id, a, 'تعبئة', 'تعبئة عبر ' + pm, 'العميل');
+    if (r.error){ $('topErr').textContent = r.error; return; }
+    $('dTop').classList.remove('on'); render();
+    var to = $('wBal').getBoundingClientRect();
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) for (var i = 0; i < 7; i++) (function(i){ var c = document.createElement('i'); c.className = 'coin'; c.style.left = (from.left + from.width/2 + (i-3)*14) + 'px'; c.style.top = from.top + 'px'; document.body.appendChild(c); setTimeout(function(){ c.style.left = (to.left + to.width/2) + 'px'; c.style.top = (to.top + 20) + 'px'; c.style.opacity = .2; c.style.scale = .5; }, 30 + i*60); setTimeout(function(){ c.remove(); }, 900 + i*60); })(i);
+    setTimeout(function(){ $('wBal').classList.remove('bump'); void $('wBal').offsetWidth; $('wBal').classList.add('bump'); }, 600);
+    flash('أُضيف ' + K.money(a) + ' إلى محفظتك');
+  };
+  K.onChange(render); render();
+})();
+</script>
