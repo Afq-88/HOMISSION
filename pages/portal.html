@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPTC — بوابة الموظفين</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#2E2C78;--navy-l:#3D3B95;--navy-d:#1F1D5C;
+  --yellow:#FFC93C;--white:#fff;--light:#F5F5FA;
+  --gray:#5D5C80;--dark:#14133A;--border:#DEDDEC;
+  --green:#10B981;--red:#EF4444;--orange:#F59E0B;
+  --purple:#7C3AED;--sidebar-w:240px;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;background:var(--light);color:var(--dark);min-height:100vh}
+
+/* ══ LOGIN PAGE ══ */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#050c24,#1F1D5C 40%,#1a2d80 70%,#0d1845);position:relative;overflow:hidden}
+.login-bg-1{position:absolute;width:500px;height:500px;border-radius:50%;border:1px solid rgba(255,201,60,.06);top:-200px;right:-100px}
+.login-bg-2{position:absolute;width:300px;height:300px;border-radius:50%;border:1px solid rgba(255,255,255,.04);bottom:-100px;left:100px}
+.login-card{background:white;border-radius:24px;padding:0;width:100%;max-width:420px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.4);position:relative;z-index:2}
+.lc-top{background:linear-gradient(135deg,var(--navy-d),var(--navy));padding:32px;text-align:center}
+.lc-logo{width:64px;height:64px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;color:var(--navy);font-size:1.5rem;margin:0 auto 14px}
+.lc-title{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--yellow);margin-bottom:4px}
+.lc-sub{font-size:.75rem;color:rgba(255,255,255,.55);letter-spacing:.5px}
+.lc-body{padding:28px}
+.lc-field{margin-bottom:16px}
+.lc-label{font-size:.72rem;font-weight:700;color:var(--gray);display:block;margin-bottom:6px;letter-spacing:.3px}
+.lc-input{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:12px 16px;font-size:.9rem;font-family:inherit;outline:none;transition:.2s;background:#fafafa}
+.lc-input:focus{border-color:var(--navy);background:white;box-shadow:0 0 0 3px rgba(46,44,120,.08)}
+.lc-role{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px}
+.role-btn{border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:.2s;background:white;font-family:inherit}
+.role-btn:hover{border-color:var(--navy-l)}
+.role-btn.active{border-color:var(--navy);background:rgba(46,44,120,.04)}
+.role-icon{font-size:1.5rem;display:block;margin-bottom:4px}
+.role-name{font-size:.68rem;font-weight:700;color:var(--navy)}
+.btn-login{width:100%;background:var(--yellow);color:var(--navy);border:none;border-radius:12px;padding:14px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-login:hover{background:#ffd700;box-shadow:0 6px 20px rgba(255,201,60,.4);transform:translateY(-1px)}
+.lc-forgot{text-align:center;margin-top:12px;font-size:.75rem;color:var(--gray)}
+.lc-forgot a{color:var(--navy);cursor:pointer;font-weight:600}
+
+/* ══ PORTAL LAYOUT ══ */
+.portal{display:none;min-height:100vh;flex-direction:row}
+.portal.show{display:flex}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);background:var(--navy-d);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;right:0;z-index:200;transition:transform .3s}
+.sb-logo{padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.sb-logo-icon{width:36px;height:36px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;color:var(--navy);font-size:.85rem;flex-shrink:0}
+.sb-logo-text .name{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1rem;letter-spacing:2px;color:var(--yellow)}
+.sb-logo-text .sub{font-size:.55rem;color:rgba(255,255,255,.4);letter-spacing:.5px}
+.sb-user{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),#f0a500);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--navy);font-size:.95rem;flex-shrink:0}
+.sb-user-info .uname{font-size:.82rem;font-weight:700;color:white}
+.sb-user-info .urole{font-size:.65rem;color:rgba(255,255,255,.45)}
+.sb-status{width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:auto;flex-shrink:0}
+.sb-nav{flex:1;overflow-y:auto;padding:10px 0}
+.sb-section{padding:8px 18px 4px;font-size:.6rem;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;transition:.15s;color:rgba(255,255,255,.6);font-size:.82rem;border-right:3px solid transparent;position:relative}
+.sb-item:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.9)}
+.sb-item.active{background:rgba(255,201,60,.1);color:var(--yellow);border-right-color:var(--yellow)}
+.sb-item .si-icon{font-size:1rem;flex-shrink:0;width:20px;text-align:center}
+.sb-badge{background:var(--red);color:white;font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:10px;margin-right:auto}
+.sb-bottom{padding:14px 18px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-logout{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.45);font-size:.78rem;cursor:pointer;transition:.2s}
+.sb-logout:hover{color:var(--red)}
+
+/* TOP BAR */
+.topbar{background:white;border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.tb-title{font-size:1rem;font-weight:700;color:var(--navy);flex:1}
+.tb-search{flex:1;max-width:300px;border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-size:.82rem;font-family:inherit;outline:none;transition:.2s;display:flex;align-items:center;gap:8px}
+.tb-search input{border:none;outline:none;font-family:inherit;font-size:.82rem;width:100%;background:transparent}
+.tb-btn{width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:.2s;position:relative}
+.tb-btn:hover{background:var(--light)}
+.notif-dot{position:absolute;top:6px;left:6px;width:8px;height:8px;background:var(--red);border-radius:50%;border:2px solid white}
+.tb-user{display:flex;align-items:center;gap:8px;cursor:pointer}
+.tb-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),#f0a500);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--navy);font-size:.85rem}
+.tb-uname{font-size:.82rem;font-weight:700;color:var(--navy)}
+.tb-urole{font-size:.65rem;color:var(--gray)}
+
+/* MAIN AREA */
+.main-area{margin-right:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.page-view{flex:1;padding:24px 28px;display:none}
+.page-view.active{display:block}
+
+/* ══ DASHBOARD ══ */
+.welcome-banner{background:linear-gradient(135deg,var(--navy-d),var(--navy));border-radius:18px;padding:24px 28px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+.wb-bg{position:absolute;left:-30px;top:-30px;width:180px;height:180px;border-radius:50%;border:30px solid rgba(255,201,60,.07);pointer-events:none}
+.wb-text h2{font-size:1.3rem;color:white;font-weight:700;margin-bottom:4px}
+.wb-text p{font-size:.8rem;color:rgba(255,255,255,.6)}
+.wb-time{text-align:center}
+.wb-clock{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:2rem;color:var(--yellow);letter-spacing:2px}
+.wb-date{font-size:.72rem;color:rgba(255,255,255,.5);margin-top:4px}
+
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.kpi-card{background:white;border-radius:14px;padding:18px;border:1.5px solid var(--border);display:flex;align-items:center;gap:14px;transition:.2s;cursor:pointer}
+.kpi-card:hover{border-color:var(--navy-l);box-shadow:0 4px 16px rgba(46,44,120,.08);transform:translateY(-2px)}
+.kpi-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.kpi-info{}
+.kpi-val{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.6rem;color:var(--navy);line-height:1}
+.kpi-label{font-size:.7rem;color:var(--gray);margin-top:2px}
+.kpi-change{font-size:.65rem;margin-top:4px;font-weight:600}
+.up{color:var(--green)}.down{color:var(--red)}
+
+/* Quick Actions */
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.qa-card{background:white;border-radius:14px;padding:18px;text-align:center;border:1.5px solid var(--border);cursor:pointer;transition:.25s}
+.qa-card:hover{border-color:var(--yellow);box-shadow:0 6px 20px rgba(255,201,60,.15);transform:translateY(-3px)}
+.qa-card:hover .qa-icon{transform:scale(1.15)}
+.qa-icon{font-size:2.2rem;margin-bottom:8px;transition:.2s;display:block}
+.qa-name{font-size:.8rem;font-weight:700;color:var(--navy)}
+.qa-desc{font-size:.68rem;color:var(--gray);margin-top:3px}
+
+/* Activity feed */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.widget{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden}
+.widget-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.widget-title{font-size:.86rem;font-weight:700;color:var(--navy)}
+.widget-link{font-size:.72rem;color:var(--navy);cursor:pointer;font-weight:600}
+.widget-body{padding:14px 18px}
+.feed-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:.78rem}
+.feed-item:last-child{border:none}
+.feed-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.feed-text{flex:1;color:var(--dark);line-height:1.55}
+.feed-time{font-size:.65rem;color:var(--gray);flex-shrink:0;margin-top:2px}
+.announcement-item{padding:10px 0;border-bottom:1px dashed var(--border)}
+.announcement-item:last-child{border:none}
+.ann-tag{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:5px}
+.ann-tag.urgent{background:rgba(239,68,68,.1);color:var(--red)}
+.ann-tag.info{background:rgba(46,44,120,.08);color:var(--navy)}
+.ann-tag.event{background:rgba(255,201,60,.15);color:#92400E}
+.ann-title{font-size:.8rem;font-weight:700;color:var(--dark);margin-bottom:3px}
+.ann-date{font-size:.68rem;color:var(--gray)}
+
+/* ══ LEAVE REQUEST ══ */
+.leave-layout{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+.leave-types{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.ltype{border:2px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;transition:.2s;background:white}
+.ltype:hover{border-color:var(--navy-l);transform:translateY(-2px)}
+.ltype.sel{border-color:var(--yellow);background:rgba(255,201,60,.05)}
+.lt-icon{font-size:1.8rem;margin-bottom:6px}
+.lt-name{font-size:.76rem;font-weight:700;color:var(--navy);margin-bottom:3px}
+.lt-balance{font-size:.68rem;color:var(--green);font-weight:600}
+.fcard{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:14px}
+.fcard-head{background:var(--light);padding:12px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:.84rem;color:var(--navy);display:flex;align-items:center;gap:7px}
+.fcard-body{padding:16px 18px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg.tri{grid-template-columns:1fr 1fr 1fr}
+.fg.one{grid-template-columns:1fr}
+.f{display:flex;flex-direction:column;gap:4px}
+.f.span2{grid-column:span 2}
+.f label{font-size:.7rem;font-weight:700;color:var(--gray)}
+.f input,.f select,.f textarea{border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:.83rem;font-family:inherit;outline:none;transition:.2s;width:100%}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,44,120,.07)}
+.f textarea{resize:vertical;min-height:70px}
+.leave-balance-card{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;position:sticky;top:72px}
+.lbc-head{background:var(--navy);color:white;padding:14px 18px;font-size:.86rem;font-weight:700}
+.lbc-body{padding:16px}
+.lb-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border)}
+.lb-item:last-child{border:none}
+.lb-type{font-size:.78rem;color:var(--dark);display:flex;align-items:center;gap:6px}
+.lb-days{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.2rem;color:var(--navy)}
+.lb-sub{font-size:.62rem;color:var(--gray)}
+.bar-wrap{height:5px;background:var(--border);border-radius:10px;margin-top:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:10px}
+.btn-submit-leave{width:100%;background:var(--yellow);color:var(--navy);border:none;border-radius:12px;padding:13px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+.btn-submit-leave:hover{background:#ffd700;box-shadow:0 6px 20px rgba(255,201,60,.35);transform:translateY(-1px)}
+
+/* ══ REQUESTS TABLE ══ */
+.req-toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.req-filter{border:1.5px solid var(--border);border-radius:20px;padding:7px 16px;font-size:.76rem;font-weight:600;cursor:pointer;background:white;color:var(--gray);font-family:inherit;transition:.2s}
+.req-filter.active,.req-filter:hover{background:var(--navy);color:var(--yellow);border-color:var(--navy)}
+.requests-table{width:100%;border-collapse:collapse;font-size:.82rem;background:white;border-radius:14px;overflow:hidden;border:1.5px solid var(--border)}
+.requests-table th{background:var(--navy);color:var(--yellow);padding:12px 16px;text-align:right;font-weight:700}
+.requests-table td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+.requests-table tr:last-child td{border:none}
+.requests-table tr:hover td{background:#f9fafb}
+.status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700}
+.s-pending{background:rgba(245,158,11,.1);color:var(--orange)}
+.s-approved{background:rgba(16,185,129,.1);color:var(--green)}
+.s-rejected{background:rgba(239,68,68,.1);color:var(--red)}
+.s-processing{background:rgba(124,58,237,.1);color:var(--purple)}
+.req-action{color:var(--navy);background:none;border:none;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit;transition:.2s;padding:4px 10px;border-radius:6px}
+.req-action:hover{background:var(--light)}
+
+/* ══ PAYSLIP ══ */
+.payslip-selector{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.ps-month{border:1.5px solid var(--border);border-radius:20px;padding:7px 18px;font-size:.78rem;font-weight:600;cursor:pointer;background:white;color:var(--gray);font-family:inherit;transition:.2s}
+.ps-month.active{background:var(--navy);color:var(--yellow);border-color:var(--navy)}
+.payslip-card{background:white;border-radius:16px;border:1.5px solid var(--border);overflow:hidden;max-width:680px}
+.ps-header{background:linear-gradient(135deg,var(--navy-d),var(--navy));padding:24px 28px;color:white;display:flex;justify-content:space-between;align-items:flex-start}
+.ps-company{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--yellow);margin-bottom:4px}
+.ps-doc{font-size:.72rem;color:rgba(255,255,255,.5)}
+.ps-period{text-align:left;font-size:.78rem;color:rgba(255,255,255,.7)}
+.ps-period strong{display:block;font-size:1rem;color:white;font-weight:700}
+.ps-employee{padding:16px 28px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.pe-item small{font-size:.65rem;color:var(--gray);display:block;margin-bottom:2px}
+.pe-item strong{font-size:.82rem;font-weight:700;color:var(--dark)}
+.ps-body{padding:20px 28px}
+.ps-section-title{font-size:.76rem;font-weight:700;color:var(--navy);letter-spacing:.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--yellow)}
+.ps-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--border);font-size:.8rem}
+.ps-row:last-child{border:none}
+.ps-row span{color:var(--gray)}
+.ps-row strong{color:var(--dark)}
+.ps-total-row{display:flex;justify-content:space-between;padding:12px 0;font-weight:700;font-size:.95rem;color:var(--navy);border-top:2px solid var(--navy)}
+.ps-net{background:linear-gradient(135deg,var(--navy),var(--navy-l));border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-top:16px}
+.ps-net-label{color:rgba(255,255,255,.7);font-size:.82rem}
+.ps-net-amount{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:2rem;color:var(--yellow);letter-spacing:1px}
+.btn-download{display:flex;align-items:center;gap:8px;background:var(--light);border:1.5px solid var(--border);border-radius:10px;padding:9px 18px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;color:var(--navy);margin-top:14px}
+.btn-download:hover{background:var(--navy);color:white;border-color:var(--navy)}
+
+/* ══ NOTIFICATIONS ══ */
+.notif-list{display:flex;flex-direction:column;gap:8px}
+.notif-item{background:white;border-radius:12px;border:1.5px solid var(--border);padding:14px 16px;display:flex;gap:12px;cursor:pointer;transition:.2s}
+.notif-item:hover{border-color:var(--navy-l);box-shadow:0 4px 12px rgba(46,44,120,.08)}
+.notif-item.unread{border-right:3px solid var(--yellow);background:rgba(255,201,60,.02)}
+.ni-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.ni-content{flex:1}
+.ni-title{font-size:.84rem;font-weight:600;color:var(--dark);margin-bottom:3px}
+.ni-item.unread .ni-title{font-weight:700}
+.ni-body{font-size:.75rem;color:var(--gray);line-height:1.6}
+.ni-time{font-size:.65rem;color:var(--gray);flex-shrink:0;margin-top:3px}
+.ni-dot{width:8px;height:8px;background:var(--yellow);border-radius:50%;flex-shrink:0;margin-top:8px}
+
+/* ══ PROFILE ══ */
+.profile-hero{background:linear-gradient(135deg,var(--navy-d),var(--navy));border-radius:16px;padding:28px;margin-bottom:18px;display:flex;align-items:center;gap:20px}
+.ph-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),#f0a500);display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.8rem;color:var(--navy);flex-shrink:0}
+.ph-info h2{color:white;font-size:1.2rem;font-weight:700;margin-bottom:4px}
+.ph-info p{color:rgba(255,255,255,.6);font-size:.8rem;margin-bottom:8px}
+.ph-badges{display:flex;gap:8px;flex-wrap:wrap}
+.ph-badge{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);font-size:.68rem;padding:3px 10px;border-radius:20px;font-weight:600}
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal{background:white;border-radius:20px;width:90%;max-width:460px;overflow:hidden;animation:popIn .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 30px 80px rgba(0,0,0,.3)}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-head{background:linear-gradient(135deg,var(--navy-d),var(--navy));color:white;padding:18px 22px;display:flex;align-items:center;justify-content:space-between}
+.modal-head h3{font-size:.92rem;font-weight:700}
+.mclose{background:rgba(255,255,255,.1);border:none;color:white;width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:20px}
+.modal-success{text-align:center;padding:28px}
+.ms-icon{font-size:4rem;display:block;margin-bottom:12px;animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.ms-ref{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.4rem;color:var(--navy);letter-spacing:2px;margin:12px 0 4px}
+.ms-sub{font-size:.78rem;color:var(--gray)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--navy);color:white;padding:11px 22px;border-radius:12px;font-size:.83rem;font-weight:600;z-index:600;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 28px rgba(0,0,0,.25);pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(46,44,120,.2);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:900px){
+  .sidebar{transform:translateX(100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main-area{margin-right:0}
+  .kpi-grid,.quick-actions{grid-template-columns:1fr 1fr}
+  .dash-grid,.leave-layout,.profile-grid{grid-template-columns:1fr}
+  .leave-types{grid-template-columns:repeat(3,1fr)}
+  .ps-employee{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN PAGE ══ -->
+<div class="login-page" id="loginPage">
+  <div class="login-bg-1"></div>
+  <div class="login-bg-2"></div>
+  <div class="login-card">
+    <div class="lc-top">
+      <div class="lc-logo">K</div>
+      <div class="lc-title">KPTC PORTAL</div>
+      <div class="lc-sub">بوابة الموظفين الإلكترونية الموحدة</div>
+    </div>
+    <div class="lc-body">
+      <!-- Role -->
+      <div style="font-size:.72rem;font-weight:700;color:var(--gray);margin-bottom:8px;letter-spacing:.3px">اختر صفحتك</div>
+      <div class="lc-role">
+        <button class="role-btn active" id="role-emp" onclick="selRole('emp',this)"><span class="role-icon">👤</span><span class="role-name">موظف</span></button>
+        <button class="role-btn" id="role-mgr" onclick="selRole('mgr',this)"><span class="role-icon">👔</span><span class="role-name">مدير</span></button>
+        <button class="role-btn" id="role-eng" onclick="selRole('eng',this)"><span class="role-icon">⚙️</span><span class="role-name">مهندس</span></button>
+      </div>
+      <div class="lc-field">
+        <label class="lc-label">الرقم الوظيفي</label>
+        <input class="lc-input" id="empId" placeholder="KPTC-XXXX" value="KPTC-4821">
+      </div>
+      <div class="lc-field">
+        <label class="lc-label">كلمة المرور</label>
+        <input class="lc-input" type="password" id="empPass" placeholder="••••••••" value="12345678">
+      </div>
+      <button class="btn-login" onclick="doLogin()">
+        <span>🔐</span> دخول البوابة
+      </button>
+      <div class="lc-forgot">نسيت كلمة المرور؟ <a onclick="showToast('📧 تم إرسال رابط الاستعادة على إيميلك')">إعادة التعيين</a></div>
+      <div style="margin-top:16px;background:rgba(46,44,120,.04);border-radius:10px;padding:10px;font-size:.7rem;color:var(--gray);text-align:center;line-height:1.7">
+        🔒 هذه البوابة مخصصة لموظفي KPTC فقط<br>
+        جميع الجلسات مراقبة ومحمية
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PORTAL ══ -->
+<div class="portal" id="portal">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">K</div>
+      <div class="sb-logo-text"><div class="name">KPTC</div><div class="sub">EMPLOYEE PORTAL</div></div>
+    </div>
+    <div class="sb-user">
+      <div class="sb-avatar" id="sbAvatar">أ</div>
+      <div class="sb-user-info">
+        <div class="uname" id="sbName">أحمد القطان</div>
+        <div class="urole" id="sbRole">التسويق والعلاقات العامة</div>
+      </div>
+      <div class="sb-status"></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">الرئيسية</div>
+      <div class="sb-item active" onclick="goTo('dashboard',this)"><span class="si-icon">🏠</span> لوحة التحكم</div>
+      <div class="sb-item" onclick="goTo('notifications',this)"><span class="si-icon">🔔</span> الإشعارات <span class="sb-badge">4</span></div>
+      <div class="sb-section">الطلبات</div>
+      <div class="sb-item" onclick="goTo('leave',this)"><span class="si-icon">📅</span> طلب إجازة</div>
+      <div class="sb-item" onclick="goTo('supplies',this)"><span class="si-icon">📦</span> طلب مستلزمات</div>
+      <div class="sb-item" onclick="goTo('invoice',this)"><span class="si-icon">💰</span> صرف فاتورة</div>
+      <div class="sb-item" onclick="goTo('myrequests',this)"><span class="si-icon">📋</span> طلباتي <span class="sb-badge" style="background:var(--orange)">2</span></div>
+      <div class="sb-section">المالية</div>
+      <div class="sb-item" onclick="goTo('payslip',this)"><span class="si-icon">💵</span> كشف الراتب</div>
+      <div class="sb-item" onclick="goTo('benefits',this)"><span class="si-icon">🎁</span> المزايا والعروض</div>
+      <div class="sb-section">الشركة</div>
+      <div class="sb-item" onclick="goTo('news',this)"><span class="si-icon">📢</span> أخبار الشركة</div>
+      <div class="sb-item" onclick="goTo('directory',this)"><span class="si-icon">👥</span> دليل الموظفين</div>
+      <div class="sb-item" onclick="goTo('policies',this)"><span class="si-icon">📖</span> سياسات HR</div>
+      <div class="sb-section">حسابي</div>
+      <div class="sb-item" onclick="goTo('profile',this)"><span class="si-icon">👤</span> ملفي الشخصي</div>
+      <div class="sb-item" onclick="goTo('settings',this)"><span class="si-icon">⚙️</span> الإعدادات</div>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-logout" onclick="doLogout()">🚪 <span>تسجيل الخروج</span></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-area">
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="tb-title" id="topbarTitle">لوحة التحكم</div>
+      <div class="tb-search">
+        <span>🔍</span>
+        <input placeholder="ابحث في البوابة...">
+      </div>
+      <button class="tb-btn" onclick="goTo('notifications',document.querySelector('.sb-item:nth-child(6)'))">
+        🔔<div class="notif-dot"></div>
+      </button>
+      <button class="tb-btn" onclick="showToast('⚙️ الإعدادات')">⚙️</button>
+      <div class="tb-user" onclick="goTo('profile',null)">
+        <div class="tb-avatar" id="tbAvatar">أ</div>
+        <div><div class="tb-uname" id="tbName">أحمد القطان</div><div class="tb-urole" id="tbRole">التسويق</div></div>
+      </div>
+    </div>
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="page-view active" id="view-dashboard">
+      <div class="welcome-banner">
+        <div class="wb-bg"></div>
+        <div class="wb-text">
+          <h2 id="welcomeMsg">صباح الخير، أحمد! 👋</h2>
+          <p>لديك <strong style="color:var(--yellow)">2 طلبات</strong> في انتظار المتابعة و<strong style="color:var(--yellow)">4 إشعارات</strong> جديدة</p>
+        </div>
+        <div class="wb-time">
+          <div class="wb-clock" id="clock">--:--</div>
+          <div class="wb-date" id="wbDate">—</div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card" onclick="goTo('leave',null)">
+          <div class="kpi-icon" style="background:rgba(16,185,129,.1)">🏖️</div>
+          <div class="kpi-info"><div class="kpi-val">18</div><div class="kpi-label">أيام إجازة متبقية</div><div class="kpi-change up">↑ استخدمت 3 أيام</div></div>
+        </div>
+        <div class="kpi-card" onclick="goTo('myrequests',null)">
+          <div class="kpi-icon" style="background:rgba(245,158,11,.1)">📋</div>
+          <div class="kpi-info"><div class="kpi-val">2</div><div class="kpi-label">طلبات قيد المراجعة</div><div class="kpi-change" style="color:var(--orange)">⏳ بانتظار الموافقة</div></div>
+        </div>
+        <div class="kpi-card" onclick="goTo('payslip',null)">
+          <div class="kpi-icon" style="background:rgba(46,44,120,.08)">💵</div>
+          <div class="kpi-info"><div class="kpi-val">850</div><div class="kpi-label">الراتب الصافي (د.ك)</div><div class="kpi-change up">صُرف 1 أبريل ✓</div></div>
+        </div>
+        <div class="kpi-card" onclick="goTo('notifications',null)">
+          <div class="kpi-icon" style="background:rgba(239,68,68,.1)">🔔</div>
+          <div class="kpi-info"><div class="kpi-val">4</div><div class="kpi-label">إشعارات جديدة</div><div class="kpi-change down">منها 1 عاجلة</div></div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="font-size:.8rem;font-weight:700;color:var(--navy);margin-bottom:12px">⚡ إجراءات سريعة</div>
+      <div class="quick-actions">
+        <div class="qa-card" onclick="goTo('leave',null)"><span class="qa-icon">📅</span><div class="qa-name">طلب إجازة</div><div class="qa-desc">سنوية، مرضية، طارئة</div></div>
+        <div class="qa-card" onclick="goTo('supplies',null)"><span class="qa-icon">📦</span><div class="qa-name">مستلزمات</div><div class="qa-desc">أدوات ومعدات مكتبية</div></div>
+        <div class="qa-card" onclick="goTo('invoice',null)"><span class="qa-icon">💰</span><div class="qa-name">صرف فاتورة</div><div class="qa-desc">مصروفات وتسويات</div></div>
+        <div class="qa-card" onclick="goTo('payslip',null)"><span class="qa-icon">💵</span><div class="qa-name">كشف راتبي</div><div class="qa-desc">آخر 12 شهراً</div></div>
+      </div>
+
+      <!-- Widgets -->
+      <div class="dash-grid">
+        <div class="widget">
+          <div class="widget-head"><div class="widget-title">🕐 آخر النشاطات</div><div class="widget-link" onclick="goTo('myrequests',null)">عرض الكل</div></div>
+          <div class="widget-body">
+            <div class="feed-item"><div class="feed-icon" style="background:rgba(16,185,129,.1)">✅</div><div class="feed-text">تمت الموافقة على طلب الإجازة السنوية (3 أيام)</div><div class="feed-time">اليوم</div></div>
+            <div class="feed-item"><div class="feed-icon" style="background:rgba(245,158,11,.1)">⏳</div><div class="feed-text">طلب صرف فاتورة قيد المراجعة — 45 د.ك</div><div class="feed-time">أمس</div></div>
+            <div class="feed-item"><div class="feed-icon" style="background:rgba(46,44,120,.08)">📦</div><div class="feed-text">تم استلام طلب المستلزمات المكتبية</div><div class="feed-time">8 أبريل</div></div>
+            <div class="feed-item"><div class="feed-icon" style="background:rgba(255,201,60,.15)">🎉</div><div class="feed-text">تم صرف راتب شهر أبريل 2026</div><div class="feed-time">1 أبريل</div></div>
+            <div class="feed-item"><div class="feed-icon" style="background:rgba(124,58,237,.1)">📢</div><div class="feed-text">مؤتمر UITP الدولي — الكويت 2025</div><div class="feed-time">مارس</div></div>
+          </div>
+        </div>
+        <div class="widget">
+          <div class="widget-head"><div class="widget-title">📢 إعلانات الشركة</div><div class="widget-link" onclick="goTo('news',null)">الكل</div></div>
+          <div class="widget-body">
+            <div class="announcement-item"><div class="ann-tag urgent">عاجل</div><div class="ann-title">تحديث سياسة الحضور والانصراف لعام 2026</div><div class="ann-date">10 أبريل 2026</div></div>
+            <div class="announcement-item"><div class="ann-tag event">فعالية</div><div class="ann-title">حفل تكريم السائق المثالي — نهاية أبريل</div><div class="ann-date">8 أبريل 2026</div></div>
+            <div class="announcement-item"><div class="ann-tag info">معلومة</div><div class="ann-title">استقبال 200 حافلة جديدة ضمن خطة التطوير</div><div class="ann-date">5 أبريل 2026</div></div>
+            <div class="announcement-item"><div class="ann-tag info">ترقية</div><div class="ann-title">إطلاق بوابة الموظفين الإلكترونية الجديدة</div><div class="ann-date">1 أبريل 2026</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ LEAVE REQUEST ══ -->
+    <div class="page-view" id="view-leave">
+      <div class="leave-layout">
+        <div>
+          <div class="fcard">
+            <div class="fcard-head">📅 نوع الإجازة</div>
+            <div class="fcard-body">
+              <div class="leave-types">
+                <div class="ltype sel" onclick="selLeave(this)"><div class="lt-icon">🏖️</div><div class="lt-name">سنوية</div><div class="lt-balance">21 يوم متبقي</div></div>
+                <div class="ltype" onclick="selLeave(this)"><div class="lt-icon">🏥</div><div class="lt-name">مرضية</div><div class="lt-balance">15 يوم متبقي</div></div>
+                <div class="ltype" onclick="selLeave(this)"><div class="lt-icon">⚡</div><div class="lt-name">طارئة</div><div class="lt-balance">3 أيام متبقية</div></div>
+                <div class="ltype" onclick="selLeave(this)"><div class="lt-icon">👶</div><div class="lt-name">أمومة/أبوة</div><div class="lt-balance">حسب النظام</div></div>
+                <div class="ltype" onclick="selLeave(this)"><div class="lt-icon">🕌</div><div class="lt-name">حج</div><div class="lt-balance">مرة في الخدمة</div></div>
+                <div class="ltype" onclick="selLeave(this)"><div class="lt-icon">📚</div><div class="lt-name">دراسية</div><div class="lt-balance">بقرار إدارة</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="fcard">
+            <div class="fcard-head">📋 تفاصيل الإجازة</div>
+            <div class="fcard-body">
+              <div class="fg">
+                <div class="f"><label>📅 من تاريخ</label><input type="date" id="leaveFrom" value="2026-04-20" oninput="calcDays()"></div>
+                <div class="f"><label>📅 إلى تاريخ</label><input type="date" id="leaveTo" value="2026-04-23" oninput="calcDays()"></div>
+                <div class="f"><label>عدد الأيام</label><input id="leaveDays" value="4 أيام" readonly style="background:var(--light);font-weight:700;color:var(--navy)"></div>
+                <div class="f"><label>مفوَّض عنك</label><select><option>اختر زميلاً</option><option>عبدالله الزبن</option><option>إبراهيم الضعيان</option><option>أوراد الياسين</option></select></div>
+                <div class="f span2"><label>سبب الإجازة</label><textarea placeholder="اكتب سبب الإجازة (اختياري)..."></textarea></div>
+              </div>
+            </div>
+          </div>
+          <div class="fcard">
+            <div class="fcard-head">📎 مرفقات (للإجازة المرضية)</div>
+            <div class="fcard-body">
+              <div style="border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;cursor:pointer" onclick="showToast('📎 افتح المرفقات')">
+                <div style="font-size:2rem;margin-bottom:6px;opacity:.4">📄</div>
+                <div style="font-size:.8rem;font-weight:700;color:var(--navy)">ارفع تقرير طبي أو شهادة</div>
+                <div style="font-size:.7rem;color:var(--gray);margin-top:3px">PDF / JPG / PNG</div>
+              </div>
+            </div>
+          </div>
+          <button class="btn-submit-leave" onclick="submitLeave()">📤 إرسال طلب الإجازة</button>
+        </div>
+
+        <!-- Balance Panel -->
+        <div class="leave-balance-card">
+          <div class="lbc-head">📊 رصيد إجازاتك</div>
+          <div class="lbc-body">
+            <div class="lb-item"><div class="lb-type">🏖️ سنوية<div class="lb-sub">الكل: 21 يوم</div></div><div><div class="lb-days">21</div><div class="bar-wrap"><div class="bar-fill" style="width:70%;background:var(--green)"></div></div></div></div>
+            <div class="lb-item"><div class="lb-type">🏥 مرضية<div class="lb-sub">الكل: 15 يوم</div></div><div><div class="lb-days">15</div><div class="bar-wrap"><div class="bar-fill" style="width:100%;background:var(--green)"></div></div></div></div>
+            <div class="lb-item"><div class="lb-type">⚡ طارئة<div class="lb-sub">الكل: 5 أيام</div></div><div><div class="lb-days">3</div><div class="bar-wrap"><div class="bar-fill" style="width:60%;background:var(--orange)"></div></div></div></div>
+            <div class="lb-item"><div class="lb-type">🕌 حج<div class="lb-sub">مرة واحدة</div></div><div><div class="lb-days">✓</div></div></div>
+          </div>
+          <div style="padding:0 16px 16px;font-size:.72rem;color:var(--gray);line-height:1.7">
+            📌 الإجازة تتطلب موافقة المدير المباشر<br>
+            ⏰ يُرجى التقديم قبل 3 أيام على الأقل
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SUPPLIES REQUEST ══ -->
+    <div class="page-view" id="view-supplies">
+      <div style="max-width:700px">
+        <div class="fcard">
+          <div class="fcard-head">📦 طلب المستلزمات المكتبية</div>
+          <div class="fcard-body">
+            <div id="suppliesItems">
+              <div class="supply-row" style="display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;margin-bottom:10px">
+                <input class="f" style="border:1.5px solid var(--border);border-radius:9px;padding:10px;font-family:inherit;outline:none;font-size:.83rem" placeholder="اسم المادة — مثال: أقلام، دبابيس...">
+                <input type="number" min="1" value="1" style="border:1.5px solid var(--border);border-radius:9px;padding:10px;width:70px;text-align:center;font-family:inherit;outline:none;font-size:.83rem">
+                <select style="border:1.5px solid var(--border);border-radius:9px;padding:10px;font-family:inherit;outline:none;font-size:.78rem">
+                  <option>قطعة</option><option>علبة</option><option>حزمة</option><option>كرتون</option>
+                </select>
+                <button style="background:var(--light);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;color:var(--red);font-size:1.1rem" onclick="this.parentElement.remove()">✕</button>
+              </div>
+            </div>
+            <button onclick="addSupplyRow()" style="background:var(--light);border:1.5px dashed var(--border);border-radius:10px;padding:10px;width:100%;font-family:inherit;cursor:pointer;font-size:.82rem;color:var(--navy);font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:14px">
+              ➕ إضافة مادة
+            </button>
+            <div class="f" style="margin-bottom:14px"><label>سبب الطلب</label><textarea placeholder="لماذا تحتاج هذه المستلزمات؟"></textarea></div>
+            <div class="fg"><div class="f"><label>الأولوية</label><select><option>عادية (3-5 أيام)</option><option>مستعجل (24 ساعة)</option></select></div><div class="f"><label>مكان التوصيل</label><select><option>مكتبي الحالي</option><option>الاستقبال</option><option>القسم</option></select></div></div>
+          </div>
+        </div>
+        <button class="btn-submit-leave" onclick="submitGeneral('طلب المستلزمات')">📤 إرسال طلب المستلزمات</button>
+      </div>
+    </div>
+
+    <!-- ══ INVOICE ══ -->
+    <div class="page-view" id="view-invoice">
+      <div style="max-width:700px">
+        <div class="fcard">
+          <div class="fcard-head">💰 طلب صرف فاتورة / مصروف</div>
+          <div class="fcard-body">
+            <div class="fg">
+              <div class="f"><label>نوع المصروف</label><select><option>مستلزمات مكتبية</option><option>مواصلات</option><option>ضيافة</option><option>تدريب</option><option>أخرى</option></select></div>
+              <div class="f"><label>المبلغ (د.ك)</label><input type="number" placeholder="0.000" id="invoiceAmount" oninput="updateInvTotal()"></div>
+              <div class="f"><label>تاريخ المصروف</label><input type="date" value="2026-04-11"></div>
+              <div class="f"><label>الجهة / المورد</label><input placeholder="اسم الشركة أو المتجر"></div>
+              <div class="f span2"><label>وصف تفصيلي للمصروف</label><textarea placeholder="اشرح المصروف بالتفصيل..."></textarea></div>
+            </div>
+            <div style="background:rgba(255,201,60,.08);border:1px solid rgba(255,201,60,.2);border-radius:10px;padding:12px;font-size:.75rem;color:var(--dark);line-height:1.8;margin-top:4px">
+              📎 <strong>يجب إرفاق الفاتورة الأصلية:</strong> صورة واضحة من الفاتورة لإتمام الطلب<br>
+              💡 الحد الأقصى بدون موافقة مسبقة: <strong>50 د.ك</strong>
+            </div>
+          </div>
+        </div>
+        <div class="fcard">
+          <div class="fcard-head">📎 إرفاق الفاتورة</div>
+          <div class="fcard-body">
+            <div style="border:2px dashed var(--border);border-radius:10px;padding:22px;text-align:center;cursor:pointer" onclick="showToast('📸 افتح الكاميرا لتصوير الفاتورة')">
+              <div style="font-size:2.5rem;margin-bottom:8px;opacity:.4">📸</div>
+              <div style="font-size:.82rem;font-weight:700;color:var(--navy)">صوّر الفاتورة أو ارفع صورة</div>
+              <div style="font-size:.7rem;color:var(--gray);margin-top:3px">JPG / PNG / PDF — حتى 10MB</div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-submit-leave" onclick="submitGeneral('طلب صرف الفاتورة')">📤 إرسال طلب الصرف</button>
+      </div>
+    </div>
+
+    <!-- ══ MY REQUESTS ══ -->
+    <div class="page-view" id="view-myrequests">
+      <div class="req-toolbar">
+        <button class="req-filter active" onclick="filterReqs('all',this)">الكل</button>
+        <button class="req-filter" onclick="filterReqs('leave',this)">إجازات</button>
+        <button class="req-filter" onclick="filterReqs('supply',this)">مستلزمات</button>
+        <button class="req-filter" onclick="filterReqs('invoice',this)">فواتير</button>
+      </div>
+      <table class="requests-table" id="reqTable">
+        <thead><tr><th>رقم الطلب</th><th>النوع</th><th>التفاصيل</th><th>تاريخ الطلب</th><th>الحالة</th><th>إجراء</th></tr></thead>
+        <tbody id="reqBody"></tbody>
+      </table>
+    </div>
+
+    <!-- ══ PAYSLIP ══ -->
+    <div class="page-view" id="view-payslip">
+      <div class="payslip-selector">
+        <button class="ps-month active" onclick="selMonth(this,'أبريل 2026')">أبريل 2026</button>
+        <button class="ps-month" onclick="selMonth(this,'مارس 2026')">مارس 2026</button>
+        <button class="ps-month" onclick="selMonth(this,'فبراير 2026')">فبراير 2026</button>
+        <button class="ps-month" onclick="selMonth(this,'يناير 2026')">يناير 2026</button>
+        <button class="ps-month" onclick="selMonth(this,'ديسمبر 2025')">ديسمبر 2025</button>
+      </div>
+      <div class="payslip-card">
+        <div class="ps-header">
+          <div><div class="ps-company">KPTC</div><div class="ps-doc">كشف الراتب الشهري</div></div>
+          <div class="ps-period"><span>فترة الراتب</span><strong id="psMonth">أبريل 2026</strong></div>
+        </div>
+        <div class="ps-employee">
+          <div class="pe-item"><small>الموظف</small><strong>أحمد القطان</strong></div>
+          <div class="pe-item"><small>الرقم الوظيفي</small><strong>KPTC-4821</strong></div>
+          <div class="pe-item"><small>المسمى الوظيفي</small><strong>مدير التسويق</strong></div>
+          <div class="pe-item"><small>القسم</small><strong>التسويق والعلاقات العامة</strong></div>
+        </div>
+        <div class="ps-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+            <div>
+              <div class="ps-section-title">المستحقات</div>
+              <div class="ps-row"><span>الراتب الأساسي</span><strong>700.000 د.ك</strong></div>
+              <div class="ps-row"><span>بدل سكن</span><strong>100.000 د.ك</strong></div>
+              <div class="ps-row"><span>بدل مواصلات</span><strong>50.000 د.ك</strong></div>
+              <div class="ps-row"><span>بدل هاتف</span><strong>15.000 د.ك</strong></div>
+              <div class="ps-row"><span>حوافز الأداء</span><strong>25.000 د.ك</strong></div>
+              <div class="ps-total-row"><span>إجمالي المستحقات</span><span>890.000 د.ك</span></div>
+            </div>
+            <div>
+              <div class="ps-section-title">الخصومات</div>
+              <div class="ps-row"><span>التأمين الاجتماعي</span><strong>-35.000 د.ك</strong></div>
+              <div class="ps-row"><span>تأمين صحي</span><strong>-5.000 د.ك</strong></div>
+              <div class="ps-row"><span>قرض (إن وجد)</span><strong>—</strong></div>
+              <div class="ps-row"><span>غيابات</span><strong>—</strong></div>
+              <div style="height:24px"></div>
+              <div class="ps-total-row"><span>إجمالي الخصومات</span><span>-40.000 د.ك</span></div>
+            </div>
+          </div>
+          <div class="ps-net">
+            <div><div class="ps-net-label">صافي الراتب المستحق</div><div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:3px">تم الصرف 1 أبريل 2026</div></div>
+            <div class="ps-net-amount">850.000 <span style="font-family:inherit;font-size:1rem;font-weight:400">د.ك</span></div>
+          </div>
+          <button class="btn-download" onclick="showToast('⬇️ جاري تحميل كشف الراتب PDF...')">⬇️ تحميل PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ NOTIFICATIONS ══ -->
+    <div class="page-view" id="view-notifications">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:.95rem;font-weight:700;color:var(--navy)">الإشعارات (4 جديدة)</div>
+        <button style="background:none;border:none;color:var(--navy);font-size:.78rem;cursor:pointer;font-weight:600;font-family:inherit" onclick="showToast('✅ تم تمييز الكل كمقروء')">تمييز الكل كمقروء</button>
+      </div>
+      <div class="notif-list">
+        <div class="notif-item unread"><div class="ni-dot"></div><div class="ni-icon" style="background:rgba(16,185,129,.1)">✅</div><div class="ni-content"><div class="ni-title">تمت الموافقة على إجازتك</div><div class="ni-body">تمت الموافقة على طلب الإجازة السنوية من 20-23 أبريل 2026 من قِبل مديرك المباشر.</div></div><div class="ni-time">منذ ساعة</div></div>
+        <div class="notif-item unread"><div class="ni-dot"></div><div class="ni-icon" style="background:rgba(255,201,60,.15)">💵</div><div class="ni-content"><div class="ni-title">تم صرف راتب أبريل</div><div class="ni-body">تم تحويل راتبك الشهري (850.000 د.ك) إلى حسابك البنكي بتاريخ 1 أبريل 2026.</div></div><div class="ni-time">منذ 10 أيام</div></div>
+        <div class="notif-item unread"><div class="ni-dot"></div><div class="ni-icon" style="background:rgba(239,68,68,.1)">🔴</div><div class="ni-content"><div class="ni-title">تحديث عاجل — سياسة الحضور</div><div class="ni-body">يرجى الاطلاع على التحديثات الجديدة لسياسة الحضور والانصراف لعام 2026. آخر موعد للإقرار: 15 أبريل.</div></div><div class="ni-time">منذ يوم</div></div>
+        <div class="notif-item unread"><div class="ni-dot"></div><div class="ni-icon" style="background:rgba(124,58,237,.1)">🎉</div><div class="ni-content"><div class="ni-title">دعوة: مؤتمر UITP الدولي</div><div class="ni-body">تشرفنا بدعوتك للمشاركة في مؤتمر UITP الدولي الذي تستضيفه KPTC. التفاصيل في المرفق.</div></div><div class="ni-time">منذ 3 أيام</div></div>
+        <div class="notif-item"><div class="ni-icon" style="background:rgba(46,44,120,.08)">📦</div><div class="ni-content"><div class="ni-title">طلب المستلزمات جاهز للاستلام</div><div class="ni-body">طلب المستلزمات رقم SUP-2026-018 جاهز للاستلام من مستودع المقر الرئيسي.</div></div><div class="ni-time">منذ 5 أيام</div></div>
+        <div class="notif-item"><div class="ni-icon" style="background:rgba(16,185,129,.1)">🏆</div><div class="ni-content"><div class="ni-title">تكريم: موظف الشهر</div><div class="ni-body">يسعدنا إبلاغك بترشحك لجائزة موظف الشهر لمارس 2026 من قبل مديرك المباشر.</div></div><div class="ni-time">منذ أسبوع</div></div>
+      </div>
+    </div>
+
+    <!-- ══ BENEFITS ══ -->
+    <div class="page-view" id="view-benefits">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+        <div class="qa-card" style="text-align:right;padding:20px" onclick="showToast('🏥 فتح تفاصيل التأمين الصحي')"><div class="qa-icon" style="font-size:2.5rem">🏥</div><div class="qa-name">التأمين الصحي</div><div class="qa-desc">تغطية شاملة للموظف والعائلة — Bupa Kuwait</div><div style="margin-top:10px;font-size:.72rem;color:var(--green);font-weight:700">نشط ✓</div></div>
+        <div class="qa-card" style="text-align:right;padding:20px" onclick="showToast('🦷 فتح شبكة الأسنان')"><div class="qa-icon" style="font-size:2.5rem">🦷</div><div class="qa-name">تأمين الأسنان</div><div class="qa-desc">مركز بيرال للأسنان — خصم حصري للموظفين</div><div style="margin-top:10px;font-size:.72rem;color:var(--green);font-weight:700">نشط ✓</div></div>
+        <div class="qa-card" style="text-align:right;padding:20px" onclick="showToast('💪 فتح مزايا اللياقة')"><div class="qa-icon" style="font-size:2.5rem">💪</div><div class="qa-name">اللياقة البدنية</div><div class="qa-desc">معهد بلاتينيوم الصحي — اشتراك مخفض 40%</div><div style="margin-top:10px;font-size:.72rem;color:var(--green);font-weight:700">نشط ✓</div></div>
+        <div class="qa-card" style="text-align:right;padding:20px" onclick="showToast('🏦 فتح خدمات الصيرفة')"><div class="qa-icon" style="font-size:2.5rem">🏦</div><div class="qa-name">خدمات الصيرفة</div><div class="qa-desc">بنك البحرين — تحويلات مجانية للموظفين</div><div style="margin-top:10px;font-size:.72rem;color:var(--green);font-weight:700">نشط ✓</div></div>
+        <div class="qa-card" style="text-align:right;padding:20px" onclick="showToast('🚌 فتح مزايا النقل')"><div class="qa-icon" style="font-size:2.5rem">🚌</div><div class="qa-name">اشتراك النقل</div><div class="qa-desc">اشتراك شهري مجاني على جميع خطوط KPTC</div><div style="margin-top:10px;font-size:.72rem;color:var(--green);font-weight:700">نشط ✓</div></div>
+        <div class="qa-card" style="text-align:right;padding:20px" onclick="showToast('📚 فتح برامج التدريب')"><div class="qa-icon" style="font-size:2.5rem">📚</div><div class="qa-name">التدريب والتطوير</div><div class="qa-desc">برامج تدريبية مدفوعة من الشركة</div><div style="margin-top:10px;font-size:.72rem;color:var(--navy);font-weight:700">متاح →</div></div>
+      </div>
+    </div>
+
+    <!-- ══ NEWS ══ -->
+    <div class="page-view" id="view-news">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="widget" style="border-radius:14px"><div class="widget-head"><div class="widget-title">📢 مؤتمر UITP الدولي — الكويت 2025</div><div class="ann-tag event">فعالية</div></div><div class="widget-body" style="font-size:.82rem;color:var(--gray);line-height:1.8">تشرف شركة النقل العام الكويتية KPTC باستضافة مؤتمر UITP الدولي لتطوير وسائل النقل العام. يُعقد المؤتمر بمشاركة خبراء عالميين من أكثر من 50 دولة...</div></div>
+        <div class="widget" style="border-radius:14px"><div class="widget-head"><div class="widget-title">🚌 استقبال 200 حافلة جديدة</div><div class="ann-tag info">إعلان</div></div><div class="widget-body" style="font-size:.82rem;color:var(--gray);line-height:1.8">أعلنت KPTC عن استقبال أول دفعة من الحافلات الجديدة المجهزة بأحدث التقنيات ضمن خطة تحديث الأسطول 2026-2030...</div></div>
+        <div class="widget" style="border-radius:14px"><div class="widget-head"><div class="widget-title">🏆 حفل تكريم السائق المثالي</div><div class="ann-tag event">فعالية</div></div><div class="widget-body" style="font-size:.82rem;color:var(--gray);line-height:1.8">تحتفل الشركة نهاية أبريل بتكريم أفضل السائقين والفنيين في مختلف الإدارات. يشمل التكريم 70 موظفاً متميزاً مع مكافآت...</div></div>
+      </div>
+    </div>
+
+    <!-- ══ DIRECTORY ══ -->
+    <div class="page-view" id="view-directory">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:linear-gradient(135deg,var(--yellow),#f0a500);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--navy);margin:0 auto 10px">أ</div><div style="font-weight:700;color:var(--navy)">أحمد القطان</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مدير التسويق والعلاقات العامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-4821</div></div>
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:linear-gradient(135deg,#a0c4ff,#7cb9ff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">ط</div><div style="font-weight:700;color:var(--navy)">طلال الهاجري</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مكتب الدراسات الاستراتيجية</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-3142</div></div>
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:linear-gradient(135deg,#c4a0ff,#a07cff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">أ</div><div style="font-weight:700;color:var(--navy)">أوراد الياسين</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مشرفة التسويق والعلاقات العامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2891</div></div>
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:linear-gradient(135deg,#a0ffd6,#7cffb9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--dark);margin:0 auto 10px">ع</div><div style="font-weight:700;color:var(--navy)">عبدالله صالح</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مهندس أول</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-1756</div></div>
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:linear-gradient(135deg,#ffd6a0,#ffb97c);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--dark);margin:0 auto 10px">إ</div><div style="font-weight:700;color:var(--navy)">إبراهيم الضعيان</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">موظف علاقات عامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2044</div></div>
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:linear-gradient(135deg,#ffa0c4,#ff7cb9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">ع</div><div style="font-weight:700;color:var(--navy)">عبدالله الزبن</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">موظف تسويق</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2201</div></div>
+      </div>
+    </div>
+
+    <!-- ══ POLICIES ══ -->
+    <div class="page-view" id="view-policies">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="notif-item" onclick="showToast('📖 فتح سياسة الإجازات')"><div class="ni-icon" style="background:rgba(46,44,120,.08)">📅</div><div class="ni-content"><div class="ni-title">سياسة الإجازات 2026</div><div class="ni-body">آخر تحديث: أبريل 2026 — يشمل أنواع الإجازات والرصيد السنوي</div></div><div class="ni-time">PDF ↗</div></div>
+        <div class="notif-item" onclick="showToast('📖 فتح سياسة الحضور')"><div class="ni-icon" style="background:rgba(245,158,11,.1)">🕐</div><div class="ni-content"><div class="ni-title">سياسة الحضور والانصراف</div><div class="ni-body">تحديث مارس 2026 — ساعات العمل، الدوام المرن، التأخير</div></div><div class="ni-time">PDF ↗</div></div>
+        <div class="notif-item" onclick="showToast('📖 فتح قواعد السلوك')"><div class="ni-icon" style="background:rgba(16,185,129,.1)">✅</div><div class="ni-content"><div class="ni-title">قواعد السلوك الوظيفي</div><div class="ni-body">يناير 2026 — ضوابط التعامل، الزي الرسمي، الخصوصية</div></div><div class="ni-time">PDF ↗</div></div>
+        <div class="notif-item" onclick="showToast('📖 فتح سياسة المصروفات')"><div class="ni-icon" style="background:rgba(255,201,60,.15)">💰</div><div class="ni-content"><div class="ni-title">سياسة المصروفات والتعويضات</div><div class="ni-body">ديسمبر 2025 — حدود الصرف، إجراءات المطالبة</div></div><div class="ni-time">PDF ↗</div></div>
+      </div>
+    </div>
+
+    <!-- ══ PROFILE ══ -->
+    <div class="page-view" id="view-profile">
+      <div class="profile-hero">
+        <div class="ph-avatar" id="profileAvatar">أ</div>
+        <div class="ph-info">
+          <h2 id="profileName">أحمد القطان</h2>
+          <p id="profileRole">مدير التسويق والعلاقات العامة وخدمة العملاء</p>
+          <div class="ph-badges">
+            <div class="ph-badge">KPTC-4821</div>
+            <div class="ph-badge">موظف دائم</div>
+            <div class="ph-badge">منذ 2018</div>
+          </div>
+        </div>
+        <button style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;border-radius:10px;padding:10px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;margin-right:auto" onclick="showToast('✏️ تعديل الملف الشخصي')">✏️ تعديل</button>
+      </div>
+      <div class="profile-grid">
+        <div class="fcard"><div class="fcard-head">👤 المعلومات الشخصية</div><div class="fcard-body" style="font-size:.82rem;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--gray)">الاسم الكامل</span><strong>أحمد فيصل القطان</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--gray)">الرقم الوظيفي</span><strong>KPTC-4821</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--gray)">القسم</span><strong>التسويق والعلاقات العامة</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--gray)">المسمى الوظيفي</span><strong>مدير</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--gray)">تاريخ التعيين</span><strong>1 مارس 2018</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--gray)">نوع العقد</span><strong>دائم</strong></div>
+        </div></div>
+        <div class="fcard"><div class="fcard-head">📞 بيانات التواصل</div><div class="fcard-body" style="font-size:.82rem;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--gray)">الجوال</span><strong>+965 ●●●● ●●●●</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--gray)">البريد الرسمي</span><strong>a.alqattan@kptc.com.kw</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--gray)">الداخلي</span><strong>4821</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--gray)">المبنى</span><strong>المقر الرئيسي — الطابق 3</strong></div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS / OTHER ══ -->
+    <div class="page-view" id="view-settings"><div style="text-align:center;padding:60px;color:var(--gray)"><div style="font-size:3rem;margin-bottom:14px">⚙️</div><div style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:6px">الإعدادات</div><div style="font-size:.82rem">سيتم إضافة الإعدادات قريباً</div></div></div>
+    <div class="page-view" id="view-news-content"></div>
+
+  </div><!-- end main-area -->
+</div><!-- end portal -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modalTitle">—</h3><button class="mclose" onclick="closeModal()">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let currentUser = {name:'أحمد القطان',role:'مدير التسويق والعلاقات العامة',id:'KPTC-4821',avatar:'أ',empRole:'emp'};
+let requests = [
+  {id:'LVE-2026-041',type:'leave',desc:'إجازة سنوية — 20-23 أبريل 2026',date:'10/4/2026',status:'approved'},
+  {id:'INV-2026-018',type:'invoice',desc:'صرف فاتورة مستلزمات — 45 د.ك',date:'8/4/2026',status:'pending'},
+  {id:'SUP-2026-012',type:'supply',desc:'أقلام، دبابيس، ورق A4',date:'5/4/2026',status:'approved'},
+  {id:'LVE-2026-033',type:'leave',desc:'إجازة طارئة — يوم واحد',date:'1/4/2026',status:'approved'},
+  {id:'INV-2026-009',type:'invoice',desc:'مصروفات ضيافة اجتماع — 22 د.ك',date:'25/3/2026',status:'rejected'},
+];
+
+// ── CLOCK ──
+function updateClock(){
+  const now=new Date();
+  document.getElementById('clock').textContent=now.toLocaleTimeString('ar-KW',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('wbDate').textContent=now.toLocaleDateString('ar-KW',{weekday:'long',day:'numeric',month:'long'});
+}
+setInterval(updateClock,1000); updateClock();
+
+// ── LOGIN ──
+let selectedRole = 'emp';
+const roleUsers = {
+  emp:{name:'أحمد القطان',role:'مدير التسويق والعلاقات العامة',id:'KPTC-4821',avatar:'أ'},
+  mgr:{name:'أوراد الياسين',role:'مشرفة التسويق',id:'KPTC-2891',avatar:'أ'},
+  eng:{name:'عبدالله صالح',role:'مهندس أول',id:'KPTC-1756',avatar:'ع'},
+};
+
+function selRole(r,el){
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  selectedRole=r;
+}
+
+function doLogin(){
+  const id=document.getElementById('empId').value;
+  const pass=document.getElementById('empPass').value;
+  if(!id||!pass){showToast('⚠️ أدخل الرقم الوظيفي وكلمة المرور');return}
+  const btn=document.querySelector('.btn-login');
+  btn.innerHTML='<div class="spinner"></div> جاري التحقق...';
+  btn.disabled=true;
+  setTimeout(()=>{
+    currentUser={...roleUsers[selectedRole],empRole:selectedRole};
+    document.getElementById('loginPage').style.display='none';
+    document.getElementById('portal').classList.add('show');
+    updateUserUI();
+    renderRequests('all');
+    showToast(`مرحباً ${currentUser.name}! 👋`);
+    btn.innerHTML='<span>🔐</span> دخول البوابة';
+    btn.disabled=false;
+  },1400);
+}
+
+function updateUserUI(){
+  const greeting=new Date().getHours()<12?'صباح الخير':'مساء الخير';
+  document.getElementById('welcomeMsg').textContent=`${greeting}، ${currentUser.name.split(' ')[0]}! 👋`;
+  ['sbAvatar','tbAvatar','profileAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=currentUser.avatar});
+  ['sbName','tbName','profileName'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=currentUser.name});
+  ['sbRole','tbRole','profileRole'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=currentUser.role});
+}
+
+function doLogout(){
+  document.getElementById('portal').classList.remove('show');
+  document.getElementById('loginPage').style.display='flex';
+  showToast('👋 تم تسجيل الخروج بنجاح');
+}
+
+// ── NAVIGATION ──
+const pageNames={'dashboard':'لوحة التحكم','leave':'طلب إجازة','supplies':'طلب مستلزمات','invoice':'صرف فاتورة','myrequests':'طلباتي','payslip':'كشف الراتب','notifications':'الإشعارات','benefits':'المزايا والعروض','news':'أخبار الشركة','directory':'دليل الموظفين','policies':'سياسات HR','profile':'ملفي الشخصي','settings':'الإعدادات'};
+
+function goTo(page,menuEl){
+  document.querySelectorAll('.page-view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  const view=document.getElementById('view-'+page);
+  if(view)view.classList.add('active');
+  if(menuEl)menuEl.classList.add('active');
+  document.getElementById('topbarTitle').textContent=pageNames[page]||page;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── LEAVE ──
+function selLeave(el){
+  document.querySelectorAll('.ltype').forEach(l=>l.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function calcDays(){
+  const from=new Date(document.getElementById('leaveFrom').value);
+  const to=new Date(document.getElementById('leaveTo').value);
+  if(from&&to&&to>from){
+    const diff=Math.round((to-from)/(1000*60*60*24));
+    document.getElementById('leaveDays').value=diff+' أيام';
+  }
+}
+
+function submitLeave(){
+  const btn=document.querySelector('.btn-submit-leave');
+  btn.innerHTML='<div class="spinner"></div> جاري الإرسال...';
+  btn.disabled=true;
+  setTimeout(()=>{
+    btn.innerHTML='📤 إرسال طلب الإجازة';
+    btn.disabled=false;
+    const ref='LVE-2026-0'+Math.floor(Math.random()*90+10);
+    requests.unshift({id:ref,type:'leave',desc:`إجازة سنوية — ${document.getElementById('leaveFrom').value}`,date:new Date().toLocaleDateString('ar-KW'),status:'pending'});
+    renderRequests('all');
+    showModal('✅ تم إرسال طلب الإجازة',`<div class="modal-success"><span class="ms-icon">✅</span><div style="font-size:1rem;font-weight:700;color:var(--navy)">تم إرسال الطلب بنجاح</div><div class="ms-ref">${ref}</div><div class="ms-sub">سيراجع مديرك طلبك خلال يوم عمل</div><button class="btn-submit-leave" style="max-width:220px;margin:16px auto 0" onclick="closeModal();goTo('myrequests',null)">📋 متابعة طلباتي</button></div>`);
+  },1500);
+}
+
+function submitGeneral(type){
+  const btn=event.target;
+  const orig=btn.innerHTML;
+  btn.innerHTML='<div class="spinner"></div>';
+  btn.disabled=true;
+  setTimeout(()=>{
+    btn.innerHTML=orig;btn.disabled=false;
+    const ref=(type.includes('مستلزم')?'SUP':'INV')+'-2026-0'+Math.floor(Math.random()*90+10);
+    requests.unshift({id:ref,type:type.includes('مستلزم')?'supply':'invoice',desc:type,date:new Date().toLocaleDateString('ar-KW'),status:'pending'});
+    renderRequests('all');
+    showToast(`✅ تم إرسال ${type} — رقم: ${ref}`);
+  },1500);
+}
+
+// ── REQUESTS ──
+function renderRequests(filter){
+  const tbody=document.getElementById('reqBody');
+  const statusMap={pending:'s-pending',approved:'s-approved',rejected:'s-rejected',processing:'s-processing'};
+  const statusLabel={pending:'⏳ قيد المراجعة',approved:'✅ موافق عليه',rejected:'❌ مرفوض',processing:'🔄 قيد التنفيذ'};
+  const typeLabel={leave:'إجازة',supply:'مستلزمات',invoice:'فاتورة'};
+  const filtered=filter==='all'?requests:requests.filter(r=>r.type===filter);
+  tbody.innerHTML=filtered.map(r=>`<tr>
+    <td><strong style="font-family:monospace;font-size:.8rem">${r.id}</strong></td>
+    <td><span class="status-pill s-processing">${typeLabel[r.type]||r.type}</span></td>
+    <td style="max-width:200px;font-size:.8rem">${r.desc}</td>
+    <td style="font-size:.78rem;color:var(--gray)">${r.date}</td>
+    <td><span class="status-pill ${statusMap[r.status]}">${statusLabel[r.status]}</span></td>
+    <td><button class="req-action" onclick="showToast('👁️ عرض تفاصيل ${r.id}')">تفاصيل</button></td>
+  </tr>`).join('');
+}
+
+function filterReqs(f,btn){
+  document.querySelectorAll('.req-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRequests(f);
+}
+
+// ── SUPPLIES ──
+function addSupplyRow(){
+  const div=document.createElement('div');
+  div.className='supply-row';
+  div.style.cssText='display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;margin-bottom:10px';
+  div.innerHTML=`<input style="border:1.5px solid var(--border);border-radius:9px;padding:10px;font-family:inherit;outline:none;font-size:.83px;width:100%" placeholder="اسم المادة...">
+    <input type="number" min="1" value="1" style="border:1.5px solid var(--border);border-radius:9px;padding:10px;width:70px;text-align:center;font-family:inherit;outline:none;font-size:.83rem">
+    <select style="border:1.5px solid var(--border);border-radius:9px;padding:10px;font-family:inherit;outline:none;font-size:.78rem"><option>قطعة</option><option>علبة</option><option>حزمة</option></select>
+    <button style="background:var(--light);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;color:var(--red);font-size:1.1rem" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('suppliesItems').appendChild(div);
+}
+
+// ── PAYSLIP ──
+function selMonth(btn,month){
+  document.querySelectorAll('.ps-month').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('psMonth').textContent=month;
+  showToast(`📄 عرض كشف ${month}`);
+}
+
+// ── MODAL ──
+function showModal(title,body){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('show')}
+
+// ── TOAST ──
+let toastT;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// init
+renderRequests('all');
+</script>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+</html>

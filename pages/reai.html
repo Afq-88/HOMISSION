@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPTC — المساعد الإداري العقاري</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#2E2C78;--nd:#1F1D5C;--nx:#06102a;--nl:#3D3B95;
+  --yellow:#FFC93C;--gold:#C9A227;
+  --light:#F2F5FC;--border:#DEDDEC;
+  --gray:#5D5C80;--dark:#14133A;
+  --green:#059669;--red:#DC2626;--orange:#D97706;--blue:#1D4ED8;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--light);min-height:100vh;line-height:1.65}
+
+/* DEMO BG */
+.demo-header{background:var(--nx);padding:14px 22px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,201,60,.1)}
+.dh-logo{width:34px;height:34px;background:linear-gradient(135deg,var(--yellow),var(--gold));border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--navy);font-size:.9rem}
+.dh-brand{font-weight:800;font-size:.85rem;letter-spacing:3px;color:var(--yellow)}
+.dh-sep{color:rgba(255,255,255,.15)}
+.dh-page{font-size:.75rem;color:rgba(255,255,255,.45)}
+.dh-right{margin-right:auto;display:flex;align-items:center;gap:8px}
+.ai-chip{background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.62rem;font-weight:700;padding:4px 10px;border-radius:10px;display:flex;align-items:center;gap:4px}
+.ai-chip::before{content:"";width:5px;height:5px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.demo-content{padding:20px;max-width:800px;margin:0 auto}
+.demo-card{background:white;border-radius:14px;padding:20px;border:1.5px solid var(--border);margin-bottom:14px}
+.dc-title{font-size:.9rem;font-weight:800;color:var(--navy);margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.dc-text{font-size:.78rem;color:var(--gray);line-height:1.8}
+.hint-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.hint-item{background:var(--light);border-radius:9px;padding:10px;font-size:.7rem;color:var(--navy);font-weight:600;cursor:pointer;border:1px solid var(--border);transition:.15s;text-align:center}
+.hint-item:hover{background:var(--navy);color:var(--yellow);border-color:var(--navy)}
+
+/* ━━━━ FAB ━━━━ */
+.fab{position:fixed;bottom:24px;left:24px;z-index:900;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.fab-main{width:62px;height:62px;border-radius:18px;background:linear-gradient(135deg,var(--yellow),var(--gold));border:none;cursor:pointer;color:var(--navy);font-size:1.5rem;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(255,201,60,.4),0 0 0 3px rgba(255,201,60,.12);transition:all .3s cubic-bezier(.34,1.56,.64,1);position:relative}
+.fab-main:hover{transform:scale(1.07);box-shadow:0 12px 36px rgba(255,201,60,.5)}
+.fab-main.hidden{transform:scale(0);pointer-events:none}
+.fab-badge{position:absolute;top:-5px;right:-5px;width:20px;height:20px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:white;border:2px solid var(--light)}
+.fab-main::before{content:"";position:absolute;inset:-5px;border-radius:23px;border:2px dashed rgba(255,201,60,.3);animation:spin 12s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ━━━━ AI WINDOW ━━━━ */
+.ai-win{position:fixed;bottom:24px;left:24px;z-index:901;width:400px;max-width:calc(100vw - 36px);height:660px;max-height:calc(100vh - 36px);background:var(--nx);border-radius:22px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 28px 72px rgba(0,0,0,.5),0 0 0 1px rgba(255,201,60,.1);transform:scale(0) translateY(24px);opacity:0;transform-origin:bottom left;transition:all .32s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.ai-win.open{transform:scale(1) translateY(0);opacity:1;pointer-events:auto}
+
+/* Header */
+.ai-hd{background:linear-gradient(135deg,rgba(31,29,92,.95),rgba(46,44,120,.9));padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,201,60,.1);flex-shrink:0;position:relative}
+.ai-hd::after{content:"";position:absolute;bottom:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,201,60,.3),transparent)}
+.ai-av{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--yellow),var(--gold));display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;box-shadow:0 4px 14px rgba(255,201,60,.3)}
+.ai-nm{font-size:.88rem;font-weight:800;color:var(--yellow);display:flex;align-items:center;gap:6px;margin-bottom:2px}
+.ai-vr{font-size:.5rem;background:rgba(255,201,60,.15);color:var(--yellow);padding:2px 7px;border-radius:8px;font-weight:700;letter-spacing:.5px}
+.ai-st{font-size:.63rem;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:4px}
+.ai-st::before{content:"";width:5px;height:5px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+.ai-hbtns{display:flex;gap:5px;margin-right:auto}
+.ai-hbtn{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.07);border:none;cursor:pointer;color:rgba(255,255,255,.55);font-size:.8rem;display:flex;align-items:center;justify-content:center;transition:.15s}
+.ai-hbtn:hover{background:rgba(255,255,255,.14);color:var(--yellow)}
+
+/* Tabs */
+.ai-tabs{display:flex;background:rgba(0,0,0,.3);gap:3px;padding:5px;border-bottom:1px solid rgba(255,255,255,.04);flex-shrink:0}
+.ai-tab{flex:1;padding:7px 4px;border-radius:8px;border:none;background:transparent;color:rgba(255,255,255,.38);font-size:.65rem;font-weight:600;font-family:inherit;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:4px}
+.ai-tab.on{background:rgba(255,201,60,.1);color:var(--yellow);border:1px solid rgba(255,201,60,.15)}
+.ai-tab:hover:not(.on){background:rgba(255,255,255,.05);color:rgba(255,255,255,.7)}
+
+/* Body */
+.ai-body{flex:1;overflow-y:auto;padding:12px 11px;display:flex;flex-direction:column;gap:9px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent}
+.ai-body::-webkit-scrollbar{width:3px}
+.ai-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:3px}
+
+/* Messages */
+.msg{display:flex;gap:7px;align-items:flex-end;animation:msgIn .25s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.mav{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800}
+.msg.bot .mav{background:linear-gradient(135deg,var(--yellow),var(--gold));color:var(--navy)}
+.msg.user .mav{background:linear-gradient(135deg,var(--nl),var(--navy));color:var(--yellow)}
+.mwrap{max-width:83%;display:flex;flex-direction:column;gap:3px}
+.msg.user .mwrap{align-items:flex-end}
+.mbub{padding:9px 13px;border-radius:14px;font-size:.78rem;line-height:1.65;word-wrap:break-word}
+.msg.bot .mbub{background:rgba(255,255,255,.06);color:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.07);border-bottom-right-radius:4px}
+.msg.user .mbub{background:linear-gradient(135deg,var(--yellow),var(--gold));color:var(--navy);font-weight:600;border-bottom-left-radius:4px}
+.mtime{font-size:.56rem;color:rgba(255,255,255,.22);padding:0 3px}
+.msg.user .mtime{text-align:left}
+.mbub strong{color:var(--yellow)}
+.msg.user .mbub strong{color:var(--navy)}
+.mbub ul{padding-right:14px;margin:4px 0}
+.mbub li{font-size:.74rem;margin:2px 0;color:rgba(255,255,255,.8)}
+.kpi-tag{display:inline-flex;align-items:center;gap:4px;background:rgba(255,201,60,.12);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.67rem;font-weight:700;padding:2px 8px;border-radius:9px;margin:2px 2px 2px 0}
+.act-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.act-btn{background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.67rem;font-weight:700;padding:4px 10px;border-radius:7px;cursor:pointer;font-family:inherit;transition:.15s}
+.act-btn:hover{background:var(--yellow);color:var(--navy)}
+
+/* Typing */
+.typing-row{display:flex;gap:7px;align-items:flex-end}
+.tbub{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:14px;border-bottom-right-radius:4px;padding:10px 14px;display:flex;gap:4px;align-items:center}
+.td{width:6px;height:6px;background:rgba(255,201,60,.6);border-radius:50%}
+.td:nth-child(1){animation:td 1.3s infinite .1s}
+.td:nth-child(2){animation:td 1.3s infinite .3s}
+.td:nth-child(3){animation:td 1.3s infinite .5s}
+@keyframes td{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+/* REPORT TAB */
+.rp-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.rp-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.rp-stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px}
+.rs-val{font-size:1.3rem;font-weight:900;color:var(--yellow);line-height:1}
+.rs-lbl{font-size:.61rem;color:rgba(255,255,255,.42);margin-top:3px}
+.rs-chg{font-size:.61rem;font-weight:700;margin-top:3px}
+.up{color:var(--green)}.dn{color:var(--red)}
+.rp-sec{font-size:.6rem;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:1.5px;margin:4px 0 7px}
+.rp-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:10px 12px;margin-bottom:6px}
+.ri-top{display:flex;justify-content:space-between;margin-bottom:3px}
+.ri-name{color:rgba(255,255,255,.8);font-size:.73rem;font-weight:600}
+.ri-s{font-size:.63rem;font-weight:700;padding:2px 7px;border-radius:8px}
+.ri-r{background:rgba(220,38,38,.15);color:var(--red)}
+.ri-o{background:rgba(217,119,6,.15);color:var(--orange)}
+.ri-g{background:rgba(5,150,105,.15);color:var(--green)}
+.ri-desc{color:rgba(255,255,255,.4);font-size:.65rem}
+
+/* ALERTS TAB */
+.alerts-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.alert-item{background:rgba(255,255,255,.04);border-radius:10px;padding:12px;border-right:3px solid;cursor:pointer;transition:.15s}
+.alert-item:hover{background:rgba(255,255,255,.07)}
+.alert-item.high{border-color:var(--red);background:rgba(220,38,38,.07)}
+.alert-item.med{border-color:var(--orange);background:rgba(217,119,6,.06)}
+.alert-item.low{border-color:var(--blue);background:rgba(29,78,216,.06)}
+.al-top{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.al-ic{font-size:.9rem}
+.al-title{font-size:.76rem;font-weight:700;color:rgba(255,255,255,.88);flex:1}
+.al-time{font-size:.6rem;color:rgba(255,255,255,.3)}
+.al-desc{font-size:.68rem;color:rgba(255,255,255,.45);line-height:1.65;margin-bottom:7px}
+.al-act{background:rgba(255,201,60,.08);border:1px solid rgba(255,201,60,.15);color:var(--yellow);font-size:.64rem;font-weight:700;padding:3px 10px;border-radius:7px;cursor:pointer;font-family:inherit;transition:.15s}
+.al-act:hover{background:var(--yellow);color:var(--navy)}
+
+/* Quick commands */
+.ai-cmds{padding:7px 10px;background:rgba(0,0,0,.25);border-top:1px solid rgba(255,255,255,.05);display:flex;flex-wrap:wrap;gap:5px;flex-shrink:0}
+.cmd{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.55);font-size:.63rem;font-weight:600;padding:5px 10px;border-radius:20px;cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap}
+.cmd:hover{background:rgba(255,201,60,.1);border-color:rgba(255,201,60,.2);color:var(--yellow)}
+
+/* Input */
+.ai-input-wrap{padding:9px 10px;background:rgba(0,0,0,.3);border-top:1px solid rgba(255,255,255,.05);display:flex;gap:7px;align-items:center;flex-shrink:0}
+.ai-inp{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:9px 14px;font-size:.79rem;font-family:inherit;outline:none;color:white;transition:.2s}
+.ai-inp::placeholder{color:rgba(255,255,255,.28)}
+.ai-inp:focus{border-color:rgba(255,201,60,.3);background:rgba(255,255,255,.09)}
+.ai-send{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--gold));border:none;cursor:pointer;color:var(--navy);font-size:.88rem;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
+.ai-send:hover{transform:scale(1.1);box-shadow:0 4px 14px rgba(255,201,60,.4)}
+.ai-foot{padding:4px 12px;text-align:center;font-size:.56rem;color:rgba(255,255,255,.18);flex-shrink:0;background:rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;gap:5px}
+.ai-foot strong{color:rgba(255,201,60,.5)}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:50%;transform:translateX(50%) translateY(120px);background:var(--navy);color:white;padding:10px 22px;border-radius:12px;font-size:.8rem;font-weight:600;z-index:999;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 28px rgba(0,0,0,.25);pointer-events:none;white-space:nowrap;max-width:90vw}
+.toast.show{transform:translateX(50%) translateY(0)}
+.toast.ok{background:var(--green)}.toast.warn{background:var(--orange)}
+
+@media(max-width:480px){.ai-win{width:calc(100vw - 20px);left:10px;right:10px;bottom:10px;height:calc(100vh - 20px);border-radius:16px}.fab-main{bottom:14px;left:14px;width:56px;height:56px}.hint-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- DEMO PAGE -->
+<div class="demo-header">
+  <div class="dh-logo">K</div>
+  <div class="dh-brand">KPTC</div>
+  <div class="dh-sep">/</div>
+  <div class="dh-page">إدارة الأصول العقارية</div>
+  <div class="dh-right">
+    <div class="ai-chip">🧠 AI مساعد عقاري</div>
+  </div>
+</div>
+
+<div class="demo-content">
+  <div class="demo-card">
+    <div class="dc-title">🧠 المساعد الإداري العقاري — KPTC RE AI</div>
+    <div class="dc-text">اضغط على الزر الذهبي في الزاوية لتفعيل المساعد. يمكنه تقديم تقارير مالية، تنبيهات العقود، تحليل الإشغال، وتوصيات لزيادة الإيرادات.</div>
+    <div class="hint-grid">
+      <div class="hint-item" onclick="quickAsk('ما ملخص الأصول العقارية اليوم؟')">📊 ملخص اليوم</div>
+      <div class="hint-item" onclick="quickAsk('ما العقود التي تنتهي قريباً؟')">📋 عقود تنتهي</div>
+      <div class="hint-item" onclick="quickAsk('ما الوحدات الشاغرة؟')">🔓 وحدات شاغرة</div>
+      <div class="hint-item" onclick="quickAsk('كم إجمالي إيرادات هذا الشهر؟')">💰 الإيرادات</div>
+      <div class="hint-item" onclick="quickAsk('من المستأجرون المتأخرون في الدفع؟')">⚠️ متأخرون</div>
+      <div class="hint-item" onclick="quickAsk('ما توصياتك لزيادة الإيرادات؟')">💡 توصيات</div>
+    </div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab-main" id="aiFab" onclick="openAI()" aria-label="المساعد الذكي">
+  🧠
+  <div class="fab-badge" id="aiBadge">4</div>
+</button>
+
+<!-- AI WINDOW -->
+<div class="ai-win" id="aiWin">
+  <!-- HEADER -->
+  <div class="ai-hd">
+    <div class="ai-av">🏢</div>
+    <div style="flex:1">
+      <div class="ai-nm">مساعد KPTC العقاري <span class="ai-vr">RE·AI</span></div>
+      <div class="ai-st">متصل بقاعدة البيانات العقارية</div>
+    </div>
+    <div class="ai-hbtns">
+      <button class="ai-hbtn" onclick="clearChat()" title="محادثة جديدة">🔄</button>
+      <button class="ai-hbtn" onclick="closeAI()" title="إغلاق">✕</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="ai-tabs">
+    <button class="ai-tab on" id="tab-chat" onclick="switchTab('chat')">💬 محادثة</button>
+    <button class="ai-tab" id="tab-report" onclick="switchTab('report')">📊 تقرير</button>
+    <button class="ai-tab" id="tab-alerts" onclick="switchTab('alerts')">🔔 تنبيهات<span style="background:var(--red);color:white;font-size:.5rem;padding:1px 5px;border-radius:8px;margin-right:3px">4</span></button>
+  </div>
+
+  <!-- CHAT PANEL -->
+  <div id="panel-chat" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="ai-body" id="aiBody"></div>
+    <div class="ai-cmds" id="aiCmds"></div>
+    <div class="ai-input-wrap">
+      <input class="ai-inp" id="aiInp" placeholder="اكتب سؤالاً أو أمراً..." onkeypress="if(event.key==='Enter')send()" maxlength="250">
+      <button class="ai-send" onclick="send()">➤</button>
+    </div>
+    <div class="ai-foot"><strong>KPTC RE·AI</strong> • بيانات عقارية مباشرة</div>
+  </div>
+
+  <!-- REPORT PANEL -->
+  <div id="panel-report" style="display:none;flex:1;overflow:hidden">
+    <div class="rp-body">
+      <div class="rp-sec">المؤشرات الرئيسية — مايو 2026</div>
+      <div class="rp-stat-grid">
+        <div class="rp-stat"><div class="rs-val">28,400</div><div class="rs-lbl">الإيجار الشهري (د.ك)</div><div class="rs-chg up">↑ +8.2%</div></div>
+        <div class="rp-stat"><div class="rs-val">78%</div><div class="rs-lbl">معدل الإشغال</div><div class="rs-chg up">↑ الهدف 90%</div></div>
+        <div class="rp-stat"><div class="rs-val" style="color:var(--red)">3,550</div><div class="rs-lbl">إيجار متأخر (د.ك)</div><div class="rs-chg dn">3 مستأجرين</div></div>
+        <div class="rp-stat"><div class="rs-val">42</div><div class="rs-lbl">وحدات مؤجّرة</div><div class="rs-chg up">12 شاغرة</div></div>
+        <div class="rp-stat"><div class="rs-val">8</div><div class="rs-lbl">مواقع نشطة</div><div class="rs-chg up">6 محافظات</div></div>
+        <div class="rp-stat"><div class="rs-val">340K</div><div class="rs-lbl">الإيراد السنوي (د.ك)</div><div class="rs-chg up">↑ +8.2%</div></div>
+      </div>
+      <div class="rp-sec">أداء المواقع</div>
+      <div class="rp-item"><div class="ri-top"><span class="ri-name">محطة حولي الرئيسية</span><span class="ri-s ri-g">83% إشغال</span></div><div class="ri-desc">10/12 وحدة — 7,200 د.ك/شهر — أفضل موقع أداءً</div></div>
+      <div class="rp-item"><div class="ri-top"><span class="ri-name">المقر الرئيسي — الصفاة</span><span class="ri-s ri-g">100% إشغال</span></div><div class="ri-desc">6/6 وحدة — 4,200 د.ك/شهر — ممتلئ بالكامل</div></div>
+      <div class="rp-item"><div class="ri-top"><span class="ri-name">محطة مبارك الكبير</span><span class="ri-s ri-o">50% إشغال</span></div><div class="ri-desc">2/4 وحدة — 1,500 د.ك/شهر — يحتاج تطوير</div></div>
+      <div class="rp-item"><div class="ri-top"><span class="ri-name">ورشة الشويخ</span><span class="ri-s ri-o">50% إشغال</span></div><div class="ri-desc">1/2 وحدة — 1,400 د.ك/شهر — وحدة شاغرة كبيرة</div></div>
+      <div style="display:flex;gap:7px;margin-top:4px">
+        <button onclick="T('📥 جاري تصدير التقرير...');setTimeout(function(){T(\'✅ تم تصدير التقرير\',\'ok\')},1800)" style="flex:1;background:var(--yellow);color:var(--navy);border:none;border-radius:9px;padding:9px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit">📥 تصدير PDF</button>
+        <button onclick="T('📧 تم إرسال التقرير على البريد','ok')" style="flex:1;background:rgba(255,255,255,.07);color:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px;font-size:.73rem;font-weight:600;cursor:pointer;font-family:inherit">📧 إرسال</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALERTS PANEL -->
+  <div id="panel-alerts" style="display:none;flex:1;overflow:hidden">
+    <div class="alerts-body" id="alertsBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+// DATA SNAPSHOT
+var DATA = {
+  revenue: 28400, occupancy: 78, late: 3550, rented: 42, vacant: 12,
+  expiring: [{name:'مطعم الخليج — الفروانية',days:22},{name:'موقف VIP — السالمية',days:52},{name:'لوحة B3 — الصفاة',days:172}],
+  late_tenants: [{name:'أحمد الخليج للمطاعم',amt:1200,days:12},{name:'خالد الرشيدي',amt:900,days:7},{name:'شركة بقالة النور',amt:1450,days:18}],
+  vacant_units: ['وحدة تجارية B2 — الفروانية (50م²)','محل الاكسسوارات — السالمية (35م²)','وحدة مبارك الكبير — 3 شاغرة']
+};
+
+// INTENTS
+var INTENTS = [
+  {kw:['مرحب','هلا','السلام','صباح','مساء'],fn:respGreet},
+  {kw:['ملخص','summary','نظرة','overview','الوضع','اليوم','عام'],fn:respSummary},
+  {kw:['إيراد','ايراد','دخل','ربح','مبيعات','revenue','كم حصلنا'],fn:respRevenue},
+  {kw:['إشغال','اشغال','occupancy','نسبة','ممتلئ','شاغر'],fn:respOccupancy},
+  {kw:['شاغرة','شاغر','فارغة','vacant','متاح'],fn:respVacant},
+  {kw:['عقد','ينتهي','تجديد','contract','انتهاء','منتهي'],fn:respContracts},
+  {kw:['متأخر','تأخر','late','دين','مديون','لم يدفع'],fn:respLate},
+  {kw:['توصية','اقتراح','تحسين','زيادة','نمو','كيف','advice'],fn:respAdvice},
+  {kw:['صيانة','maintenance','تسرب','عطل'],fn:respMaintenance},
+  {kw:['تقرير','report','أرسل','pdf','excel'],fn:respReport},
+  {kw:['أفضل','أسوأ','أعلى','أقل','ranking','ترتيب'],fn:respRanking},
+  {kw:['مستأجر','tenant','من','عميل'],fn:respTenants},
+  {kw:['شكر','ممتاز','برافو','thank'],fn:respThanks},
+  {kw:['مساعدة','help','ماذا','قدرات','أوامر'],fn:respHelp},
+];
+
+var CMDS = ['📊 ملخص اليوم','💰 الإيرادات','🔓 وحدات شاغرة','📋 عقود تنتهي','⚠️ متأخرون','💡 توصيات'];
+var opened = false;
+
+function openAI(){
+  document.getElementById('aiWin').classList.add('open');
+  document.getElementById('aiFab').classList.add('hidden');
+  document.getElementById('aiBadge').style.display='none';
+  if(!opened){
+    opened=true;
+    loadAlerts();
+    setTimeout(function(){
+      addBot('مرحباً! 👋 أنا <strong>المساعد العقاري الذكي</strong> لـ KPTC.<br><br>لدي وصول كامل لبيانات الأصول العقارية — اسألني عن الإيرادات، العقود، الإشغال، أو اطلب توصيات.<br><br><span class="kpi-tag">💰 '+DATA.revenue.toLocaleString()+' د.ك/شهر</span> <span class="kpi-tag">🏢 '+DATA.occupancy+'% إشغال</span>',CMDS);
+    },500);
+  }
+  setTimeout(function(){document.getElementById('aiInp').focus()},350);
+}
+function closeAI(){document.getElementById('aiWin').classList.remove('open');setTimeout(function(){document.getElementById('aiFab').classList.remove('hidden')},200)}
+function switchTab(tab){
+  ['chat','report','alerts'].forEach(function(t){
+    document.getElementById('tab-'+t).classList.remove('on');
+    document.getElementById('panel-'+t).style.display='none';
+  });
+  document.getElementById('tab-'+tab).classList.add('on');
+  document.getElementById('panel-'+tab).style.display='flex';
+  document.getElementById('panel-'+tab).style.flexDirection='column';
+}
+function send(){
+  var inp=document.getElementById('aiInp'),txt=inp.value.trim();
+  if(!txt)return;addUser(txt);inp.value='';
+  document.getElementById('aiCmds').innerHTML='';
+  showTyping();
+  setTimeout(function(){hideTyping();var r=process(txt);addBot(r.text,r.cmds||[])},700+Math.random()*600);
+}
+function quickAsk(txt){if(!opened)openAI();setTimeout(function(){document.getElementById('aiInp').value=txt;send()},600)}
+function addUser(txt){
+  var now=new Date(),t=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  var b=document.getElementById('aiBody');
+  b.innerHTML+='<div class="msg user"><div class="mav">أ</div><div class="mwrap"><div class="mbub">'+esc(txt)+'</div><div class="mtime">'+t+'</div></div></div>';
+  b.scrollTop=b.scrollHeight;
+}
+function addBot(html,cmds){
+  var now=new Date(),t=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  var b=document.getElementById('aiBody');
+  b.innerHTML+='<div class="msg bot"><div class="mav">🏢</div><div class="mwrap"><div class="mbub">'+html+'</div><div class="mtime">'+t+'</div></div></div>';
+  b.scrollTop=b.scrollHeight;
+  if(cmds&&cmds.length){var box=document.getElementById('aiCmds');box.innerHTML=cmds.map(function(c){return'<button class="cmd" onclick="qCmd(\''+c.replace(/'/g,"\\'")+'\')" >'+c+'</button>'}).join('')}
+}
+function qCmd(txt){document.getElementById('aiInp').value=txt;send()}
+function showTyping(){var b=document.getElementById('aiBody');b.innerHTML+='<div class="typing-row" id="typing"><div class="mav" style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--yellow),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.8rem">🏢</div><div class="tbub"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>';b.scrollTop=b.scrollHeight}
+function hideTyping(){var t=document.getElementById('typing');if(t)t.remove()}
+function clearChat(){if(!confirm('بدء محادثة جديدة؟'))return;document.getElementById('aiBody').innerHTML='';document.getElementById('aiCmds').innerHTML='';opened=false;setTimeout(openAI,100)}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function process(msg){
+  var low=msg.toLowerCase();
+  for(var i=0;i<INTENTS.length;i++){var intent=INTENTS[i];for(var j=0;j<intent.kw.length;j++){if(low.indexOf(intent.kw[j])!==-1)return intent.fn(low)}}
+  return respDefault(msg);
+}
+
+function respGreet(){return{text:'مرحباً! 👋<br><br>الوضع العقاري اليوم: <span class="kpi-tag">✅ مستقر</span><br>الإيرادات مرتفعة، لكن هناك <strong>3 عقود تنتهي قريباً</strong> تحتاج متابعة عاجلة.',cmds:CMDS}}
+
+function respSummary(){return{text:'<strong>📊 ملخص الأصول العقارية — '+new Date().toLocaleDateString('ar')+'</strong><br><br><span class="kpi-tag">💰 '+DATA.revenue.toLocaleString()+' د.ك/شهر</span> <span class="kpi-tag">🏢 '+DATA.occupancy+'% إشغال</span><br><br><strong>✅ الإيجابيات:</strong><ul><li>المقر الرئيسي — إشغال 100%</li><li>إيرادات ارتفعت 8.2% عن الشهر الماضي</li><li>42 وحدة مؤجّرة من أصل 54</li></ul><strong>⚠️ يحتاج متابعة:</strong><ul><li>3 مستأجرين متأخرون — 3,550 د.ك</li><li>'+DATA.expiring[0].name+' — '+DATA.expiring[0].days+' يوم متبقي</li><li>12 وحدة شاغرة تفقد 8,500+ د.ك/شهر</li></ul><div class="act-row"><button class="act-btn" onclick="qCmd(\'توصيات لزيادة الإيرادات\')">💡 توصيات</button><button class="act-btn" onclick="switchTab(\'report\')">📊 التقرير الكامل</button></div>',cmds:['العقود المنتهية','المتأخرون','الوحدات الشاغرة']}}
+
+function respRevenue(){return{text:'<strong>💰 الإيرادات العقارية</strong><br><br><span class="kpi-tag">'+DATA.revenue.toLocaleString()+' د.ك</span> — الشهر الحالي<br><br><strong>التوزيع:</strong><ul><li>المطاعم والكافيهات — 45% (12,780 د.ك)</li><li>المحلات التجارية — 28% (7,952 د.ك)</li><li>المكاتب — 16% (4,544 د.ك)</li><li>اللوحات والمواقف — 11% (3,124 د.ك)</li></ul><strong>الإيراد السنوي المتوقع:</strong> 340,800 د.ك<br>📈 <em>لو أشغلنا الوحدات الـ12 الشاغرة: +8,500 د.ك/شهر إضافية</em>',cmds:['الوحدات الشاغرة','المتأخرون في الدفع','توصيات زيادة الإيرادات']}}
+
+function respOccupancy(){return{text:'<strong>🏢 تقرير الإشغال</strong><br><br><span class="kpi-tag">'+DATA.occupancy+'% إجمالي</span> — الهدف: 90% بنهاية 2026<br><br><strong>ترتيب المواقع:</strong><ul><li>✅ المقر الرئيسي — 100% (6/6)</li><li>✅ محطة حولي — 83% (10/12)</li><li>✅ محطة السالمية — 80% (8/10)</li><li>🟡 محطة الأحمدي — 71% (5/7)</li><li>🟡 محطة الجهراء — 80% (4/5)</li><li>🔴 مبارك الكبير — 50% (2/4)</li><li>🔴 ورشة الشويخ — 50% (1/2)</li></ul><strong>الفجوة عن الهدف:</strong> 12 وحدة شاغرة',cmds:['الوحدات الشاغرة','توصيات رفع الإشغال']}}
+
+function respVacant(){return{text:'<strong>🔓 الوحدات الشاغرة — '+DATA.vacant+' وحدة</strong><br><br>'+DATA.vacant_units.map(function(u){return'• '+u}).join('<br>')+'<br><br>💸 <strong>الإيراد الضائع:</strong> ~8,500 د.ك/شهر<br>📅 <strong>متوسط مدة الشغور:</strong> 45 يوم<br><br><div class="act-row"><button class="act-btn" onclick="qCmd(\'كيف أستقطب مستأجرين جدد؟\')">📢 استقطاب مستأجرين</button></div>',cmds:['كيف أستقطب مستأجرين جدد؟','أسعار السوق المقارنة','توصيات لتأجير الوحدات']}}
+
+function respContracts(){return{text:'<strong>📋 العقود التي تنتهي قريباً</strong><br><br>'+DATA.expiring.map(function(c){var col=c.days<30?'var(--red)':c.days<90?'var(--orange)':'rgba(255,255,255,.7)';return'<div style="display:flex;justify-content:space-between;padding:7px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:5px"><span style="font-size:.73rem">'+c.name+'</span><strong style="color:'+col+';font-size:.73rem">'+c.days+' يوم</strong></div>'}).join('')+'<br><strong>التوصية:</strong><br>تواصل مع المستأجرين <strong>30 يوم قبل الانتهاء</strong> لتجنب الشغور — الزيادة المقترحة 5-8% عند التجديد.<div class="act-row"><button class="act-btn" onclick="T(\'📱 تم إرسال تذكيرات التجديد للمستأجرين\',\'ok\')">📱 إرسال تذكير</button></div>',cmds:['إيجار متأخر','الوحدات الشاغرة','توصيات التجديد']}}
+
+function respLate(){return{text:'<strong>⚠️ المتأخرون في الدفع — '+DATA.late_tenants.length+' مستأجرين</strong><br><br>'+DATA.late_tenants.map(function(t){return'<div style="padding:8px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.15);border-radius:8px;margin-bottom:6px"><div style="font-size:.73rem;font-weight:700;color:rgba(255,255,255,.88)">'+t.name+'</div><div style="font-size:.68rem;color:rgba(255,255,255,.5)">'+t.amt.toLocaleString()+' د.ك — متأخر '+t.days+' يوم</div></div>'}).join('')+'<strong>الإجمالي المتأخر:</strong> <span class="kpi-tag">3,550 د.ك</span><br><br><div class="act-row"><button class="act-btn" onclick="T(\'📱 تم إرسال إشعارات التحصيل\',\'ok\')">📱 إرسال إشعار</button><button class="act-btn" onclick="T(\'📄 تم إنشاء تقرير التأخر\',\'ok\')">📄 تقرير</button></div>',cmds:['تفاصيل العقود','ما غرامة التأخر؟','توصيات التحصيل']}}
+
+function respAdvice(){return{text:'<strong>💡 توصيات لزيادة الإيرادات</strong><br><br><strong>1️⃣ تأجير الوحدات الشاغرة — أولوية قصوى</strong><br>12 وحدة = ~8,500 د.ك/شهر ضائعة. أقترح تخفيض مؤقت 10-15% للإيجار الأول لاستقطاب مستأجرين جدد.<br><br><strong>2️⃣ تجديد عقد مطعم الخليج فوراً</strong><br>ينتهي بعد 22 يوم — رفع بنسبة 5% مقبول، وإلا تخسر 1,200 د.ك/شهر.<br><br><strong>3️⃣ تحصيل المتأخرات</strong><br>3,550 د.ك معلقة — تطبيق غرامة 2% بعد 7 أيام يسرّع الدفع.<br><br><strong>4️⃣ رفع الإيجار عند التجديد</strong><br>متوسط السوق الكويتي ارتفع 6% — 5% رفع عند التجديد منطقي ومقبول.<br><br><strong>5️⃣ إضافة لوحات إعلانية</strong><br>مواقع مبارك الكبير والجهراء غير مستغلة إعلانياً — +800-1,200 د.ك/شهر محتملة.',cmds:['الوحدات الشاغرة','عقود تنتهي','المتأخرون']}}
+
+function respMaintenance(){return{text:'<strong>🔧 طلبات الصيانة المعلقة</strong><br><br><ul><li>🔴 كافيه النقل — تسرب مياه (عالي الأولوية)</li><li>🟡 بقالة الحي — انقطاع إضاءة (متوسط)</li><li>🟢 محل الألبسة — تكييف ضعيف (منخفض)</li></ul><br><strong>التكلفة التقديرية:</strong> 850 د.ك هذا الشهر<br><strong>التوصية:</strong> معالجة تسرب الكافيه أولاً لتجنب ضرر أكبر.',cmds:['تفاصيل الصيانة','تقرير التكاليف']}}
+
+function respReport(){return{text:'<strong>📊 التقرير المالي الشهري</strong><br><br>جاهز للإرسال والتصدير:<br><div class="act-row"><button class="act-btn" onclick="switchTab(\'report\')">📊 عرض التقرير</button><button class="act-btn" onclick="T(\'📥 جاري التصدير...\');setTimeout(function(){T(\'✅ تم التصدير\',\'ok\')},1800)">📥 تصدير PDF</button><button class="act-btn" onclick="T(\'📧 تم الإرسال على البريد\',\'ok\')">📧 إرسال</button></div>',cmds:['إرسال للمهندس عبدالله','إرسال للمديرة','ملخص الشهر']}}
+
+function respRanking(){return{text:'<strong>📈 ترتيب المواقع حسب الأداء</strong><br><br>🥇 المقر الرئيسي — 100% إشغال — 4,200 د.ك<br>🥈 محطة حولي — 83% — 7,200 د.ك (أعلى إيراداً)<br>🥉 محطة السالمية — 80% — 6,400 د.ك<br>4️⃣ محطة الجهراء — 80% — 2,800 د.ك<br>5️⃣ محطة الفروانية — 75% — 5,100 د.ك<br>6️⃣ محطة الأحمدي — 71% — 3,800 د.ك<br>7️⃣ مبارك الكبير — 50% — 1,500 د.ك<br>8️⃣ ورشة الشويخ — 50% — 1,400 د.ك',cmds:['توصيات لمبارك الكبير','الوحدات الشاغرة']}}
+
+function respTenants(){return{text:'<strong>👤 المستأجرون النشطون — 42 مستأجراً</strong><br><br><span class="kpi-tag">✅ 39 ملتزم</span> <span class="kpi-tag">⚠️ 3 متأخرون</span><br><br><strong>أكبر 3 مستأجرين:</strong><ul><li>مكتب حسن وشركاه — 1,800 د.ك/شهر</li><li>بيت الكبسة الكويتية — 1,350 د.ك/شهر</li><li>أحمد الخليج للمطاعم — 1,200 د.ك/شهر</li></ul>',cmds:['المتأخرون في الدفع','عقود تنتهي']}}
+
+function respThanks(){return{text:'دائماً في خدمتك! 🌟 هل تحتاج أي شيء آخر؟',cmds:CMDS}}
+
+function respHelp(){return{text:'<strong>🧠 قدراتي كمساعد عقاري</strong><br><br><span class="kpi-tag">📊 ملخصات</span> <span class="kpi-tag">💰 إيرادات</span> <span class="kpi-tag">📋 عقود</span><br><span class="kpi-tag">🔓 شاغرة</span> <span class="kpi-tag">⚠️ متأخرون</span> <span class="kpi-tag">💡 توصيات</span><br><span class="kpi-tag">🔧 صيانة</span> <span class="kpi-tag">📄 تقارير</span> <span class="kpi-tag">📈 ترتيب</span><br><br>اكتب سؤالك بالعربية وأنا أفهم 😊',cmds:CMDS}}
+
+function respDefault(){return{text:'لم أفهم طلبك تماماً 🤔 — جرّب إحدى الأوامر السريعة أدناه:',cmds:CMDS}}
+
+// ALERTS
+var ALERTS = [
+  {cls:'high',ic:'🔴',title:'عقد مطعم الخليج — ينتهي بعد 22 يوم',desc:'محطة حولي — إيجار 1,200 د.ك/شهر — يجب التواصل الفوري مع المستأجر للتجديد',cmd:'العقود التي تنتهي قريباً'},
+  {cls:'high',ic:'⚠️',title:'إيجار متأخر — 3 مستأجرين — 3,550 د.ك',desc:'أحمد الخليج (12 يوم) • خالد الرشيدي (7 أيام) • بقالة النور (18 يوم)',cmd:'المتأخرون في الدفع'},
+  {cls:'med',ic:'🔧',title:'صيانة عاجلة — كافيه النقل',desc:'تسرب مياه في مطبخ الكافيه — محطة الفروانية — يؤثر على العمل اليومي',cmd:'طلبات الصيانة المعلقة'},
+  {cls:'low',ic:'📭',title:'12 وحدة شاغرة — فرصة إيراد',desc:'خسارة تقديرية ~8,500 د.ك/شهر — يُنصح بحملة استقطاب مستأجرين جدد',cmd:'الوحدات الشاغرة'},
+];
+function loadAlerts(){
+  var b=document.getElementById('alertsBody');if(!b)return;
+  b.innerHTML=ALERTS.map(function(a){return'<div class="alert-item '+a.cls+'"><div class="al-top"><span class="al-ic">'+a.ic+'</span><span class="al-title">'+a.title+'</span><span class="al-time">اليوم</span></div><div class="al-desc">'+a.desc+'</div><button class="al-act" onclick="switchTab(\'chat\');qCmd(\''+a.cmd+'\')">→ معالجة</button></div>'}).join('');
+}
+
+// TOAST
+var TT;
+function T(msg,type){var el=document.getElementById('toastEl');el.textContent=msg;el.className='toast'+(type?' '+type:'');el.classList.add('show');clearTimeout(TT);TT=setTimeout(function(){el.classList.remove('show')},3000)}
+
+// INIT CMDS
+document.getElementById('aiCmds').innerHTML=CMDS.map(function(c){return'<button class="cmd" onclick="qCmd(\''+c+'\')">'+c+'</button>'}).join('');
+
+// Auto hint after 6 seconds
+setTimeout(function(){if(!opened){var b=document.getElementById('aiBadge');b.style.animation='none';b.style.background='var(--orange)';b.textContent='!'}},6000);
+</script>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+</html>

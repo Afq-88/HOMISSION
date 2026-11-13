@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPTC — بوابة المستأجر</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#2E2C78;--nd:#1F1D5C;--nx:#06102a;--nl:#3D3B95;
+  --yellow:#FFC93C;--gold:#C9A227;
+  --light:#F4F7FD;--border:#E2E8F5;--white:#fff;
+  --gray:#5D5C80;--dark:#14133A;
+  --green:#059669;--red:#DC2626;--orange:#D97706;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--light);color:var(--dark);min-height:100vh;line-height:1.65}
+
+/* ━━━━ NAV ━━━━ */
+.nav{background:var(--nx);position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(255,201,60,.1)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 20px;height:60px;display:flex;align-items:center;gap:12px}
+.nav-logo{width:38px;height:38px;background:linear-gradient(135deg,var(--yellow),var(--gold));border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--navy);font-size:.95rem;box-shadow:0 4px 12px rgba(255,201,60,.25);flex-shrink:0}
+.nav-brand{font-weight:800;font-size:.9rem;letter-spacing:3px;color:var(--yellow)}
+.nav-sub{font-size:.6rem;color:rgba(255,255,255,.3);letter-spacing:1.5px;margin-top:1px}
+.nav-menu{display:flex;gap:2px;list-style:none;margin-right:auto}
+.nav-menu a{color:rgba(255,255,255,.55);text-decoration:none;font-size:.78rem;padding:7px 13px;border-radius:8px;transition:.15s;font-weight:500}
+.nav-menu a:hover{color:var(--yellow);background:rgba(255,201,60,.08)}
+.nav-menu a.on{color:var(--yellow)}
+.nav-user{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:9px;cursor:pointer;transition:.15s}
+.nav-user:hover{background:rgba(255,255,255,.05)}
+.nav-av{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--yellow),var(--gold));display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);font-size:.78rem}
+.nav-un{font-size:.76rem;font-weight:600;color:white}
+.nav-ur{font-size:.58rem;color:rgba(255,255,255,.4)}
+
+/* ━━━━ HERO ━━━━ */
+.hero{background:linear-gradient(145deg,var(--nx),var(--nd),#1a2f7a);color:white;padding:44px 20px 56px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;left:-60px;top:-60px;width:280px;height:280px;border-radius:50%;border:50px solid rgba(255,201,60,.05);pointer-events:none}
+.hero::after{content:"";position:absolute;right:-40px;bottom:-80px;width:220px;height:220px;border-radius:50%;border:40px solid rgba(255,255,255,.03);pointer-events:none}
+.hero-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center;position:relative;z-index:2}
+.hero-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);padding:5px 14px;border-radius:20px;font-size:.68rem;font-weight:700;margin-bottom:16px;letter-spacing:.5px}
+.hero-chip-dot{width:5px;height:5px;background:var(--yellow);border-radius:50%;animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.hero h1{font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:900;line-height:1.15;margin-bottom:14px;letter-spacing:-.5px}
+.hero h1 em{color:var(--yellow);font-style:normal}
+.hero p{font-size:.9rem;color:rgba(255,255,255,.65);line-height:1.85;margin-bottom:24px;max-width:480px}
+.hero-btns{display:flex;gap:10px;flex-wrap:wrap}
+.hbtn-p{background:linear-gradient(135deg,var(--yellow),var(--gold));color:var(--navy);border:none;border-radius:11px;padding:12px 22px;font-size:.82rem;font-weight:800;cursor:pointer;font-family:inherit;transition:.2s;box-shadow:0 6px 20px rgba(255,201,60,.25)}
+.hbtn-p:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(255,201,60,.35)}
+.hbtn-s{background:rgba(255,255,255,.06);color:white;border:1.5px solid rgba(255,255,255,.15);border-radius:11px;padding:12px 22px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+.hbtn-s:hover{background:rgba(255,255,255,.1);border-color:rgba(255,201,60,.3)}
+
+/* Hero right — contract card */
+.hero-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,201,60,.15);border-radius:18px;padding:24px;position:relative;backdrop-filter:blur(10px)}
+.hero-card::before{content:"";position:absolute;top:-1px;left:-1px;right:-1px;height:2px;background:linear-gradient(90deg,transparent,var(--yellow),transparent);border-radius:18px 18px 0 0}
+.hc-label{font-size:.58rem;color:rgba(255,255,255,.35);letter-spacing:2.5px;font-weight:700;margin-bottom:10px}
+.hc-unit{font-size:1.05rem;font-weight:800;color:var(--yellow);margin-bottom:16px}
+.hc-rows{display:flex;flex-direction:column;gap:10px}
+.hc-row{display:flex;align-items:center;justify-content:space-between}
+.hc-key{font-size:.71rem;color:rgba(255,255,255,.45)}
+.hc-val{font-size:.78rem;font-weight:700;color:white}
+.hc-val.green{color:var(--green)}
+.hc-val.red{color:#fc8181}
+.hc-val.yellow{color:var(--yellow)}
+.hc-divider{height:1px;background:rgba(255,255,255,.07);margin:4px 0}
+
+/* ━━━━ WRAP ━━━━ */
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+
+/* ━━━━ SECTIONS ━━━━ */
+section{padding:50px 20px}
+
+/* ━━━━ SECTION HEADER ━━━━ */
+.sh{margin-bottom:28px}
+.sh-label{font-size:.64rem;font-weight:800;color:var(--gold);letter-spacing:2.5px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.sh h2{font-size:1.3rem;font-weight:800;color:var(--navy);margin-bottom:6px}
+.sh p{font-size:.82rem;color:var(--gray);line-height:1.75}
+
+/* ━━━━ KPI ROW ━━━━ */
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.kpi-c{background:white;border:1.5px solid var(--border);border-radius:13px;padding:16px 14px;text-align:center;transition:.2s;cursor:pointer}
+.kpi-c:hover{border-color:rgba(46,44,120,.2);box-shadow:0 6px 18px rgba(46,44,120,.07);transform:translateY(-2px)}
+.kpi-ic{font-size:1.4rem;margin-bottom:8px}
+.kpi-v{font-size:1.45rem;font-weight:900;color:var(--navy);line-height:1;margin-bottom:4px}
+.kpi-l{font-size:.64rem;color:var(--gray)}
+.kpi-c2{font-size:.62rem;font-weight:700;margin-top:4px}
+
+/* ━━━━ CARDS ━━━━ */
+.card{background:white;border:1.5px solid var(--border);border-radius:14px;overflow:hidden}
+.card-h{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.card-t{font-size:.82rem;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px}
+.card-b{padding:16px}
+.card-a{font-size:.7rem;color:var(--navy);font-weight:600;background:var(--light);padding:4px 10px;border-radius:7px;border:1px solid var(--border);cursor:pointer;transition:.15s;font-family:inherit}
+.card-a:hover{background:var(--navy);color:white;border-color:var(--navy)}
+
+/* ━━━━ PILL ━━━━ */
+.pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:.63rem;font-weight:700}
+.pg{background:rgba(5,150,105,.1);color:var(--green)}
+.po{background:rgba(217,119,6,.1);color:var(--orange)}
+.pr{background:rgba(220,38,38,.1);color:var(--red)}
+.pb{background:rgba(29,78,216,.1);color:#1D4ED8}
+.py{background:rgba(255,201,60,.15);color:var(--gold)}
+.pn{background:rgba(46,44,120,.07);color:var(--navy)}
+
+/* ━━━━ TABLE ━━━━ */
+.tw{overflow-x:auto}
+table.dt{width:100%;border-collapse:collapse;font-size:.75rem;min-width:500px}
+table.dt th{text-align:right;padding:9px 13px;font-size:.61rem;font-weight:700;color:var(--gray);letter-spacing:.5px;background:var(--light);border-bottom:1px solid var(--border);white-space:nowrap}
+table.dt td{padding:10px 13px;border-bottom:1px dashed var(--border);vertical-align:middle}
+table.dt tr:last-child td{border:none}
+table.dt tr:hover td{background:#F8F8FC}
+
+/* ━━━━ PROGRESS ━━━━ */
+.prog{height:6px;background:var(--border);border-radius:10px;overflow:hidden;margin-top:5px}
+.prog-f{height:100%;border-radius:10px;transition:width .7s ease}
+
+/* ━━━━ GRIDS ━━━━ */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+
+/* ━━━━ UNIT DISPLAY ━━━━ */
+.unit-showcase{background:linear-gradient(135deg,var(--nd),var(--navy));border-radius:16px;padding:28px;color:white;position:relative;overflow:hidden;margin-bottom:14px}
+.unit-showcase::before{content:"";position:absolute;left:-40px;bottom:-40px;width:160px;height:160px;border-radius:50%;border:35px solid rgba(255,201,60,.06)}
+.us-icon{font-size:2.5rem;margin-bottom:12px}
+.us-label{font-size:.62rem;color:rgba(255,255,255,.4);font-weight:700;letter-spacing:1.5px;margin-bottom:3px}
+.us-name{font-size:1.1rem;font-weight:800;color:var(--yellow);margin-bottom:16px}
+.us-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+.us-stat{text-align:center;padding:10px 0;border-left:1px solid rgba(255,255,255,.08)}
+.us-stat:last-child{border:none}
+.us-sv{font-size:1rem;font-weight:800;color:white}
+.us-sl{font-size:.58rem;color:rgba(255,255,255,.45);margin-top:2px}
+
+/* ━━━━ PAYMENT TIMELINE ━━━━ */
+.pay-timeline{display:flex;flex-direction:column;gap:0}
+.pt-item{display:flex;gap:12px;position:relative;padding-bottom:14px}
+.pt-item:last-child{padding-bottom:0}
+.pt-item:not(:last-child)::before{content:"";position:absolute;right:14px;top:28px;bottom:0;width:1px;background:var(--border)}
+.pt-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;flex-shrink:0;border:2px solid var(--border)}
+.pt-dot.paid{background:rgba(5,150,105,.1);border-color:var(--green);color:var(--green)}
+.pt-dot.due{background:rgba(217,119,6,.1);border-color:var(--orange);color:var(--orange)}
+.pt-dot.late{background:rgba(220,38,38,.1);border-color:var(--red);color:var(--red)}
+.pt-content{flex:1}
+.pt-month{font-size:.76rem;font-weight:700;color:var(--dark);margin-bottom:2px}
+.pt-date{font-size:.65rem;color:var(--gray)}
+.pt-amount{font-size:.82rem;font-weight:800;color:var(--navy)}
+
+/* ━━━━ SERVICE CARDS ━━━━ */
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:24px}
+.svc{background:white;border:1.5px solid var(--border);border-radius:13px;padding:20px;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.svc::before{content:"";position:absolute;top:0;right:0;width:80px;height:80px;background:linear-gradient(135deg,var(--yellow),transparent);opacity:.08;border-radius:0 13px 0 80px;transition:.3s}
+.svc:hover{border-color:rgba(46,44,120,.2);box-shadow:0 8px 22px rgba(46,44,120,.08);transform:translateY(-3px)}
+.svc:hover::before{opacity:.15}
+.svc-ic{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--navy),var(--nl));display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:12px;box-shadow:0 6px 16px rgba(46,44,120,.15)}
+.svc-name{font-size:.88rem;font-weight:700;color:var(--navy);margin-bottom:5px}
+.svc-desc{font-size:.71rem;color:var(--gray);line-height:1.65}
+.svc-arrow{position:absolute;top:16px;left:16px;font-size:.8rem;color:var(--border);transition:.2s}
+.svc:hover .svc-arrow{color:var(--navy);transform:translateX(-3px)}
+
+/* ━━━━ REQUEST FORM ━━━━ */
+.form-card{background:white;border:1.5px solid var(--border);border-radius:14px;overflow:hidden}
+.form-steps{display:flex;border-bottom:1px solid var(--border);background:var(--light)}
+.fstep{flex:1;padding:12px;text-align:center;font-size:.68rem;font-weight:600;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+.fstep.on{color:var(--navy);border-bottom-color:var(--navy);background:white;font-weight:700}
+.form-body{padding:20px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg.g1{grid-template-columns:1fr}
+.ff{display:flex;flex-direction:column;gap:4px}
+.ff.s2{grid-column:span 2}
+.ff label{font-size:.67rem;font-weight:700;color:var(--gray)}
+.ff input,.ff select,.ff textarea{border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:.8rem;font-family:inherit;outline:none;transition:.2s;background:white;width:100%}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,44,120,.07)}
+.ff textarea{resize:vertical;min-height:70px}
+
+/* ━━━━ BTN ━━━━ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:9px;padding:10px 18px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;white-space:nowrap}
+.bn{background:var(--navy);color:white}.bn:hover{background:var(--nd);box-shadow:0 4px 14px rgba(46,44,120,.2)}
+.by{background:var(--yellow);color:var(--navy)}.by:hover{background:#ffd700}
+.bw{background:white;color:var(--navy);border:1.5px solid var(--border)}.bw:hover{background:var(--light)}
+.bg-b{background:var(--green);color:white}.bg-b:hover{background:#047857}
+.bsm{padding:7px 13px;font-size:.73rem;border-radius:7px}
+
+/* ━━━━ NOTIFICATION ━━━━ */
+.notif{display:flex;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:.15s}
+.notif:hover{background:var(--light)}
+.notif.unread{background:rgba(255,201,60,.03);border-right:3px solid var(--yellow)}
+.notif-ic{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.notif-title{font-size:.76rem;font-weight:600;color:var(--dark);margin-bottom:2px}
+.notif-body{font-size:.68rem;color:var(--gray);line-height:1.55}
+.notif-time{font-size:.6rem;color:var(--gray);flex-shrink:0;margin-top:1px;white-space:nowrap}
+
+/* ━━━━ TOAST ━━━━ */
+.toast{position:fixed;bottom:100px;right:50%;transform:translateX(50%) translateY(120px);background:var(--navy);color:white;padding:10px 22px;border-radius:12px;font-size:.8rem;font-weight:600;z-index:600;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 28px rgba(0,0,0,.2);pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{transform:translateX(50%) translateY(0)}
+.toast.ok{background:var(--green)}.toast.warn{background:var(--orange)}
+
+/* ━━━━ AI WIDGET ━━━━ */
+.ai-fab{position:fixed;bottom:24px;left:24px;z-index:998;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--gold));border:none;cursor:pointer;box-shadow:0 8px 28px rgba(255,201,60,.4),0 0 0 4px rgba(255,201,60,.12);display:flex;align-items:center;justify-content:center;font-size:1.55rem;transition:all .3s cubic-bezier(.34,1.56,.64,1);color:var(--navy)}
+.ai-fab:hover{transform:scale(1.08) rotate(5deg)}
+.ai-fab.hidden{transform:scale(0);pointer-events:none}
+.ai-fab::before{content:"";position:absolute;inset:-4px;border-radius:50%;background:rgba(255,201,60,.3);animation:pulse 2s infinite;z-index:-1}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.5}100%{transform:scale(1.6);opacity:0}}
+.ai-badge{position:absolute;top:-2px;right:-2px;width:20px;height:20px;background:var(--red);border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:700;color:white}
+
+.ai-win{position:fixed;bottom:24px;left:24px;z-index:999;width:370px;max-width:calc(100vw - 36px);height:580px;max-height:calc(100vh - 36px);background:white;border-radius:20px;box-shadow:0 24px 64px rgba(11,21,53,.25);display:flex;flex-direction:column;overflow:hidden;transform:scale(0) translateY(20px);opacity:0;transform-origin:bottom left;transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.ai-win.open{transform:scale(1) translateY(0);opacity:1;pointer-events:auto}
+
+.ai-head{background:linear-gradient(135deg,var(--nd),var(--navy));color:white;padding:14px 15px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.ai-av{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--yellow),var(--gold));display:flex;align-items:center;justify-content:center;color:var(--navy);font-weight:900;font-size:1rem;position:relative;flex-shrink:0}
+.ai-av::after{content:"";position:absolute;bottom:-1px;left:-1px;width:9px;height:9px;background:var(--green);border-radius:50%;border:2px solid var(--nd)}
+.ai-name{font-size:.86rem;font-weight:800;color:var(--yellow);margin-bottom:1px;display:flex;align-items:center;gap:6px}
+.ai-chip{background:rgba(255,201,60,.15);color:var(--yellow);font-size:.5rem;padding:1px 6px;border-radius:8px;font-weight:700}
+.ai-status{font-size:.62rem;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:4px}
+.ai-status::before{content:"";width:5px;height:5px;background:var(--green);border-radius:50%;animation:blink 2s infinite}
+.ai-hbtns{margin-right:auto;display:flex;gap:5px}
+.ai-hbtn{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.07);border:none;cursor:pointer;color:rgba(255,255,255,.6);font-size:.78rem;display:flex;align-items:center;justify-content:center;transition:.15s}
+.ai-hbtn:hover{background:rgba(255,255,255,.14);color:var(--yellow)}
+
+.ai-body{flex:1;overflow-y:auto;padding:13px 12px;display:flex;flex-direction:column;gap:8px;background:var(--light);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.ai-body::-webkit-scrollbar{width:3px}
+.ai-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+.amsg{display:flex;gap:7px;align-items:flex-end;animation:msgIn .25s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.amsg.u{flex-direction:row-reverse}
+.amsg-av{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800}
+.amsg.b .amsg-av{background:linear-gradient(135deg,var(--yellow),var(--gold));color:var(--navy)}
+.amsg.u .amsg-av{background:linear-gradient(135deg,var(--navy),var(--nl));color:var(--yellow)}
+.amsg-wrap{max-width:80%;display:flex;flex-direction:column;gap:2px}
+.amsg.u .amsg-wrap{align-items:flex-end}
+.bubble{padding:9px 13px;border-radius:14px;font-size:.79rem;line-height:1.65;word-wrap:break-word}
+.amsg.b .bubble{background:white;color:var(--dark);border:1px solid var(--border);border-bottom-right-radius:4px;box-shadow:0 2px 8px rgba(46,44,120,.04)}
+.amsg.u .bubble{background:linear-gradient(135deg,var(--navy),var(--nl));color:white;border-bottom-left-radius:4px}
+.bubble strong{color:var(--navy);font-weight:800}
+.amsg.u .bubble strong{color:var(--yellow)}
+.bubble .b-pill{display:inline-block;background:rgba(46,44,120,.08);color:var(--navy);font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:10px;margin:2px 2px 2px 0}
+.bubble .b-btn{display:inline-flex;align-items:center;gap:4px;background:var(--navy);color:white;border:none;font-size:.68rem;font-weight:700;padding:5px 11px;border-radius:7px;cursor:pointer;margin-top:7px;font-family:inherit;transition:.15s}
+.bubble .b-btn:hover{background:var(--nl)}
+.amsg-time{font-size:.58rem;color:var(--gray);padding:0 3px}
+
+.typing-row{display:flex;gap:7px;align-items:flex-end}
+.typing-bub{background:white;border:1px solid var(--border);border-radius:14px;border-bottom-right-radius:4px;padding:10px 14px;display:flex;gap:4px;align-items:center;box-shadow:0 2px 8px rgba(46,44,120,.04)}
+.td{width:6px;height:6px;background:var(--gray);border-radius:50%;opacity:.4}
+.td:nth-child(1){animation:td 1.3s infinite .1s}
+.td:nth-child(2){animation:td 1.3s infinite .3s}
+.td:nth-child(3){animation:td 1.3s infinite .5s}
+@keyframes td{0%,60%,100%{opacity:.4;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+.ai-sugs{padding:8px 10px;background:white;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px;flex-shrink:0}
+.sug{background:var(--light);border:1px solid var(--border);color:var(--navy);font-size:.68rem;font-weight:600;padding:5px 10px;border-radius:16px;cursor:pointer;font-family:inherit;transition:.15s}
+.sug:hover{background:var(--navy);color:var(--yellow);border-color:var(--navy)}
+
+.ai-inp-wrap{padding:9px 10px;background:white;border-top:1px solid var(--border);display:flex;gap:7px;align-items:center;flex-shrink:0}
+.ai-inp{flex:1;border:1.5px solid var(--border);border-radius:18px;padding:8px 13px;font-size:.79rem;font-family:inherit;outline:none;transition:.2s;background:var(--light)}
+.ai-inp:focus{border-color:var(--navy);background:white}
+.ai-inp::placeholder{color:var(--gray)}
+.ai-send{width:35px;height:35px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--nl));border:none;cursor:pointer;color:var(--yellow);font-size:.88rem;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
+.ai-send:hover{transform:scale(1.08)}
+.ai-foot{padding:5px 12px;background:white;border-top:1px solid var(--border);font-size:.56rem;color:var(--gray);text-align:center;flex-shrink:0}
+
+/* ━━━━ RESPONSIVE ━━━━ */
+@media(max-width:860px){
+  .hero-inner,.g2,.g3,.kpi-strip,.svc-grid{grid-template-columns:1fr}
+  .nav-menu{display:none}
+  .hero-card{margin-top:20px}
+}
+@media(max-width:480px){
+  .ai-win{width:calc(100vw - 20px);left:10px;right:10px;bottom:10px;height:calc(100vh - 20px)}
+  .ai-fab{bottom:14px;left:14px;width:54px;height:54px;font-size:1.4rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ━━━━ NAV ━━━━ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">K</div>
+    <div>
+      <div class="nav-brand">KPTC</div>
+      <div class="nav-sub">بوابة المستأجر</div>
+    </div>
+    <ul class="nav-menu">
+      <li><a href="#overview" class="on">الرئيسية</a></li>
+      <li><a href="#services">الخدمات</a></li>
+      <li><a href="#payments">الدفعات</a></li>
+      <li><a href="#requests">الطلبات</a></li>
+      <li><a href="#notifications">الإشعارات</a></li>
+    </ul>
+    <div class="nav-user">
+      <div class="nav-av">أ</div>
+      <div>
+        <div class="nav-un">أحمد الخليج للمطاعم</div>
+        <div class="nav-ur">T001 • مطعم الخليج — حولي</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ━━━━ HERO ━━━━ -->
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-chip"><div class="hero-chip-dot"></div>بوابة المستأجر الرقمية</div>
+      <h1>مرحباً أحمد،<br>إدارة عقدك بكل <em>سهولة</em></h1>
+      <p>لديك <strong style="color:var(--yellow)">إيجار متأخر 12 يوم</strong> — عقدك ينتهي بعد 7 أشهر — 1 طلب صيانة قيد التنفيذ. استخدم المساعد الذكي في الزاوية لأي استفسار.</p>
+      <div class="hero-btns">
+        <button class="hbtn-p" onclick="scrollTo('#payments')">💳 دفع الإيجار المتأخر</button>
+        <button class="hbtn-s" onclick="openChat()">🤖 المساعد الذكي</button>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="hc-label">عقدك الحالي</div>
+      <div class="hc-unit">🍽️ مطعم الخليج — محطة حولي</div>
+      <div class="hc-rows">
+        <div class="hc-row"><span class="hc-key">الإيجار الشهري</span><span class="hc-val yellow">1,200 د.ك</span></div>
+        <div class="hc-divider"></div>
+        <div class="hc-row"><span class="hc-key">بداية العقد</span><span class="hc-val">1 ديسمبر 2023</span></div>
+        <div class="hc-row"><span class="hc-key">انتهاء العقد</span><span class="hc-val">1 ديسمبر 2026</span></div>
+        <div class="hc-divider"></div>
+        <div class="hc-row"><span class="hc-key">حالة الدفع</span><span class="hc-val red">⚠️ متأخر 12 يوم</span></div>
+        <div class="hc-row"><span class="hc-key">حالة الطلبات</span><span class="hc-val" style="color:var(--orange)">🔧 1 طلب نشط</span></div>
+        <div class="hc-divider"></div>
+        <div class="hc-row"><span class="hc-key">رقم العقد</span><span class="hc-val" style="color:rgba(255,255,255,.5)">C-2026-001</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━ OVERVIEW ━━━━ -->
+<section id="overview" style="padding:36px 20px 30px">
+  <div class="wrap">
+    <div class="kpi-strip">
+      <div class="kpi-c" onclick="scrollToSec('payments')">
+        <div class="kpi-ic">💰</div>
+        <div class="kpi-v" style="color:var(--red)">1,200</div>
+        <div class="kpi-l">إيجار مستحق (د.ك)</div>
+        <div class="kpi-c2" style="color:var(--red)">متأخر 12 يوم</div>
+      </div>
+      <div class="kpi-c">
+        <div class="kpi-ic">📅</div>
+        <div class="kpi-v">7</div>
+        <div class="kpi-l">أشهر حتى انتهاء العقد</div>
+        <div class="kpi-c2" style="color:var(--orange)">ديسمبر 2026</div>
+      </div>
+      <div class="kpi-c" onclick="scrollToSec('requests')">
+        <div class="kpi-ic">🔧</div>
+        <div class="kpi-v">1</div>
+        <div class="kpi-l">طلب صيانة نشط</div>
+        <div class="kpi-c2" style="color:var(--orange)">قيد التنفيذ</div>
+      </div>
+      <div class="kpi-c">
+        <div class="kpi-ic">⭐</div>
+        <div class="kpi-v">4.6</div>
+        <div class="kpi-l">تقييمك كمستأجر</div>
+        <div class="kpi-c2" style="color:var(--green)">ممتاز</div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <!-- Unit display -->
+      <div>
+        <div class="unit-showcase">
+          <div class="us-icon">🍽️</div>
+          <div class="us-label">وحدتي المستأجرة</div>
+          <div class="us-name">مطعم الخليج — محطة حولي الرئيسية</div>
+          <div class="us-grid">
+            <div class="us-stat"><div class="us-sv">85 م²</div><div class="us-sl">المساحة</div></div>
+            <div class="us-stat"><div class="us-sv">الطابق G</div><div class="us-sl">الموقع</div></div>
+            <div class="us-stat"><div class="us-sv">منذ 2023</div><div class="us-sl">بداية العقد</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-t">📋 تفاصيل العقد</div><button class="card-a" onclick="T('📥 جاري تحميل نسخة العقد PDF')">📥 تحميل العقد</button></div>
+          <div class="card-b">
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div style="display:flex;justify-content:space-between;font-size:.77rem;padding-bottom:9px;border-bottom:1px dashed var(--border)"><span style="color:var(--gray)">رقم العقد</span><strong>C-2026-001</strong></div>
+              <div style="display:flex;justify-content:space-between;font-size:.77rem;padding-bottom:9px;border-bottom:1px dashed var(--border)"><span style="color:var(--gray)">نوع الوحدة</span><strong>مطعم تجاري</strong></div>
+              <div style="display:flex;justify-content:space-between;font-size:.77rem;padding-bottom:9px;border-bottom:1px dashed var(--border)"><span style="color:var(--gray)">الإيجار الشهري</span><strong style="color:var(--navy)">1,200 د.ك</strong></div>
+              <div style="display:flex;justify-content:space-between;font-size:.77rem;padding-bottom:9px;border-bottom:1px dashed var(--border)"><span style="color:var(--gray)">يوم الاستحقاق</span><strong>الأول من كل شهر</strong></div>
+              <div style="display:flex;justify-content:space-between;font-size:.77rem;padding-bottom:9px;border-bottom:1px dashed var(--border)"><span style="color:var(--gray)">مدة العقد</span><strong>3 سنوات</strong></div>
+              <div style="display:flex;justify-content:space-between;font-size:.77rem"><span style="color:var(--gray)">الحالة</span><span class="pill pr">متأخر الدفع</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment timeline -->
+      <div class="card">
+        <div class="card-h"><div class="card-t">💳 سجل الدفعات الأخيرة</div><button class="card-a" onclick="scrollToSec('payments')">عرض الكل</button></div>
+        <div class="card-b">
+          <div class="pay-timeline">
+            <div class="pt-item">
+              <div class="pt-dot late">!</div>
+              <div class="pt-content">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                  <div><div class="pt-month">مايو 2026</div><div class="pt-date">مستحق 1/5/2026 — لم يدفع بعد</div></div>
+                  <div style="text-align:left"><div class="pt-amount">1,200 د.ك</div><span class="pill pr" style="font-size:.56rem">متأخر</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="pt-item">
+              <div class="pt-dot paid">✓</div>
+              <div class="pt-content">
+                <div style="display:flex;justify-content:space-between">
+                  <div><div class="pt-month">أبريل 2026</div><div class="pt-date">دفع 1/4/2026 — تحويل بنكي</div></div>
+                  <div style="text-align:left"><div class="pt-amount">1,200 د.ك</div><span class="pill pg" style="font-size:.56rem">مدفوع</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="pt-item">
+              <div class="pt-dot paid">✓</div>
+              <div class="pt-content">
+                <div style="display:flex;justify-content:space-between">
+                  <div><div class="pt-month">مارس 2026</div><div class="pt-date">دفع 2/3/2026 — تحويل بنكي</div></div>
+                  <div style="text-align:left"><div class="pt-amount">1,200 د.ك</div><span class="pill pg" style="font-size:.56rem">مدفوع</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="pt-item">
+              <div class="pt-dot paid">✓</div>
+              <div class="pt-content">
+                <div style="display:flex;justify-content:space-between">
+                  <div><div class="pt-month">فبراير 2026</div><div class="pt-date">دفع 1/2/2026 — نقدي</div></div>
+                  <div style="text-align:left"><div class="pt-amount">1,200 د.ك</div><span class="pill pg" style="font-size:.56rem">مدفوع</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="pt-item">
+              <div class="pt-dot due">?</div>
+              <div class="pt-content">
+                <div style="display:flex;justify-content:space-between">
+                  <div><div class="pt-month">يونيو 2026</div><div class="pt-date">يستحق 1/6/2026</div></div>
+                  <div style="text-align:left"><div class="pt-amount">1,200 د.ك</div><span class="pill po" style="font-size:.56rem">قادم</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━━ SERVICES ━━━━ -->
+<section id="services" style="background:white;padding:40px 20px">
+  <div class="wrap">
+    <div class="sh">
+      <div class="sh-label">⚡ الخدمات المتاحة</div>
+      <h2>ماذا تريد أن تفعل اليوم؟</h2>
+      <p>جميع الخدمات المتعلقة بعقارك متاحة مباشرة — بضغطة واحدة</p>
+    </div>
+    <div class="svc-grid">
+      <div class="svc" onclick="scrollToSec('payments');T('💳 فتح صفحة الدفع')">
+        <div class="svc-ic">💳</div>
+        <div class="svc-name">دفع الإيجار</div>
+        <div class="svc-desc">سدّد إيجارك الشهري عبر KNET أو تحويل بنكي — واستلم إيصالاً فورياً</div>
+        <div class="svc-arrow">←</div>
+      </div>
+      <div class="svc" onclick="scrollToSec('requests')">
+        <div class="svc-ic">🔧</div>
+        <div class="svc-name">طلب صيانة</div>
+        <div class="svc-desc">أبلغ عن أي مشكلة في وحدتك — نصلها في أقل من 48 ساعة</div>
+        <div class="svc-arrow">←</div>
+      </div>
+      <div class="svc" onclick="T('📋 فتح طلب تجديد العقد')">
+        <div class="svc-ic">📋</div>
+        <div class="svc-name">تجديد العقد</div>
+        <div class="svc-desc">ابدأ إجراءات تجديد عقدك قبل 3 أشهر من الانتهاء بشكل رقمي</div>
+        <div class="svc-arrow">←</div>
+      </div>
+      <div class="svc" onclick="T('📁 فتح سجل المستندات')">
+        <div class="svc-ic">📁</div>
+        <div class="svc-name">المستندات</div>
+        <div class="svc-desc">حمّل نسخة عقدك وإيصالات الدفع وكافة المستندات الرسمية</div>
+        <div class="svc-arrow">←</div>
+      </div>
+      <div class="svc" onclick="T('📞 فتح قناة التواصل المباشر')">
+        <div class="svc-ic">📞</div>
+        <div class="svc-name">التواصل المباشر</div>
+        <div class="svc-desc">تواصل مع فريق إدارة العقارات مباشرة عبر الرسائل أو المكالمة</div>
+        <div class="svc-arrow">←</div>
+      </div>
+      <div class="svc" onclick="openChat()">
+        <div class="svc-ic">🤖</div>
+        <div class="svc-name">المساعد الذكي</div>
+        <div class="svc-desc">لديك سؤال؟ المساعد الذكي يرد في ثوانٍ على أي استفسار يخص عقارك</div>
+        <div class="svc-arrow">←</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━━ PAYMENTS ━━━━ -->
+<section id="payments" style="padding:40px 20px">
+  <div class="wrap">
+    <div class="sh">
+      <div class="sh-label">💰 الدفعات</div>
+      <h2>دفع الإيجار</h2>
+      <p>سدّد إيجارك المستحق بأمان — إيصال فوري على بريدك وجوالك</p>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-h"><div class="card-t">⚠️ مبلغ مستحق الآن</div></div>
+        <div class="card-b">
+          <div style="background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.15);border-radius:11px;padding:16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-size:.68rem;color:var(--gray);margin-bottom:3px">إيجار مايو 2026 — متأخر 12 يوم</div>
+              <div style="font-size:2rem;font-weight:900;color:var(--red)">1,200 <small style="font-size:.9rem;font-weight:400;color:var(--gray)">د.ك</small></div>
+            </div>
+            <div>
+              <div style="font-size:.66rem;color:var(--gray);margin-bottom:4px;text-align:center">غرامة تأخر (2%)</div>
+              <div style="font-size:1rem;font-weight:700;color:var(--red);text-align:center">+24 د.ك</div>
+            </div>
+          </div>
+          <div style="margin-bottom:16px">
+            <div style="font-size:.72rem;font-weight:700;color:var(--gray);margin-bottom:9px">طريقة الدفع</div>
+            <div style="display:flex;flex-direction:column;gap:6px" id="payMethods">
+              <div onclick="selectPay(this,'KNET')" class="pay-opt on" style="border:1.5px solid var(--navy);background:rgba(46,44,120,.04);border-radius:9px;padding:11px 13px;cursor:pointer;display:flex;align-items:center;gap:9px;transition:.15s">
+                <span style="font-size:1.3rem">🏦</span>
+                <div><div style="font-size:.78rem;font-weight:700;color:var(--navy)">KNET</div><div style="font-size:.65rem;color:var(--gray)">بطاقة الكويت المدينة</div></div>
+                <div style="margin-right:auto;width:18px;height:18px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:white">✓</div>
+              </div>
+              <div onclick="selectPay(this,'تحويل بنكي')" class="pay-opt" style="border:1.5px solid var(--border);border-radius:9px;padding:11px 13px;cursor:pointer;display:flex;align-items:center;gap:9px;transition:.15s">
+                <span style="font-size:1.3rem">🏛️</span>
+                <div><div style="font-size:.78rem;font-weight:700;color:var(--dark)">تحويل بنكي</div><div style="font-size:.65rem;color:var(--gray)">IBAN مباشر</div></div>
+              </div>
+              <div onclick="selectPay(this,'Apple Pay')" class="pay-opt" style="border:1.5px solid var(--border);border-radius:9px;padding:11px 13px;cursor:pointer;display:flex;align-items:center;gap:9px;transition:.15s">
+                <span style="font-size:1.3rem">🍎</span>
+                <div><div style="font-size:.78rem;font-weight:700;color:var(--dark)">Apple Pay</div><div style="font-size:.65rem;color:var(--gray)">للأجهزة الذكية</div></div>
+              </div>
+            </div>
+          </div>
+          <button class="btn bn" style="width:100%;padding:13px;font-size:.84rem" onclick="processPayment()">
+            💳 دفع 1,224 د.ك الآن
+          </button>
+          <div style="text-align:center;font-size:.64rem;color:var(--gray);margin-top:8px">🔒 مدفوعات مشفرة وآمنة — إيصال فوري</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-t">📊 ملخص سجل الدفعات</div></div>
+        <div class="card-b">
+          <div style="margin-bottom:14px;padding:13px;background:var(--light);border-radius:10px;border:1px solid var(--border)">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.77rem"><span style="color:var(--gray)">إجمالي المدفوع 2026</span><strong style="color:var(--green)">4,800 د.ك</strong></div>
+            <div class="prog" style="margin-top:0"><div class="prog-f" style="width:80%;background:var(--green)"></div></div>
+          </div>
+          <div class="tw">
+            <table class="dt">
+              <thead><tr><th>الشهر</th><th>المبلغ</th><th>الطريقة</th><th>الحالة</th></tr></thead>
+              <tbody>
+                <tr><td>مايو 2026</td><td><strong>1,200</strong></td><td>—</td><td><span class="pill pr">متأخر</span></td></tr>
+                <tr><td>أبريل 2026</td><td><strong>1,200</strong></td><td>تحويل</td><td><span class="pill pg">مدفوع</span></td></tr>
+                <tr><td>مارس 2026</td><td><strong>1,200</strong></td><td>تحويل</td><td><span class="pill pg">مدفوع</span></td></tr>
+                <tr><td>فبراير 2026</td><td><strong>1,200</strong></td><td>نقدي</td><td><span class="pill pg">مدفوع</span></td></tr>
+                <tr><td>يناير 2026</td><td><strong>1,200</strong></td><td>KNET</td><td><span class="pill pg">مدفوع</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━━ REQUESTS ━━━━ -->
+<section id="requests" style="background:white;padding:40px 20px">
+  <div class="wrap">
+    <div class="sh">
+      <div class="sh-label">🔧 الطلبات</div>
+      <h2>طلباتي</h2>
+      <p>تتبع طلبات الصيانة والاستفسارات الرسمية</p>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-h"><div class="card-t">📋 طلباتي النشطة</div><button class="card-a" onclick="openRequestForm()">+ طلب جديد</button></div>
+        <div class="card-b">
+          <div style="border:1.5px solid rgba(217,119,6,.3);background:rgba(217,119,6,.04);border-radius:11px;padding:14px;margin-bottom:10px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+              <div><div style="font-size:.65rem;color:var(--gray);margin-bottom:2px">M003 • صيانة سباكة</div><div style="font-size:.85rem;font-weight:700;color:var(--navy)">تسرب مياه في مطبخ الكافيه</div></div>
+              <span class="pill po">قيد التنفيذ</span>
+            </div>
+            <div style="font-size:.72rem;color:var(--gray);line-height:1.75;margin-bottom:10px">وصف المشكلة: تسرب مياه واضح في ركن المطبخ الجانبي يؤثر على التشغيل — تاريخ البلاغ: 10/5/2026</div>
+            <div style="display:flex;gap:6px;font-size:.66rem;color:var(--gray);flex-wrap:wrap">
+              <span>👷 الفني: محمد العجمي</span>
+              <span>•</span>
+              <span>📅 موعد الزيارة: 13/5/2026 — 10:00 ص</span>
+            </div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(217,119,6,.2)">
+              <div style="font-size:.66rem;color:var(--gray);margin-bottom:5px">التقدم</div>
+              <div class="prog"><div class="prog-f" style="width:60%;background:var(--orange)"></div></div>
+            </div>
+          </div>
+          <div style="text-align:center;padding:20px;color:var(--gray);font-size:.78rem">لا توجد طلبات معلقة أخرى ✓</div>
+        </div>
+      </div>
+      <div class="form-card" id="requestFormCard">
+        <div class="form-steps">
+          <div class="fstep on" id="fstep1">1 — نوع الطلب</div>
+          <div class="fstep" id="fstep2">2 — التفاصيل</div>
+          <div class="fstep" id="fstep3">3 — الإرسال</div>
+        </div>
+        <div class="form-body" id="formBody">
+          <div style="font-size:.8rem;font-weight:700;color:var(--navy);margin-bottom:12px">ما نوع طلبك؟</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+            <div onclick="selectReqType(this,'صيانة كهربائية')" class="req-type" style="border:1.5px solid var(--border);border-radius:9px;padding:12px;text-align:center;cursor:pointer;transition:.15s"><div style="font-size:1.4rem;margin-bottom:5px">⚡</div><div style="font-size:.73rem;font-weight:600">صيانة كهربائية</div></div>
+            <div onclick="selectReqType(this,'صيانة سباكة')" class="req-type" style="border:1.5px solid var(--border);border-radius:9px;padding:12px;text-align:center;cursor:pointer;transition:.15s"><div style="font-size:1.4rem;margin-bottom:5px">🚿</div><div style="font-size:.73rem;font-weight:600">سباكة ومياه</div></div>
+            <div onclick="selectReqType(this,'صيانة تكييف')" class="req-type" style="border:1.5px solid var(--border);border-radius:9px;padding:12px;text-align:center;cursor:pointer;transition:.15s"><div style="font-size:1.4rem;margin-bottom:5px">❄️</div><div style="font-size:.73rem;font-weight:600">تكييف</div></div>
+            <div onclick="selectReqType(this,'استفسار عام')" class="req-type" style="border:1.5px solid var(--border);border-radius:9px;padding:12px;text-align:center;cursor:pointer;transition:.15s"><div style="font-size:1.4rem;margin-bottom:5px">💬</div><div style="font-size:.73rem;font-weight:600">استفسار عام</div></div>
+          </div>
+          <button class="btn bn" style="width:100%;margin-top:14px" onclick="nextFormStep()">التالي ←</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━━ NOTIFICATIONS ━━━━ -->
+<section id="notifications" style="padding:40px 20px">
+  <div class="wrap">
+    <div class="sh">
+      <div class="sh-label">🔔 الإشعارات</div>
+      <h2>إشعاراتي</h2>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">🔔 جميع الإشعارات</div><button class="card-a" onclick="markAllRead()">تمييز الكل كمقروء</button></div>
+      <div id="notifsList">
+        <div class="notif unread">
+          <div class="notif-ic" style="background:rgba(220,38,38,.08)">⚠️</div>
+          <div style="flex:1"><div class="notif-title">تنبيه: إيجار مايو 2026 متأخر</div><div class="notif-body">إيجارك لشهر مايو 2026 بمبلغ 1,200 د.ك متأخر 12 يوم — يُرجى السداد في أقرب وقت لتجنب غرامة التأخر</div></div>
+          <div class="notif-time">اليوم</div>
+        </div>
+        <div class="notif unread">
+          <div class="notif-ic" style="background:rgba(217,119,6,.08)">🔧</div>
+          <div style="flex:1"><div class="notif-title">تحديث: طلب الصيانة M003</div><div class="notif-body">تم تعيين الفني محمد العجمي لمعالجة طلب سباكة — موعد الزيارة غداً 10:00 صباحاً</div></div>
+          <div class="notif-time">أمس</div>
+        </div>
+        <div class="notif">
+          <div class="notif-ic" style="background:rgba(5,150,105,.08)">✅</div>
+          <div style="flex:1"><div class="notif-title">تم استلام إيجار أبريل 2026</div><div class="notif-body">تم استلام دفعة إيجار أبريل 2026 بمبلغ 1,200 د.ك بنجاح — شكراً لالتزامك</div></div>
+          <div class="notif-time">1/4/2026</div>
+        </div>
+        <div class="notif">
+          <div class="notif-ic" style="background:rgba(29,78,216,.08)">📋</div>
+          <div style="flex:1"><div class="notif-title">تذكير: عقدك ينتهي بعد 7 أشهر</div><div class="notif-body">عقد مطعم الخليج ينتهي في 1 ديسمبر 2026 — يمكنك بدء إجراءات التجديد مبكراً من هذه الصفحة</div></div>
+          <div class="notif-time">1/4/2026</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="background:var(--nx);color:rgba(255,255,255,.4);padding:24px 20px;text-align:center;font-size:.72rem;border-top:1px solid rgba(255,201,60,.08)">
+  <div class="wrap"><strong style="color:var(--yellow)">KPTC — شركة النقل العام الكويتية</strong> • بوابة المستأجر الرقمية • جميع الحقوق محفوظة 2026</div>
+</footer>
+
+<!-- AI CHAT FAB -->
+<button class="ai-fab" id="aiFab" onclick="openChat()">
+  💬
+  <div class="ai-badge" id="aiBadge">2</div>
+</button>
+
+<!-- AI WINDOW -->
+<div class="ai-win" id="aiWin">
+  <div class="ai-head">
+    <div class="ai-av">ك</div>
+    <div style="flex:1">
+      <div class="ai-name">كابتن KPTC <span class="ai-chip">مساعدك الذكي</span></div>
+      <div class="ai-status">متاح الآن • يعرف عقدك وبياناتك</div>
+    </div>
+    <div class="ai-hbtns">
+      <button class="ai-hbtn" onclick="resetChat()" title="محادثة جديدة">🔄</button>
+      <button class="ai-hbtn" onclick="closeChat()">✕</button>
+    </div>
+  </div>
+  <div class="ai-body" id="aiBody"></div>
+  <div class="ai-sugs" id="aiSugs"></div>
+  <div class="ai-inp-wrap">
+    <input class="ai-inp" id="aiInp" placeholder="اسألني عن عقدك أو إيجارك..." onkeypress="if(event.key==='Enter')sendMsg()">
+    <button class="ai-send" onclick="sendMsg()">➤</button>
+  </div>
+  <div class="ai-foot">🔒 بياناتك محمية ومشفرة • KPTC AI 2026</div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+// ━━━━ TENANT DATA ━━━━
+var tenant = {
+  name: 'أحمد الخليج للمطاعم',
+  unit: 'مطعم الخليج',
+  location: 'محطة حولي',
+  rent: 1200,
+  late_days: 12,
+  contract_end: 'ديسمبر 2026',
+  contract_id: 'C-2026-001',
+};
+
+// ━━━━ AI INTENTS ━━━━
+var INTENTS = [
+  {kw:['مرحب','اهل','هلا','hi','hello','السلام','صباح','مساء'],fn:iGreet},
+  {kw:['متأخر','إيجار','متى','مستحق','كم المبلغ','ادفع','غرامة','تأخر'],fn:iPayment},
+  {kw:['dafع','knet','فيزا','apple','طريقة','بطاقة'],fn:iPay},
+  {kw:['صيانة','عطل','مشكلة','تسرب','مياه','كهرب','تكييف','مكيف'],fn:iMaint},
+  {kw:['عقد','ينتهي','تجديد','مدة','فترة','سنة'],fn:iContract},
+  {kw:['وثيقة','مستند','ايصال','ايصل','تحميل','نسخة'],fn:iDocs},
+  {kw:['تواصل','اتصل','ايميل','هاتف','مدير','مسؤول','شكوى'],fn:iContact},
+  {kw:['مساحة','طابق','موقع','وحدة','شقق','كم متر'],fn:iUnit},
+  {kw:['شكر','thanks','ممتاز','جيد','تمام','مشكور'],fn:iThanks},
+  {kw:['مساعدة','help','ماذا','تستطيع','قدرات','أوامر'],fn:iHelp},
+];
+
+var SUGS_DEF = ['كم الإيجار المتأخر؟','كيف أدفع؟','متى ينتهي عقدي؟','أريد طلب صيانة','تحميل الإيصال'];
+
+// ━━━━ RESPONSE HANDLERS ━━━━
+function iGreet(){return{t:'مرحباً '+tenant.name.split(' ')[0]+' 👋<br><br>أنا مساعدك الذكي — لديّ وصول كامل لبيانات عقدك في KPTC.<br><br>لديك حالياً:<br>• <strong>إيجار متأخر '+tenant.late_days+' يوم</strong> — 1,200 د.ك<br>• طلب صيانة نشط — قيد التنفيذ<br>• عقدك ينتهي في <strong>'+tenant.contract_end+'</strong>',s:['كيف أدفع الإيجار؟','تفاصيل طلب الصيانة','متى موعد الدفع؟']}}
+function iPayment(){return{t:'<strong>💰 وضع الإيجار المستحق</strong><br><br>إيجار <strong>مايو 2026</strong> متأخر <strong style="color:var(--red)">'+tenant.late_days+' يوم</strong><br><br><span class="b-pill">المبلغ الأصلي: 1,200 د.ك</span><br><span class="b-pill">غرامة التأخر (2%): +24 د.ك</span><br><span class="b-pill" style="background:rgba(220,38,38,.1);color:var(--red)">الإجمالي: 1,224 د.ك</span><br><br>⏰ <em>كلما أسرعت، تجنبت زيادة الغرامة</em><br><br><button class="b-btn" onclick="scrollToSec(\'payments\');closeChat()">💳 اذهب للدفع الآن</button>',s:['طرق الدفع المتاحة','كيف أحصل على إيصال؟','هل يمكن التقسيط؟']}}
+function iPay(){return{t:'<strong>طرق الدفع المتاحة</strong><br><br>🏦 <strong>KNET</strong> — بطاقة الكويت المدينة (موصى به)<br>🏛️ <strong>تحويل بنكي</strong> — IBAN مباشر لحساب KPTC<br>🍎 <strong>Apple Pay</strong> — للأجهزة الذكية iOS<br>💵 <strong>نقدي</strong> — في مكتب إدارة العقارات<br><br>✓ بعد الدفع تصلك رسالة إيصال فوراً<br><br><button class="b-btn" onclick="scrollToSec(\'payments\');closeChat()">💳 ادفع الآن</button>',s:['كم المبلغ الكلي؟','هل توجد غرامة إضافية؟']}}
+function iMaint(){return{t:'<strong>🔧 طلب الصيانة الحالي</strong><br><br>رقم الطلب: <span class="b-pill">M003</span><br>النوع: صيانة سباكة<br>الحالة: <span class="b-pill" style="background:rgba(217,119,6,.1);color:var(--orange)">قيد التنفيذ</span><br><br>الفني المعين: <strong>محمد العجمي</strong><br>موعد الزيارة: <strong>13/5/2026 — 10:00 صباحاً</strong><br><br>لطلب صيانة جديدة:<br><button class="b-btn" onclick="scrollToSec(\'requests\');closeChat()">🔧 طلب صيانة جديدة</button>',s:['متى يحضر الفني؟','كيف أتواصل مع الفني؟','أريد طلب صيانة أخرى']}}
+function iContract(){return{t:'<strong>📋 تفاصيل عقدك</strong><br><br>رقم العقد: <span class="b-pill">'+tenant.contract_id+'</span><br>الوحدة: <strong>'+tenant.unit+' — '+tenant.location+'</strong><br>الإيجار: <strong>'+tenant.rent.toLocaleString()+' د.ك / شهر</strong><br>انتهاء العقد: <strong>'+tenant.contract_end+'</strong><br><br>⏰ متبقي <strong>7 أشهر</strong> — يُنصح ببدء التجديد قبل 3 أشهر<br><br><button class="b-btn" onclick="T(\'📋 فتح طلب تجديد العقد\')">📋 ابدأ التجديد</button>',s:['ما شروط التجديد؟','هل سيتغير الإيجار؟','كيف أطلب التجديد؟']}}
+function iDocs(){return{t:'<strong>📁 مستنداتك المتاحة</strong><br><br>يمكنك تحميل:<br>• نسخة عقد الإيجار الموقّع<br>• إيصالات جميع الدفعات السابقة<br>• شهادة إقامة تجارية (إن طُلبت)<br><br><button class="b-btn" onclick="T(\'📥 جاري تحضير المستندات للتحميل\')">📥 تحميل المستندات</button>',s:['تحميل إيصال مايو','نسخة العقد','شهادة الإقامة']}}
+function iContact(){return{t:'<strong>📞 تواصل مع إدارة العقارات</strong><br><br>📱 الجوال: <strong>+965 1880 001</strong><br>📧 البريد: <strong>realestate@kptc.com.kw</strong><br>🕐 أوقات العمل: الأحد-الخميس 8:00-16:00<br><br>المسؤول المباشر: <strong>فريق إدارة المستأجرين</strong><br><br><button class="b-btn" onclick="T(\'📞 جاري الاتصال بالمسؤول\')">📞 اتصل الآن</button>',s:['متى أوقات العمل؟','هل يمكن التواصل عبر واتساب؟']}}
+function iUnit(){return{t:'<strong>🏪 تفاصيل وحدتك</strong><br><br><span class="b-pill">مطعم الخليج</span><br>الموقع: <strong>محطة حولي الرئيسية — الطابق G</strong><br>المساحة: <strong>85 م²</strong><br>النوع: <strong>مطعم تجاري</strong><br>الحالة: <strong style="color:var(--green)">مؤجّرة ونشطة</strong>',s:['خريطة الموقع','هل يمكن تأجير مساحة إضافية؟']}}
+function iThanks(){var r=['العفو! 😊 هل تحتاج شيئاً آخر؟','بكل سرور! أنا هنا إذا احتجت مساعدة.','وأنت بخير! لا تتردد بالعودة.'];return{t:r[Math.floor(Math.random()*r.length)],s:SUGS_DEF}}
+function iHelp(){return{t:'<strong>🤖 ماذا أستطيع أن أفعل؟</strong><br><br>• 💰 إبلاغك عن الإيجار المستحق وطرق الدفع<br>• 📋 عرض تفاصيل عقدك وتواريخ الانتهاء<br>• 🔧 متابعة طلبات الصيانة<br>• 📁 مساعدتك في تحميل المستندات<br>• 📞 التواصل مع المسؤول المباشر<br><br>اكتب سؤالك بالعربية الدارجة 😊',s:SUGS_DEF}}
+function iFallback(msg){return{t:'لم أفهم سؤالك تماماً 🤔<br>جرّب:<br>• <em>"كم الإيجار المتأخر؟"</em><br>• <em>"متى ينتهي عقدي؟"</em><br>• <em>"أريد طلب صيانة"</em><br><br>أو تواصل مع المسؤول: <strong>1880 001</strong>',s:SUGS_DEF}}
+
+function processMsg(msg){
+  var low=msg.toLowerCase();
+  for(var i=0;i<INTENTS.length;i++){
+    for(var j=0;j<INTENTS[i].kw.length;j++){
+      if(low.indexOf(INTENTS[i].kw[j])!==-1) return INTENTS[i].fn();
+    }
+  }
+  return iFallback(msg);
+}
+
+// ━━━━ CHAT UI ━━━━
+var opened=false;
+function openChat(){
+  document.getElementById('aiWin').classList.add('open');
+  document.getElementById('aiFab').classList.add('hidden');
+  document.getElementById('aiBadge').style.display='none';
+  if(!opened){
+    opened=true;
+    setTimeout(function(){
+      var r=iGreet();
+      addBot(r.t,r.s);
+    },500);
+  }
+  setTimeout(function(){document.getElementById('aiInp').focus()},350);
+}
+function closeChat(){document.getElementById('aiWin').classList.remove('open');setTimeout(function(){document.getElementById('aiFab').classList.remove('hidden')},200)}
+function resetChat(){if(!confirm('بدء محادثة جديدة؟'))return;document.getElementById('aiBody').innerHTML='';document.getElementById('aiSugs').innerHTML='';opened=false;setTimeout(openChat,100)}
+
+function sendMsg(){
+  var inp=document.getElementById('aiInp');var txt=inp.value.trim();if(!txt)return;
+  addUser(txt);inp.value='';
+  document.getElementById('aiSugs').innerHTML='';
+  showTyping();
+  setTimeout(function(){
+    hideTyping();
+    var r=processMsg(txt);
+    addBot(r.t,r.s||[]);
+  },800+Math.random()*500);
+}
+
+function addUser(txt){
+  var t=now();
+  document.getElementById('aiBody').innerHTML+='<div class="amsg u"><div class="amsg-av">أ</div><div class="amsg-wrap"><div class="bubble">'+escH(txt)+'</div><div class="amsg-time">'+t+'</div></div></div>';
+  scroll();
+}
+function addBot(html,sugs){
+  var t=now();
+  document.getElementById('aiBody').innerHTML+='<div class="amsg b"><div class="amsg-av">ك</div><div class="amsg-wrap"><div class="bubble">'+html+'</div><div class="amsg-time">'+t+'</div></div></div>';
+  scroll();
+  if(sugs&&sugs.length){
+    document.getElementById('aiSugs').innerHTML=sugs.map(function(s){return'<button class="sug" onclick="quickAsk(\''+s.replace(/'/g,"\\'")+'\')">'+(s.length<30?s:s.substr(0,28)+'...')+'</button>'}).join('');
+  }
+}
+function showTyping(){
+  document.getElementById('aiBody').innerHTML+='<div class="typing-row" id="typingInd"><div class="amsg-av" style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--yellow),var(--gold));display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);font-size:.75rem;flex-shrink:0">ك</div><div class="typing-bub"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>';
+  scroll();
+}
+function hideTyping(){var t=document.getElementById('typingInd');if(t)t.remove()}
+function quickAsk(txt){document.getElementById('aiInp').value=txt;sendMsg()}
+function scroll(){var b=document.getElementById('aiBody');b.scrollTop=b.scrollHeight}
+function now(){var d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')}
+function escH(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+// ━━━━ PAGE FUNCTIONS ━━━━
+var selectedPay='KNET';
+function selectPay(el,method){
+  selectedPay=method;
+  document.querySelectorAll('.pay-opt').forEach(function(o){
+    o.style.border='1.5px solid var(--border)';o.style.background='white';
+    o.querySelector('div:last-child')&&o.querySelector('div:last-child').tagName==='DIV'?o.querySelector('div[style*="border-radius:50%"]')&&o.removeChild(o.querySelector('div[style*="border-radius:50%"]')):null;
+  });
+  el.style.border='1.5px solid var(--navy)';el.style.background='rgba(46,44,120,.04)';
+}
+function processPayment(){
+  var btn=event.target;btn.innerHTML='<div style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></div> جاري المعالجة...';
+  btn.disabled=true;
+  setTimeout(function(){
+    btn.innerHTML='✅ تم الدفع بنجاح!';btn.style.background='var(--green)';
+    T('✅ تم دفع 1,224 د.ك بنجاح عبر '+selectedPay+' — إيصال أُرسل على جوالك','ok');
+  },2500);
+}
+
+var reqStep=1;var selReqType='';
+function openRequestForm(){document.getElementById('requestFormCard').scrollIntoView({behavior:'smooth'})}
+function selectReqType(el,type){
+  selReqType=type;
+  document.querySelectorAll('.req-type').forEach(function(r){r.style.border='1.5px solid var(--border)';r.style.background='white'});
+  el.style.border='1.5px solid var(--navy)';el.style.background='rgba(46,44,120,.04)';
+}
+function nextFormStep(){
+  reqStep++;
+  document.getElementById('fstep'+Math.min(reqStep,3)).classList.add('on');
+  if(reqStep===2){
+    document.getElementById('formBody').innerHTML='<div style="font-size:.8rem;font-weight:700;color:var(--navy);margin-bottom:12px">تفاصيل '+selReqType+'</div><div class="fg g1"><div class="ff"><label>وصف المشكلة</label><textarea id="reqDesc" placeholder="اشرح المشكلة بالتفصيل..."></textarea></div><div class="ff"><label>درجة الإلحاح</label><select id="reqPriority"><option>عالي — يؤثر على التشغيل</option><option>متوسط — يحتاج معالجة قريبة</option><option>منخفض — غير عاجل</option></select></div></div><button class="btn bn" style="width:100%;margin-top:12px" onclick="nextFormStep()">التالي ←</button>';
+  } else if(reqStep===3){
+    var desc=document.getElementById('reqDesc')&&document.getElementById('reqDesc').value||'—';
+    document.getElementById('formBody').innerHTML='<div style="text-align:center;padding:10px"><div style="font-size:2rem;margin-bottom:10px">✅</div><div style="font-weight:800;color:var(--navy);margin-bottom:6px">تم إرسال طلبك بنجاح</div><div style="font-size:.75rem;color:var(--gray);line-height:1.8;margin-bottom:14px">سيتواصل معك فريق الصيانة خلال 24-48 ساعة<br>رقم الطلب: <strong>M00'+Math.floor(Math.random()*900+100)+'</strong></div><button class="btn bw bsm" onclick="reqStep=1;location.reload()">إرسال طلب جديد</button></div>';
+    T('✅ تم إرسال طلب '+selReqType,'ok');
+    reqStep=1;
+  }
+}
+
+function markAllRead(){
+  document.querySelectorAll('.notif.unread').forEach(function(n){n.classList.remove('unread')});
+  T('✅ تم تمييز الكل كمقروء','ok');
+}
+
+function scrollToSec(id){document.getElementById(id)&&document.getElementById(id).scrollIntoView({behavior:'smooth'})}
+
+// ━━━━ TOAST ━━━━
+var TT;
+function T(msg,type){
+  var el=document.getElementById('toastEl');el.textContent=msg;el.className='toast'+(type?' '+type:'');
+  el.classList.add('show');clearTimeout(TT);TT=setTimeout(function(){el.classList.remove('show')},3500);
+}
+
+// Add spin keyframe
+var style=document.createElement('style');style.textContent='@keyframes spin{to{transform:rotate(360deg)}}';document.head.appendChild(style);
+
+// Auto show badge after 4s
+setTimeout(function(){if(!opened){document.getElementById('aiBadge').style.animation='blink 1.5s ease 3'}},4000);
+</script>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+</html>

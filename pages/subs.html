@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPTC — الاشتراكات والتذاكر</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#2E2C78;--navy-l:#3D3B95;--navy-d:#1F1D5C;
+  --yellow:#FFC93C;--white:#fff;--light:#F5F5FA;
+  --gray:#5D5C80;--dark:#14133A;--border:#DEDDEC;
+  --green:#10B981;--red:#EF4444;--orange:#F59E0B;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;background:var(--light);color:var(--dark);min-height:100vh}
+
+/* NAV */
+nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px solid rgba(255,201,60,.15)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:62px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:38px;height:38px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;color:var(--navy);font-size:.9rem}
+.logo-name{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.2rem;letter-spacing:2px;color:var(--yellow)}
+.logo-sub{font-size:.6rem;color:rgba(255,255,255,.5);letter-spacing:1px}
+.nav-links{display:flex;gap:4px;list-style:none}
+.nav-links a{color:rgba(255,255,255,.75);text-decoration:none;font-size:.83rem;padding:7px 13px;border-radius:8px;transition:.2s}
+.nav-links a:hover,.nav-links a.active{color:var(--yellow);background:rgba(255,201,60,.08)}
+.nav-links a.active{font-weight:700}
+.cart-btn{position:relative;background:rgba(255,201,60,.12);border:1px solid rgba(255,201,60,.25);color:var(--yellow);border-radius:10px;padding:8px 16px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;display:flex;align-items:center;gap:6px}
+.cart-btn:hover{background:rgba(255,201,60,.2)}
+.cart-count{background:var(--red);color:white;width:18px;height:18px;border-radius:50%;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;position:absolute;top:-6px;left:-6px;transition:.3s;transform:scale(0)}
+.cart-count.show{transform:scale(1)}
+
+/* HERO */
+.page-hero{background:linear-gradient(135deg,var(--navy-d),var(--navy) 50%,var(--navy-l));padding:40px 32px 0;position:relative;overflow:hidden}
+.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 75% 50%,rgba(255,201,60,.08),transparent 60%)}
+.page-hero::after{content:'💳';position:absolute;left:5%;top:50%;transform:translateY(-50%);font-size:12rem;opacity:.04;pointer-events:none}
+.hero-inner{position:relative;z-index:2;max-width:700px;margin-bottom:32px}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.25);color:var(--yellow);padding:5px 14px;border-radius:20px;font-size:.75rem;font-weight:700;margin-bottom:16px}
+.hero-inner h1{font-size:2.2rem;color:white;font-weight:700;margin-bottom:10px;line-height:1.3}
+.hero-inner h1 span{color:var(--yellow)}
+.hero-inner p{color:rgba(255,255,255,.7);font-size:.95rem;line-height:1.8;margin-bottom:24px}
+.hero-tabs{display:flex;gap:0;background:rgba(0,0,0,.2);border-radius:14px 14px 0 0;overflow:hidden;border:1px solid rgba(255,255,255,.1);border-bottom:none;width:fit-content}
+.hero-tab{padding:13px 28px;font-size:.88rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.6);font-family:inherit;transition:.2s;position:relative}
+.hero-tab.active{background:white;color:var(--navy);font-weight:700}
+.hero-tab .tab-badge{background:var(--yellow);color:var(--navy);font-size:.65rem;font-weight:700;padding:1px 7px;border-radius:10px;margin-right:6px}
+
+/* CONTENT */
+.content{background:white;min-height:60vh}
+.tab-page{display:none;padding:32px}
+.tab-page.active{display:block}
+
+/* ── SUBSCRIPTIONS ── */
+.sub-hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px}
+.sub-card{border-radius:20px;border:2px solid var(--border);padding:28px 24px;background:white;transition:all .3s;position:relative;cursor:pointer}
+.sub-card:hover{border-color:var(--navy-l);box-shadow:0 12px 40px rgba(46,44,120,.1);transform:translateY(-4px)}
+.sub-card.featured{background:linear-gradient(145deg,var(--navy),var(--navy-l));border-color:var(--navy);color:white;transform:scale(1.02)}
+.sub-card.featured:hover{transform:scale(1.02) translateY(-4px);box-shadow:0 16px 50px rgba(46,44,120,.3)}
+.sub-card.selected{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.15)}
+.featured-badge{position:absolute;top:-13px;right:50%;transform:translateX(50%);background:var(--yellow);color:var(--navy);font-size:.72rem;font-weight:700;padding:4px 16px;border-radius:20px;white-space:nowrap;box-shadow:0 2px 8px rgba(255,201,60,.4)}
+.sub-icon{font-size:2.5rem;margin-bottom:14px}
+.sub-title{font-size:1rem;font-weight:700;margin-bottom:6px;color:var(--navy)}
+.sub-card.featured .sub-title{color:white}
+.sub-price-wrap{margin-bottom:4px}
+.sub-price{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:2.8rem;color:var(--navy);letter-spacing:-1px}
+.sub-card.featured .sub-price{color:var(--yellow)}
+.sub-price-unit{font-size:1rem;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-weight:400;color:var(--gray)}
+.sub-card.featured .sub-price-unit{color:rgba(255,255,255,.6)}
+.sub-period{font-size:.78rem;color:var(--gray);margin-bottom:18px}
+.sub-card.featured .sub-period{color:rgba(255,255,255,.5)}
+.sub-savings{background:rgba(16,185,129,.1);color:var(--green);font-size:.75rem;font-weight:700;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:16px}
+.sub-card.featured .sub-savings{background:rgba(255,201,60,.15);color:var(--yellow)}
+.sub-feats{list-style:none;margin-bottom:22px}
+.sub-feat{display:flex;align-items:flex-start;gap:8px;font-size:.82rem;padding:6px 0;border-bottom:1px dashed rgba(0,0,0,.06);color:var(--dark)}
+.sub-card.featured .sub-feat{border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.85)}
+.sub-feat:last-child{border:none}
+.feat-check{color:var(--green);font-weight:700;flex-shrink:0;margin-top:1px}
+.sub-card.featured .feat-check{color:var(--yellow)}
+.btn-sub{width:100%;padding:13px;border-radius:12px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .25s;border:2px solid var(--navy);background:transparent;color:var(--navy)}
+.btn-sub:hover{background:var(--navy);color:white}
+.btn-sub:active{transform:scale(.97)}
+.sub-card.featured .btn-sub{background:var(--yellow);color:var(--navy);border-color:var(--yellow)}
+.sub-card.featured .btn-sub:hover{background:#ffd700;box-shadow:0 4px 16px rgba(255,201,60,.4)}
+
+/* Compare */
+.compare-section{background:var(--light);border-radius:16px;padding:24px;margin-bottom:32px}
+.compare-title{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.compare-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.compare-table th{padding:10px 14px;text-align:center;font-weight:700;border-bottom:2px solid var(--border)}
+.compare-table th:first-child{text-align:right;color:var(--gray)}
+.compare-table th.featured-col{background:rgba(46,44,120,.05);color:var(--navy);border-radius:8px 8px 0 0}
+.compare-table td{padding:10px 14px;text-align:center;border-bottom:1px solid var(--border)}
+.compare-table td:first-child{text-align:right;color:var(--gray);font-weight:500}
+.compare-table td.featured-col{background:rgba(46,44,120,.03)}
+.check-yes{color:var(--green);font-size:1.1rem}
+.check-no{color:var(--border);font-size:1.1rem}
+
+/* FAQ */
+.faq-list{display:flex;flex-direction:column;gap:10px}
+.faq-item{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:white}
+.faq-q{padding:14px 18px;font-weight:600;font-size:.88rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:.2s}
+.faq-q:hover{background:var(--light)}
+.faq-q.open{color:var(--navy);background:rgba(46,44,120,.03)}
+.faq-a{font-size:.82rem;color:var(--gray);line-height:1.8;padding:0 18px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s}
+.faq-a.open{max-height:200px;padding:14px 18px}
+.faq-arrow{font-size:.75rem;transition:.3s;color:var(--gray)}
+.faq-q.open .faq-arrow{transform:rotate(180deg);color:var(--navy)}
+
+/* ── TICKET PAGE ── */
+.ticket-layout{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start}
+.ticket-types{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
+.ttype-card{border:2px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:all .2s;background:white;text-align:center}
+.ttype-card:hover{border-color:var(--navy-l);transform:translateY(-2px)}
+.ttype-card.selected{border-color:var(--navy);background:rgba(46,44,120,.03);box-shadow:0 0 0 3px rgba(46,44,120,.1)}
+.ttype-icon{font-size:2rem;margin-bottom:8px}
+.ttype-name{font-weight:700;font-size:.88rem;color:var(--navy);margin-bottom:4px}
+.ttype-desc{font-size:.74rem;color:var(--gray)}
+.ttype-price{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.4rem;color:var(--navy);margin-top:8px}
+
+/* Route selector */
+.route-sel-box{background:var(--light);border-radius:14px;padding:20px;margin-bottom:20px}
+.route-sel-title{font-size:.82rem;font-weight:700;color:var(--navy);margin-bottom:12px}
+.route-sel-row{display:grid;grid-template-columns:1fr 36px 1fr;gap:8px;align-items:center;margin-bottom:12px}
+.sel-input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 13px;font-size:.85rem;font-family:inherit;outline:none;transition:.2s;background:white}
+.sel-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,44,120,.08)}
+.swap-sm{width:36px;height:36px;background:white;border:1.5px solid var(--border);border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:.2s}
+.swap-sm:hover{background:var(--navy);color:white;border-color:var(--navy);transform:rotate(180deg)}
+.qty-row{display:flex;align-items:center;gap:14px}
+.qty-label{font-size:.82rem;font-weight:600;color:var(--gray);flex:1}
+.qty-ctrl{display:flex;align-items:center;gap:0;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;background:white}
+.qty-btn{width:36px;height:36px;border:none;background:none;cursor:pointer;font-size:1.1rem;color:var(--navy);transition:.2s;font-family:inherit}
+.qty-btn:hover{background:var(--navy);color:white}
+.qty-val{width:44px;text-align:center;font-weight:700;font-size:.95rem;color:var(--navy);border:none;outline:none;font-family:inherit}
+.qty-val::-webkit-inner-spin-button{-webkit-appearance:none}
+.date-row{display:flex;gap:10px;margin-bottom:14px}
+.date-field{flex:1}
+.date-label{font-size:.72rem;font-weight:700;color:var(--gray);display:block;margin-bottom:5px}
+.date-input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 13px;font-size:.85rem;font-family:inherit;outline:none;transition:.2s;background:white}
+.date-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,44,120,.08)}
+
+/* Cart / Order */
+.order-box{background:white;border-radius:16px;border:1.5px solid var(--border);overflow:hidden;position:sticky;top:80px}
+.order-header{background:var(--navy);color:white;padding:16px 20px;font-weight:700;font-size:.92rem;display:flex;align-items:center;gap:8px}
+.order-body{padding:20px}
+.order-empty{text-align:center;padding:32px 20px;color:var(--gray);font-size:.85rem}
+.order-empty-icon{font-size:3rem;margin-bottom:10px;opacity:.3}
+.order-items{margin-bottom:16px}
+.order-item{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)}
+.order-item:last-child{border:none}
+.oi-icon{width:36px;height:36px;background:rgba(46,44,120,.08);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.oi-info{flex:1}
+.oi-name{font-weight:600;font-size:.85rem;color:var(--dark);margin-bottom:2px}
+.oi-detail{font-size:.72rem;color:var(--gray)}
+.oi-price{font-weight:700;font-size:.92rem;color:var(--navy);flex-shrink:0}
+.oi-remove{color:var(--red);font-size:.75rem;cursor:pointer;background:none;border:none;font-family:inherit;padding:0;margin-top:4px;display:block;opacity:.6;transition:.2s}
+.oi-remove:hover{opacity:1}
+.order-summary{background:var(--light);border-radius:12px;padding:14px;margin-bottom:16px}
+.summary-row{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:8px;color:var(--gray)}
+.summary-row:last-child{margin:0;font-weight:700;font-size:.92rem;color:var(--dark);padding-top:8px;border-top:1px solid var(--border)}
+.summary-row:last-child span:last-child{color:var(--navy)}
+.promo-row{display:flex;gap:8px;margin-bottom:14px}
+.promo-input{flex:1;border:1.5px solid var(--border);border-radius:10px;padding:10px 13px;font-size:.82rem;font-family:inherit;outline:none;transition:.2s}
+.promo-input:focus{border-color:var(--navy)}
+.promo-btn{background:var(--light);border:1.5px solid var(--border);border-radius:10px;padding:10px 16px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;color:var(--navy);white-space:nowrap}
+.promo-btn:hover{background:var(--navy);color:white;border-color:var(--navy)}
+.btn-checkout{width:100%;background:var(--yellow);color:var(--navy);border:none;border-radius:12px;padding:14px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-checkout:hover{background:#ffd700;box-shadow:0 6px 20px rgba(255,201,60,.4);transform:translateY(-1px)}
+.btn-checkout:active{transform:scale(.97)}
+.btn-checkout:disabled{background:var(--border);color:var(--gray);cursor:not-allowed;transform:none;box-shadow:none}
+.secure-note{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-size:.72rem;color:var(--gray)}
+
+/* ── PAYMENT MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.3s;backdrop-filter:blur(4px)}
+.overlay.show{opacity:1;pointer-events:all}
+.modal{background:white;border-radius:24px;width:100%;max-width:480px;overflow:hidden;transform:translateY(30px) scale(.95);transition:.35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 30px 80px rgba(0,0,0,.25)}
+.overlay.show .modal{transform:translateY(0) scale(1)}
+.modal-header{background:var(--navy);color:white;padding:20px 24px;display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:1rem;font-weight:700}
+.modal-close{background:rgba(255,255,255,.1);border:none;color:white;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:.2s}
+.modal-close:hover{background:rgba(255,255,255,.2)}
+.modal-body{padding:24px}
+.payment-steps{display:flex;gap:0;margin-bottom:24px}
+.pay-step{flex:1;text-align:center;position:relative}
+.pay-step::after{content:'';position:absolute;top:15px;left:50%;width:100%;height:2px;background:var(--border)}
+.pay-step:last-child::after{display:none}
+.pay-step-num{width:30px;height:30px;border-radius:50%;background:var(--border);color:var(--gray);font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;position:relative;z-index:2;transition:.3s}
+.pay-step.active .pay-step-num,.pay-step.done .pay-step-num{background:var(--navy);color:var(--yellow)}
+.pay-step.done .pay-step-num{background:var(--green);color:white}
+.pay-step-label{font-size:.65rem;color:var(--gray);font-weight:600}
+.pay-step.active .pay-step-label{color:var(--navy);font-weight:700}
+
+/* Step 1 — Order review */
+.pay-review-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed var(--border);font-size:.85rem}
+.pay-review-item:last-child{border:none;font-weight:700;font-size:.92rem;color:var(--navy)}
+.pay-total-box{background:linear-gradient(135deg,var(--navy),var(--navy-l));border-radius:14px;padding:16px 20px;margin:16px 0;display:flex;align-items:center;justify-content:space-between}
+.pay-total-label{color:rgba(255,255,255,.7);font-size:.82rem}
+.pay-total-amount{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:2rem;color:var(--yellow)}
+
+/* Step 2 — Payment method */
+.pay-methods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.pay-method{border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:.2s;text-align:center}
+.pay-method:hover{border-color:var(--navy-l)}
+.pay-method.selected{border-color:var(--navy);background:rgba(46,44,120,.04)}
+.pay-method-icon{font-size:1.8rem;margin-bottom:6px}
+.pay-method-name{font-size:.78rem;font-weight:700;color:var(--navy)}
+.card-form{background:var(--light);border-radius:12px;padding:16px;margin-top:14px}
+.card-input-wrap{margin-bottom:12px}
+.card-label{font-size:.72rem;font-weight:700;color:var(--gray);display:block;margin-bottom:5px}
+.card-input{width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;font-size:.88rem;font-family:inherit;outline:none;transition:.2s;background:white}
+.card-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,44,120,.08)}
+.card-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* Step 3 — OTP */
+.otp-wrap{text-align:center;padding:10px 0}
+.otp-icon{font-size:3.5rem;margin-bottom:12px}
+.otp-title{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:6px}
+.otp-sub{font-size:.8rem;color:var(--gray);margin-bottom:20px}
+.otp-inputs{display:flex;gap:10px;justify-content:center;margin-bottom:16px;direction:ltr}
+.otp-input{width:50px;height:56px;border:2px solid var(--border);border-radius:12px;text-align:center;font-size:1.4rem;font-weight:700;outline:none;transition:.2s;font-family:inherit}
+.otp-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,44,120,.1)}
+.otp-input.filled{border-color:var(--navy);background:rgba(46,44,120,.04);color:var(--navy)}
+.otp-resend{font-size:.78rem;color:var(--gray)}
+.otp-resend a{color:var(--navy);cursor:pointer;font-weight:600}
+
+/* Step 4 — Success */
+.success-wrap{text-align:center;padding:10px 0}
+.success-icon{font-size:5rem;margin-bottom:16px;animation:popIn .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{0%{transform:scale(0)}100%{transform:scale(1)}}
+.success-title{font-size:1.3rem;font-weight:700;color:var(--navy);margin-bottom:8px}
+.success-sub{font-size:.85rem;color:var(--gray);margin-bottom:24px;line-height:1.7}
+
+/* ── DIGITAL TICKET ── */
+.ticket-wrap{background:var(--light);min-height:60vh;padding:32px;display:flex;align-items:flex-start;justify-content:center;gap:32px;flex-wrap:wrap}
+.digital-ticket{background:white;border-radius:24px;width:340px;overflow:hidden;box-shadow:0 20px 60px rgba(46,44,120,.15);position:relative;flex-shrink:0}
+.ticket-top{background:linear-gradient(135deg,var(--navy-d),var(--navy));padding:24px;color:white;position:relative;overflow:hidden}
+.ticket-top::before{content:'';position:absolute;top:-40px;left:-40px;width:150px;height:150px;border:20px solid rgba(255,201,60,.08);border-radius:50%}
+.ticket-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.ticket-logo{width:36px;height:36px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;color:var(--navy);font-size:.85rem}
+.ticket-brand{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--yellow)}
+.ticket-type-badge{background:rgba(255,201,60,.15);border:1px solid rgba(255,201,60,.3);color:var(--yellow);font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-right:auto}
+.ticket-route-display{background:rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid rgba(255,255,255,.1)}
+.trd-from,.trd-to{font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:2px}
+.trd-city{font-size:1rem;font-weight:700;color:white}
+.trd-arrow{text-align:center;color:var(--yellow);font-size:1.2rem;padding:6px 0}
+.ticket-validity{display:flex;justify-content:space-between;font-size:.75rem}
+.ticket-validity-item small{color:rgba(255,255,255,.5);display:block;margin-bottom:2px}
+.ticket-validity-item strong{color:white}
+
+/* Tear line */
+.tear-line{height:24px;background:var(--light);position:relative;display:flex;align-items:center}
+.tear-line::before{content:'';position:absolute;right:0;left:0;top:50%;height:2px;border-top:2px dashed var(--border)}
+.tear-circle-r{width:24px;height:24px;background:var(--light);border-radius:50%;position:absolute;left:-12px;border:none}
+.tear-circle-l{width:24px;height:24px;background:var(--light);border-radius:50%;position:absolute;right:-12px}
+
+/* Ticket bottom */
+.ticket-bottom{padding:20px 24px 24px}
+.ticket-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.ti-item small{font-size:.68rem;color:var(--gray);display:block;margin-bottom:3px}
+.ti-item strong{font-size:.88rem;font-weight:700;color:var(--dark)}
+.qr-section{text-align:center;padding:16px 0}
+.qr-code{width:120px;height:120px;background:var(--dark);border-radius:12px;margin:0 auto 10px;display:grid;grid-template-columns:repeat(10,1fr);gap:1px;padding:8px;overflow:hidden}
+.qr-cell{border-radius:1px}
+.ticket-num{font-size:.7rem;color:var(--gray);letter-spacing:2px;font-family:monospace}
+.ticket-barcode{height:40px;margin:12px 0;background:repeating-linear-gradient(90deg,var(--dark) 0,var(--dark) 2px,white 2px,white 4px,var(--dark) 4px,var(--dark) 7px,white 7px,white 9px);border-radius:4px;opacity:.7}
+
+/* Ticket actions */
+.ticket-actions{display:flex;flex-direction:column;gap:12px;width:260px}
+.ticket-action-card{background:white;border-radius:16px;padding:20px;border:1.5px solid var(--border);cursor:pointer;transition:all .2s}
+.ticket-action-card:hover{border-color:var(--navy);box-shadow:0 4px 16px rgba(46,44,120,.1)}
+.tac-icon{font-size:1.8rem;margin-bottom:8px}
+.tac-title{font-weight:700;font-size:.88rem;color:var(--navy);margin-bottom:4px}
+.tac-desc{font-size:.75rem;color:var(--gray)}
+
+/* Account card */
+.account-card{background:linear-gradient(135deg,var(--navy),var(--navy-l));border-radius:16px;padding:22px;color:white;margin-bottom:14px}
+.ac-top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.ac-avatar{width:44px;height:44px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--navy);font-size:1.1rem}
+.ac-name{font-weight:700;font-size:.95rem}
+.ac-id{font-size:.72rem;color:rgba(255,255,255,.5);margin-top:2px}
+.ac-balance{background:rgba(255,255,255,.08);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,.1);margin-bottom:14px}
+.ac-bal-label{font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:4px}
+.ac-bal-amount{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:2rem;color:var(--yellow)}
+.ac-bal-sub{font-size:.7rem;color:rgba(255,255,255,.4);margin-top:2px}
+.ac-subs-active{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.ac-sub-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse2 2s infinite}
+@keyframes pulse2{0%,100%{opacity:1}50%{opacity:.4}}
+.ac-sub-info small{color:rgba(255,255,255,.5);font-size:.68rem;display:block}
+.ac-sub-info strong{color:white;font-size:.82rem}
+
+/* Modal step buttons */
+.step-btns{display:flex;gap:10px;margin-top:20px}
+.btn-next{flex:1;background:var(--navy);color:white;border:none;border-radius:12px;padding:13px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s}
+.btn-next:hover{background:var(--navy-l);transform:translateY(-1px)}
+.btn-next:active{transform:scale(.97)}
+.btn-prev{background:var(--light);color:var(--gray);border:1.5px solid var(--border);border-radius:12px;padding:13px 18px;font-size:.92rem;cursor:pointer;font-family:inherit;transition:.2s}
+.btn-prev:hover{background:var(--border)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--navy);color:white;padding:12px 24px;border-radius:12px;font-size:.85rem;font-weight:600;z-index:1000;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 30px rgba(0,0,0,.2);pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* LOADING SPINNER */
+.spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:768px){
+  .sub-hero-grid{grid-template-columns:1fr}
+  .ticket-layout{grid-template-columns:1fr}
+  .ticket-types{grid-template-columns:1fr 1fr}
+  .ticket-wrap{flex-direction:column;align-items:center}
+  .ticket-actions{width:100%;max-width:340px}
+  .pay-methods{grid-template-columns:1fr 1fr}
+  .nav-links{display:none}
+}
+</style>
+
+<style id="k2-shell">
+:root{--k2-indigo:#2E2C78;--k2-deep:#1F1D5C;--k2-ink:#14133A;--k2-sign:#FFC93C;--k2-paper:#F5F5FA;--k2-line:#DEDDEC;--k2-muted:#5D5C80;--k2-font:-apple-system,BlinkMacSystemFont,"SF Arabic","Geeza Pro","Segoe UI","Noto Sans Arabic",Tahoma,sans-serif}
+html,body{overflow-x:clip}body{font-family:var(--k2-font)}
+.k2-util{background:var(--k2-ink);color:#C9C8E6;font:13px/1 var(--k2-font)}
+.k2-util .k2-w{display:flex;align-items:center;justify-content:space-between;gap:16px;height:38px}
+.k2-util .k2-ul{display:flex;gap:22px;white-space:nowrap}
+.k2-util a{color:inherit;text-decoration:none}.k2-util a:hover{color:#fff}
+.k2-lang{background:transparent;border:1px solid #3A3970;border-radius:6px;padding:2px 8px;color:#fff;font:13px var(--k2-font)}
+.k2-lang option{color:#000}
+.k2-w{max-width:1200px;margin:0 auto;padding:0 24px;box-sizing:border-box}
+.k2-head{background:var(--k2-indigo);color:#fff;position:sticky;top:0;z-index:400;box-shadow:0 1px 0 rgba(255,255,255,.06);font-family:var(--k2-font)}
+.k2-head .k2-w{display:flex;align-items:center;gap:28px;height:72px}
+.k2-brand{display:flex;align-items:center;gap:10px;flex-shrink:0;color:#fff;text-decoration:none}
+.k2-brand svg{width:30px;height:38px}
+.k2-brand b{font-size:24px;letter-spacing:.06em;font-weight:800;direction:ltr;display:block;line-height:1.2}
+.k2-brand small{display:block;font-size:11px;color:#B9B8E0;font-weight:500;line-height:1.2}
+.k2-nav{display:flex;gap:4px;flex:1;margin:0;padding:0;background:none;position:static;border:0}
+.k2-nav a{padding:8px 14px;border-radius:6px;font-size:15px;color:#E4E3F7;font-weight:500;text-decoration:none;line-height:1.5}
+.k2-nav a:hover,.k2-nav a[aria-current]{background:rgba(255,255,255,.1);color:#fff}
+.k2-nav a[aria-current]{box-shadow:inset 0 -3px 0 var(--k2-sign)}
+.k2-act{display:flex;gap:10px;align-items:center}
+.k2-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:6px;font:700 15px var(--k2-font);padding:10px 18px;border:0;cursor:pointer;text-decoration:none;position:relative;line-height:1.3}
+.k2-btn-sign{background:var(--k2-sign);color:var(--k2-ink)}.k2-btn-sign:hover{background:#FFD566}
+.k2-btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.28)}.k2-btn-ghost:hover{border-color:#fff}
+.k2-cnt{position:absolute;top:-7px;left:-7px;min-width:20px;height:20px;border-radius:10px;background:#D93C42;color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px}
+.k2-menu{display:none;background:none;border:0;color:#fff;padding:8px;cursor:pointer}
+.k2-menu svg{width:26px;height:26px}
+.k2-drawer{position:fixed;inset:0;z-index:1000;display:none;font-family:var(--k2-font)}
+.k2-drawer.open{display:block}
+.k2-scrim{position:absolute;inset:0;background:rgba(20,19,58,.55)}
+.k2-panel{position:absolute;top:0;bottom:0;right:0;width:min(320px,86vw);background:#fff;padding:20px;display:flex;flex-direction:column;gap:4px;overflow:auto}
+.k2-panel a{padding:14px 12px;border-radius:6px;font-weight:600;font-size:17px;border-bottom:1px solid var(--k2-line);color:var(--k2-ink);text-decoration:none}
+.k2-panel a[aria-current]{color:var(--k2-indigo);background:var(--k2-paper)}
+.k2-close{align-self:flex-end;background:none;border:0;font-size:28px;cursor:pointer;color:var(--k2-indigo);padding:4px 10px}
+.k2-foot{background:var(--k2-ink);color:#B9B8E0;font:14px/1.7 var(--k2-font);padding:56px 0 28px;margin-top:0}
+.k2-fg{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:40px;margin-bottom:40px}
+.k2-fg h4{color:#fff;font-size:15px;margin:0 0 14px}
+.k2-fg ul{list-style:none;display:grid;gap:8px;margin:0;padding:0}
+.k2-fg a{color:inherit;text-decoration:none}.k2-fg a:hover{color:#fff}
+.k2-fg p{margin:14px 0 0;max-width:26em;line-height:1.8}
+.k2-fb{border-top:1px solid #2A2950;padding-top:22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.k2-head :focus-visible,.k2-foot :focus-visible,.k2-util :focus-visible{outline:3px solid var(--k2-sign);outline-offset:2px}
+@media(max-width:1100px){.k2-nav a{padding:8px 10px;font-size:14px}}
+@media(max-width:920px){.k2-nav,.k2-act .k2-btn-ghost{display:none}.k2-menu{display:block}.k2-head .k2-w{justify-content:space-between}.k2-fg{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.k2-w{padding:0 16px}.k2-util .k2-ul>*:not(:first-child){display:none}.k2-act .k2-hide-m{display:none}.k2-fg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22228800">خدمة العملاء <span dir="ltr">22228800</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — حولي</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
+<header class="k2-head"><div class="k2-w"><a class="k2-brand" href="KPTC_Home.html" aria-label="KPTC — الرئيسية"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b><small>شركة النقل العام الكويتية</small></span></a>
+<div class="k2-nav" role="navigation" aria-label="القائمة الرئيسية"><a href="KPTC_Routes.html">الخطوط</a><a href="KPTC_Subscriptions.html" aria-current="page">الاشتراكات</a><a href="KPTC_Umrah.html">العمرة</a><a href="KPTC_VIP.html">VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_Advertising.html">أعلن معنا</a></div>
+<div class="k2-act"><button class="k2-btn k2-btn-ghost" style="display:inline-flex" onclick="openModal()" aria-label="السلة">السلة<span class="k2-cnt" id="cartCount">0</span></button><a class="k2-btn k2-btn-ghost" href="KPTC_Portal.html">بوابة الموظفين</a><a class="k2-btn k2-btn-sign k2-hide-m" href="KPTC_Subscriptions.html">اشترك الآن</a><button class="k2-menu" aria-label="فتح القائمة" aria-expanded="false" onclick="k2Drawer(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
+<div class="k2-drawer" id="k2Drawer" aria-hidden="true"><div class="k2-scrim" onclick="k2Drawer(0)"></div><div class="k2-panel" role="dialog" aria-label="القائمة"><button class="k2-close" onclick="k2Drawer(0)" aria-label="إغلاق">×</button><a href="KPTC_Home.html">الرئيسية</a><a href="KPTC_Routes.html">الخطوط والمسارات</a><a href="KPTC_Subscriptions.html" aria-current="page">الاشتراكات والتذاكر</a><a href="KPTC_Umrah.html">رحلات العمرة</a><a href="KPTC_VIP.html">باصات VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_LostFound.html">المفقودات</a><a href="KPTC_Advertising.html">أعلن معنا</a><a href="KPTC_RE_Client.html">مساحات للإيجار</a><a href="KPTC_Portal.html">بوابة الموظفين</a></div></div>
+<script>function k2Drawer(o){var d=document.getElementById('k2Drawer');d.classList.toggle('open',!!o);d.setAttribute('aria-hidden',o?'false':'true');var b=document.querySelector('.k2-menu');if(b)b.setAttribute('aria-expanded',o?'true':'false')}document.addEventListener('keydown',function(e){if(e.key==='Escape')k2Drawer(0)});</script>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="hero-inner">
+    <div class="hero-tag">💳 اشتراكات وتذاكر إلكترونية</div>
+    <h1>تنقّل بـ <span>راحة</span> أكثر<br>وادفع <span>أقل</span></h1>
+    <p>اشتراكات مرنة تناسب أسلوب حياتك — من تذكرة يومية حتى اشتراك سنوي. ادفع إلكترونياً وابدأ رحلتك فوراً.</p>
+  </div>
+  <div class="hero-tabs">
+    <button class="hero-tab active" onclick="switchHeroTab('subs',this)">
+      <span class="tab-badge">الأشهر</span>الاشتراكات
+    </button>
+    <button class="hero-tab" onclick="switchHeroTab('ticket',this)">تذاكر فردية</button>
+    <button class="hero-tab" onclick="switchHeroTab('mytickets',this)">🎫 تذاكري</button>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ── SUBSCRIPTIONS TAB ── -->
+  <div class="tab-page active" id="page-subs">
+    <div style="max-width:1100px;margin:0 auto">
+
+      <!-- Cards -->
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:.75rem;color:var(--gray);font-weight:700;letter-spacing:1px;margin-bottom:8px">اختر باقتك</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+          <span style="font-size:.85rem;color:var(--gray)">شهري</span>
+          <div id="billingToggle" style="width:48px;height:26px;background:var(--navy);border-radius:20px;cursor:pointer;position:relative;transition:.3s" onclick="toggleBilling()">
+            <div id="toggleDot" style="width:20px;height:20px;background:var(--yellow);border-radius:50%;position:absolute;top:3px;right:3px;transition:.3s"></div>
+          </div>
+          <span style="font-size:.85rem;color:var(--gray)">سنوي <span style="background:rgba(16,185,129,.1);color:var(--green);font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:20px">وفّر 20%</span></span>
+        </div>
+      </div>
+
+      <div class="sub-hero-grid">
+        <!-- Basic -->
+        <div class="sub-card" onclick="addToCart('basic')">
+          <div class="sub-icon">🚌</div>
+          <div class="sub-title">الباقة الأساسية</div>
+          <div class="sub-price-wrap">
+            <span class="sub-price" id="price-basic">15</span>
+            <span class="sub-price-unit"> د.ك</span>
+          </div>
+          <div class="sub-period" id="period-basic">/ شهر — رحلات غير محدودة</div>
+          <ul class="sub-feats">
+            <li class="sub-feat"><span class="feat-check">✓</span> رحلات غير محدودة على جميع الخطوط</li>
+            <li class="sub-feat"><span class="feat-check">✓</span> بطاقة ذكية قابلة لإعادة الشحن</li>
+            <li class="sub-feat"><span class="feat-check">✓</span> تجديد تلقائي</li>
+            <li class="sub-feat"><span class="feat-check">✓</span> عرض المواعيد في التطبيق</li>
+          </ul>
+          <button class="btn-sub">أضف للسلة</button>
+        </div>
+
+        <!-- Featured -->
+        <div class="sub-card featured" onclick="addToCart('premium')">
+          <div class="featured-badge">⭐ الأوفر والأكثر طلباً</div>
+          <div class="sub-icon">💎</div>
+          <div class="sub-title">الباقة المميزة</div>
+          <div class="sub-price-wrap">
+            <span class="sub-price" id="price-premium">40</span>
+            <span class="sub-price-unit"> د.ك</span>
+          </div>
+          <div class="sub-period" id="period-premium">/ 3 أشهر — وفّر 33%</div>
+          <div class="sub-savings" id="savings-premium">💰 توفير 5 د.ك مقارنة بالشهري</div>
+          <ul class="sub-feats">
+            <li class="sub-feat"><span class="feat-check">✓</span> رحلات غير محدودة على جميع الخطوط</li>
+            <li class="sub-feat"><span class="feat-check">✓</span> بطاقة ذكية VIP ذهبية</li>
+            <li class="sub-feat"><span class="feat-check">✓</span> أولوية في الصعود</li>
+            <li class="sub-feat"><span class="feat-check">✓</span> إشعارات تأخر الحافلة</li>
+            <li class="sub-feat"><span class="feat-check">✓</span> تاريخ رحلاتك كامل</li>
+          </ul>
+          <button class="btn-sub">أضف للسلة</button>
+        </div>
+
+        <!-- Schools -->
+        <div class="sub-card" onclick="addToCart('school')">
+          <div class="sub-icon">🏫</div>
+          <div class="sub-title">باقة المدارس</div>
+          <div class="sub-price-wrap">
+            <span class="sub-price" id="price-school">35</span>
+            <span class="sub-price-unit"> د.ك</span>
+          </div>
+          <div class="sub-period" id="period-school">/ فصل دراسي</div>
+          <ul class="sub-feats">
+            <li class="sub-feat"><span class="feat-check">✓</span> توصيل يومي من وإلى المدرسة</li>
+            <li class="sub-feat"><span class="feat-check">✓</span> مشرف متخصص في الحافلة</li>
+            <li class="sub-feat"><span class="feat-check">✓</span> إشعار وصول للأهل فورياً</li>
+            <li class="sub-feat"><span class="feat-check">✓</span> سائقون معتمدون ومفحوصون</li>
+          </ul>
+          <button class="btn-sub">أضف للسلة</button>
+        </div>
+      </div>
+
+      <!-- Compare -->
+      <div class="compare-section">
+        <div class="compare-title">📊 مقارنة الباقات</div>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>الميزة</th>
+              <th>الأساسية</th>
+              <th class="featured-col">المميزة ⭐</th>
+              <th>المدارس</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>رحلات غير محدودة</td><td><span class="check-yes">✓</span></td><td class="featured-col"><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td></tr>
+            <tr><td>بطاقة ذكية</td><td><span class="check-yes">✓</span></td><td class="featured-col"><span class="check-yes">✓ ذهبية</span></td><td><span class="check-yes">✓</span></td></tr>
+            <tr><td>أولوية صعود</td><td><span class="check-no">✗</span></td><td class="featured-col"><span class="check-yes">✓</span></td><td><span class="check-no">✗</span></td></tr>
+            <tr><td>إشعارات التأخر</td><td><span class="check-no">✗</span></td><td class="featured-col"><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td></tr>
+            <tr><td>مشرف في الحافلة</td><td><span class="check-no">✗</span></td><td class="featured-col"><span class="check-no">✗</span></td><td><span class="check-yes">✓</span></td></tr>
+            <tr><td>إشعار الأهل</td><td><span class="check-no">✗</span></td><td class="featured-col"><span class="check-no">✗</span></td><td><span class="check-yes">✓</span></td></tr>
+            <tr><td>تاريخ الرحلات</td><td><span class="check-no">✗</span></td><td class="featured-col"><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FAQ -->
+      <div style="max-width:700px">
+        <div style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:16px">❓ أسئلة شائعة</div>
+        <div class="faq-list">
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">كيف أستخدم الاشتراك؟ <span class="faq-arrow">▾</span></div>
+            <div class="faq-a">بعد الاشتراك ستصلك بطاقة ذكية KPTC خلال 3-5 أيام عمل. اضغطها على جهاز القراءة عند صعود الحافلة. يمكنك أيضاً استخدام التطبيق بدلاً من البطاقة.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">هل يمكن إلغاء الاشتراك؟ <span class="faq-arrow">▾</span></div>
+            <div class="faq-a">نعم، يمكن إلغاء الاشتراك في أي وقت من خلال حسابك على الموقع أو التطبيق. سيتم استرداد المبلغ المتبقي خلال 5-7 أيام عمل.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">ما وسائل الدفع المقبولة؟ <span class="faq-arrow">▾</span></div>
+            <div class="faq-a">نقبل KNET، Visa، Mastercard، Apple Pay، وGoogle Pay. جميع المعاملات مشفرة ومؤمّنة.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">هل الاشتراك يشمل جميع الخطوط؟ <span class="faq-arrow">▾</span></div>
+            <div class="faq-a">نعم، الاشتراك الأساسي والمميز يشملان جميع خطوط النقل العام (أكثر من 150 خط). باقة المدارس مخصصة للخط المحدد بين المنزل والمدرسة فقط.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── TICKET TAB ── -->
+  <div class="tab-page" id="page-ticket">
+    <div style="max-width:1100px;margin:0 auto">
+      <div class="ticket-layout">
+        <div>
+          <!-- Ticket Types -->
+          <div style="font-size:.88rem;font-weight:700;color:var(--navy);margin-bottom:14px">نوع التذكرة</div>
+          <div class="ticket-types">
+            <div class="ttype-card selected" id="tt-single" onclick="selectTicketType('single',this)">
+              <div class="ttype-icon">🎫</div>
+              <div class="ttype-name">تذكرة فردية</div>
+              <div class="ttype-desc">رحلة واحدة — اتجاه واحد</div>
+              <div class="ttype-price">250 فلس</div>
+            </div>
+            <div class="ttype-card" id="tt-return" onclick="selectTicketType('return',this)">
+              <div class="ttype-icon">🔄</div>
+              <div class="ttype-name">ذهاب وعودة</div>
+              <div class="ttype-desc">رحلتان — خصم 10%</div>
+              <div class="ttype-price">450 فلس</div>
+            </div>
+            <div class="ttype-card" id="tt-day" onclick="selectTicketType('day',this)">
+              <div class="ttype-icon">☀️</div>
+              <div class="ttype-name">تذكرة يومية</div>
+              <div class="ttype-desc">رحلات غير محدودة ليوم كامل</div>
+              <div class="ttype-price">1.500 د.ك</div>
+            </div>
+            <div class="ttype-card" id="tt-week" onclick="selectTicketType('week',this)">
+              <div class="ttype-icon">📅</div>
+              <div class="ttype-name">تذكرة أسبوعية</div>
+              <div class="ttype-desc">7 أيام كاملة — وفّر 40%</div>
+              <div class="ttype-price">6 د.ك</div>
+            </div>
+          </div>
+
+          <!-- Route -->
+          <div class="route-sel-box">
+            <div class="route-sel-title">📍 المسار</div>
+            <div class="route-sel-row">
+              <select class="sel-input" id="tk-from">
+                <option value="">من — منطقة المغادرة</option>
+                <option>الكويت سيتي</option><option>حولي</option><option>الفروانية</option>
+                <option>السالمية</option><option>خيطان</option><option>الجابرية</option>
+                <option>الفحاحيل</option><option>الشويخ</option><option>الجهراء</option>
+              </select>
+              <button class="swap-sm" onclick="swapTicket()">⇄</button>
+              <select class="sel-input" id="tk-to">
+                <option value="">إلى — منطقة الوصول</option>
+                <option>الكويت سيتي</option><option>حولي</option><option>الفروانية</option>
+                <option>السالمية</option><option>خيطان</option><option>الجابرية</option>
+                <option>الفحاحيل</option><option>الشويخ</option><option>الجهراء</option>
+              </select>
+            </div>
+
+            <!-- Date -->
+            <div class="date-row">
+              <div class="date-field">
+                <label class="date-label">📅 تاريخ الرحلة</label>
+                <input type="date" class="date-input" id="tk-date" value="2026-04-11">
+              </div>
+              <div class="date-field">
+                <label class="date-label">🕐 وقت المغادرة</label>
+                <input type="time" class="date-input" id="tk-time" value="08:00">
+              </div>
+            </div>
+
+            <!-- Qty -->
+            <div class="qty-row">
+              <div class="qty-label">👤 عدد الركاب (بالغ)</div>
+              <div class="qty-ctrl">
+                <button class="qty-btn" onclick="changeQty('adult',-1)">−</button>
+                <input type="number" class="qty-val" id="qty-adult" value="1" min="1" max="10" readonly>
+                <button class="qty-btn" onclick="changeQty('adult',1)">+</button>
+              </div>
+            </div>
+            <div class="qty-row" style="margin-top:10px">
+              <div class="qty-label">👶 أطفال (أقل من 6 — مجاناً)</div>
+              <div class="qty-ctrl">
+                <button class="qty-btn" onclick="changeQty('child',-1)">−</button>
+                <input type="number" class="qty-val" id="qty-child" value="0" min="0" max="5" readonly>
+                <button class="qty-btn" onclick="changeQty('child',1)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Button -->
+          <button class="btn-checkout" style="max-width:320px" onclick="addTicketToCart()">
+            🎫 أضف للسلة
+          </button>
+        </div>
+
+        <!-- Order Box -->
+        <div class="order-box" id="orderBox">
+          <div class="order-header">🛒 سلة المشتريات</div>
+          <div class="order-body">
+            <div class="order-empty" id="orderEmpty">
+              <div class="order-empty-icon">🛒</div>
+              <div style="font-weight:600;color:var(--dark);margin-bottom:6px">السلة فارغة</div>
+              <div>اختر اشتراكاً أو تذكرة وأضفها للسلة</div>
+            </div>
+            <div class="order-items" id="orderItems" style="display:none"></div>
+            <div id="orderSummary" style="display:none">
+              <div class="promo-row">
+                <input type="text" class="promo-input" id="promoInput" placeholder="رمز الخصم (جرّب: KPTC10)">
+                <button class="promo-btn" onclick="applyPromo()">تطبيق</button>
+              </div>
+              <div class="order-summary" id="summaryBox"></div>
+              <button class="btn-checkout" onclick="openModal()" id="checkoutBtn">
+                💳 إتمام الدفع
+              </button>
+              <div class="secure-note">🔒 دفع آمن ومشفر — SSL 256-bit</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MY TICKETS TAB ── -->
+  <div class="tab-page" id="page-mytickets">
+    <div class="ticket-wrap">
+      <!-- Digital Ticket -->
+      <div class="digital-ticket" id="myTicket">
+        <div class="ticket-top">
+          <div class="ticket-logo-row">
+            <div class="ticket-logo">K</div>
+            <div class="ticket-brand">KPTC</div>
+            <div class="ticket-type-badge" id="tkTypeBadge">اشتراك شهري</div>
+          </div>
+          <div class="ticket-route-display">
+            <div class="trd-from">من</div>
+            <div class="trd-city" id="tkFrom">حولي</div>
+            <div class="trd-arrow">↓</div>
+            <div class="trd-to">إلى</div>
+            <div class="trd-city" id="tkTo">جميع الخطوط</div>
+          </div>
+          <div class="ticket-validity">
+            <div class="ticket-validity-item">
+              <small>تاريخ البداية</small>
+              <strong id="tkStart">11 أبريل 2026</strong>
+            </div>
+            <div class="ticket-validity-item" style="text-align:center">
+              <small>الحالة</small>
+              <strong style="color:var(--green)">● نشط</strong>
+            </div>
+            <div class="ticket-validity-item" style="text-align:left">
+              <small>تاريخ الانتهاء</small>
+              <strong id="tkEnd">11 مايو 2026</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="tear-line">
+          <div class="tear-circle-r"></div>
+          <div class="tear-circle-l"></div>
+        </div>
+
+        <div class="ticket-bottom">
+          <div class="ticket-info-grid">
+            <div class="ti-item">
+              <small>اسم الراكب</small>
+              <strong>أحمد القطان</strong>
+            </div>
+            <div class="ti-item">
+              <small>رقم البطاقة</small>
+              <strong>KPTC-****-4821</strong>
+            </div>
+            <div class="ti-item">
+              <small>نوع الباقة</small>
+              <strong id="tkType">الأساسية</strong>
+            </div>
+            <div class="ti-item">
+              <small>الرحلات المتبقية</small>
+              <strong style="color:var(--green)">غير محدودة</strong>
+            </div>
+          </div>
+
+          <div class="qr-section">
+            <div class="qr-code" id="qrCode"></div>
+            <div class="ticket-barcode"></div>
+            <div class="ticket-num" id="tkNum">KPTC-2026-0411-48219</div>
+          </div>
+
+          <div style="text-align:center;font-size:.7rem;color:var(--gray);margin-top:8px;line-height:1.6">
+            هذه التذكرة صالحة للاستخدام الشخصي فقط<br>
+            غير قابلة للتحويل أو الإعادة
+          </div>
+        </div>
+      </div>
+
+      <!-- Ticket Actions -->
+      <div class="ticket-actions">
+        <div class="account-card">
+          <div class="ac-top">
+            <div class="ac-avatar">أ</div>
+            <div>
+              <div class="ac-name">أحمد القطان</div>
+              <div class="ac-id">ID: KPTC-48219</div>
+            </div>
+          </div>
+          <div class="ac-balance">
+            <div class="ac-bal-label">رصيد البطاقة</div>
+            <div class="ac-bal-amount">15.750 <span style="font-family:inherit;font-size:1rem;font-weight:400">د.ك</span></div>
+            <div class="ac-bal-sub">آخر شحن: 1 أبريل 2026</div>
+          </div>
+          <div class="ac-subs-active">
+            <div class="ac-sub-dot"></div>
+            <div class="ac-sub-info">
+              <small>الاشتراك النشط</small>
+              <strong>الباقة الأساسية — ينتهي 11 مايو 2026</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="ticket-action-card" onclick="showToast('📱 جاري فتح التطبيق...')">
+          <div class="tac-icon">📱</div>
+          <div class="tac-title">فتح في التطبيق</div>
+          <div class="tac-desc">استخدم التطبيق لتفعيل التذكرة على الحافلة مباشرة</div>
+        </div>
+        <div class="ticket-action-card" onclick="showToast('⬇️ جاري تحميل التذكرة PDF...')">
+          <div class="tac-icon">⬇️</div>
+          <div class="tac-title">تحميل PDF</div>
+          <div class="tac-desc">احتفظ بنسخة من تذكرتك على جهازك</div>
+        </div>
+        <div class="ticket-action-card" onclick="showToast('🔄 جاري تجديد الاشتراك...');openModal()">
+          <div class="tac-icon">🔄</div>
+          <div class="tac-title">تجديد الاشتراك</div>
+          <div class="tac-desc">جدّد قبل انتهاء الصلاحية واستمر بدون انقطاع</div>
+        </div>
+        <div class="ticket-action-card" onclick="showToast('💰 جاري فتح صفحة الشحن...')">
+          <div class="tac-icon">💰</div>
+          <div class="tac-title">شحن الرصيد</div>
+          <div class="tac-desc">أضف رصيداً لبطاقتك الذكية الآن</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end content -->
+
+<!-- PAYMENT MODAL -->
+<div class="overlay" id="payOverlay" onclick="closeIfBg(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">💳 إتمام الدفع</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Steps indicator -->
+      <div class="payment-steps" id="paySteps">
+        <div class="pay-step active" id="pstep1"><div class="pay-step-num">1</div><div class="pay-step-label">المراجعة</div></div>
+        <div class="pay-step" id="pstep2"><div class="pay-step-num">2</div><div class="pay-step-label">الدفع</div></div>
+        <div class="pay-step" id="pstep3"><div class="pay-step-num">3</div><div class="pay-step-label">التأكيد</div></div>
+        <div class="pay-step" id="pstep4"><div class="pay-step-num">4</div><div class="pay-step-label">اكتمل</div></div>
+      </div>
+
+      <!-- Step content -->
+      <div id="stepContent"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let cart = [];
+let currentStep = 1;
+let selectedPayMethod = 'knet';
+let isBillingAnnual = false;
+let selectedTicketType = 'single';
+let promoApplied = false;
+
+const prices = {
+  basic: {monthly:15, annual:12*12*0.8},
+  premium: {monthly:40, annual:40*4*0.8},
+  school: {monthly:35, annual:35},
+  single: 0.25, return: 0.45, day: 1.5, week: 6
+};
+
+// ── TABS ──
+function switchHeroTab(tab, btn) {
+  document.querySelectorAll('.hero-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('page-'+tab).classList.add('active');
+  if (tab==='mytickets') generateQR();
+}
+
+// ── BILLING TOGGLE ──
+function toggleBilling() {
+  isBillingAnnual = !isBillingAnnual;
+  const dot = document.getElementById('toggleDot');
+  dot.style.right = isBillingAnnual ? 'auto' : '3px';
+  dot.style.left = isBillingAnnual ? '3px' : 'auto';
+  updatePrices();
+}
+
+function updatePrices() {
+  if (isBillingAnnual) {
+    document.getElementById('price-basic').textContent = '144';
+    document.getElementById('period-basic').textContent = '/ سنة — وفّر 20%';
+    document.getElementById('price-premium').textContent = '128';
+    document.getElementById('period-premium').textContent = '/ سنة — وفّر 20%';
+    document.getElementById('price-school').textContent = '112';
+    document.getElementById('period-school').textContent = '/ سنة دراسية — وفّر 20%';
+  } else {
+    document.getElementById('price-basic').textContent = '15';
+    document.getElementById('period-basic').textContent = '/ شهر — رحلات غير محدودة';
+    document.getElementById('price-premium').textContent = '40';
+    document.getElementById('period-premium').textContent = '/ 3 أشهر — وفّر 33%';
+    document.getElementById('price-school').textContent = '35';
+    document.getElementById('period-school').textContent = '/ فصل دراسي';
+  }
+}
+
+// ── CART ──
+function addToCart(type) {
+  const names = {basic:'الباقة الأساسية',premium:'الباقة المميزة ⭐',school:'باقة المدارس'};
+  const priceMap = {basic:isBillingAnnual?144:15, premium:isBillingAnnual?128:40, school:isBillingAnnual?112:35};
+  const existing = cart.find(i=>i.type===type);
+  if (existing) { showToast('⚠️ هذه الباقة موجودة بالفعل في السلة'); return; }
+  cart.push({id: Date.now(), type, name: names[type], price: priceMap[type], icon:'💳', detail: isBillingAnnual?'سنوي':'شهري'});
+  updateCartUI();
+  showToast(`✅ تمت إضافة ${names[type]} للسلة`);
+  // Switch to ticket tab to show cart
+  setTimeout(()=>{
+    document.querySelectorAll('.hero-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.hero-tab')[1].classList.add('active');
+    document.getElementById('page-ticket').classList.add('active');
+  },600);
+}
+
+function addTicketToCart() {
+  const from = document.getElementById('tk-from').value;
+  const to = document.getElementById('tk-to').value;
+  if (!from||!to) { showToast('⚠️ اختر منطقة المغادرة والوصول'); return; }
+  const adult = parseInt(document.getElementById('qty-adult').value);
+  const typeNames = {single:'تذكرة فردية',return:'ذهاب وعودة',day:'تذكرة يومية',week:'تذكرة أسبوعية'};
+  const price = prices[selectedTicketType] * adult;
+  cart.push({id:Date.now(), type:'ticket-'+selectedTicketType, name:typeNames[selectedTicketType], price, icon:'🎫', detail:`${from} ← ${to} | ${adult} بالغ`});
+  updateCartUI();
+  showToast(`✅ تمت إضافة التذكرة للسلة`);
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i=>i.id!==id);
+  updateCartUI();
+  showToast('🗑️ تمت الإزالة');
+}
+
+function updateCartUI() {
+  const count = cart.length;
+  const cartCount = document.getElementById('cartCount');
+  cartCount.textContent = count;
+  cartCount.classList.toggle('show', count>0);
+
+  const empty = document.getElementById('orderEmpty');
+  const items = document.getElementById('orderItems');
+  const summary = document.getElementById('orderSummary');
+
+  if (!count) {
+    empty.style.display='block'; items.style.display='none'; summary.style.display='none'; return;
+  }
+  empty.style.display='none'; items.style.display='block'; summary.style.display='block';
+
+  items.innerHTML = cart.map(i=>`
+    <div class="order-item">
+      <div class="oi-icon">${i.icon}</div>
+      <div class="oi-info">
+        <div class="oi-name">${i.name}</div>
+        <div class="oi-detail">${i.detail}</div>
+        <button class="oi-remove" onclick="removeFromCart(${i.id})">✕ إزالة</button>
+      </div>
+      <div class="oi-price">${i.price.toFixed(3)} د.ك</div>
+    </div>`).join('');
+
+  const subtotal = cart.reduce((s,i)=>s+i.price,0);
+  const discount = promoApplied ? subtotal*0.1 : 0;
+  const total = subtotal - discount;
+
+  document.getElementById('summaryBox').innerHTML = `
+    <div class="summary-row"><span>المجموع</span><span>${subtotal.toFixed(3)} د.ك</span></div>
+    ${promoApplied?`<div class="summary-row"><span>خصم 10% (KPTC10)</span><span style="color:var(--green)">-${discount.toFixed(3)} د.ك</span></div>`:''}
+    <div class="summary-row"><span>رسوم الخدمة</span><span>مجاناً</span></div>
+    <div class="summary-row"><span>الإجمالي</span><span>${total.toFixed(3)} د.ك</span></div>`;
+}
+
+function applyPromo() {
+  const code = document.getElementById('promoInput').value.trim().toUpperCase();
+  if (code==='KPTC10') { promoApplied=true; updateCartUI(); showToast('🎉 تم تطبيق خصم 10%'); }
+  else showToast('⚠️ رمز الخصم غير صحيح');
+}
+
+// ── TICKET TYPE ──
+function selectTicketType(type, el) {
+  document.querySelectorAll('.ttype-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTicketType = type;
+}
+
+function swapTicket() {
+  const f=document.getElementById('tk-from'), t=document.getElementById('tk-to');
+  const tmp=f.value; f.value=t.value; t.value=tmp;
+}
+
+// ── QTY ──
+function changeQty(field, delta) {
+  const el = document.getElementById('qty-'+field);
+  const min = field==='child'?0:1;
+  el.value = Math.max(min, Math.min(10, parseInt(el.value)+delta));
+}
+
+// ── FAQ ──
+function toggleFaq(btn) {
+  const isOpen = btn.classList.contains('open');
+  document.querySelectorAll('.faq-q').forEach(q=>{q.classList.remove('open'); q.nextElementSibling.classList.remove('open')});
+  if (!isOpen) { btn.classList.add('open'); btn.nextElementSibling.classList.add('open'); }
+}
+
+// ── MODAL ──
+function openModal() {
+  if (!cart.length) { showToast('⚠️ السلة فارغة — أضف منتجاً أولاً'); return; }
+  currentStep = 1;
+  renderStep();
+  document.getElementById('payOverlay').classList.add('show');
+}
+function closeModal() { document.getElementById('payOverlay').classList.remove('show'); }
+function closeIfBg(e) { if(e.target===document.getElementById('payOverlay')) closeModal(); }
+
+function setStep(n) {
+  currentStep = n;
+  for(let i=1;i<=4;i++) {
+    const s = document.getElementById('pstep'+i);
+    s.classList.remove('active','done');
+    if (i<n) s.classList.add('done');
+    if (i===n) s.classList.add('active');
+  }
+}
+
+function renderStep() {
+  setStep(currentStep);
+  const subtotal = cart.reduce((s,i)=>s+i.price,0);
+  const discount = promoApplied?subtotal*.1:0;
+  const total = (subtotal-discount).toFixed(3);
+  const c = document.getElementById('stepContent');
+
+  if (currentStep===1) {
+    document.getElementById('modalTitle').textContent = '📋 مراجعة الطلب';
+    c.innerHTML = `
+      ${cart.map(i=>`<div class="pay-review-item"><span>${i.icon} ${i.name}<br><small style="color:var(--gray)">${i.detail}</small></span><span>${i.price.toFixed(3)} د.ك</span></div>`).join('')}
+      ${promoApplied?`<div class="pay-review-item"><span>🎉 خصم KPTC10 (10%)</span><span style="color:var(--green)">-${discount.toFixed(3)} د.ك</span></div>`:''}
+      <div class="pay-total-box">
+        <div><div class="pay-total-label">الإجمالي المستحق</div></div>
+        <div class="pay-total-amount">${total} <span style="font-family:inherit;font-size:1rem;font-weight:400">د.ك</span></div>
+      </div>
+      <div class="step-btns"><button class="btn-next" onclick="currentStep=2;renderStep()">متابعة — اختر طريقة الدفع ←</button></div>`;
+  }
+
+  else if (currentStep===2) {
+    document.getElementById('modalTitle').textContent = '💳 طريقة الدفع';
+    c.innerHTML = `
+      <div class="pay-methods">
+        <div class="pay-method ${selectedPayMethod==='knet'?'selected':''}" onclick="selectPay('knet',this)">
+          <div class="pay-method-icon">🏦</div><div class="pay-method-name">KNET</div>
+        </div>
+        <div class="pay-method ${selectedPayMethod==='visa'?'selected':''}" onclick="selectPay('visa',this)">
+          <div class="pay-method-icon">💳</div><div class="pay-method-name">Visa / Mastercard</div>
+        </div>
+        <div class="pay-method ${selectedPayMethod==='apple'?'selected':''}" onclick="selectPay('apple',this)">
+          <div class="pay-method-icon">🍎</div><div class="pay-method-name">Apple Pay</div>
+        </div>
+        <div class="pay-method ${selectedPayMethod==='google'?'selected':''}" onclick="selectPay('google',this)">
+          <div class="pay-method-icon">🤖</div><div class="pay-method-name">Google Pay</div>
+        </div>
+      </div>
+      <div class="card-form" id="cardForm" style="${selectedPayMethod==='visa'?'':'display:none'}">
+        <div class="card-input-wrap">
+          <label class="card-label">رقم البطاقة</label>
+          <input class="card-input" placeholder="•••• •••• •••• ••••" maxlength="19" oninput="formatCard(this)">
+        </div>
+        <div class="card-input-wrap">
+          <label class="card-label">اسم صاحب البطاقة</label>
+          <input class="card-input" placeholder="الاسم كما هو على البطاقة">
+        </div>
+        <div class="card-row">
+          <div class="card-input-wrap">
+            <label class="card-label">تاريخ الانتهاء</label>
+            <input class="card-input" placeholder="MM/YY" maxlength="5">
+          </div>
+          <div class="card-input-wrap">
+            <label class="card-label">CVV</label>
+            <input class="card-input" placeholder="•••" maxlength="3" type="password">
+          </div>
+        </div>
+      </div>
+      <div class="step-btns">
+        <button class="btn-prev" onclick="currentStep=1;renderStep()">← رجوع</button>
+        <button class="btn-next" onclick="currentStep=3;renderStep()">تأكيد الدفع — ${total} د.ك</button>
+      </div>`;
+  }
+
+  else if (currentStep===3) {
+    document.getElementById('modalTitle').textContent = '🔐 رمز التحقق OTP';
+    c.innerHTML = `
+      <div class="otp-wrap">
+        <div class="otp-icon">📱</div>
+        <div class="otp-title">أدخل رمز التحقق</div>
+        <div class="otp-sub">تم إرسال رمز مكون من 4 أرقام إلى رقمك<br><strong>+965 ●●●● 4821</strong></div>
+        <div class="otp-inputs">
+          <input class="otp-input" maxlength="1" oninput="otpInput(this)" type="text">
+          <input class="otp-input" maxlength="1" oninput="otpInput(this)" type="text">
+          <input class="otp-input" maxlength="1" oninput="otpInput(this)" type="text">
+          <input class="otp-input" maxlength="1" oninput="otpInput(this)" type="text">
+        </div>
+        <div class="otp-resend">لم تستلم الرمز؟ <a onclick="showToast('📱 تم إعادة إرسال الرمز')">إعادة الإرسال</a></div>
+      </div>
+      <div class="step-btns">
+        <button class="btn-prev" onclick="currentStep=2;renderStep()">← رجوع</button>
+        <button class="btn-next" id="btnConfirm" onclick="confirmPayment()">تأكيد الدفع</button>
+      </div>`;
+    // Auto-focus first OTP input
+    setTimeout(()=>document.querySelector('.otp-input')?.focus(),100);
+  }
+
+  else if (currentStep===4) {
+    document.getElementById('modalTitle').textContent = '✅ تم الدفع بنجاح';
+    document.getElementById('paySteps').style.display='none';
+    c.innerHTML = `
+      <div class="success-wrap">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">تمّت عملية الدفع بنجاح!</div>
+        <div class="success-sub">
+          شكراً لك. تم إتمام اشتراكك في KPTC.<br>
+          ستصلك رسالة تأكيد على جوالك.<br>
+          <strong style="color:var(--navy)">رقم الطلب: KPTC-${Math.floor(Math.random()*900000+100000)}</strong>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button class="btn-next" style="max-width:180px" onclick="goToTickets()">🎫 عرض تذكرتي</button>
+          <button class="btn-prev" onclick="closeModal()">إغلاق</button>
+        </div>
+      </div>`;
+    cart = [];
+    updateCartUI();
+    promoApplied = false;
+  }
+}
+
+function selectPay(method, el) {
+  selectedPayMethod = method;
+  document.querySelectorAll('.pay-method').forEach(m=>m.classList.remove('selected'));
+  el.classList.add('selected');
+  const cardForm = document.getElementById('cardForm');
+  if (cardForm) cardForm.style.display = method==='visa'?'block':'none';
+}
+
+function otpInput(el) {
+  el.classList.toggle('filled', el.value.length>0);
+  if (el.value && el.nextElementSibling && el.nextElementSibling.classList.contains('otp-input')) {
+    el.nextElementSibling.focus();
+  }
+  // Check all filled
+  const all = document.querySelectorAll('.otp-input');
+  if ([...all].every(i=>i.value)) {
+    setTimeout(()=>confirmPayment(), 300);
+  }
+}
+
+function formatCard(el) {
+  let v = el.value.replace(/\D/g,'').substring(0,16);
+  el.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+
+function confirmPayment() {
+  const btn = document.getElementById('btnConfirm');
+  if (btn) { btn.innerHTML='<div class="spinner"></div> جاري التحقق...'; btn.disabled=true; }
+  setTimeout(()=>{ currentStep=4; renderStep(); }, 1800);
+}
+
+function goToTickets() {
+  closeModal();
+  document.getElementById('paySteps').style.display='flex';
+  document.querySelectorAll('.hero-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.hero-tab')[2].classList.add('active');
+  document.getElementById('page-mytickets').classList.add('active');
+  generateQR();
+  showToast('🎫 تذكرتك الرقمية جاهزة!');
+}
+
+// ── QR GENERATOR ──
+function generateQR() {
+  const qr = document.getElementById('qrCode');
+  if (!qr) return;
+  const cells = 10;
+  let html='';
+  for(let r=0;r<cells;r++) for(let c=0;c<cells;c++) {
+    const dark = (r<2&&c<2)||(r<2&&c>cells-3)||(r>cells-3&&c<2)||(Math.random()>.45);
+    html+=`<div class="qr-cell" style="background:${dark?'white':'transparent'};grid-column:${c+1};grid-row:${r+1}"></div>`;
+  }
+  qr.innerHTML=html;
+}
+
+// ── TOAST ──
+let toastT;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// Init
+generateQR();
+</script>
+<footer class="k2-foot"><div class="k2-w"><div class="k2-fg">
+<div><a class="k2-brand" href="KPTC_Home.html"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b></span></a><p>شركة النقل العام الكويتية، أول وأكبر مشغّل للنقل العام في الكويت منذ 1962، مملوكة بالكامل للدولة.</p></div>
+<div><h4>خدماتنا</h4><ul><li><a href="KPTC_Routes.html">الخطوط والمسارات</a></li><li><a href="KPTC_Subscriptions.html">الاشتراكات</a></li><li><a href="KPTC_Umrah.html">رحلات العمرة</a></li><li><a href="KPTC_VIP.html">باصات VIP</a></li><li><a href="KPTC_Winch.html">الونش</a></li></ul></div>
+<div><h4>خدمة العملاء</h4><ul><li><a href="KPTC_LostFound.html">المفقودات</a></li><li><a href="KPTC_AI_Assistant.html">المساعد الذكي</a></li><li><a href="KPTC_Home.html#contact">الشكاوى</a></li><li><a href="KPTC_Home.html#contact">تواصل معنا</a></li></ul></div>
+<div><h4>الشركة</h4><ul><li><a href="KPTC_Home.html#about">عن KPTC</a></li><li><a href="KPTC_Advertising.html">أعلن معنا</a></li><li><a href="KPTC_RE_Client.html">مساحات للإيجار</a></li><li><a href="KPTC_Portal.html">بوابة الموظفين</a></li></ul></div>
+</div><div class="k2-fb"><span>© 2026 شركة النقل العام الكويتية. جميع الحقوق محفوظة.</span><span>kptc.com.kw</span></div></div></footer>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+</html>

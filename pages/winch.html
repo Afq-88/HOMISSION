@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPTC — الونش وورشة التصليح</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#2E2C78;--navy-l:#3D3B95;--navy-d:#1F1D5C;
+  --yellow:#FFC93C;--white:#fff;--light:#F5F5FA;
+  --gray:#5D5C80;--dark:#14133A;--border:#DEDDEC;
+  --green:#10B981;--red:#EF4444;--orange:#F59E0B;
+  --red-d:#991B1B;--red-l:#FEE2E2;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;background:var(--light);color:var(--dark)}
+
+/* NAV */
+nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px solid rgba(255,201,60,.15)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;color:var(--navy);font-size:.85rem}
+.logo-name{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--yellow)}
+.logo-sub{font-size:.58rem;color:rgba(255,255,255,.5);letter-spacing:1px}
+.nav-links{display:flex;gap:4px;list-style:none}
+.nav-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.8rem;padding:6px 12px;border-radius:7px;transition:.2s}
+.nav-links a:hover,.nav-links a.active{color:var(--yellow);background:rgba(255,201,60,.1)}
+.emergency-btn{background:var(--red);color:white;border:none;border-radius:10px;padding:8px 18px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;display:flex;align-items:center;gap:7px;animation:emergencyGlow 2s infinite}
+@keyframes emergencyGlow{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.5)}50%{box-shadow:0 0 0 10px rgba(220,38,38,0)}}
+.emergency-btn:hover{background:var(--red-d);transform:scale(1.04)}
+
+/* ═══ HERO ═══ */
+.hero{background:linear-gradient(145deg,#0a0000 0%,#200505 35%,#3d0a0a 65%,#1a0000 100%);min-height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;pointer-events:none}
+.hero-circle{position:absolute;border-radius:50%;border:1px solid rgba(239,68,68,.07)}
+.hero-circle:nth-child(1){width:700px;height:700px;top:-250px;left:-200px}
+.hero-circle:nth-child(2){width:400px;height:400px;bottom:-150px;right:-100px;border-color:rgba(255,255,255,.03)}
+.hero-glow{position:absolute;top:30%;left:20%;width:300px;height:300px;background:radial-gradient(circle,rgba(220,38,38,.08),transparent 70%);pointer-events:none}
+.hero-content{position:relative;z-index:2;padding:52px 36px 0;flex:1;display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.35);color:#f87171;padding:7px 18px;border-radius:30px;font-size:.76rem;font-weight:700;margin-bottom:20px;letter-spacing:.5px}
+.emergency-pulse{width:8px;height:8px;background:var(--red);border-radius:50%;animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.hero h1{font-size:clamp(2rem,4vw,3.2rem);color:white;font-weight:700;line-height:1.22;margin-bottom:12px}
+.hero h1 .red{color:#f87171;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;letter-spacing:1px}
+.hero h1 .yellow{color:var(--yellow)}
+.hero-sub{color:rgba(255,255,255,.6);font-size:.92rem;line-height:1.85;max-width:520px;margin-bottom:28px}
+
+/* Emergency number */
+.emergency-number{background:rgba(220,38,38,.12);border:2px solid rgba(220,38,38,.4);border-radius:18px;padding:22px 28px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:.2s}
+.emergency-number:hover{background:rgba(220,38,38,.2);transform:translateY(-2px)}
+.en-left small{display:block;color:rgba(255,255,255,.5);font-size:.72rem;margin-bottom:4px}
+.en-num{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:2.4rem;color:#f87171;letter-spacing:3px}
+.en-right{text-align:center}
+.en-badge{background:var(--red);color:white;font-size:.7rem;font-weight:700;padding:5px 14px;border-radius:20px;display:block;margin-bottom:5px;animation:emergencyGlow 2s infinite}
+.en-hours{color:rgba(255,255,255,.45);font-size:.65rem}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:36px}
+.btn-emergency{background:var(--red);color:white;font-weight:700;padding:14px 26px;border-radius:12px;font-size:.92rem;border:none;cursor:pointer;font-family:inherit;transition:.25s;display:inline-flex;align-items:center;gap:8px;animation:emergencyGlow 2s infinite}
+.btn-emergency:hover{background:var(--red-d);transform:translateY(-2px)}
+.btn-secondary{background:rgba(255,255,255,.08);color:white;font-weight:600;padding:14px 22px;border-radius:12px;font-size:.92rem;border:1px solid rgba(255,255,255,.2);cursor:pointer;font-family:inherit;transition:.25s;display:inline-flex;align-items:center;gap:8px}
+.btn-secondary:hover{background:rgba(255,255,255,.15)}
+
+/* Stats */
+.hero-stats{display:flex;gap:24px;flex-wrap:wrap}
+.hstat{text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 18px}
+.hstat-num{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.5rem;color:#f87171}
+.hstat-label{font-size:.68rem;color:rgba(255,255,255,.45);margin-top:3px}
+
+/* Hero right — Live dispatch */
+.dispatch-panel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:22px;backdrop-filter:blur(10px)}
+.dp-title{font-size:.82rem;font-weight:700;color:#f87171;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.dp-live{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
+.truck-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.truck-item:last-child{border:none}
+.truck-icon{font-size:1.6rem}
+.truck-info{flex:1}
+.truck-id{color:white;font-size:.82rem;font-weight:700}
+.truck-loc{color:rgba(255,255,255,.45);font-size:.7rem;margin-top:2px}
+.truck-status{font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:20px}
+.ts-free{background:rgba(16,185,129,.15);color:var(--green)}
+.ts-busy{background:rgba(245,158,11,.12);color:var(--orange)}
+.ts-eta{background:rgba(239,68,68,.12);color:#f87171}
+.truck-eta{text-align:center;flex-shrink:0}
+.truck-eta-num{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.1rem;color:var(--yellow)}
+.truck-eta-label{font-size:.6rem;color:rgba(255,255,255,.35)}
+
+/* TABS */
+.main-tabs{display:flex;background:rgba(0,0,0,.35);border-radius:14px 14px 0 0;margin:24px 36px 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;overflow:hidden;width:fit-content}
+.mtab{padding:13px 24px;font-size:.84rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.5);font-family:inherit;transition:.2s}
+.mtab.active{background:white;color:var(--navy);font-weight:700}
+.mtab-icon{margin-left:6px}
+
+/* ═══ CONTENT ═══ */
+.content{background:white;min-height:60vh}
+.tab-pane{display:none;padding:28px 32px}
+.tab-pane.active{display:block}
+
+/* ═══ WINCH REQUEST ═══ */
+.winch-layout{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start}
+.fcard{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:14px}
+.fcard-head{background:var(--light);padding:12px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:.85rem;color:var(--navy);display:flex;align-items:center;gap:7px}
+.fcard-body{padding:18px}
+
+/* Car type selector */
+.car-types{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:4px}
+.ctype{border:2px solid var(--border);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;transition:.22s;background:white}
+.ctype:hover{border-color:var(--red);transform:translateY(-2px)}
+.ctype.sel{border-color:var(--red);background:rgba(220,38,38,.03)}
+.ct-icon{font-size:2rem;margin-bottom:6px}
+.ct-name{font-size:.72rem;font-weight:700;color:var(--navy)}
+
+/* Problem selector */
+.problems-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.prob-card{border:1.5px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;transition:.2s;background:white}
+.prob-card:hover{border-color:var(--red-d)}
+.prob-card.sel{border-color:var(--red);background:rgba(220,38,38,.03)}
+.prob-icon{font-size:1.8rem;margin-bottom:6px}
+.prob-name{font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:2px}
+.prob-price{font-size:.68rem;color:var(--orange);font-weight:600}
+
+/* Location input */
+.loc-box{border:2px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:.2s;position:relative;background:#fafafa}
+.loc-box:hover{border-color:var(--red)}
+.loc-box.active-loc{border-color:var(--green);background:rgba(16,185,129,.02)}
+.loc-box-icon{font-size:2rem;margin-bottom:8px}
+.loc-box-title{font-weight:700;font-size:.88rem;color:var(--navy);margin-bottom:4px}
+.loc-box-sub{font-size:.74rem;color:var(--gray)}
+.loc-detected{font-size:.78rem;color:var(--green);font-weight:700;margin-top:6px;display:none}
+.loc-box.active-loc .loc-detected{display:block}
+.loc-manual-input{margin-top:10px;display:none}
+.loc-box.show-manual .loc-manual-input{display:block}
+
+/* Fields */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg.tri{grid-template-columns:1fr 1fr 1fr}
+.fg.one{grid-template-columns:1fr}
+.ff{display:flex;flex-direction:column;gap:4px}
+.ff label{font-size:.7rem;font-weight:700;color:var(--gray);letter-spacing:.3px}
+.ff input,.ff select,.ff textarea{border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;font-size:.84rem;font-family:inherit;outline:none;transition:.2s;background:white;width:100%}
+.ff input:focus,.ff select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.07)}
+
+/* Order panel */
+.order-panel{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;position:sticky;top:72px}
+.op-head{background:linear-gradient(135deg,var(--red-d),var(--red));color:white;padding:14px 18px}
+.op-head h3{font-size:.9rem;font-weight:700;margin-bottom:2px}
+.op-head p{font-size:.68rem;color:rgba(255,255,255,.55)}
+.op-body{padding:16px}
+.op-section{margin-bottom:12px}
+.op-stitle{font-size:.68rem;font-weight:700;color:var(--gray);letter-spacing:.7px;margin-bottom:7px;text-transform:uppercase}
+.op-row{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:5px}
+.op-row span{color:var(--gray)}
+.op-row strong{color:var(--dark)}
+.op-divider{height:1px;background:var(--border);margin:10px 0}
+.op-total{display:flex;justify-content:space-between;font-size:.95rem;font-weight:700;color:var(--navy);margin-bottom:14px}
+.btn-request{width:100%;background:var(--red);color:white;border:none;border-radius:12px;padding:14px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;animation:emergencyGlow 2s infinite}
+.btn-request:hover{background:var(--red-d);transform:translateY(-1px)}
+.eta-estimate{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:10px 14px;font-size:.75rem;color:var(--green);font-weight:700;text-align:center;margin-bottom:10px}
+
+/* ═══ LIVE TRACKING ═══ */
+.tracking-page{display:none}
+.tracking-page.show{display:block}
+.track-form-row{display:flex;gap:10px;margin-bottom:20px}
+.track-input{flex:1;border:2px solid var(--border);border-radius:11px;padding:12px 16px;font-size:.9rem;font-family:inherit;outline:none;transition:.2s;background:white;letter-spacing:1px}
+.track-input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.07)}
+.btn-track{background:var(--navy);color:white;border:none;border-radius:11px;padding:12px 24px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;white-space:nowrap}
+.btn-track:hover{background:var(--navy-l)}
+
+/* Fake map */
+.fake-map{background:linear-gradient(135deg,#ECEBF6,#E3E2F2);border-radius:16px;position:relative;height:300px;overflow:hidden;margin-bottom:18px;border:1px solid var(--border)}
+.fm-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(46,44,120,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(46,44,120,.05) 1px,transparent 1px);background-size:40px 40px}
+.fm-road-h{position:absolute;height:6px;background:white;border-radius:3px;opacity:.8}
+.fm-road-v{position:absolute;width:6px;background:white;border-radius:3px;opacity:.8}
+.truck-pin{position:absolute;font-size:1.8rem;transition:all 3s ease-in-out;cursor:pointer;z-index:5;animation:truckMove 8s linear infinite}
+@keyframes truckMove{0%{right:20%;top:40%}50%{right:45%;top:35%}100%{right:20%;top:40%}}
+.you-pin{position:absolute;right:65%;top:45%;z-index:5}
+.you-dot{width:16px;height:16px;background:var(--red);border-radius:50%;border:3px solid white;box-shadow:0 0 0 6px rgba(220,38,38,.2);animation:youPulse 2s infinite}
+@keyframes youPulse{0%,100%{box-shadow:0 0 0 6px rgba(220,38,38,.2)}50%{box-shadow:0 0 0 12px rgba(220,38,38,.05)}}
+.you-label{background:white;border-radius:8px;padding:3px 8px;font-size:.65rem;font-weight:700;color:var(--red);margin-top:4px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.route-line{position:absolute;height:3px;background:linear-gradient(90deg,var(--red),var(--orange));border-radius:3px;top:47%;right:20%;width:46%;opacity:.6}
+.map-eta-badge{position:absolute;top:14px;right:50%;transform:translateX(50%);background:var(--navy);color:var(--yellow);border-radius:20px;padding:6px 16px;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:.95rem;letter-spacing:1px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.map-zoom-btns{position:absolute;bottom:14px;left:14px;display:flex;flex-direction:column;gap:4px}
+.mzb{width:34px;height:34px;background:white;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.08);font-family:inherit;transition:.2s}
+.mzb:hover{background:var(--navy);color:white}
+
+/* Timeline */
+.track-timeline{display:flex;flex-direction:column;gap:0}
+.tt-item{display:flex;gap:14px;padding:12px 0;position:relative}
+.tt-item::before{content:'';position:absolute;right:15px;top:32px;bottom:-12px;width:2px;background:var(--border)}
+.tt-item:last-child::before{display:none}
+.tt-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;z-index:1;border:2px solid var(--border);background:white}
+.tt-dot.done{background:var(--green);border-color:var(--green);color:white}
+.tt-dot.active{background:var(--orange);border-color:var(--orange);color:white;animation:activePulse 2s infinite}
+@keyframes activePulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.4)}50%{box-shadow:0 0 0 8px rgba(245,158,11,0)}}
+.tt-content{flex:1}
+.tt-label{font-size:.85rem;font-weight:700;color:var(--dark);margin-bottom:3px}
+.tt-detail{font-size:.74rem;color:var(--gray);line-height:1.6}
+.tt-time{font-size:.68rem;color:var(--gray);flex-shrink:0;margin-top:4px}
+
+/* ═══ WORKSHOP ═══ */
+.workshop-hero{background:linear-gradient(135deg,#0a1f0a,#1a3a1a);border-radius:18px;padding:32px;margin-bottom:24px;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.wh-badge{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:var(--green);padding:5px 14px;border-radius:20px;font-size:.74rem;font-weight:700;display:inline-block;margin-bottom:12px}
+.workshop-hero h2{color:white;font-size:1.6rem;font-weight:700;margin-bottom:8px}
+.workshop-hero p{color:rgba(255,255,255,.6);font-size:.82rem;line-height:1.8;margin-bottom:20px}
+.ws-stats{display:flex;gap:14px;flex-wrap:wrap}
+.wss{background:rgba(255,255,255,.07);border-radius:10px;padding:10px 14px;border:1px solid rgba(255,255,255,.08);text-align:center}
+.wss-num{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.4rem;color:var(--green)}
+.wss-label{font-size:.65rem;color:rgba(255,255,255,.45);margin-top:2px}
+.ws-services-list{display:flex;flex-direction:column;gap:10px}
+.ws-service-item{background:rgba(255,255,255,.06);border-radius:10px;padding:12px 14px;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s}
+.ws-service-item:hover{background:rgba(255,255,255,.1);border-color:rgba(16,185,129,.3)}
+.ws-si-icon{font-size:1.3rem;flex-shrink:0}
+.ws-si-name{color:white;font-size:.82rem;font-weight:600}
+.ws-si-price{color:var(--green);font-size:.72rem;margin-top:2px}
+.ws-si-check{width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,.2);flex-shrink:0;margin-right:auto;display:flex;align-items:center;justify-content:center;font-size:.65rem;color:white;transition:.2s}
+.ws-service-item.sel .ws-si-check{background:var(--green);border-color:var(--green)}
+
+/* Workshop services grid */
+.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.service-card{background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:.25s;text-align:center}
+.service-card:hover{border-color:var(--green);transform:translateY(-3px);box-shadow:0 8px 24px rgba(16,185,129,.1)}
+.service-card.sel{border-color:var(--green);background:rgba(16,185,129,.02)}
+.sc-icon{font-size:2.5rem;margin-bottom:10px}
+.sc-name{font-size:.88rem;font-weight:700;color:var(--navy);margin-bottom:5px}
+.sc-price{font-size:.78rem;color:var(--green);font-weight:700;margin-bottom:5px}
+.sc-time{font-size:.68rem;color:var(--gray)}
+
+/* Booking form */
+.booking-layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+.btn-book-ws{width:100%;background:var(--green);color:white;border:none;border-radius:12px;padding:14px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-book-ws:hover{background:#059669;box-shadow:0 6px 20px rgba(16,185,129,.35);transform:translateY(-1px)}
+
+/* ═══ PRICES ═══ */
+.prices-section{background:var(--light);padding:28px 32px}
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.price-card{background:white;border-radius:14px;padding:20px;border:1.5px solid var(--border)}
+.pc-head{font-size:.82rem;font-weight:700;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.pc-row{display:flex;justify-content:space-between;font-size:.78rem;padding:7px 0;border-bottom:1px dashed var(--border);color:var(--gray)}
+.pc-row:last-child{border:none;font-weight:700;color:var(--navy);font-size:.85rem}
+.pc-row strong{color:var(--dark)}
+
+/* SUCCESS MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(5px)}
+.modal-overlay.show{display:flex}
+.modal{background:white;border-radius:22px;width:90%;max-width:440px;overflow:hidden;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);box-shadow:0 40px 100px rgba(0,0,0,.35)}
+@keyframes popIn{from{transform:scale(.82);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-top{padding:28px;text-align:center}
+.modal-icon{font-size:5rem;display:block;animation:iconBounce .6s cubic-bezier(.34,1.56,.64,1) .2s both}
+@keyframes iconBounce{from{transform:scale(0)}to{transform:scale(1)}}
+.modal-title{font-size:1.2rem;font-weight:700;color:var(--navy);margin:12px 0 6px}
+.modal-sub{font-size:.8rem;color:var(--gray);line-height:1.7}
+.modal-ref{background:var(--light);border-radius:12px;padding:14px;text-align:center;margin:16px 24px}
+.modal-ref-label{font-size:.68rem;color:var(--gray);margin-bottom:5px}
+.modal-ref-num{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.5rem;color:var(--navy);letter-spacing:2px}
+.modal-eta-box{background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2);border-radius:12px;padding:14px;margin:0 24px 16px;display:flex;align-items:center;gap:12px}
+.modal-eta-icon{font-size:2rem}
+.modal-eta-num{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.8rem;color:var(--red)}
+.modal-eta-label{font-size:.72rem;color:var(--gray)}
+.modal-actions{display:flex;gap:10px;padding:0 24px 24px}
+.ma-btn{flex:1;padding:12px;border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;border:none}
+.ma-primary{background:var(--red);color:white}
+.ma-primary:hover{background:var(--red-d)}
+.ma-sec{background:var(--light);color:var(--navy);border:1.5px solid var(--border)!important}
+.ma-sec:hover{background:var(--border)}
+
+/* SPINNER */
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--navy);color:white;padding:11px 22px;border-radius:12px;font-size:.83rem;font-weight:600;z-index:600;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 28px rgba(0,0,0,.25);pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* FLOATING CALL */
+.floating-call{position:fixed;bottom:28px;left:28px;z-index:400;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.fc-btn{background:var(--red);color:white;border:none;border-radius:50px;padding:14px 22px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;display:flex;align-items:center;gap:8px;box-shadow:0 6px 24px rgba(220,38,38,.5);animation:emergencyGlow 2s infinite}
+.fc-btn:hover{background:var(--red-d);transform:scale(1.05)}
+.fc-label{background:var(--dark);color:white;border-radius:8px;padding:5px 12px;font-size:.7rem;font-weight:600}
+
+@media(max-width:900px){
+  .hero-content{grid-template-columns:1fr;gap:24px;padding:40px 20px 0}
+  .dispatch-panel{display:none}
+  .winch-layout,.booking-layout{grid-template-columns:1fr}
+  .order-panel{position:relative;top:0}
+  .car-types{grid-template-columns:repeat(4,1fr)}
+  .problems-grid{grid-template-columns:repeat(2,1fr)}
+  .services-grid{grid-template-columns:1fr 1fr}
+  .workshop-hero{grid-template-columns:1fr}
+  .price-grid{grid-template-columns:1fr}
+  .nav-links{display:none}
+}
+</style>
+
+<style id="k2-shell">
+:root{--k2-indigo:#2E2C78;--k2-deep:#1F1D5C;--k2-ink:#14133A;--k2-sign:#FFC93C;--k2-paper:#F5F5FA;--k2-line:#DEDDEC;--k2-muted:#5D5C80;--k2-font:-apple-system,BlinkMacSystemFont,"SF Arabic","Geeza Pro","Segoe UI","Noto Sans Arabic",Tahoma,sans-serif}
+html,body{overflow-x:clip}body{font-family:var(--k2-font)}
+.k2-util{background:var(--k2-ink);color:#C9C8E6;font:13px/1 var(--k2-font)}
+.k2-util .k2-w{display:flex;align-items:center;justify-content:space-between;gap:16px;height:38px}
+.k2-util .k2-ul{display:flex;gap:22px;white-space:nowrap}
+.k2-util a{color:inherit;text-decoration:none}.k2-util a:hover{color:#fff}
+.k2-lang{background:transparent;border:1px solid #3A3970;border-radius:6px;padding:2px 8px;color:#fff;font:13px var(--k2-font)}
+.k2-lang option{color:#000}
+.k2-w{max-width:1200px;margin:0 auto;padding:0 24px;box-sizing:border-box}
+.k2-head{background:var(--k2-indigo);color:#fff;position:sticky;top:0;z-index:400;box-shadow:0 1px 0 rgba(255,255,255,.06);font-family:var(--k2-font)}
+.k2-head .k2-w{display:flex;align-items:center;gap:28px;height:72px}
+.k2-brand{display:flex;align-items:center;gap:10px;flex-shrink:0;color:#fff;text-decoration:none}
+.k2-brand svg{width:30px;height:38px}
+.k2-brand b{font-size:24px;letter-spacing:.06em;font-weight:800;direction:ltr;display:block;line-height:1.2}
+.k2-brand small{display:block;font-size:11px;color:#B9B8E0;font-weight:500;line-height:1.2}
+.k2-nav{display:flex;gap:4px;flex:1;margin:0;padding:0;background:none;position:static;border:0}
+.k2-nav a{padding:8px 14px;border-radius:6px;font-size:15px;color:#E4E3F7;font-weight:500;text-decoration:none;line-height:1.5}
+.k2-nav a:hover,.k2-nav a[aria-current]{background:rgba(255,255,255,.1);color:#fff}
+.k2-nav a[aria-current]{box-shadow:inset 0 -3px 0 var(--k2-sign)}
+.k2-act{display:flex;gap:10px;align-items:center}
+.k2-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:6px;font:700 15px var(--k2-font);padding:10px 18px;border:0;cursor:pointer;text-decoration:none;position:relative;line-height:1.3}
+.k2-btn-sign{background:var(--k2-sign);color:var(--k2-ink)}.k2-btn-sign:hover{background:#FFD566}
+.k2-btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.28)}.k2-btn-ghost:hover{border-color:#fff}
+.k2-cnt{position:absolute;top:-7px;left:-7px;min-width:20px;height:20px;border-radius:10px;background:#D93C42;color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px}
+.k2-menu{display:none;background:none;border:0;color:#fff;padding:8px;cursor:pointer}
+.k2-menu svg{width:26px;height:26px}
+.k2-drawer{position:fixed;inset:0;z-index:1000;display:none;font-family:var(--k2-font)}
+.k2-drawer.open{display:block}
+.k2-scrim{position:absolute;inset:0;background:rgba(20,19,58,.55)}
+.k2-panel{position:absolute;top:0;bottom:0;right:0;width:min(320px,86vw);background:#fff;padding:20px;display:flex;flex-direction:column;gap:4px;overflow:auto}
+.k2-panel a{padding:14px 12px;border-radius:6px;font-weight:600;font-size:17px;border-bottom:1px solid var(--k2-line);color:var(--k2-ink);text-decoration:none}
+.k2-panel a[aria-current]{color:var(--k2-indigo);background:var(--k2-paper)}
+.k2-close{align-self:flex-end;background:none;border:0;font-size:28px;cursor:pointer;color:var(--k2-indigo);padding:4px 10px}
+.k2-foot{background:var(--k2-ink);color:#B9B8E0;font:14px/1.7 var(--k2-font);padding:56px 0 28px;margin-top:0}
+.k2-fg{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:40px;margin-bottom:40px}
+.k2-fg h4{color:#fff;font-size:15px;margin:0 0 14px}
+.k2-fg ul{list-style:none;display:grid;gap:8px;margin:0;padding:0}
+.k2-fg a{color:inherit;text-decoration:none}.k2-fg a:hover{color:#fff}
+.k2-fg p{margin:14px 0 0;max-width:26em;line-height:1.8}
+.k2-fb{border-top:1px solid #2A2950;padding-top:22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.k2-head :focus-visible,.k2-foot :focus-visible,.k2-util :focus-visible{outline:3px solid var(--k2-sign);outline-offset:2px}
+@media(max-width:1100px){.k2-nav a{padding:8px 10px;font-size:14px}}
+@media(max-width:920px){.k2-nav,.k2-act .k2-btn-ghost{display:none}.k2-menu{display:block}.k2-head .k2-w{justify-content:space-between}.k2-fg{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.k2-w{padding:0 16px}.k2-util .k2-ul>*:not(:first-child){display:none}.k2-act .k2-hide-m{display:none}.k2-fg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22228800">خدمة العملاء <span dir="ltr">22228800</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — حولي</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
+<header class="k2-head"><div class="k2-w"><a class="k2-brand" href="KPTC_Home.html" aria-label="KPTC — الرئيسية"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b><small>شركة النقل العام الكويتية</small></span></a>
+<div class="k2-nav" role="navigation" aria-label="القائمة الرئيسية"><a href="KPTC_Routes.html">الخطوط</a><a href="KPTC_Subscriptions.html">الاشتراكات</a><a href="KPTC_Umrah.html">العمرة</a><a href="KPTC_VIP.html">VIP</a><a href="KPTC_Winch.html" aria-current="page">الونش</a><a href="KPTC_Advertising.html">أعلن معنا</a></div>
+<div class="k2-act"><a class="k2-btn k2-btn-ghost" href="KPTC_Portal.html">بوابة الموظفين</a><a class="k2-btn k2-btn-sign k2-hide-m" href="KPTC_Subscriptions.html">اشترك الآن</a><button class="k2-menu" aria-label="فتح القائمة" aria-expanded="false" onclick="k2Drawer(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
+<div class="k2-drawer" id="k2Drawer" aria-hidden="true"><div class="k2-scrim" onclick="k2Drawer(0)"></div><div class="k2-panel" role="dialog" aria-label="القائمة"><button class="k2-close" onclick="k2Drawer(0)" aria-label="إغلاق">×</button><a href="KPTC_Home.html">الرئيسية</a><a href="KPTC_Routes.html">الخطوط والمسارات</a><a href="KPTC_Subscriptions.html">الاشتراكات والتذاكر</a><a href="KPTC_Umrah.html">رحلات العمرة</a><a href="KPTC_VIP.html">باصات VIP</a><a href="KPTC_Winch.html" aria-current="page">الونش</a><a href="KPTC_LostFound.html">المفقودات</a><a href="KPTC_Advertising.html">أعلن معنا</a><a href="KPTC_RE_Client.html">مساحات للإيجار</a><a href="KPTC_Portal.html">بوابة الموظفين</a></div></div>
+<script>function k2Drawer(o){var d=document.getElementById('k2Drawer');d.classList.toggle('open',!!o);d.setAttribute('aria-hidden',o?'false':'true');var b=document.querySelector('.k2-menu');if(b)b.setAttribute('aria-expanded',o?'true':'false')}document.addEventListener('keydown',function(e){if(e.key==='Escape')k2Drawer(0)});</script>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <div class="hero-bg">
+    <div class="hero-circle"></div>
+    <div class="hero-circle"></div>
+    <div class="hero-glow"></div>
+  </div>
+  <div class="hero-content">
+    <div>
+      <div class="hero-badge"><div class="emergency-pulse"></div>خدمة طوارئ — تعمل 24/7/365</div>
+      <h1>تعطّلت سيارتك؟<br><span class="red">نصلك</span> في أسرع<br>وقت <span class="yellow">ممكن</span></h1>
+      <p class="hero-sub">خدمة الونش والإنقاذ الفوري في جميع أنحاء الكويت — بالإضافة لورشة متكاملة لصيانة وتصليح جميع أنواع السيارات.</p>
+
+      <div class="emergency-number" onclick="showToast('📞 جاري الاتصال بخدمة الطوارئ...')">
+        <div class="en-left">
+          <small>الخط المباشر — متوفر الآن</small>
+          <div class="en-num">22228800</div>
+        </div>
+        <div class="en-right">
+          <span class="en-badge">🚨 اتصل الآن</span>
+          <div class="en-hours">24 ساعة · 7 أيام</div>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <button class="btn-emergency" onclick="switchTab('winch')">🔧 اطلب ونش الآن</button>
+        <button class="btn-secondary" onclick="switchTab('workshop')">🏭 احجز في الورشة</button>
+      </div>
+
+      <div class="hero-stats">
+        <div class="hstat"><div class="hstat-num">25 دق</div><div class="hstat-label">متوسط وقت الوصول</div></div>
+        <div class="hstat"><div class="hstat-num">100%</div><div class="hstat-label">تغطية الكويت</div></div>
+        <div class="hstat"><div class="hstat-num">50+</div><div class="hstat-label">شاحنة ونش</div></div>
+        <div class="hstat"><div class="hstat-num">15,000</div><div class="hstat-label">عملية سنوياً</div></div>
+      </div>
+    </div>
+
+    <!-- Live dispatch panel -->
+    <div class="dispatch-panel">
+      <div class="dp-title"><div class="dp-live"></div>شاحنات الونش المتاحة الآن</div>
+      <div class="truck-item">
+        <div class="truck-icon">🚛</div>
+        <div class="truck-info">
+          <div class="truck-id">KPTC-W01</div>
+          <div class="truck-loc">📍 حولي — الدائري الثالث</div>
+        </div>
+        <div class="truck-status ts-free">متاح</div>
+        <div class="truck-eta"><div class="truck-eta-num">8</div><div class="truck-eta-label">دقيقة</div></div>
+      </div>
+      <div class="truck-item">
+        <div class="truck-icon">🚛</div>
+        <div class="truck-info">
+          <div class="truck-id">KPTC-W05</div>
+          <div class="truck-loc">📍 الفروانية — شارع الملك فهد</div>
+        </div>
+        <div class="truck-status ts-free">متاح</div>
+        <div class="truck-eta"><div class="truck-eta-num">14</div><div class="truck-eta-label">دقيقة</div></div>
+      </div>
+      <div class="truck-item">
+        <div class="truck-icon">🚛</div>
+        <div class="truck-info">
+          <div class="truck-id">KPTC-W12</div>
+          <div class="truck-loc">📍 السالمية — طريق الجابرية</div>
+        </div>
+        <div class="truck-status ts-busy">مشغول</div>
+        <div class="truck-eta"><div class="truck-eta-num">22</div><div class="truck-eta-label">دقيقة</div></div>
+      </div>
+      <div class="truck-item">
+        <div class="truck-icon">🚛</div>
+        <div class="truck-info">
+          <div class="truck-id">KPTC-W18</div>
+          <div class="truck-loc">📍 الأحمدي — الفحاحيل</div>
+        </div>
+        <div class="truck-status ts-free">متاح</div>
+        <div class="truck-eta"><div class="truck-eta-num">31</div><div class="truck-eta-label">دقيقة</div></div>
+      </div>
+      <div class="truck-item">
+        <div class="truck-icon">🚛</div>
+        <div class="truck-info">
+          <div class="truck-id">KPTC-W24</div>
+          <div class="truck-loc">📍 الجهراء — طريق الدوحة</div>
+        </div>
+        <div class="truck-status ts-eta">في مهمة</div>
+        <div class="truck-eta"><div class="truck-eta-num">45</div><div class="truck-eta-label">دقيقة</div></div>
+      </div>
+      <div style="text-align:center;margin-top:10px;font-size:.7rem;color:rgba(255,255,255,.3)">📡 يتحدث كل 30 ثانية</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="main-tabs">
+    <button class="mtab active" id="tab-winch-btn" onclick="switchTab('winch')"><span class="mtab-icon">🔧</span> اطلب ونش</button>
+    <button class="mtab" id="tab-track-btn" onclick="switchTab('track')"><span class="mtab-icon">📍</span> تتبع طلبك</button>
+    <button class="mtab" id="tab-workshop-btn" onclick="switchTab('workshop')"><span class="mtab-icon">🏭</span> ورشة التصليح</button>
+    <button class="mtab" id="tab-prices-btn" onclick="switchTab('prices')"><span class="mtab-icon">💰</span> الأسعار</button>
+  </div>
+</div>
+
+<!-- ═══ CONTENT ═══ -->
+<div class="content">
+
+  <!-- WINCH REQUEST -->
+  <div class="tab-pane active" id="pane-winch">
+    <div class="winch-layout">
+      <div>
+        <!-- Car type -->
+        <div class="fcard">
+          <div class="fcard-head">🚗 نوع سيارتك</div>
+          <div class="fcard-body">
+            <div class="car-types">
+              <div class="ctype sel" onclick="selCar(this,'سيارة عادية',8)"><div class="ct-icon">🚗</div><div class="ct-name">سيارة عادية</div></div>
+              <div class="ctype" onclick="selCar(this,'SUV / 4×4',12)"><div class="ct-icon">🚙</div><div class="ct-name">SUV / 4×4</div></div>
+              <div class="ctype" onclick="selCar(this,'بيكأب',15)"><div class="ct-icon">🛻</div><div class="ct-name">بيكأب</div></div>
+              <div class="ctype" onclick="selCar(this,'حافلة / شاحنة',25)"><div class="ct-icon">🚌</div><div class="ct-name">حافلة</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Problem -->
+        <div class="fcard">
+          <div class="fcard-head">⚠️ ما المشكلة؟</div>
+          <div class="fcard-body">
+            <div class="problems-grid">
+              <div class="prob-card sel" onclick="selProb(this,'عطل مفاجئ',0)"><div class="prob-icon">⚡</div><div class="prob-name">عطل مفاجئ</div><div class="prob-price">السعر الأساسي</div></div>
+              <div class="prob-card" onclick="selProb(this,'البطارية فارغة',0)"><div class="prob-icon">🔋</div><div class="prob-name">بطارية فارغة</div><div class="prob-price">+ خدمة شحن</div></div>
+              <div class="prob-card" onclick="selProb(this,'إطار مثقوب',0)"><div class="prob-icon">🛞</div><div class="prob-name">إطار مثقوب</div><div class="prob-price">تبديل إطار</div></div>
+              <div class="prob-card" onclick="selProb(this,'حادث مروري',5)"><div class="prob-icon">💥</div><div class="prob-name">حادث مروري</div><div class="prob-price">+ 5 د.ك إضافية</div></div>
+              <div class="prob-card" onclick="selProb(this,'نقص وقود',0)"><div class="prob-icon">⛽</div><div class="prob-name">نقص وقود</div><div class="prob-price">توصيل وقود</div></div>
+              <div class="prob-card" onclick="selProb(this,'أخرى',0)"><div class="prob-icon">🔧</div><div class="prob-name">مشكلة أخرى</div><div class="prob-price">حسب الحالة</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="fcard">
+          <div class="fcard-head">📍 موقعك الحالي</div>
+          <div class="fcard-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div class="loc-box" id="autoLocBox" onclick="detectLocation()">
+                <div class="loc-box-icon">📡</div>
+                <div class="loc-box-title">تحديد موقعي تلقائياً</div>
+                <div class="loc-box-sub">GPS دقيق — أسرع وأدق</div>
+                <div class="loc-detected" id="locDetected">✅ تم تحديد موقعك</div>
+              </div>
+              <div class="loc-box show-manual" id="manualLocBox">
+                <div class="loc-box-icon">✏️</div>
+                <div class="loc-box-title">أدخل الموقع يدوياً</div>
+                <div class="loc-box-sub">اكتب المنطقة أو قريب من...</div>
+                <div class="loc-manual-input">
+                  <input style="border:1.5px solid var(--border);border-radius:9px;padding:9px;font-family:inherit;outline:none;font-size:.82rem;width:100%;margin-top:8px" placeholder="مثال: حولي، قرب دوار السبع" id="manualLoc">
+                </div>
+              </div>
+            </div>
+            <div class="fg">
+              <div class="ff"><label>المحافظة</label>
+                <select id="govSelect" onchange="updateWinchOrder()">
+                  <option>اختر</option>
+                  <option>العاصمة</option><option>حولي</option><option>الفروانية</option>
+                  <option>الأحمدي</option><option>الجهراء</option><option>مبارك الكبير</option>
+                </select>
+              </div>
+              <div class="ff"><label>المنطقة / أقرب نقطة</label>
+                <input id="areaInput" placeholder="مثال: السالمية، بجانب المسجد" oninput="updateWinchOrder()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Destination -->
+        <div class="fcard">
+          <div class="fcard-head">🏭 وجهة السحب (اختياري)</div>
+          <div class="fcard-body">
+            <div class="fg">
+              <div class="ff"><label>أين تريد نقل سيارتك؟</label>
+                <select id="destSelect" onchange="updateWinchOrder()">
+                  <option value="">ورشة KPTC الرئيسية (موصى به)</option>
+                  <option>ورشة خاصة (حدد موقعها)</option>
+                  <option>منزلي</option>
+                  <option>وكالة السيارة</option>
+                  <option>أي مكان آخر</option>
+                </select>
+              </div>
+              <div class="ff"><label>المسافة التقريبية</label>
+                <select id="distSelect" onchange="updateWinchOrder()">
+                  <option value="8">داخل نفس المنطقة (8 د.ك)</option>
+                  <option value="12">مناطق مجاورة (12 د.ك)</option>
+                  <option value="18">منطقة بعيدة (18 د.ك)</option>
+                  <option value="25">خارج المحافظة (25 د.ك)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="fcard">
+          <div class="fcard-head">👤 بيانات التواصل</div>
+          <div class="fcard-body">
+            <div class="fg">
+              <div class="ff"><label>الاسم</label><input id="winchName" placeholder="اسمك الكامل"></div>
+              <div class="ff"><label>رقم الجوال</label><input id="winchPhone" placeholder="+965 ●●●● ●●●●"></div>
+              <div class="ff"><label>رقم اللوحة</label><input id="winchPlate" placeholder="مثال: 12345" oninput="updateWinchOrder()"></div>
+              <div class="ff"><label>موديل السيارة</label><input id="winchModel" placeholder="مثال: Toyota Camry 2022"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDER PANEL -->
+      <div>
+        <div class="order-panel">
+          <div class="op-head">
+            <h3>🔧 ملخص طلب الونش</h3>
+            <p>يتحدث تلقائياً</p>
+          </div>
+          <div class="op-body">
+            <div class="op-section">
+              <div class="op-stitle">تفاصيل الطلب</div>
+              <div class="op-row"><span>نوع السيارة</span><strong id="sum-car">سيارة عادية</strong></div>
+              <div class="op-row"><span>المشكلة</span><strong id="sum-prob">عطل مفاجئ</strong></div>
+              <div class="op-row"><span>الموقع</span><strong id="sum-loc">—</strong></div>
+              <div class="op-row"><span>الوجهة</span><strong id="sum-dest">ورشة KPTC</strong></div>
+              <div class="op-row"><span>رقم اللوحة</span><strong id="sum-plate">—</strong></div>
+            </div>
+            <div class="op-divider"></div>
+            <div class="op-section">
+              <div class="op-stitle">التكلفة</div>
+              <div class="op-row"><span>رسوم الخدمة الأساسية</span><span id="sum-base">8.000 د.ك</span></div>
+              <div class="op-row"><span>رسوم السحب</span><span id="sum-tow">8.000 د.ك</span></div>
+              <div class="op-row"><span>رسوم إضافية</span><span id="sum-extra">—</span></div>
+            </div>
+            <div class="op-divider"></div>
+            <div class="op-total"><span>الإجمالي التقريبي</span><span id="sum-total">16.000 د.ك</span></div>
+            <div class="eta-estimate">⏱️ وقت الوصول المتوقع: <span id="etaMin">15-25</span> دقيقة</div>
+            <button class="btn-request" id="requestBtn" onclick="submitWinch()">
+              🚨 إرسال طلب الونش الآن
+            </button>
+            <div style="font-size:.7rem;color:var(--gray);text-align:center;line-height:1.7">
+              📞 أو اتصل مباشرة: <strong style="color:var(--red)">22228800</strong><br>
+              ✅ السعر نهائي بعد معاينة الموقع
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRACKING -->
+  <div class="tab-pane" id="pane-track">
+    <div style="max-width:800px;margin:0 auto">
+      <div style="margin-bottom:20px">
+        <div style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:4px">📍 تتبع طلب الونش</div>
+        <div style="font-size:.8rem;color:var(--gray)">أدخل رقم طلبك لمعرفة موقع الشاحنة</div>
+      </div>
+      <div class="track-form-row">
+        <input type="text" class="track-input" id="trackInput" placeholder="TOW-000000" maxlength="12">
+        <button class="btn-track" onclick="doTrack()">🔍 تتبع</button>
+      </div>
+
+      <div id="trackResult" style="display:none">
+        <!-- Fake Map -->
+        <div class="fake-map">
+          <div class="fm-grid"></div>
+          <div class="fm-road-h" style="top:35%;left:0;right:0"></div>
+          <div class="fm-road-h" style="top:60%;left:5%;right:5%"></div>
+          <div class="fm-road-v" style="right:30%;top:0;bottom:0"></div>
+          <div class="fm-road-v" style="right:60%;top:10%;bottom:10%"></div>
+          <div class="route-line"></div>
+          <!-- Moving truck -->
+          <div class="truck-pin" style="top:calc(35% - 14px)">🚛</div>
+          <!-- You -->
+          <div class="you-pin">
+            <div class="you-dot"></div>
+            <div class="you-label">موقعك</div>
+          </div>
+          <div class="map-eta-badge" id="mapEta">⏱️ 12 دقيقة</div>
+          <div class="map-zoom-btns">
+            <button class="mzb" onclick="showToast('🔍 تكبير')">+</button>
+            <button class="mzb" onclick="showToast('🔍 تصغير')">−</button>
+            <button class="mzb" onclick="showToast('📍 موقعي')">📍</button>
+          </div>
+        </div>
+
+        <!-- Driver info -->
+        <div style="background:white;border-radius:14px;border:1.5px solid var(--border);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:16px">
+          <div style="width:52px;height:52px;background:linear-gradient(135deg,var(--navy),var(--navy-l));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">🧑‍🔧</div>
+          <div style="flex:1">
+            <div style="font-weight:700;color:var(--navy)">محمد أحمد — سائق ونش KPTC</div>
+            <div style="font-size:.74rem;color:var(--gray);margin-top:3px">رقم الشاحنة: KPTC-W05 | لوحة: 45678 | ★★★★★ (4.9)</div>
+          </div>
+          <button style="background:var(--green);color:white;border:none;border-radius:10px;padding:10px 18px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit" onclick="showToast('📞 جاري الاتصال بالسائق...')">📞 اتصال</button>
+        </div>
+
+        <!-- Timeline -->
+        <div style="background:white;border-radius:14px;border:1.5px solid var(--border);padding:18px 20px">
+          <div style="font-size:.85rem;font-weight:700;color:var(--navy);margin-bottom:14px">📋 مراحل الطلب</div>
+          <div class="track-timeline">
+            <div class="tt-item"><div class="tt-dot done">✓</div><div class="tt-content"><div class="tt-label">✅ تم استلام طلبك</div><div class="tt-detail">رقم الطلب TOW-482191 — تم التسجيل في نظامنا</div></div><div class="tt-time">09:15</div></div>
+            <div class="tt-item"><div class="tt-dot done">✓</div><div class="tt-content"><div class="tt-label">✅ تم تحديد أقرب شاحنة</div><div class="tt-detail">KPTC-W05 — محمد أحمد | المسافة 3.2 كم</div></div><div class="tt-time">09:17</div></div>
+            <div class="tt-item"><div class="tt-dot active">🚛</div><div class="tt-content"><div class="tt-label">🚛 الشاحنة في الطريق إليك</div><div class="tt-detail">على بُعد 2.1 كم — الوصول خلال 12 دقيقة تقريباً</div></div><div class="tt-time">الآن</div></div>
+            <div class="tt-item"><div class="tt-dot">4</div><div class="tt-content"><div class="tt-label">وصول الشاحنة وإنقاذ السيارة</div><div class="tt-detail">—</div></div><div class="tt-time">~09:42</div></div>
+            <div class="tt-item"><div class="tt-dot">5</div><div class="tt-content"><div class="tt-label">تسليم السيارة للوجهة المحددة</div><div class="tt-detail">ورشة KPTC الرئيسية</div></div><div class="tt-time">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKSHOP -->
+  <div class="tab-pane" id="pane-workshop">
+    <!-- Workshop Hero -->
+    <div class="workshop-hero">
+      <div>
+        <div class="wh-badge">🏭 ورشة KPTC المعتمدة</div>
+        <h2>ورشة متكاملة لكل<br>أنواع السيارات</h2>
+        <p>فنيون معتمدون، قطع غيار أصلية، معدات تشخيص حديثة. نصلح سيارتك بجودة لا تضاهى وبأسعار شفافة مسبقاً.</p>
+        <div class="ws-stats">
+          <div class="wss"><div class="wss-num">50+</div><div class="wss-label">فني معتمد</div></div>
+          <div class="wss"><div class="wss-num">98%</div><div class="wss-label">رضا العملاء</div></div>
+          <div class="wss"><div class="wss-num">24 ساعة</div><div class="wss-label">سرعة الإنجاز</div></div>
+          <div class="wss"><div class="wss-num">ضمان</div><div class="wss-label">3 أشهر</div></div>
+        </div>
+      </div>
+      <div class="ws-services-list">
+        <div class="ws-service-item" onclick="this.classList.toggle('sel')"><div class="ws-si-icon">🔧</div><div><div class="ws-si-name">صيانة دورية شاملة</div><div class="ws-si-price">يبدأ من 25 د.ك</div></div><div class="ws-si-check">✓</div></div>
+        <div class="ws-service-item" onclick="this.classList.toggle('sel')"><div class="ws-si-icon">⚡</div><div><div class="ws-si-name">إصلاح كهرباء ونظام</div><div class="ws-si-price">يبدأ من 15 د.ك</div></div><div class="ws-si-check">✓</div></div>
+        <div class="ws-service-item" onclick="this.classList.toggle('sel')"><div class="ws-si-icon">❄️</div><div><div class="ws-si-name">صيانة التكييف</div><div class="ws-si-price">يبدأ من 20 د.ك</div></div><div class="ws-si-check">✓</div></div>
+        <div class="ws-service-item" onclick="this.classList.toggle('sel')"><div class="ws-si-icon">🛞</div><div><div class="ws-si-name">إطارات وفرامل</div><div class="ws-si-price">يبدأ من 8 د.ك</div></div><div class="ws-si-check">✓</div></div>
+      </div>
+    </div>
+
+    <!-- Services -->
+    <div style="font-size:.92rem;font-weight:700;color:var(--navy);margin-bottom:14px">🔩 اختر الخدمة المطلوبة</div>
+    <div class="services-grid">
+      <div class="service-card sel" onclick="this.classList.toggle('sel')"><div class="sc-icon">🔧</div><div class="sc-name">صيانة دورية</div><div class="sc-price">من 25 د.ك</div><div class="sc-time">⏱️ 2-4 ساعات</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🛢️</div><div class="sc-name">تغيير زيت وفلتر</div><div class="sc-price">من 8 د.ك</div><div class="sc-time">⏱️ 30 دقيقة</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🔋</div><div class="sc-name">استبدال بطارية</div><div class="sc-price">من 15 د.ك</div><div class="sc-time">⏱️ 20 دقيقة</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🛞</div><div class="sc-name">تبديل إطارات</div><div class="sc-price">من 8 د.ك/إطار</div><div class="sc-time">⏱️ 45 دقيقة</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">❄️</div><div class="sc-name">صيانة التكييف</div><div class="sc-price">من 20 د.ك</div><div class="sc-time">⏱️ 1-2 ساعة</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">⚡</div><div class="sc-name">إصلاح كهرباء</div><div class="sc-price">من 15 د.ك</div><div class="sc-time">⏱️ حسب العطل</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🔩</div><div class="sc-name">صيانة المحرك</div><div class="sc-price">من 40 د.ك</div><div class="sc-time">⏱️ 4-8 ساعات</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🚿</div><div class="sc-name">غسيل وتلميع</div><div class="sc-price">من 5 د.ك</div><div class="sc-time">⏱️ 1 ساعة</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">💨</div><div class="sc-name">فحص شامل</div><div class="sc-price">10 د.ك</div><div class="sc-time">⏱️ 1 ساعة</div></div>
+    </div>
+
+    <!-- Booking Form -->
+    <div style="font-size:.92rem;font-weight:700;color:var(--navy);margin-bottom:14px">📅 احجز موعدك في الورشة</div>
+    <div class="booking-layout">
+      <div>
+        <div class="fcard">
+          <div class="fcard-head">🚗 بيانات سيارتك</div>
+          <div class="fcard-body">
+            <div class="fg">
+              <div class="ff"><label>نوع السيارة</label><select><option>سيارة عادية</option><option>SUV / 4×4</option><option>بيكأب</option><option>حافلة</option></select></div>
+              <div class="ff"><label>الموديل والسنة</label><input placeholder="مثال: Toyota Camry 2022"></div>
+              <div class="ff"><label>رقم اللوحة</label><input placeholder="12345 كويت"></div>
+              <div class="ff"><label>المسافة المقطوعة (كم)</label><input type="number" placeholder="مثال: 45000"></div>
+            </div>
+          </div>
+        </div>
+        <div class="fcard">
+          <div class="fcard-head">📅 موعد الزيارة</div>
+          <div class="fcard-body">
+            <div class="fg">
+              <div class="ff"><label>التاريخ المفضل</label><input type="date" value="2026-04-14"></div>
+              <div class="ff"><label>الوقت المفضل</label>
+                <select>
+                  <option>08:00 ص — 09:00 ص</option><option>09:00 ص — 10:00 ص</option>
+                  <option>10:00 ص — 11:00 ص</option><option>11:00 ص — 12:00 م</option>
+                  <option>02:00 م — 03:00 م</option><option>03:00 م — 04:00 م</option>
+                </select>
+              </div>
+              <div class="ff"><label>الاسم</label><input placeholder="اسمك الكامل"></div>
+              <div class="ff"><label>رقم الجوال</label><input placeholder="+965 ●●●● ●●●●"></div>
+              <div class="ff" style="grid-column:span 2"><label>ملاحظات إضافية عن المشكلة</label><textarea placeholder="صف المشكلة بالتفصيل لنتمكن من الاستعداد المسبق..." rows="3"></textarea></div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-book-ws" onclick="submitWorkshop()">📅 تأكيد حجز الورشة</button>
+      </div>
+
+      <!-- Workshop summary -->
+      <div class="order-panel" style="--red:var(--green);--red-d:#059669">
+        <div class="op-head" style="background:linear-gradient(135deg,#065F46,var(--green))">
+          <h3>📋 ملخص الحجز</h3>
+          <p>ورشة KPTC الرئيسية</p>
+        </div>
+        <div class="op-body">
+          <div class="op-section">
+            <div class="op-stitle">معلومات الورشة</div>
+            <div class="op-row"><span>العنوان</span><strong>حولي — المقر الرئيسي</strong></div>
+            <div class="op-row"><span>أوقات العمل</span><strong>7ص - 9م يومياً</strong></div>
+            <div class="op-row"><span>الهاتف</span><strong>22228844</strong></div>
+          </div>
+          <div class="op-divider"></div>
+          <div class="op-section">
+            <div class="op-stitle">مميزات الورشة</div>
+            <div style="font-size:.76rem;color:var(--gray);line-height:2">
+              ✅ قطع غيار أصلية معتمدة<br>
+              ✅ ضمان 3 أشهر على الإصلاح<br>
+              ✅ تقرير فحص مجاني<br>
+              ✅ انتظار مريح مع واي فاي<br>
+              ✅ استلام وتوصيل السيارة
+            </div>
+          </div>
+          <div class="op-divider"></div>
+          <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:10px;text-align:center;font-size:.75rem;color:var(--green);font-weight:700;margin-bottom:12px">
+            📞 سنؤكد موعدك بمكالمة خلال ساعة
+          </div>
+          <button class="btn-book-ws" onclick="submitWorkshop()">📅 تأكيد الحجز</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICES -->
+  <div class="tab-pane" id="pane-prices">
+    <div class="prices-section" style="background:white;padding:0 0 28px">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:.72rem;font-weight:700;color:var(--gray);letter-spacing:1px;margin-bottom:6px">أسعار شفافة — بدون مفاجآت</div>
+        <div style="font-size:1.1rem;font-weight:700;color:var(--navy)">💰 جدول أسعار خدمة الونش والورشة</div>
+      </div>
+      <div class="price-grid">
+        <div class="price-card">
+          <div class="pc-head">🔧 خدمة الونش</div>
+          <div class="pc-row"><span>رسوم الخدمة الأساسية</span><strong>5 د.ك</strong></div>
+          <div class="pc-row"><span>سحب داخل نفس المنطقة</span><strong>8 د.ك</strong></div>
+          <div class="pc-row"><span>سحب مناطق مجاورة</span><strong>12 د.ك</strong></div>
+          <div class="pc-row"><span>سحب منطقة بعيدة</span><strong>18 د.ك</strong></div>
+          <div class="pc-row"><span>خارج المحافظة</span><strong>25 د.ك</strong></div>
+          <div class="pc-row"><span>SUV وشاحنات</span><strong>+5 د.ك إضافية</strong></div>
+          <div class="pc-row"><span>خدمة ليلية (12م-6ص)</span><strong>+3 د.ك</strong></div>
+        </div>
+        <div class="price-card">
+          <div class="pc-head">🔩 الورشة — صيانة عامة</div>
+          <div class="pc-row"><span>فحص شامل للسيارة</span><strong>10 د.ك</strong></div>
+          <div class="pc-row"><span>تغيير زيت + فلتر</span><strong>من 8 د.ك</strong></div>
+          <div class="pc-row"><span>استبدال بطارية</span><strong>من 15 د.ك</strong></div>
+          <div class="pc-row"><span>تبديل إطار واحد</span><strong>من 8 د.ك</strong></div>
+          <div class="pc-row"><span>ضبط كمبيوتر السيارة</span><strong>15 د.ك</strong></div>
+          <div class="pc-row"><span>صيانة دورية شاملة</span><strong>من 25 د.ك</strong></div>
+          <div class="pc-row"><span>ضمان الإصلاح</span><strong>3 أشهر</strong></div>
+        </div>
+        <div class="price-card">
+          <div class="pc-head">⚡ كهرباء وتكييف</div>
+          <div class="pc-row"><span>فحص وتشخيص</span><strong>10 د.ك</strong></div>
+          <div class="pc-row"><span>شحن بطارية</span><strong>5 د.ك</strong></div>
+          <div class="pc-row"><span>إصلاح كهرباء (بسيط)</span><strong>من 15 د.ك</strong></div>
+          <div class="pc-row"><span>إصلاح كهرباء (متقدم)</span><strong>من 35 د.ك</strong></div>
+          <div class="pc-row"><span>صيانة تكييف</span><strong>من 20 د.ك</strong></div>
+          <div class="pc-row"><span>تعبئة فريون</span><strong>12 د.ك</strong></div>
+          <div class="pc-row"><span>استبدال كمبروسر</span><strong>من 80 د.ك</strong></div>
+        </div>
+      </div>
+      <div style="background:rgba(46,44,120,.04);border:1px solid rgba(46,44,120,.08);border-radius:12px;padding:14px 18px;margin-top:18px;font-size:.78rem;color:var(--gray);line-height:1.9">
+        ⚠️ <strong style="color:var(--navy)">ملاحظة:</strong> الأسعار تقريبية — السعر النهائي بعد معاينة السيارة | جميع الأسعار شاملة ضريبة القيمة المضافة | يُعطى عرض سعر مفصل قبل بدء أي عمل | نقبل الدفع نقداً وبالبطاقة وعبر KNET
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FLOATING CALL -->
+<div class="floating-call">
+  <div class="fc-label">طوارئ 24/7</div>
+  <button class="fc-btn" onclick="showToast('📞 جاري الاتصال: 22228800')">🚨 22228800</button>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal">
+    <div class="modal-top">
+      <span class="modal-icon" id="mIcon">🚛</span>
+      <div class="modal-title" id="mTitle">تم إرسال طلب الونش!</div>
+      <div class="modal-sub" id="mSub">فريقنا يتحرك نحوك الآن</div>
+    </div>
+    <div class="modal-ref">
+      <div class="modal-ref-label">رقم الطلب — احتفظ به</div>
+      <div class="modal-ref-num" id="mRef">TOW-000000</div>
+    </div>
+    <div class="modal-eta-box" id="mEtaBox">
+      <div class="modal-eta-icon">🚛</div>
+      <div>
+        <div class="modal-eta-label">الشاحنة ستصل خلال</div>
+        <div class="modal-eta-num" id="mEta">15-25 دقيقة</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="ma-btn ma-primary" onclick="switchTab('track');document.getElementById('trackInput').value=document.getElementById('mRef').textContent;doTrack();document.getElementById('modalOverlay').classList.remove('show')">📍 تتبع الشاحنة</button>
+      <button class="ma-btn ma-sec" onclick="document.getElementById('modalOverlay').classList.remove('show')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let carType = 'سيارة عادية';
+let carExtra = 0;
+let probExtra = 0;
+let towDist = 8;
+
+// ── TABS ──
+function switchTab(tab) {
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab+'-btn').classList.add('active');
+  document.getElementById('pane-'+tab).classList.add('active');
+  window.scrollTo({top:document.querySelector('.main-tabs').offsetTop-65,behavior:'smooth'});
+}
+
+// ── CAR TYPE ──
+function selCar(el, name, extra) {
+  document.querySelectorAll('.ctype').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  carType = name; carExtra = extra;
+  updateWinchOrder();
+  showToast(`🚗 ${name}`);
+}
+
+// ── PROBLEM ──
+function selProb(el, name, extra) {
+  document.querySelectorAll('.prob-card').forEach(p=>p.classList.remove('sel'));
+  el.classList.add('sel');
+  probExtra = extra;
+  document.getElementById('sum-prob').textContent = name;
+  updateWinchOrder();
+}
+
+// ── ORDER UPDATE ──
+function updateWinchOrder() {
+  const dist = parseInt(document.getElementById('distSelect')?.value || 8);
+  towDist = dist;
+  const base = 5;
+  const total = base + carExtra + dist + probExtra;
+  document.getElementById('sum-car').textContent = carType;
+  const gov = document.getElementById('govSelect')?.value || '';
+  const area = document.getElementById('areaInput')?.value || '';
+  document.getElementById('sum-loc').textContent = (gov && gov!=='اختر') ? `${gov}${area?'، '+area:''}` : '—';
+  document.getElementById('sum-dest').textContent = document.getElementById('destSelect')?.value?.split('(')[0].trim() || 'ورشة KPTC';
+  document.getElementById('sum-plate').textContent = document.getElementById('winchPlate')?.value || '—';
+  document.getElementById('sum-base').textContent = base + '.000 د.ك';
+  document.getElementById('sum-tow').textContent = (dist + carExtra) + '.000 د.ك';
+  document.getElementById('sum-extra').textContent = probExtra ? probExtra+'.000 د.ك' : '—';
+  document.getElementById('sum-total').textContent = total + '.000 د.ك';
+  const etaMin = dist<=8?'10-18':dist<=12?'15-25':dist<=18?'20-35':'30-50';
+  document.getElementById('etaMin').textContent = etaMin;
+}
+
+// ── LOCATION ──
+function detectLocation() {
+  const box = document.getElementById('autoLocBox');
+  box.innerHTML = `<div style="text-align:center;padding:10px"><div class="spinner" style="border-top-color:var(--red);margin:0 auto 8px"></div><div style="font-size:.75rem;color:var(--gray)">جاري تحديد موقعك...</div></div>`;
+  setTimeout(() => {
+    box.classList.add('active-loc');
+    box.innerHTML = `
+      <div class="loc-box-icon">📡</div>
+      <div class="loc-box-title">تحديد موقعي تلقائياً</div>
+      <div class="loc-box-sub">GPS دقيق</div>
+      <div class="loc-detected" style="display:block">✅ حولي — الدائري الثالث، بجانب جمعية</div>`;
+    document.getElementById('sum-loc').textContent = 'حولي — الدائري الثالث';
+    showToast('📍 تم تحديد موقعك بنجاح');
+  }, 1800);
+}
+
+// ── SUBMIT WINCH ──
+function submitWinch() {
+  const btn = document.getElementById('requestBtn');
+  btn.innerHTML = '<div class="spinner"></div> جاري الإرسال...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = '🚨 إرسال طلب الونش الآن';
+    btn.disabled = false;
+    const ref = 'TOW-' + Math.floor(Math.random()*900000+100000);
+    const eta = document.getElementById('etaMin').textContent;
+    document.getElementById('mRef').textContent = ref;
+    document.getElementById('mEta').textContent = eta + ' دقيقة';
+    document.getElementById('modalOverlay').classList.add('show');
+    showToast('✅ تم إرسال طلبك — رقم: '+ref);
+  }, 2000);
+}
+
+// ── TRACK ──
+function doTrack() {
+  const val = document.getElementById('trackInput').value.trim();
+  if (!val) { showToast('⚠️ أدخل رقم الطلب'); return; }
+  const btn = document.querySelector('.btn-track');
+  btn.innerHTML = '<div class="spinner" style="border-top-color:white"></div>';
+  setTimeout(() => {
+    btn.innerHTML = '🔍 تتبع';
+    document.getElementById('trackResult').style.display = 'block';
+    document.getElementById('mapEta').textContent = '⏱️ 12 دقيقة';
+    showToast('✅ تم العثور على طلبك');
+    document.getElementById('trackResult').scrollIntoView({behavior:'smooth'});
+  }, 1400);
+}
+
+// ── WORKSHOP ──
+function submitWorkshop() {
+  const btn = event.target;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<div class="spinner"></div> جاري الحجز...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = orig; btn.disabled = false;
+    const ref = 'WS-' + Math.floor(Math.random()*90000+10000);
+    document.getElementById('mIcon').textContent = '🏭';
+    document.getElementById('mTitle').textContent = 'تم حجز موعدك في الورشة!';
+    document.getElementById('mSub').textContent = 'سنتصل لتأكيد الموعد خلال ساعة';
+    document.getElementById('mRef').textContent = ref;
+    document.getElementById('mEtaBox').style.display = 'none';
+    document.getElementById('modalOverlay').classList.add('show');
+    showToast('✅ تم الحجز: '+ref);
+  }, 1500);
+}
+
+// ── TOAST ──
+let toastT;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Init
+updateWinchOrder();
+</script>
+<footer class="k2-foot"><div class="k2-w"><div class="k2-fg">
+<div><a class="k2-brand" href="KPTC_Home.html"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b></span></a><p>شركة النقل العام الكويتية، أول وأكبر مشغّل للنقل العام في الكويت منذ 1962، مملوكة بالكامل للدولة.</p></div>
+<div><h4>خدماتنا</h4><ul><li><a href="KPTC_Routes.html">الخطوط والمسارات</a></li><li><a href="KPTC_Subscriptions.html">الاشتراكات</a></li><li><a href="KPTC_Umrah.html">رحلات العمرة</a></li><li><a href="KPTC_VIP.html">باصات VIP</a></li><li><a href="KPTC_Winch.html">الونش</a></li></ul></div>
+<div><h4>خدمة العملاء</h4><ul><li><a href="KPTC_LostFound.html">المفقودات</a></li><li><a href="KPTC_AI_Assistant.html">المساعد الذكي</a></li><li><a href="KPTC_Home.html#contact">الشكاوى</a></li><li><a href="KPTC_Home.html#contact">تواصل معنا</a></li></ul></div>
+<div><h4>الشركة</h4><ul><li><a href="KPTC_Home.html#about">عن KPTC</a></li><li><a href="KPTC_Advertising.html">أعلن معنا</a></li><li><a href="KPTC_RE_Client.html">مساحات للإيجار</a></li><li><a href="KPTC_Portal.html">بوابة الموظفين</a></li></ul></div>
+</div><div class="k2-fb"><span>© 2026 شركة النقل العام الكويتية. جميع الحقوق محفوظة.</span><span>kptc.com.kw</span></div></div></footer>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+</html>

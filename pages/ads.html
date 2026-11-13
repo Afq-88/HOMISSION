@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPTC — الإعلان على الحافلات</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#2E2C78;--navy-l:#3D3B95;--navy-d:#1F1D5C;
+  --yellow:#FFC93C;--gold:#c9a227;
+  --white:#fff;--light:#F5F5FA;
+  --gray:#5D5C80;--dark:#14133A;--border:#DEDDEC;
+  --green:#10B981;--red:#EF4444;--orange:#F59E0B;
+  --purple:#7C3AED;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;background:var(--light);color:var(--dark)}
+
+/* NAV */
+nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px solid rgba(255,201,60,.15)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;color:var(--navy);font-size:.85rem}
+.logo-name{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--yellow)}
+.logo-sub{font-size:.58rem;color:rgba(255,255,255,.5);letter-spacing:1px}
+.nav-links{display:flex;gap:2px;list-style:none}
+.nav-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.8rem;padding:6px 12px;border-radius:7px;transition:.2s}
+.nav-links a:hover,.nav-links a.active{color:var(--yellow);background:rgba(255,201,60,.1)}
+
+/* ══ HERO ══ */
+.hero{background:linear-gradient(145deg,#050c24 0%,#1F1D5C 40%,#1a2d80 70%,#0d1845 100%);min-height:420px;position:relative;overflow:hidden;display:flex;align-items:stretch}
+.hero-bg-shapes{position:absolute;inset:0;pointer-events:none}
+.hero-circle{position:absolute;border-radius:50%;border:1px solid rgba(255,201,60,.06)}
+.hero-circle:nth-child(1){width:700px;height:700px;top:-300px;right:-200px}
+.hero-circle:nth-child(2){width:400px;height:400px;bottom:-200px;left:-100px;border-color:rgba(255,255,255,.04)}
+.hero-circle:nth-child(3){width:200px;height:200px;top:20%;left:35%;border-color:rgba(255,201,60,.08)}
+.hero-left{position:relative;z-index:2;padding:48px 40px;flex:1;display:flex;flex-direction:column;justify-content:center}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.25);color:var(--yellow);padding:6px 16px;border-radius:30px;font-size:.76rem;font-weight:700;margin-bottom:18px;letter-spacing:.5px}
+.hero-tag .pulse{width:7px;height:7px;background:var(--yellow);border-radius:50%;animation:p 2s infinite}
+@keyframes p{0%,100%{box-shadow:0 0 0 0 rgba(255,201,60,.5)}50%{box-shadow:0 0 0 6px rgba(255,201,60,0)}}
+.hero h1{font-size:2.8rem;color:white;font-weight:700;line-height:1.2;margin-bottom:12px}
+.hero h1 em{color:var(--yellow);font-style:normal;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;letter-spacing:2px}
+.hero-sub{color:rgba(255,255,255,.65);font-size:.93rem;line-height:1.85;max-width:520px;margin-bottom:28px}
+.hero-nums{display:flex;gap:0;margin-bottom:32px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden}
+.hnum{flex:1;padding:16px;text-align:center;border-left:1px solid rgba(255,255,255,.07)}
+.hnum:last-child{border:none}
+.hnum-val{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.6rem;color:var(--yellow);letter-spacing:1px}
+.hnum-label{font-size:.68rem;color:rgba(255,255,255,.5);margin-top:3px}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
+.btn-hero-primary{background:var(--yellow);color:var(--navy);font-weight:700;padding:13px 26px;border-radius:12px;font-size:.92rem;border:none;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;gap:8px}
+.btn-hero-primary:hover{background:#ffd700;transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,201,60,.4)}
+.btn-hero-sec{background:rgba(255,255,255,.08);color:white;font-weight:600;padding:13px 22px;border-radius:12px;font-size:.92rem;border:1px solid rgba(255,255,255,.18);cursor:pointer;font-family:inherit;transition:.25s}
+.btn-hero-sec:hover{background:rgba(255,255,255,.15)}
+
+/* BUS MOCKUP */
+.hero-right{width:480px;position:relative;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;flex-shrink:0}
+.bus-mockup-wrap{position:relative;z-index:2;padding-bottom:0;width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center}
+.bus-svg-wrap{width:440px;position:relative;bottom:0}
+/* Bus body SVG */
+.bus-body{width:100%;position:relative}
+.bus-side{background:linear-gradient(160deg,#ECEBF6,#d0dcf0);border-radius:18px 18px 8px 8px;height:200px;position:relative;overflow:hidden;margin:0 20px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.bus-windows{position:absolute;top:20px;right:20px;left:80px;display:flex;gap:8px}
+.bus-window{width:44px;height:36px;background:rgba(46,44,120,.5);border-radius:6px;border:2px solid rgba(255,255,255,.3)}
+.bus-window.driver{background:rgba(100,150,220,.4)}
+.bus-roof{height:16px;background:var(--navy);border-radius:18px 18px 0 0;margin:0 10px}
+.bus-bottom{height:20px;background:#333;border-radius:0 0 8px 8px;margin:0 20px}
+.bus-wheels{display:flex;justify-content:space-between;padding:0 40px;margin-top:-4px}
+.bus-wheel{width:44px;height:44px;background:#222;border-radius:50%;border:4px solid #444;position:relative}
+.bus-wheel::after{content:'';position:absolute;inset:6px;background:#333;border-radius:50%;border:2px solid #555}
+
+/* Ad placement zones on bus */
+.ad-zone{position:absolute;cursor:pointer;border:2px dashed transparent;border-radius:6px;transition:all .25s;display:flex;align-items:center;justify-content:center}
+.ad-zone:hover{border-color:var(--yellow);background:rgba(255,201,60,.12)}
+.ad-zone.selected{border-color:var(--yellow);background:rgba(255,201,60,.15);border-style:solid}
+.ad-zone.has-ad{border-style:solid;border-width:2px}
+.az-label{font-size:.55rem;font-weight:700;color:var(--navy);background:rgba(255,255,255,.9);padding:2px 6px;border-radius:4px;white-space:nowrap;text-align:center;pointer-events:none;position:absolute;bottom:4px;left:50%;transform:translateX(-50%)}
+/* Ad image previews on bus */
+.ad-preview{position:absolute;inset:4px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:white;text-align:center;pointer-events:none;overflow:hidden}
+
+/* ══ MAIN LAYOUT ══ */
+.page-body{max-width:1200px;margin:0 auto;padding:32px 28px}
+.main-grid{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start}
+
+/* ══ SECTION HEADERS ══ */
+.sec-header{margin-bottom:18px}
+.sec-tag{display:inline-block;background:rgba(46,44,120,.08);color:var(--navy);font-size:.72rem;font-weight:700;padding:4px 13px;border-radius:20px;margin-bottom:8px;letter-spacing:.5px}
+.sec-title{font-size:1.15rem;font-weight:700;color:var(--navy)}
+.sec-desc{font-size:.8rem;color:var(--gray);margin-top:4px;line-height:1.7}
+
+/* ══ PACKAGE CARDS ══ */
+.pkg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.pkg-card{border:2px solid var(--border);border-radius:16px;padding:20px 16px;background:white;cursor:pointer;transition:all .25s;position:relative;text-align:center}
+.pkg-card:hover{border-color:var(--navy-l);transform:translateY(-3px);box-shadow:0 8px 24px rgba(46,44,120,.1)}
+.pkg-card.selected{border-color:var(--yellow);background:rgba(255,201,60,.04);box-shadow:0 8px 28px rgba(255,201,60,.15)}
+.pkg-card.featured{border-color:var(--navy)}
+.pkg-badge{position:absolute;top:-11px;right:50%;transform:translateX(50%);background:var(--navy);color:var(--yellow);font-size:.65rem;font-weight:700;padding:3px 12px;border-radius:20px;white-space:nowrap}
+.pkg-card.selected .pkg-badge{background:var(--yellow);color:var(--navy)}
+.pkg-icon{font-size:2.2rem;margin-bottom:10px}
+.pkg-name{font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:4px}
+.pkg-buses{font-size:.75rem;color:var(--gray);margin-bottom:10px}
+.pkg-price{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.8rem;color:var(--navy);line-height:1;margin-bottom:3px}
+.pkg-price span{font-family:inherit;font-size:.8rem;font-weight:400;color:var(--gray)}
+.pkg-period{font-size:.72rem;color:var(--gray);margin-bottom:12px}
+.pkg-feats{list-style:none;text-align:right}
+.pkg-feat{font-size:.74rem;color:var(--dark);padding:4px 0;border-bottom:1px dashed rgba(0,0,0,.05);display:flex;gap:6px;align-items:flex-start}
+.pkg-feat:last-child{border:none}
+.pfcheck{color:var(--green);flex-shrink:0;font-weight:700}
+.pkg-selected-mark{display:none;background:var(--green);color:white;font-size:.68rem;font-weight:700;padding:3px 12px;border-radius:20px;margin-top:10px}
+.pkg-card.selected .pkg-selected-mark{display:inline-block}
+
+/* ══ AD POSITIONS ══ */
+.positions-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+.pos-card{border:2px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;transition:.2s;background:white;position:relative}
+.pos-card:hover{border-color:var(--navy-l);transform:translateY(-2px)}
+.pos-card.selected{border-color:var(--yellow);background:rgba(255,201,60,.04)}
+.pos-card.selected::before{content:'✓';position:absolute;top:6px;left:8px;background:var(--green);color:white;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700}
+.pos-icon{font-size:1.8rem;margin-bottom:6px}
+.pos-name{font-size:.76rem;font-weight:700;color:var(--navy);margin-bottom:3px}
+.pos-size{font-size:.65rem;color:var(--gray);margin-bottom:4px}
+.pos-price{font-size:.75rem;font-weight:700;color:var(--gold)}
+.pos-reach{font-size:.62rem;color:var(--green);margin-top:3px}
+
+/* ══ CAMPAIGN BUILDER ══ */
+.builder-card{background:white;border-radius:16px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:18px}
+.bc-head{background:var(--light);padding:13px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:.86rem;color:var(--navy);display:flex;align-items:center;gap:8px}
+.bc-body{padding:18px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.field-row.triple{grid-template-columns:1fr 1fr 1fr}
+.field-row.single{grid-template-columns:1fr}
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:.7rem;font-weight:700;color:var(--gray);letter-spacing:.3px}
+.f input,.f select,.f textarea{border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;font-size:.84rem;font-family:inherit;outline:none;transition:.2s;background:white;width:100%}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,44,120,.07)}
+.f textarea{resize:vertical;min-height:70px}
+
+/* Color picker */
+.color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.color-opt{width:30px;height:30px;border-radius:8px;cursor:pointer;border:3px solid transparent;transition:.2s;flex-shrink:0}
+.color-opt:hover{transform:scale(1.1)}
+.color-opt.selected{border-color:var(--dark);transform:scale(1.15)}
+
+/* Live bus preview */
+.live-preview{background:linear-gradient(135deg,#e8f0ff,#d5e4ff);border-radius:14px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden}
+.lp-title{font-size:.75rem;font-weight:700;color:var(--navy);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.lp-bus{background:var(--light);border-radius:12px;height:120px;position:relative;overflow:hidden;border:1px solid var(--border)}
+.lp-bus-body{position:absolute;inset:8px 16px;background:linear-gradient(160deg,#ECEBF6,#ccd8f0);border-radius:10px 10px 4px 4px}
+.lp-bus-roof{position:absolute;top:0;right:10px;left:10px;height:12px;background:var(--navy);border-radius:8px 8px 0 0}
+.lp-bus-windows{position:absolute;top:20px;right:20px;left:60px;display:flex;gap:6px}
+.lp-win{width:32px;height:26px;background:rgba(46,44,120,.4);border-radius:4px;border:1.5px solid rgba(255,255,255,.3)}
+.lp-ad-zone{position:absolute;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:white;text-align:center;transition:all .4s;overflow:hidden}
+.lp-ad-text{font-size:.5rem;color:white;font-weight:700;padding:2px 4px;text-align:center;line-height:1.3}
+.lp-wheels{position:absolute;bottom:-8px;display:flex;justify-content:space-between;right:20px;left:20px}
+.lp-wheel{width:28px;height:28px;background:#222;border-radius:50%;border:3px solid #444}
+
+/* Upload area */
+.upload-area{border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:.2s;background:white;margin-bottom:10px}
+.upload-area:hover{border-color:var(--navy);background:rgba(46,44,120,.02)}
+.upload-area.dragover{border-color:var(--yellow);background:rgba(255,201,60,.05)}
+.upload-icon{font-size:2.5rem;margin-bottom:8px;opacity:.5}
+.upload-text{font-size:.82rem;font-weight:700;color:var(--navy);margin-bottom:4px}
+.upload-sub{font-size:.72rem;color:var(--gray)}
+.upload-specs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.spec-tag{background:var(--light);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:.65rem;color:var(--gray);font-weight:600}
+.file-preview{background:var(--light);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px;display:none}
+.fp-icon{font-size:1.4rem}
+.fp-name{font-size:.8rem;font-weight:600;color:var(--dark);flex:1}
+.fp-size{font-size:.7rem;color:var(--gray)}
+.fp-remove{color:var(--red);font-size:.85rem;cursor:pointer;background:none;border:none;font-family:inherit}
+
+/* ══ ORDER PANEL ══ */
+.order-panel{background:white;border-radius:16px;border:1.5px solid var(--border);overflow:hidden;position:sticky;top:72px}
+.op-header{background:linear-gradient(135deg,var(--navy-d),var(--navy));color:white;padding:16px 20px}
+.op-header h3{font-size:.92rem;font-weight:700;margin-bottom:2px}
+.op-header p{font-size:.68rem;color:rgba(255,255,255,.5)}
+.op-body{padding:18px}
+.op-section{margin-bottom:14px}
+.op-stitle{font-size:.68rem;font-weight:700;color:var(--gray);letter-spacing:.8px;margin-bottom:8px;text-transform:uppercase}
+.op-row{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:6px}
+.op-row span{color:var(--gray)}
+.op-row strong{color:var(--dark)}
+.op-row.highlight{font-weight:700;font-size:.88rem}
+.op-row.highlight span{color:var(--navy)}
+.op-row.highlight strong{color:var(--navy);font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.1rem}
+.op-divider{height:1px;background:var(--border);margin:12px 0}
+.reach-box{background:linear-gradient(135deg,rgba(46,44,120,.05),rgba(46,44,120,.02));border:1px solid rgba(46,44,120,.1);border-radius:12px;padding:12px;margin-bottom:14px}
+.reach-title{font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.reach-stat{display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:5px}
+.reach-stat span{color:var(--gray)}
+.reach-stat strong{color:var(--navy)}
+.btn-order{width:100%;background:var(--yellow);color:var(--navy);border:none;border-radius:12px;padding:14px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px}
+.btn-order:hover{background:#ffd700;box-shadow:0 6px 20px rgba(255,201,60,.4);transform:translateY(-1px)}
+.btn-order:disabled{background:var(--border);color:var(--gray);cursor:not-allowed;transform:none;box-shadow:none}
+.btn-consult{width:100%;background:white;color:var(--navy);border:1.5px solid var(--navy);border-radius:12px;padding:12px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-consult:hover{background:var(--navy);color:white}
+
+/* ══ STATS SECTION ══ */
+.stats-section{background:linear-gradient(135deg,var(--navy-d),var(--navy));border-radius:20px;padding:36px;margin:28px 0}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.stat-item{text-align:center}
+.stat-num{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:2.4rem;color:var(--yellow);letter-spacing:1px}
+.stat-label{font-size:.78rem;color:rgba(255,255,255,.6);margin-top:4px;line-height:1.5}
+
+/* ══ WHY KPTC ══ */
+.why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+.why-card{background:white;border-radius:16px;padding:22px;border:1.5px solid var(--border);transition:.2s}
+.why-card:hover{border-color:var(--navy-l);box-shadow:0 6px 20px rgba(46,44,120,.08);transform:translateY(-2px)}
+.why-icon{font-size:2rem;margin-bottom:10px}
+.why-title{font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:6px}
+.why-desc{font-size:.78rem;color:var(--gray);line-height:1.7}
+
+/* ══ PAST ADVERTISERS ══ */
+.brands-section{background:white;border-radius:16px;padding:24px;border:1.5px solid var(--border);margin-bottom:24px}
+.brands-title{font-size:.88rem;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.brands-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.brand-slot{background:var(--light);border-radius:10px;padding:14px;text-align:center;font-size:.72rem;font-weight:700;color:var(--gray);border:1px solid var(--border);transition:.2s}
+.brand-slot:hover{background:var(--navy);color:var(--yellow);border-color:var(--navy)}
+.brand-icon{font-size:1.6rem;margin-bottom:5px}
+
+/* ══ FAQ ══ */
+.faq-list{display:flex;flex-direction:column;gap:8px;margin-bottom:28px}
+.faq-item{background:white;border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.faq-q{padding:14px 18px;font-weight:600;font-size:.86rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:.15s}
+.faq-q:hover{background:var(--light)}
+.faq-q.open{color:var(--navy)}
+.faq-a{font-size:.8rem;color:var(--gray);line-height:1.8;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s}
+.faq-a.open{max-height:200px;padding:0 18px 14px}
+.faq-arrow{transition:.3s;color:var(--gray);font-size:.8rem}
+.faq-q.open .faq-arrow{transform:rotate(180deg);color:var(--navy)}
+
+/* ══ SUCCESS MODAL ══ */
+.success-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(5px)}
+.success-overlay.show{display:flex}
+.success-modal{background:white;border-radius:24px;width:90%;max-width:460px;overflow:hidden;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);box-shadow:0 40px 100px rgba(0,0,0,.35)}
+@keyframes popIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.sm-top{background:linear-gradient(135deg,var(--navy-d),var(--navy));padding:30px;text-align:center}
+.sm-icon{font-size:5rem;display:block;animation:bounce .6s cubic-bezier(.34,1.56,.64,1) .3s both}
+@keyframes bounce{from{transform:scale(0)}to{transform:scale(1)}}
+.sm-title{font-size:1.3rem;font-weight:700;color:white;margin:10px 0 4px}
+.sm-sub{font-size:.78rem;color:rgba(255,255,255,.6)}
+.sm-body{padding:24px}
+.sm-ref{background:var(--light);border-radius:12px;padding:14px;text-align:center;margin-bottom:16px}
+.sm-ref-label{font-size:.7rem;color:var(--gray);margin-bottom:4px}
+.sm-ref-num{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.5rem;color:var(--navy);letter-spacing:2px}
+.sm-rows{margin-bottom:16px}
+.sm-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--border);font-size:.8rem}
+.sm-row:last-child{border:none}
+.sm-row-l{color:var(--gray)}
+.sm-row-v{font-weight:700;color:var(--dark)}
+.sm-actions{display:flex;gap:10px}
+.sm-btn{flex:1;padding:12px;border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:.2s}
+.sm-primary{background:var(--yellow);color:var(--navy)}
+.sm-primary:hover{background:#ffd700}
+.sm-sec{background:var(--light);color:var(--navy);border:1.5px solid var(--border)!important}
+.sm-sec:hover{background:var(--border)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--navy);color:white;padding:11px 22px;border-radius:12px;font-size:.83rem;font-weight:600;z-index:600;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 28px rgba(0,0,0,.25);pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(46,44,120,.2);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:900px){
+  .main-grid{grid-template-columns:1fr}
+  .pkg-grid{grid-template-columns:1fr}
+  .positions-grid{grid-template-columns:1fr 1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .why-grid{grid-template-columns:1fr}
+  .brands-grid{grid-template-columns:repeat(3,1fr)}
+  .hero{flex-direction:column;min-height:auto}
+  .hero-right{width:100%;height:200px}
+  .order-panel{position:relative;top:0}
+  .hero h1{font-size:2rem}
+}
+</style>
+
+<style id="k2-shell">
+:root{--k2-indigo:#2E2C78;--k2-deep:#1F1D5C;--k2-ink:#14133A;--k2-sign:#FFC93C;--k2-paper:#F5F5FA;--k2-line:#DEDDEC;--k2-muted:#5D5C80;--k2-font:-apple-system,BlinkMacSystemFont,"SF Arabic","Geeza Pro","Segoe UI","Noto Sans Arabic",Tahoma,sans-serif}
+html,body{overflow-x:clip}body{font-family:var(--k2-font)}
+.k2-util{background:var(--k2-ink);color:#C9C8E6;font:13px/1 var(--k2-font)}
+.k2-util .k2-w{display:flex;align-items:center;justify-content:space-between;gap:16px;height:38px}
+.k2-util .k2-ul{display:flex;gap:22px;white-space:nowrap}
+.k2-util a{color:inherit;text-decoration:none}.k2-util a:hover{color:#fff}
+.k2-lang{background:transparent;border:1px solid #3A3970;border-radius:6px;padding:2px 8px;color:#fff;font:13px var(--k2-font)}
+.k2-lang option{color:#000}
+.k2-w{max-width:1200px;margin:0 auto;padding:0 24px;box-sizing:border-box}
+.k2-head{background:var(--k2-indigo);color:#fff;position:sticky;top:0;z-index:400;box-shadow:0 1px 0 rgba(255,255,255,.06);font-family:var(--k2-font)}
+.k2-head .k2-w{display:flex;align-items:center;gap:28px;height:72px}
+.k2-brand{display:flex;align-items:center;gap:10px;flex-shrink:0;color:#fff;text-decoration:none}
+.k2-brand svg{width:30px;height:38px}
+.k2-brand b{font-size:24px;letter-spacing:.06em;font-weight:800;direction:ltr;display:block;line-height:1.2}
+.k2-brand small{display:block;font-size:11px;color:#B9B8E0;font-weight:500;line-height:1.2}
+.k2-nav{display:flex;gap:4px;flex:1;margin:0;padding:0;background:none;position:static;border:0}
+.k2-nav a{padding:8px 14px;border-radius:6px;font-size:15px;color:#E4E3F7;font-weight:500;text-decoration:none;line-height:1.5}
+.k2-nav a:hover,.k2-nav a[aria-current]{background:rgba(255,255,255,.1);color:#fff}
+.k2-nav a[aria-current]{box-shadow:inset 0 -3px 0 var(--k2-sign)}
+.k2-act{display:flex;gap:10px;align-items:center}
+.k2-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:6px;font:700 15px var(--k2-font);padding:10px 18px;border:0;cursor:pointer;text-decoration:none;position:relative;line-height:1.3}
+.k2-btn-sign{background:var(--k2-sign);color:var(--k2-ink)}.k2-btn-sign:hover{background:#FFD566}
+.k2-btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.28)}.k2-btn-ghost:hover{border-color:#fff}
+.k2-cnt{position:absolute;top:-7px;left:-7px;min-width:20px;height:20px;border-radius:10px;background:#D93C42;color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px}
+.k2-menu{display:none;background:none;border:0;color:#fff;padding:8px;cursor:pointer}
+.k2-menu svg{width:26px;height:26px}
+.k2-drawer{position:fixed;inset:0;z-index:1000;display:none;font-family:var(--k2-font)}
+.k2-drawer.open{display:block}
+.k2-scrim{position:absolute;inset:0;background:rgba(20,19,58,.55)}
+.k2-panel{position:absolute;top:0;bottom:0;right:0;width:min(320px,86vw);background:#fff;padding:20px;display:flex;flex-direction:column;gap:4px;overflow:auto}
+.k2-panel a{padding:14px 12px;border-radius:6px;font-weight:600;font-size:17px;border-bottom:1px solid var(--k2-line);color:var(--k2-ink);text-decoration:none}
+.k2-panel a[aria-current]{color:var(--k2-indigo);background:var(--k2-paper)}
+.k2-close{align-self:flex-end;background:none;border:0;font-size:28px;cursor:pointer;color:var(--k2-indigo);padding:4px 10px}
+.k2-foot{background:var(--k2-ink);color:#B9B8E0;font:14px/1.7 var(--k2-font);padding:56px 0 28px;margin-top:0}
+.k2-fg{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:40px;margin-bottom:40px}
+.k2-fg h4{color:#fff;font-size:15px;margin:0 0 14px}
+.k2-fg ul{list-style:none;display:grid;gap:8px;margin:0;padding:0}
+.k2-fg a{color:inherit;text-decoration:none}.k2-fg a:hover{color:#fff}
+.k2-fg p{margin:14px 0 0;max-width:26em;line-height:1.8}
+.k2-fb{border-top:1px solid #2A2950;padding-top:22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.k2-head :focus-visible,.k2-foot :focus-visible,.k2-util :focus-visible{outline:3px solid var(--k2-sign);outline-offset:2px}
+@media(max-width:1100px){.k2-nav a{padding:8px 10px;font-size:14px}}
+@media(max-width:920px){.k2-nav,.k2-act .k2-btn-ghost{display:none}.k2-menu{display:block}.k2-head .k2-w{justify-content:space-between}.k2-fg{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.k2-w{padding:0 16px}.k2-util .k2-ul>*:not(:first-child){display:none}.k2-act .k2-hide-m{display:none}.k2-fg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22228800">خدمة العملاء <span dir="ltr">22228800</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — حولي</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
+<header class="k2-head"><div class="k2-w"><a class="k2-brand" href="KPTC_Home.html" aria-label="KPTC — الرئيسية"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b><small>شركة النقل العام الكويتية</small></span></a>
+<div class="k2-nav" role="navigation" aria-label="القائمة الرئيسية"><a href="KPTC_Routes.html">الخطوط</a><a href="KPTC_Subscriptions.html">الاشتراكات</a><a href="KPTC_Umrah.html">العمرة</a><a href="KPTC_VIP.html">VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_Advertising.html" aria-current="page">أعلن معنا</a></div>
+<div class="k2-act"><a class="k2-btn k2-btn-ghost" href="KPTC_Portal.html">بوابة الموظفين</a><a class="k2-btn k2-btn-sign k2-hide-m" href="KPTC_Subscriptions.html">اشترك الآن</a><button class="k2-menu" aria-label="فتح القائمة" aria-expanded="false" onclick="k2Drawer(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
+<div class="k2-drawer" id="k2Drawer" aria-hidden="true"><div class="k2-scrim" onclick="k2Drawer(0)"></div><div class="k2-panel" role="dialog" aria-label="القائمة"><button class="k2-close" onclick="k2Drawer(0)" aria-label="إغلاق">×</button><a href="KPTC_Home.html">الرئيسية</a><a href="KPTC_Routes.html">الخطوط والمسارات</a><a href="KPTC_Subscriptions.html">الاشتراكات والتذاكر</a><a href="KPTC_Umrah.html">رحلات العمرة</a><a href="KPTC_VIP.html">باصات VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_LostFound.html">المفقودات</a><a href="KPTC_Advertising.html" aria-current="page">أعلن معنا</a><a href="KPTC_RE_Client.html">مساحات للإيجار</a><a href="KPTC_Portal.html">بوابة الموظفين</a></div></div>
+<script>function k2Drawer(o){var d=document.getElementById('k2Drawer');d.classList.toggle('open',!!o);d.setAttribute('aria-hidden',o?'false':'true');var b=document.querySelector('.k2-menu');if(b)b.setAttribute('aria-expanded',o?'true':'false')}document.addEventListener('keydown',function(e){if(e.key==='Escape')k2Drawer(0)});</script>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg-shapes">
+    <div class="hero-circle"></div>
+    <div class="hero-circle"></div>
+    <div class="hero-circle"></div>
+  </div>
+  <div class="hero-left">
+    <div class="hero-tag"><div class="pulse"></div>إعلانات متحركة — تصل للكويت كلها</div>
+    <h1>أعلِن على<br><em>2,500</em> حافلة<br>في الكويت</h1>
+    <p class="hero-sub">إعلانك يتحرك مع حافلاتنا في كل شوارع الكويت يومياً — وصول مضمون لأكثر من 40 مليون نقطة تواصل سنوياً مع جمهور متنوع.</p>
+    <div class="hero-nums">
+      <div class="hnum"><div class="hnum-val">+2,500</div><div class="hnum-label">حافلة ناشطة</div></div>
+      <div class="hnum"><div class="hnum-val">40M+</div><div class="hnum-label">راكب سنوياً</div></div>
+      <div class="hnum"><div class="hnum-val">6</div><div class="hnum-label">محافظات</div></div>
+      <div class="hnum"><div class="hnum-val">81M</div><div class="hnum-label">كم سنوياً</div></div>
+    </div>
+    <div class="hero-ctas">
+      <button class="btn-hero-primary" onclick="document.getElementById('builderSection').scrollIntoView({behavior:'smooth'})">📋 ابنِ حملتك الآن</button>
+      <button class="btn-hero-sec" onclick="showToast('📞 سيتواصل معك فريق الإعلانات خلال ساعة')">📞 تحدث مع مستشار</button>
+    </div>
+  </div>
+
+  <!-- BUS MOCKUP (decorative) -->
+  <div class="hero-right">
+    <div class="bus-mockup-wrap">
+      <div class="bus-svg-wrap">
+        <div class="bus-roof"></div>
+        <div class="bus-side" id="heroBusSide">
+          <div class="bus-windows">
+            <div class="bus-window driver"></div>
+            <div class="bus-window"></div>
+            <div class="bus-window"></div>
+            <div class="bus-window"></div>
+            <div class="bus-window"></div>
+          </div>
+          <!-- Ad zone on side -->
+          <div style="position:absolute;bottom:30px;right:14px;left:14px;height:60px;background:linear-gradient(135deg,#FFC93C,#ffd700);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#2E2C78;font-size:.9rem;animation:adpulse 3s infinite" id="heroBusAd">
+            📢 إعلانك هنا — يراه آلاف يومياً!
+          </div>
+        </div>
+        <div class="bus-bottom"></div>
+        <div class="bus-wheels">
+          <div class="bus-wheel"></div>
+          <div class="bus-wheel"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<style>@keyframes adpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,201,60,.4)}50%{box-shadow:0 0 0 8px rgba(255,201,60,0)}}</style>
+
+<!-- PAGE BODY -->
+<div class="page-body">
+
+  <!-- STATS -->
+  <div class="stats-section">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:.75rem;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:1px;margin-bottom:6px">لماذا الإعلان على حافلات KPTC؟</div>
+      <div style="font-size:1.3rem;font-weight:700;color:white">أرقام حقيقية — وصول لا يضاهيه وسيلة أخرى</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-num">137K+</div>
+        <div class="stat-label">انطباع يومي<br>لكل حافلة واحدة</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">100%</div>
+        <div class="stat-label">تغطية<br>محافظات الكويت الست</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">18+</div>
+        <div class="stat-label">ساعة تشغيل<br>يومياً في الشوارع</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">63</div>
+        <div class="stat-label">سنة ثقة<br>وحضور في السوق</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid" id="builderSection">
+    <div>
+
+      <!-- PACKAGES -->
+      <div class="sec-header">
+        <div class="sec-tag">الباقات الإعلانية</div>
+        <div class="sec-title">اختر الباقة المناسبة لحملتك</div>
+        <div class="sec-desc">جميع الأسعار نصف سنوية — خصم 15% للعقود السنوية</div>
+      </div>
+      <div class="pkg-grid">
+        <div class="pkg-card" id="pkg-starter" onclick="selectPackage('starter',this)">
+          <div class="pkg-icon">🚌</div>
+          <div class="pkg-name">Starter</div>
+          <div class="pkg-buses">5 حافلات</div>
+          <div class="pkg-price">750 <span>د.ك</span></div>
+          <div class="pkg-period">/ فترة واحدة (6 أشهر)</div>
+          <ul class="pkg-feats">
+            <li class="pkg-feat"><span class="pfcheck">✓</span>5 حافلات مختارة</li>
+            <li class="pkg-feat"><span class="pfcheck">✓</span>إعلان جانبي واحد</li>
+            <li class="pkg-feat"><span class="pfcheck">✓</span>خطوط رئيسية</li>
+            <li class="pkg-feat"><span class="pfcheck">✓</span>تقرير شهري</li>
+          </ul>
+          <div class="pkg-selected-mark">✓ محدد</div>
+        </div>
+        <div class="pkg-card featured" id="pkg-growth" onclick="selectPackage('growth',this)">
+          <div class="pkg-badge">الأشهر</div>
+          <div class="pkg-icon">🚌🚌</div>
+          <div class="pkg-name">Growth</div>
+          <div class="pkg-buses">20 حافلة</div>
+          <div class="pkg-price">1,500 <span>د.ك</span></div>
+          <div class="pkg-period">/ فترتين في السنة</div>
+          <ul class="pkg-feats">
+            <li class="pkg-feat"><span class="pfcheck">✓</span>20 حافلة متنوعة الخطوط</li>
+            <li class="pkg-feat"><span class="pfcheck">✓</span>إعلان جانبي + خلفي</li>
+            <li class="pkg-feat"><span class="pfcheck">✓</span>اختيار المناطق</li>
+            <li class="pkg-feat"><span class="pfcheck">✓</span>تقرير أسبوعي</li>
+            <li class="pkg-feat"><span class="pfcheck">✓</span>تصميم مجاناً</li>
+          </ul>
+          <div class="pkg-selected-mark">✓ محدد</div>
+        </div>
+        <div class="pkg-card" id="pkg-dominance" onclick="selectPackage('dominance',this)">
+          <div class="pkg-icon">🚌🚌🚌</div>
+          <div class="pkg-name">Dominance</div>
+          <div class="pkg-buses">50+ حافلة</div>
+          <div class="pkg-price">3,500 <span>د.ك</span></div>
+          <div class="pkg-period">/ سنة كاملة</div>
+          <ul class="pkg-feats">
+            <li class="pkg-feat"><span class="pfcheck">✓</span>50+ حافلة في كل الكويت</li>
+            <li class="pkg-feat"><span class="pfcheck">✓</span>تغطية شاملة — كل المواضع</li>
+            <li class="pkg-feat"><span class="pfcheck">✓</span>إعلانات داخلية + خارجية</li>
+            <li class="pkg-feat"><span class="pfcheck">✓</span>مدير حساب مخصص</li>
+            <li class="pkg-feat"><span class="pfcheck">✓</span>تصميم + طباعة مجاناً</li>
+            <li class="pkg-feat"><span class="pfcheck">✓</span>تقارير لحظية</li>
+          </ul>
+          <div class="pkg-selected-mark">✓ محدد</div>
+        </div>
+      </div>
+
+      <!-- AD POSITIONS -->
+      <div class="sec-header">
+        <div class="sec-tag">مواضع الإعلان</div>
+        <div class="sec-title">اختر أين يظهر إعلانك</div>
+        <div class="sec-desc">يمكن اختيار أكثر من موضع — الأسعار إضافية على الباقة</div>
+      </div>
+      <div class="positions-grid">
+        <div class="pos-card" onclick="togglePosition(this,'side-full','الجانب الكامل',450)">
+          <div class="pos-icon">🚌</div>
+          <div class="pos-name">الجانب الكامل</div>
+          <div class="pos-size">6م × 2م</div>
+          <div class="pos-price">+450 د.ك</div>
+          <div class="pos-reach">👁️ الأعلى ظهوراً</div>
+        </div>
+        <div class="pos-card" onclick="togglePosition(this,'side-half','نصف الجانب',250)">
+          <div class="pos-icon">📐</div>
+          <div class="pos-name">نصف الجانب</div>
+          <div class="pos-size">3م × 2م</div>
+          <div class="pos-price">+250 د.ك</div>
+          <div class="pos-reach">👁️ وصول ممتاز</div>
+        </div>
+        <div class="pos-card" onclick="togglePosition(this,'rear','الخلفية',180)">
+          <div class="pos-icon">🔲</div>
+          <div class="pos-name">الخلفية</div>
+          <div class="pos-size">2.5م × 2م</div>
+          <div class="pos-price">+180 د.ك</div>
+          <div class="pos-reach">👁️ عند الإشارات</div>
+        </div>
+        <div class="pos-card" onclick="togglePosition(this,'front','المقدمة',200)">
+          <div class="pos-icon">🔝</div>
+          <div class="pos-name">المقدمة</div>
+          <div class="pos-size">2م × 0.8م</div>
+          <div class="pos-price">+200 د.ك</div>
+          <div class="pos-reach">👁️ وجهاً لوجه</div>
+        </div>
+        <div class="pos-card" onclick="togglePosition(this,'interior','داخل الحافلة',150)">
+          <div class="pos-icon">🪑</div>
+          <div class="pos-name">داخل الحافلة</div>
+          <div class="pos-size">A3 / شاشة</div>
+          <div class="pos-price">+150 د.ك</div>
+          <div class="pos-reach">👁️ دقائق متواصلة</div>
+        </div>
+        <div class="pos-card" onclick="togglePosition(this,'roof','السقف الإعلاني',300)">
+          <div class="pos-icon">⬆️</div>
+          <div class="pos-name">السقف الخارجي</div>
+          <div class="pos-size">6م × 1م</div>
+          <div class="pos-price">+300 د.ك</div>
+          <div class="pos-reach">👁️ من الجسور</div>
+        </div>
+        <div class="pos-card" onclick="togglePosition(this,'digital','شاشة رقمية',350)">
+          <div class="pos-icon">📺</div>
+          <div class="pos-name">شاشة رقمية داخلية</div>
+          <div class="pos-size">بث متواصل</div>
+          <div class="pos-price">+350 د.ك</div>
+          <div class="pos-reach">👁️ فيديو + صوت</div>
+        </div>
+        <div class="pos-card" onclick="togglePosition(this,'wrap','تغليف كامل',800)">
+          <div class="pos-icon">🎨</div>
+          <div class="pos-name">تغليف كامل للحافلة</div>
+          <div class="pos-size">360° — الكل</div>
+          <div class="pos-price">+800 د.ك</div>
+          <div class="pos-reach">🔥 الأقوى تأثيراً</div>
+        </div>
+      </div>
+
+      <!-- LIVE PREVIEW -->
+      <div class="builder-card" id="previewCard">
+        <div class="bc-head">👁️ معاينة إعلانك على الحافلة — مباشرة</div>
+        <div class="bc-body">
+          <div class="live-preview">
+            <div class="lp-title">📍 كيف يبدو إعلانك في الشارع</div>
+            <div class="lp-bus" id="lpBus">
+              <div class="lp-bus-roof"></div>
+              <div class="lp-bus-body">
+                <div class="lp-bus-windows">
+                  <div class="lp-win"></div><div class="lp-win"></div><div class="lp-win"></div><div class="lp-win"></div>
+                </div>
+                <!-- Side ad zone -->
+                <div class="lp-ad-zone" id="lpSideAd" style="bottom:8px;right:10px;left:70px;height:36px;background:#ddd;border-radius:4px">
+                  <div class="lp-ad-text" id="lpSideText" style="color:#999">← إعلانك يظهر هنا</div>
+                </div>
+                <!-- Rear ad zone -->
+                <div class="lp-ad-zone" id="lpRearAd" style="top:8px;left:4px;width:28px;height:70px;background:#eee;border-radius:4px;display:none">
+                  <div class="lp-ad-text" id="lpRearText" style="color:#bbb;writing-mode:vertical-rl;font-size:.45rem">خلفية</div>
+                </div>
+              </div>
+              <div class="lp-wheels">
+                <div class="lp-wheel"></div><div class="lp-wheel"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAMPAIGN BUILDER -->
+      <div class="builder-card">
+        <div class="bc-head">🎨 بيانات الحملة الإعلانية</div>
+        <div class="bc-body">
+          <div class="field-row">
+            <div class="f"><label>اسم الشركة / العلامة التجارية</label><input id="brandName" placeholder="مثال: شركة الكويت للتجارة" oninput="updatePreview()"></div>
+            <div class="f"><label>القطاع التجاري</label>
+              <select id="sector" onchange="updatePreview()">
+                <option value="">اختر القطاع</option>
+                <option>تجزئة وتسوق</option><option>مطاعم وأغذية</option><option>بنوك وتمويل</option>
+                <option>اتصالات وتقنية</option><option>عقارات</option><option>صحة وجمال</option>
+                <option>تعليم وتدريب</option><option>سيارات</option><option>سياحة وسفر</option>
+                <option>حكومي</option><option>أخرى</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="f"><label>الرسالة الإعلانية الرئيسية</label><input id="adMessage" placeholder="مثال: أفضل عروض الصيف!" maxlength="50" oninput="updatePreview()"></div>
+            <div class="f"><label>رقم التواصل أو الموقع</label><input id="adContact" placeholder="www.example.com.kw" oninput="updatePreview()"></div>
+          </div>
+          <div class="field-row triple">
+            <div class="f"><label>📅 تاريخ البداية</label><input type="date" id="startDate" value="2026-05-01" onchange="updateOrderPanel()"></div>
+            <div class="f"><label>📅 تاريخ الانتهاء</label><input type="date" id="endDate" value="2026-10-31" onchange="updateOrderPanel()"></div>
+            <div class="f"><label>🎯 المنطقة الجغرافية</label>
+              <select id="geoTarget" onchange="updateOrderPanel()">
+                <option>كل الكويت</option><option>حولي والسالمية</option>
+                <option>الفروانية وخيطان</option><option>الكويت سيتي</option>
+                <option>الأحمدي والفحاحيل</option><option>الجهراء</option>
+              </select>
+            </div>
+          </div>
+          <!-- Color picker -->
+          <div class="f" style="margin-bottom:14px">
+            <label>🎨 اللون الأساسي للإعلان</label>
+            <div class="color-row">
+              <div class="color-opt selected" style="background:#2E2C78" onclick="selectColor('#2E2C78',this)" title="Navy"></div>
+              <div class="color-opt" style="background:#FFC93C" onclick="selectColor('#FFC93C',this)" title="Yellow"></div>
+              <div class="color-opt" style="background:#DC2626" onclick="selectColor('#DC2626',this)" title="Red"></div>
+              <div class="color-opt" style="background:#059669" onclick="selectColor('#059669',this)" title="Green"></div>
+              <div class="color-opt" style="background:#7C3AED" onclick="selectColor('#7C3AED',this)" title="Purple"></div>
+              <div class="color-opt" style="background:#EA580C" onclick="selectColor('#EA580C',this)" title="Orange"></div>
+              <div class="color-opt" style="background:#14133A" onclick="selectColor('#14133A',this)" title="Black"></div>
+              <div class="color-opt" style="background:white;border:2px solid #ddd" onclick="selectColor('#ffffff',this)" title="White"></div>
+              <div class="color-opt" style="background:linear-gradient(135deg,#2E2C78,#FFC93C)" onclick="selectColor('linear-gradient(135deg,#2E2C78,#FFC93C)',this)" title="KPTC"></div>
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="f"><label>📝 ملاحظات إضافية للفريق</label>
+              <textarea id="extraNotes" placeholder="أي تفاصيل إضافية: مناسبة معينة، حملة موسمية، رمضان، الصيف..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILE UPLOAD -->
+      <div class="builder-card">
+        <div class="bc-head">📁 رفع ملف التصميم</div>
+        <div class="bc-body">
+          <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
+            <div class="upload-icon">🖼️</div>
+            <div class="upload-text">اسحب ملف التصميم هنا أو انقر للاختيار</div>
+            <div class="upload-sub">سيقوم فريقنا بمراجعة التصميم والتأكد من مطابقة المقاسات</div>
+            <div class="upload-specs">
+              <div class="spec-tag">AI / PDF</div>
+              <div class="spec-tag">PNG عالي الدقة</div>
+              <div class="spec-tag">300 DPI+</div>
+              <div class="spec-tag">CMYK</div>
+              <div class="spec-tag">حتى 50MB</div>
+            </div>
+          </div>
+          <input type="file" id="fileInput" style="display:none" accept=".ai,.pdf,.png,.jpg,.psd" onchange="handleFile(this)">
+          <div class="file-preview" id="filePreview">
+            <div class="fp-icon">📄</div>
+            <div class="fp-name" id="fpName">—</div>
+            <div class="fp-size" id="fpSize">—</div>
+            <button class="fp-remove" onclick="removeFile()">✕ إزالة</button>
+          </div>
+          <div style="background:rgba(255,201,60,.08);border:1px solid rgba(255,201,60,.2);border-radius:10px;padding:12px;font-size:.75rem;color:var(--dark);line-height:1.8">
+            💡 <strong>ليس لديك تصميم؟</strong> فريق KPTC الإبداعي يصمم لك مجاناً ضمن باقة Growth وDominance. 
+            أرسل شعارك وسنتولى الباقي.
+          </div>
+        </div>
+      </div>
+
+      <!-- WHY KPTC -->
+      <div class="sec-header" style="margin-top:8px">
+        <div class="sec-tag">لماذا KPTC؟</div>
+        <div class="sec-title">ميزات لا تجدها في أي وسيلة إعلانية أخرى</div>
+      </div>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-icon">🎯</div>
+          <div class="why-title">استهداف جغرافي دقيق</div>
+          <div class="why-desc">اختر الخطوط والمناطق التي يتواجد فيها جمهورك المستهدف بدقة عالية.</div>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">📊</div>
+          <div class="why-title">تقارير وتحليلات</div>
+          <div class="why-desc">احصل على تقارير دورية تفصيلية عن أداء حملتك وعدد الانطباعات الفعلية.</div>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">🌍</div>
+          <div class="why-title">جمهور متنوع</div>
+          <div class="why-desc">حافلاتنا تحمل ركاباً من كل الجنسيات والشرائح — تغطية ديموغرافية واسعة.</div>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">💰</div>
+          <div class="why-title">أفضل سعر لكل ألف ظهور</div>
+          <div class="why-desc">مقارنة بالإعلانات الرقمية والتلفزيونية، CPM الحافلات هو الأقل تكلفة في الكويت.</div>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">🔄</div>
+          <div class="why-title">تكرار الرسالة</div>
+          <div class="why-desc">يرى نفس الشخص إعلانك مرات يومياً أثناء تنقله — ترسيخ قوي للعلامة التجارية.</div>
+        </div>
+        <div class="why-card">
+          <div class="why-icon">⚡</div>
+          <div class="why-title">تنفيذ سريع</div>
+          <div class="why-desc">من توقيع العقد للإعلان على الحافلة خلال 7 أيام عمل — بدون تعقيدات.</div>
+        </div>
+      </div>
+
+      <!-- BRANDS -->
+      <div class="brands-section">
+        <div class="brands-title">🏆 معلنون سابقون اختاروا KPTC</div>
+        <div class="brands-grid">
+          <div class="brand-slot"><div class="brand-icon">🏦</div>بنك الكويت</div>
+          <div class="brand-slot"><div class="brand-icon">📱</div>زين الكويت</div>
+          <div class="brand-slot"><div class="brand-icon">🛒</div>أسواق جمعية</div>
+          <div class="brand-slot"><div class="brand-icon">🍔</div>مطاعم كبرى</div>
+          <div class="brand-slot"><div class="brand-icon">🏥</div>مستشفى الأمريكاني</div>
+          <div class="brand-slot"><div class="brand-icon">🎓</div>جامعة الكويت</div>
+          <div class="brand-slot"><div class="brand-icon">🏗️</div>شركات العقار</div>
+          <div class="brand-slot"><div class="brand-icon">✈️</div>الخطوط الكويتية</div>
+          <div class="brand-slot"><div class="brand-icon">💊</div>صيدليات الدواء</div>
+          <div class="brand-slot"><div class="brand-icon">🚗</div>وكالات السيارات</div>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="sec-header">
+        <div class="sec-tag">أسئلة شائعة</div>
+        <div class="sec-title">كل ما تريد معرفته</div>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">ما هي مدة تركيب الإعلان بعد اعتماد التصميم؟ <span class="faq-arrow">▾</span></div><div class="faq-a">يستغرق التركيب من 3 إلى 7 أيام عمل بعد اعتماد التصميم ودفع المبلغ المقدم. نضمن جودة التركيب وتوافقه مع معايير السلامة المرورية.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">هل يمكن اختيار خطوط بعينها؟ <span class="faq-arrow">▾</span></div><div class="faq-a">نعم، يمكنك اختيار خطوط محددة تمر بالمناطق التي يتركز فيها جمهورك. فريقنا يساعدك على اختيار أفضل الخطوط بناءً على هدفك التسويقي والميزانية المتاحة.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">هل توفرون خدمة التصميم؟ <span class="faq-arrow">▾</span></div><div class="faq-a">نعم، ضمن باقات Growth وDominance، يتولى فريقنا الإبداعي التصميم مجاناً. للباقة Starter، يمكن إضافة خدمة التصميم بـ 150 د.ك إضافية.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">ما المدة الدنيا للعقد؟ <span class="faq-arrow">▾</span></div><div class="faq-a">المدة الدنيا هي فترة واحدة (6 أشهر). نوصي بالعقد السنوي للحصول على خصم 15% وضمان استمرارية ظهور علامتك التجارية.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">ما المعلومات الواردة في تقرير الأداء؟ <span class="faq-arrow">▾</span></div><div class="faq-a">يتضمن التقرير: عدد الكيلومترات المقطوعة لكل حافلة، المناطق التي مرت بها، تقدير عدد الانطباعات بناءً على بيانات الركاب، وصور توثيقية للحافلة في الشوارع.</div></div>
+      </div>
+
+    </div><!-- end left col -->
+
+    <!-- ORDER PANEL -->
+    <div>
+      <div class="order-panel">
+        <div class="op-header">
+          <h3>📋 ملخص حملتك الإعلانية</h3>
+          <p>يتحدث تلقائياً مع كل اختيار</p>
+        </div>
+        <div class="op-body">
+          <div class="op-section">
+            <div class="op-stitle">الباقة</div>
+            <div class="op-row"><span>الباقة المختارة</span><strong id="sum-pkg">—</strong></div>
+            <div class="op-row"><span>عدد الحافلات</span><strong id="sum-buses">—</strong></div>
+            <div class="op-row"><span>المدة</span><strong id="sum-period">—</strong></div>
+            <div class="op-row"><span>المنطقة</span><strong id="sum-geo">كل الكويت</strong></div>
+          </div>
+          <div class="op-divider"></div>
+          <div class="op-section">
+            <div class="op-stitle">مواضع الإعلان</div>
+            <div id="sum-positions" style="font-size:.75rem;color:var(--gray)">لم تختر بعد</div>
+          </div>
+          <div class="op-divider"></div>
+          <div class="reach-box">
+            <div class="reach-title">📊 الوصول المتوقع</div>
+            <div class="reach-stat"><span>انطباعات يومية</span><strong id="sum-daily">—</strong></div>
+            <div class="reach-stat"><span>انطباعات شهرية</span><strong id="sum-monthly">—</strong></div>
+            <div class="reach-stat"><span>تكلفة لكل 1000 ظهور</span><strong id="sum-cpm">—</strong></div>
+          </div>
+          <div class="op-divider"></div>
+          <div class="op-section">
+            <div class="op-stitle">التكلفة</div>
+            <div class="op-row"><span>سعر الباقة</span><span id="sum-base-price">—</span></div>
+            <div class="op-row"><span>مواضع إضافية</span><span id="sum-pos-price">—</span></div>
+            <div class="op-row"><span>ضريبة القيمة المضافة</span><span id="sum-vat">—</span></div>
+          </div>
+          <div class="op-divider"></div>
+          <div class="op-row highlight">
+            <span>الإجمالي</span>
+            <strong id="sum-total">—</strong>
+          </div>
+          <div style="height:12px"></div>
+          <button class="btn-order" id="orderBtn" onclick="submitOrder()" disabled>
+            📢 إرسال طلب الحملة
+          </button>
+          <button class="btn-consult" onclick="showToast('📞 سيتواصل معك مستشار الإعلانات خلال ساعة')">
+            📞 طلب استشارة مجانية
+          </button>
+          <div style="text-align:center;margin-top:12px;font-size:.68rem;color:var(--gray);line-height:1.7">
+            🔒 معلوماتك محمية · لا نشارك بياناتك<br>
+            ✅ عقد رسمي بعد الموافقة
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- end main-grid -->
+</div><!-- end page-body -->
+
+<!-- SUCCESS MODAL -->
+<div class="success-overlay" id="successOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="success-modal">
+    <div class="sm-top">
+      <span class="sm-icon">📢</span>
+      <div class="sm-title">تم إرسال طلبك بنجاح!</div>
+      <div class="sm-sub">سيتواصل معك فريق الإعلانات خلال 24 ساعة</div>
+    </div>
+    <div class="sm-body">
+      <div class="sm-ref">
+        <div class="sm-ref-label">رقم الطلب</div>
+        <div class="sm-ref-num" id="orderRef">ADV-0000-0000</div>
+      </div>
+      <div class="sm-rows" id="smRows"></div>
+      <div class="sm-actions">
+        <button class="sm-btn sm-primary" onclick="showToast('📧 تم إرسال التأكيد على إيميلك');document.getElementById('successOverlay').classList.remove('show')">📧 إرسال التأكيد</button>
+        <button class="sm-btn sm-sec" onclick="document.getElementById('successOverlay').classList.remove('show')">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let selectedPkg = null;
+let selectedPositions = [];
+let positionsTotal = 0;
+let adColor = '#2E2C78';
+const pkgData = {
+  starter:{name:'Starter',buses:5,price:750,period:'6 أشهر',dailyImpr:15000},
+  growth:{name:'Growth',buses:20,price:1500,period:'سنة',dailyImpr:60000},
+  dominance:{name:'Dominance',buses:50,price:3500,period:'سنة',dailyImpr:150000}
+};
+
+// ── PACKAGE ──
+function selectPackage(id, el) {
+  document.querySelectorAll('.pkg-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPkg = id;
+  updateOrderPanel();
+  showToast(`✅ باقة ${pkgData[id].name} محددة`);
+}
+
+// ── POSITIONS ──
+function togglePosition(el, id, name, price) {
+  el.classList.toggle('selected');
+  if(el.classList.contains('selected')) {
+    selectedPositions.push({id,name,price});
+    positionsTotal += price;
+    showToast(`✅ تمت إضافة: ${name}`);
+  } else {
+    selectedPositions = selectedPositions.filter(p=>p.id!==id);
+    positionsTotal -= price;
+    showToast(`❌ تمت إزالة: ${name}`);
+  }
+  updateOrderPanel();
+  updatePreview();
+}
+
+// ── COLOR ──
+function selectColor(color, el) {
+  document.querySelectorAll('.color-opt').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  adColor = color;
+  updatePreview();
+}
+
+// ── LIVE PREVIEW ──
+function updatePreview() {
+  const brand = document.getElementById('brandName').value || 'علامتك التجارية';
+  const msg = document.getElementById('adMessage').value || 'رسالتك الإعلانية هنا!';
+  const contact = document.getElementById('adContact').value || '';
+  const sideAd = document.getElementById('lpSideAd');
+  const sideText = document.getElementById('lpSideText');
+  if(sideAd) {
+    sideAd.style.background = adColor.startsWith('linear') ? adColor : adColor;
+    sideAd.style.opacity = '1';
+  }
+  if(sideText) {
+    sideText.style.color = adColor==='#ffffff'||adColor==='#FFC93C' ? '#2E2C78' : 'white';
+    sideText.textContent = `${brand} | ${msg}${contact?' | '+contact:''}`;
+  }
+  // Hero bus
+  const heroBusAd = document.getElementById('heroBusAd');
+  if(heroBusAd && (brand||msg)) {
+    heroBusAd.style.background = adColor.startsWith('linear') ? adColor : adColor;
+    heroBusAd.style.color = adColor==='#ffffff'||adColor==='#FFC93C' ? '#2E2C78' : 'white';
+    heroBusAd.textContent = `${brand} — ${msg}`;
+  }
+  // Rear ad
+  const rearAd = document.getElementById('lpRearAd');
+  if(rearAd) {
+    const hasRear = selectedPositions.some(p=>p.id==='rear');
+    rearAd.style.display = hasRear ? 'flex' : 'none';
+    if(hasRear) rearAd.style.background = adColor;
+  }
+}
+
+// ── ORDER PANEL ──
+function updateOrderPanel() {
+  const geo = document.getElementById('geoTarget')?.value||'كل الكويت';
+  document.getElementById('sum-geo').textContent = geo;
+  if(!selectedPkg) return;
+  const pkg = pkgData[selectedPkg];
+  document.getElementById('sum-pkg').textContent = `${pkg.name}`;
+  document.getElementById('sum-buses').textContent = `${pkg.buses} حافلة`;
+  document.getElementById('sum-period').textContent = pkg.period;
+  // Positions
+  if(selectedPositions.length) {
+    document.getElementById('sum-positions').innerHTML = selectedPositions.map(p=>`
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span>${p.name}</span><span style="color:var(--gold);font-weight:600">${p.price} د.ك</span>
+      </div>`).join('');
+  } else {
+    document.getElementById('sum-positions').textContent = 'لم تختر بعد';
+  }
+  // Reach
+  const daily = pkg.dailyImpr;
+  const monthly = daily * 30;
+  const total = pkg.price + positionsTotal;
+  const cpm = (total / (monthly/1000)).toFixed(3);
+  document.getElementById('sum-daily').textContent = daily.toLocaleString();
+  document.getElementById('sum-monthly').textContent = monthly.toLocaleString();
+  document.getElementById('sum-cpm').textContent = `${cpm} د.ك`;
+  // Pricing
+  const vat = total * 0;
+  document.getElementById('sum-base-price').textContent = `${pkg.price} د.ك`;
+  document.getElementById('sum-pos-price').textContent = positionsTotal ? `${positionsTotal} د.ك` : '—';
+  document.getElementById('sum-vat').textContent = 'معفى';
+  document.getElementById('sum-total').textContent = `${total.toLocaleString()} د.ك`;
+  document.getElementById('orderBtn').disabled = false;
+}
+
+// ── SUBMIT ──
+function submitOrder() {
+  const btn = document.getElementById('orderBtn');
+  btn.innerHTML = '<div class="spinner"></div> جاري الإرسال...';
+  btn.disabled = true;
+  setTimeout(()=>{
+    const ref = 'ADV-'+new Date().getFullYear()+'-'+Math.floor(Math.random()*90000+10000);
+    document.getElementById('orderRef').textContent = ref;
+    const pkg = selectedPkg ? pkgData[selectedPkg] : null;
+    const brand = document.getElementById('brandName').value || '—';
+    const total = pkg ? (pkg.price + positionsTotal) : 0;
+    document.getElementById('smRows').innerHTML = `
+      <div class="sm-row"><span class="sm-row-l">العلامة التجارية</span><span class="sm-row-v">${brand}</span></div>
+      <div class="sm-row"><span class="sm-row-l">الباقة</span><span class="sm-row-v">${pkg?pkg.name:'—'}</span></div>
+      <div class="sm-row"><span class="sm-row-l">عدد الحافلات</span><span class="sm-row-v">${pkg?pkg.buses:'—'} حافلة</span></div>
+      <div class="sm-row"><span class="sm-row-l">مواضع الإعلان</span><span class="sm-row-v">${selectedPositions.length?selectedPositions.map(p=>p.name).join('، '):'—'}</span></div>
+      <div class="sm-row"><span class="sm-row-l">الإجمالي</span><span class="sm-row-v" style="color:var(--navy);font-size:.95rem">${total.toLocaleString()} د.ك</span></div>`;
+    document.getElementById('successOverlay').classList.add('show');
+    btn.innerHTML = '📢 إرسال طلب الحملة';
+    btn.disabled = false;
+  }, 2000);
+}
+
+// ── FAQ ──
+function toggleFaq(btn) {
+  const isOpen = btn.classList.contains('open');
+  document.querySelectorAll('.faq-q').forEach(q=>{q.classList.remove('open');q.nextElementSibling.classList.remove('open')});
+  if(!isOpen){btn.classList.add('open');btn.nextElementSibling.classList.add('open')}
+}
+
+// ── FILE ──
+function handleFile(input) {
+  const f = input.files[0];
+  if(!f) return;
+  document.getElementById('fpName').textContent = f.name;
+  document.getElementById('fpSize').textContent = (f.size/1024/1024).toFixed(2)+' MB';
+  document.getElementById('filePreview').style.display = 'flex';
+  document.getElementById('uploadArea').style.display = 'none';
+  showToast('✅ تم رفع الملف: '+f.name);
+}
+function removeFile() {
+  document.getElementById('filePreview').style.display = 'none';
+  document.getElementById('uploadArea').style.display = 'block';
+  document.getElementById('fileInput').value = '';
+  showToast('🗑️ تم إزالة الملف');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadArea').classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if(f) { document.getElementById('fileInput').files = e.dataTransfer.files; handleFile(document.getElementById('fileInput')); }
+}
+
+// ── TOAST ──
+let toastT;
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+<footer class="k2-foot"><div class="k2-w"><div class="k2-fg">
+<div><a class="k2-brand" href="KPTC_Home.html"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b></span></a><p>شركة النقل العام الكويتية، أول وأكبر مشغّل للنقل العام في الكويت منذ 1962، مملوكة بالكامل للدولة.</p></div>
+<div><h4>خدماتنا</h4><ul><li><a href="KPTC_Routes.html">الخطوط والمسارات</a></li><li><a href="KPTC_Subscriptions.html">الاشتراكات</a></li><li><a href="KPTC_Umrah.html">رحلات العمرة</a></li><li><a href="KPTC_VIP.html">باصات VIP</a></li><li><a href="KPTC_Winch.html">الونش</a></li></ul></div>
+<div><h4>خدمة العملاء</h4><ul><li><a href="KPTC_LostFound.html">المفقودات</a></li><li><a href="KPTC_AI_Assistant.html">المساعد الذكي</a></li><li><a href="KPTC_Home.html#contact">الشكاوى</a></li><li><a href="KPTC_Home.html#contact">تواصل معنا</a></li></ul></div>
+<div><h4>الشركة</h4><ul><li><a href="KPTC_Home.html#about">عن KPTC</a></li><li><a href="KPTC_Advertising.html">أعلن معنا</a></li><li><a href="KPTC_RE_Client.html">مساحات للإيجار</a></li><li><a href="KPTC_Portal.html">بوابة الموظفين</a></li></ul></div>
+</div><div class="k2-fb"><span>© 2026 شركة النقل العام الكويتية. جميع الحقوق محفوظة.</span><span>kptc.com.kw</span></div></div></footer>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+</html>

@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPTC — المفقودات</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#2E2C78;--navy-l:#3D3B95;--navy-d:#1F1D5C;
+  --yellow:#FFC93C;--white:#fff;--light:#F5F5FA;
+  --gray:#5D5C80;--dark:#14133A;--border:#DEDDEC;
+  --green:#10B981;--red:#EF4444;--orange:#F59E0B;
+  --purple:#7C3AED;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;background:var(--light);color:var(--dark);min-height:100vh}
+
+/* NAV */
+nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px solid rgba(255,201,60,.15)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;color:var(--navy);font-size:.85rem}
+.logo-name{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--yellow)}
+.logo-sub{font-size:.58rem;color:rgba(255,255,255,.5);letter-spacing:1px}
+.nav-links{display:flex;gap:2px;list-style:none}
+.nav-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.8rem;padding:6px 12px;border-radius:7px;transition:.2s}
+.nav-links a:hover,.nav-links a.active{color:var(--yellow);background:rgba(255,201,60,.1)}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#1F1D5C 0%,#2E2C78 50%,#3D3B95 100%);padding:44px 36px 0;position:relative;overflow:hidden}
+.hero::before{content:'🔍';position:absolute;left:3%;top:50%;transform:translateY(-50%);font-size:14rem;opacity:.04;pointer-events:none}
+.hero-inner{position:relative;z-index:2;max-width:680px;margin-bottom:32px}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.25);color:var(--yellow);padding:6px 16px;border-radius:30px;font-size:.76rem;font-weight:700;margin-bottom:16px}
+.hero h1{font-size:2.4rem;color:white;font-weight:700;line-height:1.25;margin-bottom:10px}
+.hero h1 span{color:var(--yellow)}
+.hero-sub{color:rgba(255,255,255,.65);font-size:.9rem;line-height:1.85;margin-bottom:24px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px}
+.btn-primary{background:var(--yellow);color:var(--navy);font-weight:700;padding:13px 26px;border-radius:12px;font-size:.92rem;border:none;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;gap:8px;text-decoration:none}
+.btn-primary:hover{background:#ffd700;transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,201,60,.35)}
+.btn-secondary{background:rgba(255,255,255,.08);color:white;font-weight:600;padding:13px 22px;border-radius:12px;font-size:.92rem;border:1px solid rgba(255,255,255,.2);cursor:pointer;font-family:inherit;transition:.25s}
+.btn-secondary:hover{background:rgba(255,255,255,.15)}
+/* Quick stats */
+.hero-stats{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:0}
+.hstat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:10px}
+.hstat-icon{font-size:1.4rem}
+.hstat-val{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.2rem;color:var(--yellow)}
+.hstat-label{font-size:.68rem;color:rgba(255,255,255,.5);margin-top:1px}
+
+/* MAIN TABS */
+.main-tabs{display:flex;background:rgba(0,0,0,.25);border-radius:14px 14px 0 0;margin:24px 36px 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;overflow:hidden;width:fit-content}
+.mtab{padding:13px 26px;font-size:.85rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.5);font-family:inherit;transition:.2s;position:relative}
+.mtab.active{background:white;color:var(--navy);font-weight:700}
+.mtab .tab-count{background:var(--red);color:white;font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:10px;margin-right:6px;vertical-align:middle}
+.mtab.active .tab-count{background:var(--navy)}
+
+/* CONTENT */
+.page-content{background:white;min-height:60vh}
+.tab-pane{display:none;padding:28px 32px}
+.tab-pane.active{display:block}
+
+/* ══ REPORT FORM ══ */
+.report-layout{display:grid;grid-template-columns:1fr 320px;gap:22px;align-items:start}
+.form-card{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:16px}
+.fc-head{background:var(--light);padding:13px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:.86rem;color:var(--navy);display:flex;align-items:center;gap:8px}
+.fc-body{padding:18px}
+
+/* Item type selector */
+.item-types{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px}
+.itype{border:2px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center;cursor:pointer;transition:.2s;background:white}
+.itype:hover{border-color:var(--navy-l);transform:translateY(-2px)}
+.itype.selected{border-color:var(--yellow);background:rgba(255,201,60,.05)}
+.itype-icon{font-size:1.8rem;margin-bottom:5px}
+.itype-name{font-size:.72rem;font-weight:700;color:var(--navy)}
+
+/* Fields */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fgrid.tri{grid-template-columns:1fr 1fr 1fr}
+.fgrid.single{grid-template-columns:1fr}
+.ff{display:flex;flex-direction:column;gap:4px}
+.ff.full{grid-column:span 2}
+.ff label{font-size:.71rem;font-weight:700;color:var(--gray);letter-spacing:.3px}
+.ff input,.ff select,.ff textarea{border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;font-size:.84rem;font-family:inherit;outline:none;transition:.2s;background:white;width:100%}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,44,120,.07)}
+.ff textarea{resize:vertical;min-height:70px}
+.ff input.valid{border-color:var(--green)}
+.ff input.invalid{border-color:var(--red)}
+
+/* Color picker for item */
+.color-grid{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.copt{width:26px;height:26px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:.2s;flex-shrink:0}
+.copt:hover{transform:scale(1.12)}
+.copt.sel{border-color:var(--dark);transform:scale(1.18)}
+
+/* Upload */
+.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:.2s}
+.upload-zone:hover,.upload-zone.over{border-color:var(--navy);background:rgba(46,44,120,.02)}
+.upload-icon{font-size:2rem;margin-bottom:6px;opacity:.4}
+.upload-text{font-size:.8rem;font-weight:700;color:var(--navy)}
+.upload-sub{font-size:.7rem;color:var(--gray);margin-top:2px}
+.img-preview-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.img-thumb{width:60px;height:60px;border-radius:8px;background:var(--light);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;position:relative;cursor:pointer;overflow:hidden}
+.img-thumb img{width:100%;height:100%;object-fit:cover}
+.img-remove{position:absolute;top:2px;right:2px;background:var(--red);color:white;width:14px;height:14px;border-radius:50%;font-size:.5rem;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:.2s;border:none}
+.img-thumb:hover .img-remove{opacity:1}
+
+/* Tips panel */
+.tips-panel{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;position:sticky;top:72px}
+.tp-head{background:linear-gradient(135deg,var(--navy-d),var(--navy));color:white;padding:14px 18px}
+.tp-head h3{font-size:.88rem;font-weight:700;margin-bottom:2px}
+.tp-head p{font-size:.68rem;color:rgba(255,255,255,.5)}
+.tp-body{padding:14px}
+.tip-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed var(--border);font-size:.78rem}
+.tip-item:last-child{border:none}
+.tip-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.tip-text{color:var(--dark);line-height:1.65}
+.tip-text strong{color:var(--navy)}
+.stat-mini{background:var(--light);border-radius:10px;padding:12px;margin-top:12px}
+.sm-title{font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.sm-row{display:flex;justify-content:space-between;font-size:.74rem;margin-bottom:5px;color:var(--gray)}
+.sm-row strong{color:var(--dark)}
+.progress-bar{height:5px;background:var(--border);border-radius:10px;margin-top:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:10px;transition:width .5s ease}
+.btn-submit{width:100%;background:var(--yellow);color:var(--navy);border:none;border-radius:12px;padding:14px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px}
+.btn-submit:hover{background:#ffd700;box-shadow:0 6px 20px rgba(255,201,60,.4);transform:translateY(-1px)}
+.btn-submit:active{transform:scale(.97)}
+
+/* ══ TRACKING ══ */
+.track-hero{background:linear-gradient(135deg,#f0f4ff,#e5ecff);border-radius:16px;padding:28px;margin-bottom:22px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center}
+.track-input-row{display:flex;gap:10px;margin-top:14px}
+.track-input{flex:1;border:2px solid var(--border);border-radius:11px;padding:13px 16px;font-size:.95rem;font-family:inherit;outline:none;transition:.2s;background:white;letter-spacing:1px}
+.track-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,44,120,.08)}
+.track-btn{background:var(--navy);color:white;border:none;border-radius:11px;padding:13px 24px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.track-btn:hover{background:var(--navy-l)}
+
+/* Timeline */
+.case-card{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:14px}
+.case-header{padding:16px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border)}
+.case-status-badge{padding:5px 14px;border-radius:20px;font-size:.72rem;font-weight:700}
+.status-searching{background:rgba(245,158,11,.1);color:var(--orange)}
+.status-found{background:rgba(16,185,129,.1);color:var(--green)}
+.status-closed{background:rgba(107,114,128,.1);color:var(--gray)}
+.case-num{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1rem;color:var(--navy);letter-spacing:1px}
+.case-title{font-size:.85rem;font-weight:700;color:var(--dark)}
+.case-date{font-size:.72rem;color:var(--gray)}
+.case-body{padding:18px 20px}
+.case-details{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.cd-item small{font-size:.65rem;color:var(--gray);display:block;margin-bottom:3px}
+.cd-item strong{font-size:.82rem;font-weight:700;color:var(--dark)}
+/* Timeline steps */
+.timeline{position:relative;padding-right:20px}
+.timeline::before{content:'';position:absolute;right:6px;top:0;bottom:0;width:2px;background:var(--border)}
+.tl-item{position:relative;padding:0 20px 18px 0;display:flex;gap:12px}
+.tl-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:white;flex-shrink:0;position:absolute;right:-1px;top:2px;z-index:2;transition:.3s}
+.tl-dot.done{background:var(--green);border-color:var(--green)}
+.tl-dot.active{background:var(--yellow);border-color:var(--orange);box-shadow:0 0 0 4px rgba(245,158,11,.2);animation:activePulse 2s infinite}
+@keyframes activePulse{0%,100%{box-shadow:0 0 0 4px rgba(245,158,11,.2)}50%{box-shadow:0 0 0 8px rgba(245,158,11,.05)}}
+.tl-content{margin-right:20px;flex:1}
+.tl-label{font-size:.82rem;font-weight:700;color:var(--dark);margin-bottom:3px}
+.tl-detail{font-size:.74rem;color:var(--gray);line-height:1.6}
+.tl-time{font-size:.68rem;color:var(--gray);margin-top:3px}
+
+/* ══ FOUND ITEMS ══ */
+.found-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.found-search{flex:1;min-width:200px;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:.85rem;font-family:inherit;outline:none;transition:.2s}
+.found-search:focus{border-color:var(--navy)}
+.filter-pill{border:1.5px solid var(--border);border-radius:20px;padding:7px 14px;font-size:.76rem;font-weight:600;cursor:pointer;background:white;color:var(--gray);font-family:inherit;transition:.2s;white-space:nowrap}
+.filter-pill.active,.filter-pill:hover{background:var(--navy);color:var(--yellow);border-color:var(--navy)}
+.found-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.found-card{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;transition:all .25s;cursor:pointer}
+.found-card:hover{border-color:var(--navy-l);box-shadow:0 8px 24px rgba(46,44,120,.1);transform:translateY(-2px)}
+.found-card-img{height:130px;display:flex;align-items:center;justify-content:center;font-size:4rem;position:relative}
+.found-status-tag{position:absolute;top:8px;right:8px;font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:20px}
+.tag-found{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.tag-claimed{background:rgba(107,114,128,.1);color:var(--gray)}
+.tag-new{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.found-card-body{padding:14px}
+.fc-item-name{font-size:.88rem;font-weight:700;color:var(--dark);margin-bottom:4px}
+.fc-meta{font-size:.72rem;color:var(--gray);display:flex;flex-direction:column;gap:3px}
+.fc-meta span{display:flex;align-items:center;gap:4px}
+.btn-claim{width:100%;background:var(--navy);color:white;border:none;border-radius:9px;padding:9px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;margin-top:10px}
+.btn-claim:hover{background:var(--navy-l)}
+.btn-claim.claimed{background:var(--gray);cursor:not-allowed}
+
+/* Claim modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal{background:white;border-radius:20px;width:90%;max-width:440px;overflow:hidden;animation:popIn .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 30px 80px rgba(0,0,0,.3)}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-head{background:linear-gradient(135deg,var(--navy-d),var(--navy));color:white;padding:20px 22px;display:flex;justify-content:space-between;align-items:center}
+.modal-head h3{font-size:.95rem;font-weight:700}
+.modal-close{background:rgba(255,255,255,.1);border:none;color:white;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:22px}
+.modal-item-preview{background:var(--light);border-radius:12px;padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:14px}
+.mip-icon{font-size:3rem}
+.mip-info h4{font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:4px}
+.mip-info p{font-size:.75rem;color:var(--gray);line-height:1.6}
+.modal-fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.mf{display:flex;flex-direction:column;gap:4px}
+.mf label{font-size:.7rem;font-weight:700;color:var(--gray)}
+.mf input,.mf select{border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:.83rem;font-family:inherit;outline:none;transition:.2s;width:100%}
+.mf input:focus,.mf select:focus{border-color:var(--navy)}
+.modal-note{background:rgba(255,201,60,.08);border:1px solid rgba(255,201,60,.25);border-radius:9px;padding:11px;font-size:.75rem;color:var(--dark);line-height:1.7;margin-bottom:14px}
+.btn-modal-submit{width:100%;background:var(--yellow);color:var(--navy);border:none;border-radius:11px;padding:13px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s}
+.btn-modal-submit:hover{background:#ffd700;box-shadow:0 4px 16px rgba(255,201,60,.4)}
+
+/* SUCCESS */
+.success-state{display:none;text-align:center;padding:32px}
+.success-state.show{display:block}
+.success-anim{font-size:5rem;animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.ref-box{background:var(--light);border-radius:14px;padding:20px;margin:20px 0;display:inline-block;min-width:280px}
+.ref-label{font-size:.72rem;color:var(--gray);margin-bottom:5px}
+.ref-num{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.8rem;color:var(--navy);letter-spacing:3px}
+.ref-hint{font-size:.75rem;color:var(--gray);margin-top:5px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--navy);color:white;padding:11px 22px;border-radius:12px;font-size:.83rem;font-weight:600;z-index:600;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 28px rgba(0,0,0,.25);pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(46,44,120,.2);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:900px){
+  .report-layout{grid-template-columns:1fr}
+  .tips-panel{position:relative;top:0}
+  .item-types{grid-template-columns:repeat(4,1fr)}
+  .case-details{grid-template-columns:1fr 1fr}
+  .found-grid{grid-template-columns:1fr 1fr}
+  .hero h1{font-size:1.9rem}
+  .nav-links{display:none}
+  .fgrid{grid-template-columns:1fr}
+  .ff.full{grid-column:span 1}
+}
+</style>
+
+<style id="k2-shell">
+:root{--k2-indigo:#2E2C78;--k2-deep:#1F1D5C;--k2-ink:#14133A;--k2-sign:#FFC93C;--k2-paper:#F5F5FA;--k2-line:#DEDDEC;--k2-muted:#5D5C80;--k2-font:-apple-system,BlinkMacSystemFont,"SF Arabic","Geeza Pro","Segoe UI","Noto Sans Arabic",Tahoma,sans-serif}
+html,body{overflow-x:clip}body{font-family:var(--k2-font)}
+.k2-util{background:var(--k2-ink);color:#C9C8E6;font:13px/1 var(--k2-font)}
+.k2-util .k2-w{display:flex;align-items:center;justify-content:space-between;gap:16px;height:38px}
+.k2-util .k2-ul{display:flex;gap:22px;white-space:nowrap}
+.k2-util a{color:inherit;text-decoration:none}.k2-util a:hover{color:#fff}
+.k2-lang{background:transparent;border:1px solid #3A3970;border-radius:6px;padding:2px 8px;color:#fff;font:13px var(--k2-font)}
+.k2-lang option{color:#000}
+.k2-w{max-width:1200px;margin:0 auto;padding:0 24px;box-sizing:border-box}
+.k2-head{background:var(--k2-indigo);color:#fff;position:sticky;top:0;z-index:400;box-shadow:0 1px 0 rgba(255,255,255,.06);font-family:var(--k2-font)}
+.k2-head .k2-w{display:flex;align-items:center;gap:28px;height:72px}
+.k2-brand{display:flex;align-items:center;gap:10px;flex-shrink:0;color:#fff;text-decoration:none}
+.k2-brand svg{width:30px;height:38px}
+.k2-brand b{font-size:24px;letter-spacing:.06em;font-weight:800;direction:ltr;display:block;line-height:1.2}
+.k2-brand small{display:block;font-size:11px;color:#B9B8E0;font-weight:500;line-height:1.2}
+.k2-nav{display:flex;gap:4px;flex:1;margin:0;padding:0;background:none;position:static;border:0}
+.k2-nav a{padding:8px 14px;border-radius:6px;font-size:15px;color:#E4E3F7;font-weight:500;text-decoration:none;line-height:1.5}
+.k2-nav a:hover,.k2-nav a[aria-current]{background:rgba(255,255,255,.1);color:#fff}
+.k2-nav a[aria-current]{box-shadow:inset 0 -3px 0 var(--k2-sign)}
+.k2-act{display:flex;gap:10px;align-items:center}
+.k2-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:6px;font:700 15px var(--k2-font);padding:10px 18px;border:0;cursor:pointer;text-decoration:none;position:relative;line-height:1.3}
+.k2-btn-sign{background:var(--k2-sign);color:var(--k2-ink)}.k2-btn-sign:hover{background:#FFD566}
+.k2-btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.28)}.k2-btn-ghost:hover{border-color:#fff}
+.k2-cnt{position:absolute;top:-7px;left:-7px;min-width:20px;height:20px;border-radius:10px;background:#D93C42;color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px}
+.k2-menu{display:none;background:none;border:0;color:#fff;padding:8px;cursor:pointer}
+.k2-menu svg{width:26px;height:26px}
+.k2-drawer{position:fixed;inset:0;z-index:1000;display:none;font-family:var(--k2-font)}
+.k2-drawer.open{display:block}
+.k2-scrim{position:absolute;inset:0;background:rgba(20,19,58,.55)}
+.k2-panel{position:absolute;top:0;bottom:0;right:0;width:min(320px,86vw);background:#fff;padding:20px;display:flex;flex-direction:column;gap:4px;overflow:auto}
+.k2-panel a{padding:14px 12px;border-radius:6px;font-weight:600;font-size:17px;border-bottom:1px solid var(--k2-line);color:var(--k2-ink);text-decoration:none}
+.k2-panel a[aria-current]{color:var(--k2-indigo);background:var(--k2-paper)}
+.k2-close{align-self:flex-end;background:none;border:0;font-size:28px;cursor:pointer;color:var(--k2-indigo);padding:4px 10px}
+.k2-foot{background:var(--k2-ink);color:#B9B8E0;font:14px/1.7 var(--k2-font);padding:56px 0 28px;margin-top:0}
+.k2-fg{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:40px;margin-bottom:40px}
+.k2-fg h4{color:#fff;font-size:15px;margin:0 0 14px}
+.k2-fg ul{list-style:none;display:grid;gap:8px;margin:0;padding:0}
+.k2-fg a{color:inherit;text-decoration:none}.k2-fg a:hover{color:#fff}
+.k2-fg p{margin:14px 0 0;max-width:26em;line-height:1.8}
+.k2-fb{border-top:1px solid #2A2950;padding-top:22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.k2-head :focus-visible,.k2-foot :focus-visible,.k2-util :focus-visible{outline:3px solid var(--k2-sign);outline-offset:2px}
+@media(max-width:1100px){.k2-nav a{padding:8px 10px;font-size:14px}}
+@media(max-width:920px){.k2-nav,.k2-act .k2-btn-ghost{display:none}.k2-menu{display:block}.k2-head .k2-w{justify-content:space-between}.k2-fg{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.k2-w{padding:0 16px}.k2-util .k2-ul>*:not(:first-child){display:none}.k2-act .k2-hide-m{display:none}.k2-fg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22228800">خدمة العملاء <span dir="ltr">22228800</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — حولي</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
+<header class="k2-head"><div class="k2-w"><a class="k2-brand" href="KPTC_Home.html" aria-label="KPTC — الرئيسية"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b><small>شركة النقل العام الكويتية</small></span></a>
+<div class="k2-nav" role="navigation" aria-label="القائمة الرئيسية"><a href="KPTC_Routes.html">الخطوط</a><a href="KPTC_Subscriptions.html">الاشتراكات</a><a href="KPTC_Umrah.html">العمرة</a><a href="KPTC_VIP.html">VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_Advertising.html">أعلن معنا</a></div>
+<div class="k2-act"><a class="k2-btn k2-btn-ghost" href="KPTC_Portal.html">بوابة الموظفين</a><a class="k2-btn k2-btn-sign k2-hide-m" href="KPTC_Subscriptions.html">اشترك الآن</a><button class="k2-menu" aria-label="فتح القائمة" aria-expanded="false" onclick="k2Drawer(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
+<div class="k2-drawer" id="k2Drawer" aria-hidden="true"><div class="k2-scrim" onclick="k2Drawer(0)"></div><div class="k2-panel" role="dialog" aria-label="القائمة"><button class="k2-close" onclick="k2Drawer(0)" aria-label="إغلاق">×</button><a href="KPTC_Home.html">الرئيسية</a><a href="KPTC_Routes.html">الخطوط والمسارات</a><a href="KPTC_Subscriptions.html">الاشتراكات والتذاكر</a><a href="KPTC_Umrah.html">رحلات العمرة</a><a href="KPTC_VIP.html">باصات VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_LostFound.html" aria-current="page">المفقودات</a><a href="KPTC_Advertising.html">أعلن معنا</a><a href="KPTC_RE_Client.html">مساحات للإيجار</a><a href="KPTC_Portal.html">بوابة الموظفين</a></div></div>
+<script>function k2Drawer(o){var d=document.getElementById('k2Drawer');d.classList.toggle('open',!!o);d.setAttribute('aria-hidden',o?'false':'true');var b=document.querySelector('.k2-menu');if(b)b.setAttribute('aria-expanded',o?'true':'false')}document.addEventListener('keydown',function(e){if(e.key==='Escape')k2Drawer(0)});</script>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">🔍 Lost & Found — خدمة المفقودات</div>
+    <h1>نساعدك تسترجع<br><span>ما فقدته</span> في حافلتنا</h1>
+    <p class="hero-sub">نسيت شيئاً في الحافلة؟ أبلغنا فوراً وسيتواصل معك فريقنا خلال ساعات. كل المفقودات تُحفظ في مخزننا لمدة 30 يوماً.</p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="switchToTab('report')">📝 أبلّغ عن مفقود</button>
+      <button class="btn-secondary" onclick="switchToTab('track')">🔎 تتبع بلاغي</button>
+    </div>
+    <div class="hero-stats">
+      <div class="hstat"><div class="hstat-icon">✅</div><div><div class="hstat-val">72%</div><div class="hstat-label">نسبة استرداد المفقودات</div></div></div>
+      <div class="hstat"><div class="hstat-icon">⚡</div><div><div class="hstat-val">4 ساعات</div><div class="hstat-label">متوسط وقت الرد</div></div></div>
+      <div class="hstat"><div class="hstat-icon">📦</div><div><div class="hstat-val">30 يوم</div><div class="hstat-label">مدة الحفظ</div></div></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="main-tabs">
+    <button class="mtab active" id="tab-report-btn" onclick="switchToTab('report')">📝 إبلاغ عن مفقود</button>
+    <button class="mtab" id="tab-track-btn" onclick="switchToTab('track')">🔎 تتبع البلاغ</button>
+    <button class="mtab" id="tab-found-btn" onclick="switchToTab('found')">📦 الأشياء الموجودة <span class="tab-count">12</span></button>
+  </div>
+</div>
+
+<!-- PAGE CONTENT -->
+<div class="page-content">
+
+  <!-- ══ REPORT TAB ══ -->
+  <div class="tab-pane active" id="pane-report">
+    <div class="report-layout">
+      <div>
+        <!-- Item Type -->
+        <div class="form-card">
+          <div class="fc-head">📦 ما الشيء المفقود؟</div>
+          <div class="fc-body">
+            <div class="item-types">
+              <div class="itype selected" id="it-wallet" onclick="selItemType('محفظة',this)"><div class="itype-icon">👜</div><div class="itype-name">محفظة</div></div>
+              <div class="itype" id="it-phone" onclick="selItemType('هاتف',this)"><div class="itype-icon">📱</div><div class="itype-name">هاتف</div></div>
+              <div class="itype" id="it-bag" onclick="selItemType('حقيبة',this)"><div class="itype-icon">🎒</div><div class="itype-name">حقيبة</div></div>
+              <div class="itype" id="it-keys" onclick="selItemType('مفاتيح',this)"><div class="itype-icon">🔑</div><div class="itype-name">مفاتيح</div></div>
+              <div class="itype" id="it-money" onclick="selItemType('نقود',this)"><div class="itype-icon">💵</div><div class="itype-name">نقود</div></div>
+              <div class="itype" id="it-docs" onclick="selItemType('وثائق',this)"><div class="itype-icon">📄</div><div class="itype-name">وثائق</div></div>
+              <div class="itype" id="it-glasses" onclick="selItemType('نظارة',this)"><div class="itype-icon">👓</div><div class="itype-name">نظارة</div></div>
+              <div class="itype" id="it-other" onclick="selItemType('أخرى',this)"><div class="itype-icon">📦</div><div class="itype-name">أخرى</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item Description -->
+        <div class="form-card">
+          <div class="fc-head">🔍 وصف الشيء المفقود</div>
+          <div class="fc-body">
+            <div class="fgrid">
+              <div class="ff">
+                <label>اسم / نوع الغرض</label>
+                <input id="itemName" placeholder="مثال: محفظة جلد بنية — باسم علي" oninput="updateProgress()">
+              </div>
+              <div class="ff">
+                <label>العلامة التجارية (إن وجدت)</label>
+                <input id="itemBrand" placeholder="مثال: Samsung، Louis Vuitton">
+              </div>
+              <div class="ff">
+                <label>🎨 اللون الرئيسي</label>
+                <div class="color-grid">
+                  <div class="copt sel" style="background:#1a1a1a" onclick="selColor('#1a1a1a',this)" title="أسود"></div>
+                  <div class="copt" style="background:white;border:1.5px solid #ddd" onclick="selColor('white',this)" title="أبيض"></div>
+                  <div class="copt" style="background:#8B4513" onclick="selColor('#8B4513',this)" title="بني"></div>
+                  <div class="copt" style="background:#DC2626" onclick="selColor('#DC2626',this)" title="أحمر"></div>
+                  <div class="copt" style="background:#2563EB" onclick="selColor('#2563EB',this)" title="أزرق"></div>
+                  <div class="copt" style="background:#16A34A" onclick="selColor('#16A34A',this)" title="أخضر"></div>
+                  <div class="copt" style="background:#F59E0B" onclick="selColor('#F59E0B',this)" title="أصفر"></div>
+                  <div class="copt" style="background:#9333EA" onclick="selColor('#9333EA',this)" title="بنفسجي"></div>
+                  <div class="copt" style="background:#EC4899" onclick="selColor('#EC4899',this)" title="وردي"></div>
+                  <div class="copt" style="background:#5D5C80" onclick="selColor('#5D5C80',this)" title="رمادي"></div>
+                  <div class="copt" style="background:#D97706" onclick="selColor('#D97706',this)" title="ذهبي"></div>
+                  <div class="copt" style="background:linear-gradient(135deg,#e0e0e0,#a0a0a0)" onclick="selColor('silver',this)" title="فضي"></div>
+                </div>
+              </div>
+              <div class="ff">
+                <label>محتويات مميزة (مهم جداً)</label>
+                <input id="itemContents" placeholder="مثال: بطاقة مدنية، 50 د.ك، صور" oninput="updateProgress()">
+              </div>
+              <div class="ff full">
+                <label>وصف إضافي للتعريف</label>
+                <textarea id="itemDesc" placeholder="أي علامة مميزة تساعد في التعريف على الغرض..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trip Info -->
+        <div class="form-card">
+          <div class="fc-head">🚌 تفاصيل الرحلة</div>
+          <div class="fc-body">
+            <div class="fgrid tri">
+              <div class="ff">
+                <label>📅 تاريخ الرحلة</label>
+                <input type="date" id="tripDate" value="2026-04-11" oninput="updateProgress()">
+              </div>
+              <div class="ff">
+                <label>🕐 الوقت التقريبي</label>
+                <input type="time" id="tripTime" value="08:00">
+              </div>
+              <div class="ff">
+                <label>🚌 رقم الحافلة / الخط</label>
+                <input id="busNum" placeholder="مثال: 77 أو 66" oninput="updateProgress()">
+              </div>
+              <div class="ff">
+                <label>📍 من (محطة المغادرة)</label>
+                <select id="fromStop" onchange="updateProgress()">
+                  <option value="">اختر</option>
+                  <option>حولي</option><option>الفروانية</option><option>السالمية</option>
+                  <option>الكويت سيتي</option><option>خيطان</option><option>الجابرية</option>
+                  <option>الشويخ</option><option>الفحاحيل</option><option>الجهراء</option>
+                  <option>قرطبة</option><option>خط آخر</option>
+                </select>
+              </div>
+              <div class="ff">
+                <label>🏁 إلى (محطة الوصول)</label>
+                <select id="toStop" onchange="updateProgress()">
+                  <option value="">اختر</option>
+                  <option>حولي</option><option>الفروانية</option><option>السالمية</option>
+                  <option>الكويت سيتي</option><option>خيطان</option><option>الجابرية</option>
+                  <option>الشويخ</option><option>الفحاحيل</option><option>الجهراء</option>
+                  <option>قرطبة</option><option>محطة أخرى</option>
+                </select>
+              </div>
+              <div class="ff">
+                <label>🪑 مكان الجلوس (إن تذكرت)</label>
+                <select id="seatPos">
+                  <option>لا أتذكر</option>
+                  <option>مقدمة الحافلة</option><option>منتصف</option><option>مؤخرة</option>
+                  <option>نافذة يمين</option><option>نافذة يسار</option>
+                </select>
+              </div>
+            </div>
+            <div class="ff" style="margin-top:12px">
+              <label>رقم التذكرة (إن وجد)</label>
+              <input id="ticketNum" placeholder="مثال: 0457942" style="max-width:240px">
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="form-card">
+          <div class="fc-head">👤 بيانات التواصل</div>
+          <div class="fc-body">
+            <div class="fgrid">
+              <div class="ff">
+                <label>الاسم الكامل</label>
+                <input id="contactName" placeholder="الاسم كما في البطاقة المدنية" oninput="updateProgress()">
+              </div>
+              <div class="ff">
+                <label>رقم الجوال</label>
+                <input id="contactPhone" placeholder="+965 ●●●● ●●●●" oninput="checkPhone(this)">
+              </div>
+              <div class="ff">
+                <label>رقم بديل (اختياري)</label>
+                <input id="contactPhone2" placeholder="+965 ●●●● ●●●●">
+              </div>
+              <div class="ff">
+                <label>البريد الإلكتروني (اختياري)</label>
+                <input type="email" id="contactEmail" placeholder="email@example.com">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Photo Upload -->
+        <div class="form-card">
+          <div class="fc-head">📷 صورة للغرض المفقود (اختياري — يساعد كثيراً)</div>
+          <div class="fc-body">
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('photoInput').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="handlePhotosDrop(event)">
+              <div class="upload-icon">📸</div>
+              <div class="upload-text">اسحب الصور هنا أو انقر للاختيار</div>
+              <div class="upload-sub">JPG, PNG — حتى 5 صور</div>
+            </div>
+            <input type="file" id="photoInput" multiple accept="image/*" style="display:none" onchange="handlePhotos(this)">
+            <div class="img-preview-grid" id="photoPreviewGrid"></div>
+          </div>
+        </div>
+
+        <button class="btn-submit" onclick="submitReport()">
+          📤 إرسال البلاغ الآن
+        </button>
+
+        <!-- SUCCESS -->
+        <div class="success-state" id="reportSuccess">
+          <div class="success-anim">✅</div>
+          <h2 style="font-size:1.4rem;color:var(--navy);margin:12px 0 6px">تم إرسال البلاغ!</h2>
+          <p style="color:var(--gray);font-size:.85rem;margin-bottom:16px">سيتواصل معك فريقنا خلال 4 ساعات</p>
+          <div class="ref-box">
+            <div class="ref-label">رقم البلاغ — احتفظ به</div>
+            <div class="ref-num" id="reportRef">LF-000000</div>
+            <div class="ref-hint">اكتبه أو صوّره — ستحتاجه للمتابعة</div>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap">
+            <button class="btn-primary" onclick="switchToTab('track')">🔎 تتبع بلاغي</button>
+            <button class="btn-secondary" style="color:var(--navy);border-color:var(--border)" onclick="document.getElementById('reportSuccess').classList.remove('show');document.getElementById('reportSuccess').style.display='none'">📝 بلاغ جديد</button>
+          </div>
+        </div>
+
+      </div><!-- end left -->
+
+      <!-- TIPS PANEL -->
+      <div>
+        <div class="tips-panel">
+          <div class="tp-head">
+            <h3>💡 نصائح لزيادة فرص الاسترداد</h3>
+            <p>اتبعها لنجد غرضك أسرع</p>
+          </div>
+          <div class="tp-body">
+            <div class="tip-item"><div class="tip-icon">⚡</div><div class="tip-text"><strong>أبلّغ فوراً</strong> — كلما أبلغت أسرع، زادت فرص الاسترداد. الحافلة تكمل مسارها وقد تمر بمحطات عديدة.</div></div>
+            <div class="tip-item"><div class="tip-icon">📋</div><div class="tip-text"><strong>رقم الخط</strong> مهم جداً — إذا كان معك رقم التذكرة سيكون أسهل للتحديد.</div></div>
+            <div class="tip-item"><div class="tip-icon">🎯</div><div class="tip-text"><strong>الوصف الدقيق</strong> يفرق — اذكر أي علامة مميزة كالخدش، الملصق، أو المحتويات الداخلية.</div></div>
+            <div class="tip-item"><div class="tip-icon">📸</div><div class="tip-text"><strong>الصورة</strong> تزيد فرصة التعريف بـ 3 أضعاف — ارفع صورة مشابهة.</div></div>
+            <div class="tip-item"><div class="tip-icon">📞</div><div class="tip-text">يمكنك التواصل مباشرة على <strong>22228800</strong> للحالات العاجلة كالبطائق والوثائق الرسمية.</div></div>
+          </div>
+
+          <!-- Progress tracker -->
+          <div class="stat-mini">
+            <div class="sm-title">📊 اكتمال البلاغ</div>
+            <div class="sm-row"><span>نوع الغرض</span><strong style="color:var(--green)">✓</strong></div>
+            <div class="sm-row"><span>الوصف</span><strong id="prog-desc" style="color:var(--gray)">—</strong></div>
+            <div class="sm-row"><span>تفاصيل الرحلة</span><strong id="prog-trip" style="color:var(--gray)">—</strong></div>
+            <div class="sm-row"><span>بيانات التواصل</span><strong id="prog-contact" style="color:var(--gray)">—</strong></div>
+            <div style="margin-top:10px;font-size:.68rem;color:var(--gray);margin-bottom:5px">نسبة الاكتمال</div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:25%;background:var(--orange)"></div></div>
+            <div style="font-size:.68rem;color:var(--gray);margin-top:4px;text-align:left" id="progressPct">25%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TRACK TAB ══ -->
+  <div class="tab-pane" id="pane-track">
+    <!-- Search -->
+    <div class="track-hero">
+      <div>
+        <div style="font-size:.75rem;font-weight:700;color:var(--navy);letter-spacing:.5px;margin-bottom:6px">🔎 تتبع بلاغ المفقودات</div>
+        <h2 style="font-size:1.3rem;font-weight:700;color:var(--navy);margin-bottom:4px">أدخل رقم بلاغك</h2>
+        <p style="font-size:.8rem;color:var(--gray)">ستجده في رسالة التأكيد التي وصلتك بعد الإبلاغ</p>
+        <div class="track-input-row">
+          <input type="text" class="track-input" id="trackInput" placeholder="LF-000000" maxlength="10">
+          <button class="track-btn" onclick="doTrack()">
+            <span>🔍</span> بحث
+          </button>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:.75rem;color:var(--gray);padding:0 10px">
+        <div style="font-size:2.5rem;margin-bottom:8px">📱</div>
+        <div>أو اتصل بنا<br><strong style="color:var(--navy);font-size:1rem">22228800</strong></div>
+      </div>
+    </div>
+
+    <!-- Demo Case -->
+    <div id="trackResult" style="display:none">
+      <div class="case-card">
+        <div class="case-header">
+          <div>
+            <div class="case-num" id="caseNum">LF-000000</div>
+            <div class="case-title" id="caseTitle">محفظة جلد بنية</div>
+            <div class="case-date" id="caseDate">أُبلغ عنها: 11 أبريل 2026</div>
+          </div>
+          <div class="case-status-badge" id="caseBadge">جاري البحث</div>
+          <div style="margin-right:auto;font-size:1.8rem" id="caseIcon">👜</div>
+        </div>
+        <div class="case-body">
+          <div class="case-details">
+            <div class="cd-item"><small>رقم الخط</small><strong id="cd-bus">خط 77</strong></div>
+            <div class="cd-item"><small>تاريخ الفقدان</small><strong id="cd-date">11/4/2026</strong></div>
+            <div class="cd-item"><small>من</small><strong id="cd-from">السالمية</strong></div>
+            <div class="cd-item"><small>إلى</small><strong id="cd-to">حولي</strong></div>
+          </div>
+          <!-- Timeline -->
+          <div style="font-size:.78rem;font-weight:700;color:var(--navy);margin-bottom:12px">📋 مراحل البحث</div>
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="tl-dot done"></div>
+              <div class="tl-content">
+                <div class="tl-label">✅ تم استلام البلاغ</div>
+                <div class="tl-detail">بلاغك وصل لنظامنا وتم إعطاؤه رقماً مرجعياً</div>
+                <div class="tl-time">11/4/2026 — 09:15 ص</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot done"></div>
+              <div class="tl-content">
+                <div class="tl-label">✅ تواصل مع السائق</div>
+                <div class="tl-detail">تم التواصل مع سائق الحافلة رقم 77 للاستفسار</div>
+                <div class="tl-time">11/4/2026 — 10:30 ص</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot active"></div>
+              <div class="tl-content">
+                <div class="tl-label">🔍 جاري الفحص في المستودع</div>
+                <div class="tl-detail">يتم فحص محتويات صندوق المفقودات في المستودع المركزي</div>
+                <div class="tl-time">11/4/2026 — 12:00 م (قيد التنفيذ)</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-content">
+                <div class="tl-label">التواصل معك بالنتيجة</div>
+                <div class="tl-detail">سنتصل بك على رقمك المسجل بمجرد التأكد</div>
+                <div class="tl-time">متوقع خلال 4 ساعات</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-content">
+                <div class="tl-label">الاستلام أو الشحن</div>
+                <div class="tl-detail">استلام شخصي من المكتب أو تسليم عبر أمين التوصيل</div>
+                <div class="tl-time">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,201,60,.08);border:1px solid rgba(255,201,60,.25);border-radius:12px;padding:14px 18px;font-size:.8rem;color:var(--dark);line-height:1.8;margin-top:4px">
+        📞 <strong>للاستفسار المباشر:</strong> 22228800 — اذكر رقم البلاغ عند الاتصال<br>
+        📍 <strong>مكتب المفقودات:</strong> المقر الرئيسي KPTC — حولي — الأحد إلى الخميس 7ص - 3م
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FOUND ITEMS TAB ══ -->
+  <div class="tab-pane" id="pane-found">
+    <div style="margin-bottom:18px">
+      <div style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:4px">📦 الأشياء الموجودة في مخزننا</div>
+      <div style="font-size:.8rem;color:var(--gray)">هل تجد غرضك هنا؟ اضغط "ادّعِ ملكيته" وسنتواصل معك للتحقق</div>
+    </div>
+    <div class="found-toolbar">
+      <input type="text" class="found-search" placeholder="🔍 ابحث بالنوع أو اللون..." oninput="filterFound(this.value)">
+      <button class="filter-pill active" onclick="filterByType('all',this)">الكل</button>
+      <button class="filter-pill" onclick="filterByType('محفظة',this)">محافظ</button>
+      <button class="filter-pill" onclick="filterByType('هاتف',this)">هواتف</button>
+      <button class="filter-pill" onclick="filterByType('حقيبة',this)">حقائب</button>
+      <button class="filter-pill" onclick="filterByType('مفاتيح',this)">مفاتيح</button>
+      <button class="filter-pill" onclick="filterByType('أخرى',this)">أخرى</button>
+    </div>
+    <div class="found-grid" id="foundGrid"></div>
+  </div>
+
+</div><!-- end page-content -->
+
+<!-- CLAIM MODAL -->
+<div class="modal-overlay" id="claimModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>📋 المطالبة بالغرض</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-item-preview">
+        <div class="mip-icon" id="claimIcon">👜</div>
+        <div class="mip-info">
+          <h4 id="claimName">—</h4>
+          <p id="claimDesc">—</p>
+        </div>
+      </div>
+      <div class="modal-fgrid">
+        <div class="mf"><label>اسمك الكامل</label><input placeholder="كما في البطاقة المدنية"></div>
+        <div class="mf"><label>رقم الجوال</label><input placeholder="+965 ●●●● ●●●●"></div>
+        <div class="mf"><label>تاريخ الرحلة</label><input type="date" value="2026-04-11"></div>
+        <div class="mf"><label>رقم الخط / الباص</label><input placeholder="مثال: 77"></div>
+      </div>
+      <div class="modal-note">
+        ⚠️ <strong>مهم:</strong> ستُطلب منك معلومات تثبت ملكيتك للغرض عند الاستلام. يرجى إحضار هوية شخصية.
+      </div>
+      <button class="btn-modal-submit" onclick="submitClaim()">📤 إرسال طلب المطالبة</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let selectedItemType = 'محفظة';
+let selectedColor = '#1a1a1a';
+let photoFiles = [];
+let progressScore = 25;
+
+// ── FOUND ITEMS DATA (from real cases in files) ──
+const foundItems = [
+  {id:1,name:'محفظة جلد بنية',type:'محفظة',icon:'👜',color:'#8B4513',bus:'77',route:'السالمية ← حولي',date:'28/10/2026',status:'found',desc:'باسم محمد ناصر داوود — تحتوي على بطاقات'},
+  {id:2,name:'محفظة سوداء صغيرة',type:'محفظة',icon:'👛',color:'#1a1a1a',bus:'18',route:'الشويخ ← منطقة قريبة',date:'4/11/2026',status:'found',desc:'باسم علي — محفظة سوداء'},
+  {id:3,name:'شنطة من كارفور',type:'حقيبة',icon:'🛍️',color:'#3B82F6',bus:'X1',route:'كارفور ← حولي',date:'1/11/2026',status:'found',desc:'أكياس تسوق من كارفور'},
+  {id:4,name:'شنطة بنية',type:'حقيبة',icon:'🎒',color:'#92400E',bus:'66',route:'حولي ← خيطان',date:'2/11/2026',status:'found',desc:'شنطة بنية'},
+  {id:5,name:'هاتف Samsung',type:'هاتف',icon:'📱',color:'#1a1a1a',bus:'15',route:'خيطان ← السالمية',date:'5/11/2026',status:'new',desc:'هاتف Galaxy — شاشة مكسورة قليلاً'},
+  {id:6,name:'نقود 7 دنانير',type:'أخرى',icon:'💵',color:'#16A34A',bus:'77',route:'السالمية ← حولي',date:'28/10/2026',status:'found',desc:'باقي تذكرة رقم 0457942'},
+  {id:7,name:'مفاتيح مع كيتشين',type:'مفاتيح',icon:'🔑',color:'#5D5C80',bus:'40',route:'الفروانية ← القرين',date:'6/11/2026',status:'new',desc:'مجموعة مفاتيح مع كيتشين معدني'},
+  {id:8,name:'نظارة طبية',type:'أخرى',icon:'👓',color:'#1a1a1a',bus:'92',route:'الجلیب ← حولي',date:'3/11/2026',status:'found',desc:'نظارة بإطار أسود'},
+  {id:9,name:'حقيبة مدرسية',type:'حقيبة',icon:'🎒',color:'#DC2626',bus:'66',route:'حولي ← خيطان',date:'2/11/2026',status:'claimed',desc:'حقيبة مدرسية حمراء — تمت المطالبة'},
+  {id:10,name:'محفظة باسم هاني',type:'محفظة',icon:'👜',color:'#8B4513',bus:'106',route:'الجليب ← الشويخ',date:'31/10/2026',status:'found',desc:'محفظة باسم هاني'},
+  {id:11,name:'هاتف iPhone',type:'هاتف',icon:'📱',color:'#5D5C80',bus:'15',route:'المالية ← السالمية',date:'4/4/2026',status:'new',desc:'iPhone بكفر شفاف'},
+  {id:12,name:'مفاتيح سيارة',type:'مفاتيح',icon:'🗝️',color:'#F59E0B',bus:'99',route:'السالمية ← الكويت سيتي',date:'8/4/2026',status:'new',desc:'مفاتيح مع ريموت سيارة ذهبي اللون'},
+];
+
+// ── RENDER FOUND ITEMS ──
+function renderFound(items) {
+  const grid = document.getElementById('foundGrid');
+  const statusMap = {found:'tag-found',new:'tag-new',claimed:'tag-claimed'};
+  const statusLabel = {found:'موجود ✓',new:'جديد 🆕',claimed:'تمت المطالبة'};
+  grid.innerHTML = items.map(item=>`
+    <div class="found-card" data-type="${item.type}" data-name="${item.name}">
+      <div class="found-card-img" style="background:linear-gradient(135deg,${item.color}22,${item.color}11)">
+        <span style="font-size:4rem">${item.icon}</span>
+        <div class="found-status-tag ${statusMap[item.status]}">${statusLabel[item.status]}</div>
+      </div>
+      <div class="found-card-body">
+        <div class="fc-item-name">${item.name}</div>
+        <div class="fc-meta">
+          <span>🚌 خط ${item.bus} — ${item.route}</span>
+          <span>📅 ${item.date}</span>
+          <span style="color:var(--gray);font-style:italic;font-size:.68rem">${item.desc}</span>
+        </div>
+        <button class="btn-claim ${item.status==='claimed'?'claimed':''}" 
+          onclick="${item.status!=='claimed'?`openClaim(${item.id})`:'showToast(\"⚠️ تمت المطالبة بهذا الغرض\")'}"
+          ${item.status==='claimed'?'disabled':''}>
+          ${item.status==='claimed'?'✓ تمت المطالبة':'👆 ادّعِ ملكيته'}
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function filterFound(q) {
+  const items = foundItems.filter(i=>i.name.includes(q)||i.type.includes(q)||i.route.includes(q));
+  renderFound(items);
+}
+
+function filterByType(type, btn) {
+  document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  const items = type==='all' ? foundItems : foundItems.filter(i=>i.type===type||i.type.includes(type));
+  renderFound(items);
+}
+
+// ── ITEM TYPE ──
+function selItemType(type, el) {
+  document.querySelectorAll('.itype').forEach(i=>i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedItemType = type;
+  updateProgress();
+}
+
+function selColor(color, el) {
+  document.querySelectorAll('.copt').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedColor = color;
+}
+
+// ── PROGRESS ──
+function updateProgress() {
+  let score = 25; // item type always selected
+  const desc = document.getElementById('itemName').value && document.getElementById('itemContents').value;
+  const trip = document.getElementById('busNum').value && document.getElementById('fromStop').value;
+  const contact = document.getElementById('contactName').value && document.getElementById('contactPhone').value;
+  if(desc){score+=25;document.getElementById('prog-desc').textContent='✓';document.getElementById('prog-desc').style.color='var(--green)'}
+  else{document.getElementById('prog-desc').textContent='—';document.getElementById('prog-desc').style.color='var(--gray)'}
+  if(trip){score+=25;document.getElementById('prog-trip').textContent='✓';document.getElementById('prog-trip').style.color='var(--green)'}
+  else{document.getElementById('prog-trip').textContent='—';document.getElementById('prog-trip').style.color='var(--gray)'}
+  if(contact){score+=25;document.getElementById('prog-contact').textContent='✓';document.getElementById('prog-contact').style.color='var(--green)'}
+  else{document.getElementById('prog-contact').textContent='—';document.getElementById('prog-contact').style.color='var(--gray)'}
+  const fill = document.getElementById('progressFill');
+  fill.style.width = score+'%';
+  fill.style.background = score<50?'var(--red)':score<75?'var(--orange)':'var(--green)';
+  document.getElementById('progressPct').textContent = score+'%';
+}
+
+function checkPhone(input) {
+  const v = input.value.replace(/\D/g,'');
+  input.classList.toggle('valid', v.length>=8);
+  input.classList.toggle('invalid', v.length>0&&v.length<8);
+  updateProgress();
+}
+
+// ── PHOTOS ──
+function handlePhotos(input) {
+  Array.from(input.files).slice(0,5-photoFiles.length).forEach(f=>{
+    photoFiles.push(f);
+    addThumb(f);
+  });
+  document.getElementById('uploadZone').style.display = photoFiles.length>=5?'none':'block';
+}
+
+function handlePhotosDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('over');
+  const input = document.createElement('input');
+  input.files = e.dataTransfer.files;
+  handlePhotos(input);
+}
+
+function addThumb(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const grid = document.getElementById('photoPreviewGrid');
+    const div = document.createElement('div');
+    div.className = 'img-thumb';
+    div.innerHTML = `<img src="${ev.target.result}" alt=""><button class="img-remove" onclick="removeThumb(this)">✕</button>`;
+    grid.appendChild(div);
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeThumb(btn) {
+  btn.parentElement.remove();
+  photoFiles.pop();
+  document.getElementById('uploadZone').style.display='block';
+}
+
+// ── SUBMIT REPORT ──
+function submitReport() {
+  const name = document.getElementById('contactName').value;
+  const phone = document.getElementById('contactPhone').value;
+  if(!name||!phone) { showToast('⚠️ أدخل اسمك ورقم جوالك'); return; }
+  const btn = document.querySelector('.btn-submit');
+  btn.innerHTML = '<div class="spinner"></div> جاري الإرسال...';
+  btn.disabled = true;
+  setTimeout(()=>{
+    const ref = 'LF-'+Math.floor(Math.random()*900000+100000);
+    document.getElementById('reportRef').textContent = ref;
+    btn.style.display = 'none';
+    document.getElementById('reportSuccess').classList.add('show');
+    document.getElementById('reportSuccess').style.display = 'block';
+    window.scrollTo({top:document.getElementById('reportSuccess').offsetTop-80,behavior:'smooth'});
+    showToast('✅ تم إرسال البلاغ — رقمك: '+ref);
+  }, 1800);
+}
+
+// ── TRACK ──
+function doTrack() {
+  const val = document.getElementById('trackInput').value.trim();
+  if(!val){showToast('⚠️ أدخل رقم البلاغ');return}
+  const btn = document.querySelector('.track-btn');
+  btn.innerHTML = '<div class="spinner"></div>';
+  setTimeout(()=>{
+    btn.innerHTML = '<span>🔍</span> بحث';
+    // Simulate result
+    document.getElementById('caseNum').textContent = val.toUpperCase();
+    document.getElementById('trackResult').style.display = 'block';
+    showToast('✅ تم العثور على البلاغ');
+    document.getElementById('trackResult').scrollIntoView({behavior:'smooth',block:'start'});
+  }, 1200);
+}
+
+// ── CLAIM MODAL ──
+function openClaim(id) {
+  const item = foundItems.find(i=>i.id===id);
+  if(!item) return;
+  document.getElementById('claimIcon').textContent = item.icon;
+  document.getElementById('claimName').textContent = item.name;
+  document.getElementById('claimDesc').textContent = `خط ${item.bus} — ${item.route} — ${item.date}`;
+  document.getElementById('claimModal').classList.add('show');
+}
+
+function closeModal() { document.getElementById('claimModal').classList.remove('show'); }
+
+function submitClaim() {
+  const btn = document.querySelector('.btn-modal-submit');
+  btn.innerHTML = '<div class="spinner"></div> جاري الإرسال...';
+  btn.disabled = true;
+  setTimeout(()=>{
+    closeModal();
+    btn.innerHTML = 'إرسال طلب المطالبة';
+    btn.disabled = false;
+    showToast('✅ تم إرسال طلب المطالبة — سنتواصل معك للتحقق');
+  }, 1500);
+}
+
+// ── TABS ──
+function switchToTab(tab) {
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab+'-btn').classList.add('active');
+  document.getElementById('pane-'+tab).classList.add('active');
+  window.scrollTo({top:document.querySelector('.main-tabs').offsetTop-70,behavior:'smooth'});
+}
+
+// ── TOAST ──
+let toastT;
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ── INIT ──
+renderFound(foundItems);
+</script>
+<footer class="k2-foot"><div class="k2-w"><div class="k2-fg">
+<div><a class="k2-brand" href="KPTC_Home.html"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b></span></a><p>شركة النقل العام الكويتية، أول وأكبر مشغّل للنقل العام في الكويت منذ 1962، مملوكة بالكامل للدولة.</p></div>
+<div><h4>خدماتنا</h4><ul><li><a href="KPTC_Routes.html">الخطوط والمسارات</a></li><li><a href="KPTC_Subscriptions.html">الاشتراكات</a></li><li><a href="KPTC_Umrah.html">رحلات العمرة</a></li><li><a href="KPTC_VIP.html">باصات VIP</a></li><li><a href="KPTC_Winch.html">الونش</a></li></ul></div>
+<div><h4>خدمة العملاء</h4><ul><li><a href="KPTC_LostFound.html">المفقودات</a></li><li><a href="KPTC_AI_Assistant.html">المساعد الذكي</a></li><li><a href="KPTC_Home.html#contact">الشكاوى</a></li><li><a href="KPTC_Home.html#contact">تواصل معنا</a></li></ul></div>
+<div><h4>الشركة</h4><ul><li><a href="KPTC_Home.html#about">عن KPTC</a></li><li><a href="KPTC_Advertising.html">أعلن معنا</a></li><li><a href="KPTC_RE_Client.html">مساحات للإيجار</a></li><li><a href="KPTC_Portal.html">بوابة الموظفين</a></li></ul></div>
+</div><div class="k2-fb"><span>© 2026 شركة النقل العام الكويتية. جميع الحقوق محفوظة.</span><span>kptc.com.kw</span></div></div></footer>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+</html>

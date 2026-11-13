@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPTC — المساعد الإداري الذكي</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#2E2C78;--nd:#1F1D5C;--nx:#06102a;--nl:#3D3B95;
+  --yellow:#FFC93C;--gold:#d4a017;
+  --light:#F5F5FA;--border:#DEDDEC;
+  --gray:#5D5C80;--dark:#14133A;--white:#fff;
+  --green:#10B981;--red:#EF4444;--orange:#F59E0B;--blue:#3B82F6;--purple:#8B5CF6;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--nx);color:var(--dark);min-height:100vh;display:flex;flex-direction:column;line-height:1.65}
+
+/* ━━━━ DEMO TOPBAR ━━━━ */
+.topbar{background:var(--nx);border-bottom:1px solid rgba(255,255,255,.06);padding:0 22px;height:58px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.tb-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--yellow),var(--gold));border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--navy);font-size:.92rem}
+.tb-brand{font-weight:800;font-size:.9rem;letter-spacing:3px;color:var(--yellow)}
+.tb-title{font-size:.88rem;font-weight:700;color:white;flex:1;margin-right:12px}
+.tb-chip{background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.62rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.5px;display:flex;align-items:center;gap:5px}
+.tb-chip::before{content:"";width:5px;height:5px;background:var(--green);border-radius:50%;animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ━━━━ DEMO DASHBOARD BG ━━━━ */
+.dashboard-bg{flex:1;background:var(--light);padding:20px;position:relative;min-height:calc(100vh - 58px)}
+.dash-hint{max-width:700px;margin:0 auto;background:white;border-radius:14px;border:1.5px solid var(--border);padding:24px;text-align:center}
+.dh-icon{font-size:2.5rem;margin-bottom:12px}
+.dh-title{font-size:1rem;font-weight:800;color:var(--navy);margin-bottom:7px}
+.dh-text{font-size:.82rem;color:var(--gray);line-height:1.8;margin-bottom:16px}
+.dh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.dh-stat{background:var(--light);border-radius:10px;padding:12px;border:1px solid var(--border)}
+.dhs-val{font-size:1.3rem;font-weight:900;color:var(--navy)}
+.dhs-lbl{font-size:.66rem;color:var(--gray);margin-top:2px}
+
+/* ━━━━━━━━━━━━━━━━━━━━━
+   ADMIN AI ASSISTANT
+━━━━━━━━━━━━━━━━━━━━━ */
+
+/* FAB */
+.ai-fab{position:fixed;bottom:24px;left:24px;z-index:998;width:58px;height:58px;border-radius:16px;background:linear-gradient(135deg,var(--yellow),var(--gold));border:none;cursor:pointer;box-shadow:0 8px 28px rgba(255,201,60,.35),0 0 0 3px rgba(255,201,60,.12);display:flex;align-items:center;justify-content:center;font-size:1.4rem;transition:all .3s cubic-bezier(.34,1.56,.64,1);color:var(--navy);flex-direction:column;gap:2px}
+.ai-fab:hover{transform:scale(1.06) translateY(-2px);box-shadow:0 14px 36px rgba(255,201,60,.45)}
+.ai-fab.hidden{transform:scale(0);pointer-events:none}
+.ai-fab-label{font-size:.44rem;font-weight:800;color:var(--navy);letter-spacing:.5px}
+.ai-badge{position:absolute;top:-5px;right:-5px;width:18px;height:18px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:700;color:white;border:2px solid var(--nx)}
+
+/* AI Window */
+.ai-window{position:fixed;bottom:24px;left:24px;z-index:999;width:420px;max-width:calc(100vw - 36px);height:640px;max-height:calc(100vh - 36px);background:var(--nx);border-radius:20px;box-shadow:0 28px 72px rgba(0,0,0,.55),0 0 0 1px rgba(255,201,60,.12);display:flex;flex-direction:column;overflow:hidden;transform:scale(0) translateY(24px);opacity:0;transform-origin:bottom left;transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.ai-window.open{transform:scale(1) translateY(0);opacity:1;pointer-events:auto}
+
+/* Header */
+.ai-header{background:linear-gradient(135deg,var(--navy-d,#1F1D5C),var(--navy));padding:15px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,201,60,.12);flex-shrink:0}
+.ai-avatar{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--yellow),var(--gold));display:flex;align-items:center;justify-content:center;color:var(--navy);font-size:1.1rem;font-weight:900;flex-shrink:0;box-shadow:0 4px 14px rgba(255,201,60,.3)}
+.ai-name{font-size:.88rem;font-weight:800;color:var(--yellow);display:flex;align-items:center;gap:7px;margin-bottom:2px}
+.ai-ver{background:rgba(255,201,60,.15);color:var(--yellow);font-size:.5rem;padding:1px 6px;border-radius:8px;font-weight:700;letter-spacing:.5px}
+.ai-status{font-size:.62rem;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:4px}
+.ai-status::before{content:"";width:5px;height:5px;background:var(--green);border-radius:50%;animation:blink 2s infinite}
+.ai-hbtns{display:flex;gap:5px;margin-right:auto}
+.ai-hbtn{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.07);border:none;cursor:pointer;color:rgba(255,255,255,.6);font-size:.78rem;display:flex;align-items:center;justify-content:center;transition:.15s}
+.ai-hbtn:hover{background:rgba(255,255,255,.14);color:var(--yellow)}
+
+/* Tabs */
+.ai-tabs{display:flex;background:rgba(0,0,0,.2);padding:5px;gap:3px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
+.ai-tab{flex:1;padding:6px;border-radius:7px;border:none;background:transparent;color:rgba(255,255,255,.4);cursor:pointer;font-size:.65rem;font-weight:600;font-family:inherit;transition:.15s;display:flex;align-items:center;justify-content:center;gap:4px}
+.ai-tab.on{background:rgba(255,201,60,.1);color:var(--yellow);border:1px solid rgba(255,201,60,.15)}
+.ai-tab:hover:not(.on){background:rgba(255,255,255,.05);color:rgba(255,255,255,.7)}
+
+/* Body */
+.ai-body{flex:1;overflow-y:auto;padding:13px 12px;display:flex;flex-direction:column;gap:9px;background:rgba(0,0,0,.15);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent}
+.ai-body::-webkit-scrollbar{width:3px}
+.ai-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+
+/* Messages */
+.amsg{display:flex;gap:7px;align-items:flex-end;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.amsg.user{flex-direction:row-reverse}
+.amsg-av{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800}
+.amsg.bot .amsg-av{background:linear-gradient(135deg,var(--yellow),var(--gold));color:var(--navy)}
+.amsg.user .amsg-av{background:linear-gradient(135deg,var(--nl),var(--navy));color:var(--yellow)}
+.amsg-wrap{max-width:82%;display:flex;flex-direction:column;gap:3px}
+.amsg.user .amsg-wrap{align-items:flex-end}
+.amsg-bubble{padding:9px 13px;border-radius:14px;font-size:.78rem;line-height:1.65;word-wrap:break-word}
+.amsg.bot .amsg-bubble{background:rgba(255,255,255,.06);color:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.07);border-bottom-right-radius:4px}
+.amsg.user .amsg-bubble{background:linear-gradient(135deg,var(--yellow),var(--gold));color:var(--navy);border-bottom-left-radius:4px;font-weight:600}
+.amsg-time{font-size:.56rem;color:rgba(255,255,255,.25);padding:0 3px}
+.amsg.user .amsg-time{text-align:left}
+
+/* Bubble enhancements */
+.amsg-bubble strong{color:var(--yellow);font-weight:800}
+.amsg.user .amsg-bubble strong{color:var(--navy)}
+.amsg-bubble .kpi-inline{display:inline-flex;align-items:center;gap:5px;background:rgba(255,201,60,.12);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:10px;margin:2px 3px 2px 0}
+.amsg-bubble ul{padding-right:14px;margin:4px 0}
+.amsg-bubble li{font-size:.74rem;margin:2px 0;color:rgba(255,255,255,.8)}
+.amsg-bubble .action-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.amsg-bubble .act-btn{background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.67rem;font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;font-family:inherit;transition:.15s}
+.amsg-bubble .act-btn:hover{background:var(--yellow);color:var(--navy)}
+
+/* Typing */
+.typing-row{display:flex;gap:7px;align-items:flex-end}
+.typing-bubble{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:14px;border-bottom-right-radius:4px;padding:10px 14px;display:flex;gap:4px;align-items:center}
+.tdot{width:6px;height:6px;background:rgba(255,201,60,.6);border-radius:50%}
+.tdot:nth-child(1){animation:td 1.3s infinite .1s}
+.tdot:nth-child(2){animation:td 1.3s infinite .3s}
+.tdot:nth-child(3){animation:td 1.3s infinite .5s}
+@keyframes td{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+/* Quick command chips */
+.ai-cmds{padding:8px 10px;background:rgba(0,0,0,.2);border-top:1px solid rgba(255,255,255,.05);display:flex;flex-wrap:wrap;gap:5px;flex-shrink:0}
+.cmd-chip{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.6);font-size:.65rem;font-weight:600;padding:5px 10px;border-radius:20px;cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.cmd-chip:hover{background:rgba(255,201,60,.1);border-color:rgba(255,201,60,.2);color:var(--yellow)}
+
+/* Input */
+.ai-input-wrap{padding:9px 10px;background:rgba(0,0,0,.25);border-top:1px solid rgba(255,255,255,.05);display:flex;gap:7px;align-items:center;flex-shrink:0}
+.ai-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:9px 14px;font-size:.78rem;font-family:inherit;outline:none;color:white;transition:.2s}
+.ai-input::placeholder{color:rgba(255,255,255,.3)}
+.ai-input:focus{border-color:rgba(255,201,60,.3);background:rgba(255,255,255,.08)}
+.ai-send{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--gold));border:none;cursor:pointer;color:var(--navy);font-size:.88rem;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
+.ai-send:hover{transform:scale(1.08);box-shadow:0 4px 14px rgba(255,201,60,.4)}
+.ai-send:disabled{opacity:.3;cursor:not-allowed;transform:none}
+
+/* Footer */
+.ai-foot{padding:4px 12px;text-align:center;font-size:.56rem;color:rgba(255,255,255,.2);flex-shrink:0;background:rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;gap:5px}
+.ai-foot strong{color:rgba(255,201,60,.6)}
+
+/* Quick cards (used in some responses) */
+.quick-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;margin:4px 0;font-size:.74rem}
+.qc-label{color:rgba(255,255,255,.4);font-size:.6rem;margin-bottom:4px;font-weight:700;letter-spacing:.5px}
+.qc-val{color:var(--yellow);font-weight:800;font-size:.9rem}
+.qc-chg{font-size:.62rem;font-weight:700;color:var(--green)}
+
+/* Report view panel */
+.report-panel{position:absolute;top:0;bottom:0;left:0;right:0;background:var(--nx);z-index:10;display:none;flex-direction:column;animation:slideIn .3s ease}
+.report-panel.open{display:flex}
+@keyframes slideIn{from{transform:translateX(-100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.rp-head{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.rp-back{background:rgba(255,255,255,.06);border:none;color:rgba(255,255,255,.7);border-radius:8px;padding:6px 12px;font-size:.72rem;cursor:pointer;font-family:inherit;transition:.15s}
+.rp-back:hover{background:rgba(255,255,255,.12);color:white}
+.rp-title{font-size:.85rem;font-weight:700;color:white}
+.rp-body{flex:1;overflow-y:auto;padding:14px}
+.rp-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.rp-stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:13px}
+.rs-val{font-size:1.4rem;font-weight:900;color:var(--yellow);line-height:1}
+.rs-lbl{font-size:.62rem;color:rgba(255,255,255,.45);margin-top:3px}
+.rs-chg{font-size:.62rem;font-weight:700;margin-top:4px}
+.rc-up{color:var(--green)}.rc-dn{color:var(--red)}
+.rp-list{display:flex;flex-direction:column;gap:7px}
+.rp-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:10px 12px;font-size:.74rem}
+.ri-top{display:flex;justify-content:space-between;margin-bottom:4px}
+.ri-name{color:rgba(255,255,255,.8);font-weight:600}
+.ri-status{font-size:.64rem;font-weight:700;padding:2px 7px;border-radius:10px}
+.ri-s-g{background:rgba(16,185,129,.15);color:var(--green)}
+.ri-s-o{background:rgba(245,158,11,.15);color:var(--orange)}
+.ri-s-r{background:rgba(239,68,68,.15);color:var(--red)}
+.ri-desc{color:rgba(255,255,255,.4);font-size:.66rem}
+
+@media(max-width:480px){
+  .ai-window{width:calc(100vw - 20px);left:10px;right:10px;bottom:10px;height:calc(100vh - 20px);border-radius:16px}
+  .ai-fab{bottom:14px;left:14px;width:52px;height:52px;font-size:1.2rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ━━━━ DEMO TOPBAR ━━━━ -->
+<div class="topbar">
+  <div class="tb-logo">K</div>
+  <div class="tb-brand">KPTC</div>
+  <div class="tb-title">/ Admin Dashboard</div>
+  <div class="tb-chip">🤖 AI مساعد ذكي</div>
+</div>
+
+<!-- ━━━━ DEMO BG ━━━━ -->
+<div class="dashboard-bg">
+  <div class="dash-hint">
+    <div class="dh-icon">🤖</div>
+    <div class="dh-title">المساعد الإداري الذكي — KPTC Admin AI</div>
+    <div class="dh-text">هذا هو الـ widget الجاهز للدمج في Dashboard الإداري.<br>اضغط على الزر الذهبي في الزاوية السفلية لتجربته.</div>
+    <div style="font-size:.78rem;color:var(--gray);line-height:2">
+      جرّب أوامر مثل:<br>
+      <strong>"ما ملخص اليوم؟"</strong> • <strong>"كم عدد الشكاوى المعلقة؟"</strong><br>
+      <strong>"أرسل تقرير"</strong> • <strong>"ما أداء خط 77؟"</strong><br>
+      <strong>"اقتراحات لتحسين الخدمة"</strong>
+    </div>
+    <div class="dh-grid">
+      <div class="dh-stat"><div class="dhs-val" id="dm1">128K</div><div class="dhs-lbl">راكب اليوم</div></div>
+      <div class="dh-stat"><div class="dhs-val">23</div><div class="dhs-lbl">شكوى معلقة</div></div>
+      <div class="dh-stat"><div class="dhs-val" id="dm2">84.2K</div><div class="dhs-lbl">إيراد اليوم (د.ك)</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━
+   ADMIN AI WIDGET
+━━━━━━━━━━━━━━━━━━━━━ -->
+
+<!-- FAB -->
+<button class="ai-fab" id="aiFab" onclick="openAI()" aria-label="المساعد الذكي">
+  <span>🧠</span>
+  <span class="ai-fab-label">AI مساعد</span>
+  <div class="ai-badge" id="aiBadge">3</div>
+</button>
+
+<!-- AI WINDOW -->
+<div class="ai-window" id="aiWindow">
+  <!-- Header -->
+  <div class="ai-header">
+    <div class="ai-avatar">🧠</div>
+    <div style="flex:1">
+      <div class="ai-name">مساعد KPTC الإداري <span class="ai-ver">ADMIN AI</span></div>
+      <div class="ai-status">متصل • يحلل بياناتك في الوقت الفعلي</div>
+    </div>
+    <div class="ai-hbtns">
+      <button class="ai-hbtn" onclick="clearChat()" title="محادثة جديدة">🔄</button>
+      <button class="ai-hbtn" onclick="closeAI()" title="إغلاق">✕</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="ai-tabs">
+    <button class="ai-tab on" id="tab-chat" onclick="switchTab('chat')">💬 محادثة</button>
+    <button class="ai-tab" id="tab-report" onclick="switchTab('report')">📊 تقرير</button>
+    <button class="ai-tab" id="tab-alerts" onclick="switchTab('alerts')">🔔 تنبيهات</button>
+  </div>
+
+  <!-- CHAT TAB -->
+  <div id="panel-chat" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="ai-body" id="aiBody"></div>
+    <div class="ai-cmds" id="aiCmds"></div>
+    <div class="ai-input-wrap">
+      <input class="ai-input" id="aiInput" placeholder="اكتب أمرك أو سؤالك..." onkeypress="if(event.key==='Enter')sendAI()" maxlength="250">
+      <button class="ai-send" id="aiSend" onclick="sendAI()" aria-label="إرسال">➤</button>
+    </div>
+    <div class="ai-foot"><strong>KPTC Admin AI</strong> • بيانات حقيقية من النظام</div>
+  </div>
+
+  <!-- REPORT TAB -->
+  <div id="panel-report" style="display:none;flex:1;overflow-y:auto;padding:12px;background:rgba(0,0,0,.15)">
+    <div style="color:rgba(255,255,255,.5);font-size:.68rem;font-weight:700;letter-spacing:1px;margin-bottom:12px">📊 تقرير اليوم — مباشر</div>
+    <div class="rp-stat-grid">
+      <div class="rp-stat"><div class="rs-val" id="rp1">128K</div><div class="rs-lbl">راكب اليوم</div><div class="rs-chg rc-up">↑ +8.3%</div></div>
+      <div class="rp-stat"><div class="rs-val">84.2K</div><div class="rs-lbl">إيراد (د.ك)</div><div class="rs-chg rc-up">↑ +12.1%</div></div>
+      <div class="rp-stat"><div class="rs-val" style="color:var(--red)">23</div><div class="rs-lbl">شكاوى معلقة</div><div class="rs-chg rc-dn">↑ من 19 أمس</div></div>
+      <div class="rp-stat"><div class="rs-val">4,821</div><div class="rs-lbl">اشتراكات نشطة</div><div class="rs-chg rc-up">↑ +124 الشهر</div></div>
+      <div class="rp-stat"><div class="rs-val">98.2%</div><div class="rs-lbl">انتظام الخطوط</div><div class="rs-chg rc-up">↑ ممتاز</div></div>
+      <div class="rp-stat"><div class="rs-val" style="color:var(--orange)">12</div><div class="rs-lbl">خط متأخر</div><div class="rs-chg rc-dn">↑ من 8 أمس</div></div>
+    </div>
+    <div style="color:rgba(255,255,255,.5);font-size:.66rem;font-weight:700;letter-spacing:1px;margin-bottom:9px">آخر الشكاوى</div>
+    <div class="rp-list">
+      <div class="rp-item"><div class="ri-top"><span class="ri-name">COMP-001 — خط 77</span><span class="ri-status ri-s-r">عاجل</span></div><div class="ri-desc">سائق — تصرف غير لائق مع الراكب</div></div>
+      <div class="rp-item"><div class="ri-top"><span class="ri-name">COMP-004 — خط 30</span><span class="ri-status ri-s-o">معلق</span></div><div class="ri-desc">إغلاق المكيف في الجو الحار</div></div>
+      <div class="rp-item"><div class="ri-top"><span class="ri-name">COMP-008 — خط 102</span><span class="ri-status ri-s-o">معلق</span></div><div class="ri-desc">السائق لم يقف للموظفين</div></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:7px">
+      <button onclick="T('📥 جاري تصدير التقرير...',1700)" style="flex:1;background:var(--yellow);color:var(--navy);border:none;border-radius:9px;padding:9px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit">📥 تصدير PDF</button>
+      <button onclick="T('📧 تم إرسال التقرير على البريد',1500)" style="flex:1;background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px;font-size:.73rem;font-weight:600;cursor:pointer;font-family:inherit">📧 إرسال بريد</button>
+    </div>
+  </div>
+
+  <!-- ALERTS TAB -->
+  <div id="panel-alerts" style="display:none;flex:1;overflow-y:auto;padding:12px;background:rgba(0,0,0,.15)">
+    <div style="color:rgba(255,255,255,.5);font-size:.68rem;font-weight:700;letter-spacing:1px;margin-bottom:12px">🔔 تنبيهات تحتاج تدخل</div>
+    <div id="alertsList"></div>
+  </div>
+
+  <!-- Report panel (overlay) -->
+  <div class="report-panel" id="reportPanel">
+    <div class="rp-head">
+      <button class="rp-back" onclick="closeReportPanel()">← رجوع</button>
+      <div class="rp-title" id="rpTitle">التقرير</div>
+    </div>
+    <div class="rp-body" id="rpBody"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toastEl" style="position:fixed;bottom:18px;right:50%;transform:translateX(50%) translateY(120px);background:var(--navy);color:white;padding:10px 20px;border-radius:11px;font-size:.8rem;font-weight:600;z-index:1000;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 28px rgba(0,0,0,.3);pointer-events:none;white-space:nowrap;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"></div>
+
+<script>
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ADMIN AI — Live Data Snapshot
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+var LIVE = {
+  riders_today: 128,
+  revenue_today: 84.2,
+  active_subs: 4821,
+  buses: 2547,
+  complaints_pending: 23,
+  complaints_processing: 47,
+  complaints_resolved: 312,
+  late_routes: 12,
+  route_punctuality: 98.2,
+  lost_items: 8,
+  winch_active: 5,
+  employees: 5247,
+  portal_requests: 122,
+  umrah_bookings: 487,
+  vip_active: 18,
+  ads_active: 24,
+  website_visits: 4821,
+  response_avg: '4 ساعات',
+  top_complaint_route: '77',
+  worst_route: 'خط 77 — متأخر 22 دقيقة'
+};
+
+// Keep updating live numbers
+setInterval(function(){
+  LIVE.riders_today += Math.floor(Math.random()*3);
+  LIVE.revenue_today = parseFloat((LIVE.revenue_today + Math.random()*.08).toFixed(1));
+  var m1=document.getElementById('dm1');if(m1)m1.textContent=LIVE.riders_today+'K';
+  var m2=document.getElementById('dm2');if(m2)m2.textContent=LIVE.revenue_today+'K';
+  var r1=document.getElementById('rp1');if(r1)r1.textContent=LIVE.riders_today+'K';
+}, 5000);
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INTENTS ENGINE
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+var INTENTS = [
+  {kw:['مرحب','اهل','هلا','صباح','مساء','السلام','hi','hello'],fn:respondGreeting},
+  {kw:['ملخص','تقرير اليوم','summary','كيف اليوم','الوضع','overview','احصائيات'],fn:respondDailySummary},
+  {kw:['شكو','complaint','بلاغ','معلق','استفسار'],fn:respondComplaints},
+  {kw:['راكب','ركاب','passenger','riders','عدد'],fn:respondRiders},
+  {kw:['إيراد','ايراد','revenue','دخل','مبيعات','كم حصلنا'],fn:respondRevenue},
+  {kw:['اشتراك','subscribe','باقة','growth','starter','school'],fn:respondSubs},
+  {kw:['خط','مسار','route','باص','متأخر','تأخر'],fn:respondRoutes},
+  {kw:['مفقود','lost','ضايع'],fn:respondLost},
+  {kw:['ونش','winch','طوارئ'],fn:respondWinch},
+  {kw:['موظف','employee','بوابة','portal','إجازة','طلب'],fn:respondEmployee},
+  {kw:['إعلان','ad','حملة'],fn:respondAds},
+  {kw:['موقع','website','زيارة','زوار'],fn:respondWebsite},
+  {kw:['تقرير أسبوعي','weekly','أسبوع'],fn:respondWeekly},
+  {kw:['اقتراح','تحسين','نصيحة','ماذا أفعل','توصية','analyze'],fn:respondSuggestions},
+  {kw:['أرسل تقرير','send report','ارسل','ايميل تقرير'],fn:respondSendReport},
+  {kw:['أداء','performance','أفضل خط','أسوأ'],fn:respondPerformance},
+  {kw:['عمرة','umrah','رحلة'],fn:respondUmrah},
+  {kw:['vip','في اي بي','ديوانية'],fn:respondVip},
+  {kw:['شكر','thank','ممتاز','برافو'],fn:respondThanks},
+  {kw:['مساعدة','help','ماذا تستطيع','قدرات','أوامر'],fn:respondHelp},
+];
+
+var DEFAULT_CMDS = [
+  {icon:'📊',label:'ملخص اليوم'},
+  {icon:'📝',label:'الشكاوى المعلقة'},
+  {icon:'💰',label:'إيراد اليوم'},
+  {icon:'🚌',label:'أداء الخطوط'},
+  {icon:'💡',label:'اقتراحات تحسين'},
+];
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// UI FUNCTIONS
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+var aiOpened = false;
+
+function openAI(){
+  document.getElementById('aiWindow').classList.add('open');
+  document.getElementById('aiFab').classList.add('hidden');
+  document.getElementById('aiBadge').style.display='none';
+  if(!aiOpened){
+    aiOpened=true;
+    loadAlerts();
+    setTimeout(function(){
+      addBot('مرحباً أحمد 👋 أنا <strong>المساعد الإداري الذكي</strong> لـ KPTC.<br><br>لدي وصول مباشر لجميع بياناتك الحية. اسألني أي شيء أو استخدم الأوامر السريعة.<br><br>📌 <strong>مثال سريع:</strong> اكتب <em>"ملخص اليوم"</em> لرؤية تقرير كامل.',DEFAULT_CMDS.map(function(c){return c.icon+' '+c.label}));
+    },500);
+  }
+  setTimeout(function(){document.getElementById('aiInput').focus()},350);
+}
+
+function closeAI(){
+  document.getElementById('aiWindow').classList.remove('open');
+  setTimeout(function(){document.getElementById('aiFab').classList.remove('hidden')},200);
+}
+
+function switchTab(tab){
+  ['chat','report','alerts'].forEach(function(t){
+    document.getElementById('tab-'+t).classList.remove('on');
+    document.getElementById('panel-'+t).style.display='none';
+  });
+  document.getElementById('tab-'+tab).classList.add('on');
+  document.getElementById('panel-'+tab).style.display='flex';
+  if(tab!=='chat') document.getElementById('panel-'+tab).style.flexDirection='column';
+}
+
+function sendAI(){
+  var inp=document.getElementById('aiInput');
+  var txt=inp.value.trim();if(!txt)return;
+  addUser(txt);inp.value='';
+  document.getElementById('aiCmds').innerHTML='';
+  showTyping();
+  setTimeout(function(){
+    hideTyping();
+    var resp=processAdmin(txt);
+    addBot(resp.text,resp.cmds||[]);
+  }, 700+Math.random()*600);
+}
+
+function addUser(txt){
+  var now=new Date(),t=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  var b=document.getElementById('aiBody');
+  b.innerHTML+='<div class="amsg user"><div class="amsg-av">أ</div><div class="amsg-wrap"><div class="amsg-bubble">'+escH(txt)+'</div><div class="amsg-time">'+t+'</div></div></div>';
+  b.scrollTop=b.scrollHeight;
+}
+
+function addBot(html,cmds){
+  var now=new Date(),t=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  var b=document.getElementById('aiBody');
+  b.innerHTML+='<div class="amsg bot"><div class="amsg-av">🧠</div><div class="amsg-wrap"><div class="amsg-bubble">'+html+'</div><div class="amsg-time">'+t+'</div></div></div>';
+  b.scrollTop=b.scrollHeight;
+  if(cmds&&cmds.length){
+    var box=document.getElementById('aiCmds');
+    box.innerHTML=cmds.map(function(c){return'<button class="cmd-chip" onclick="quickCmd(\''+c.replace(/'/g,'\\\'')+'\')">'+(c.length>2&&!c.startsWith('📊')&&!c.startsWith('💰')&&!c.startsWith('📝')&&!c.startsWith('🚌')&&!c.startsWith('💡')&&!c.startsWith('🔍')&&!c.startsWith('👤')&&!c.startsWith('📋')&&!c.startsWith('📅')&&!c.startsWith('⚠️')?'→ ':'')+c+'</button>'}).join('');
+  }
+}
+
+function showTyping(){
+  var b=document.getElementById('aiBody');
+  b.innerHTML+='<div class="typing-row" id="aiTyping"><div class="amsg-av" style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--yellow),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.75rem">🧠</div><div class="typing-bubble"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>';
+  b.scrollTop=b.scrollHeight;
+}
+
+function hideTyping(){var t=document.getElementById('aiTyping');if(t)t.remove()}
+
+function quickCmd(txt){document.getElementById('aiInput').value=txt;sendAI()}
+
+function clearChat(){
+  if(!confirm('بدء محادثة جديدة؟'))return;
+  document.getElementById('aiBody').innerHTML='';
+  document.getElementById('aiCmds').innerHTML='';
+  aiOpened=false;
+  setTimeout(openAI,100);
+}
+
+function escH(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function openReportPanel(title,html){
+  document.getElementById('rpTitle').textContent=title;
+  document.getElementById('rpBody').innerHTML=html;
+  document.getElementById('reportPanel').classList.add('open');
+}
+function closeReportPanel(){document.getElementById('reportPanel').classList.remove('open')}
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INTELLIGENCE CORE
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function processAdmin(msg){
+  var low=msg.toLowerCase();
+  for(var i=0;i<INTENTS.length;i++){
+    var intent=INTENTS[i];
+    for(var j=0;j<intent.kw.length;j++){
+      if(low.indexOf(intent.kw[j])!==-1) return intent.fn(low);
+    }
+  }
+  return respondDefault(msg);
+}
+
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RESPONSE HANDLERS
+//━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function respondGreeting(){
+  return {text:'مرحباً أحمد! 👋 كيف أقدر أساعدك الآن؟<br><br>الوضع العام اليوم: <span class="kpi-inline">✅ جيد</span> — الإيراد مرتفع والانتظام ممتاز، لكن الشكاوى المعلقة تحتاج متابعة.',
+  cmds:['ملخص اليوم','الشكاوى المعلقة','اقتراحات تحسين']};
+}
+
+function respondDailySummary(){
+  return {
+    text:'<strong>📊 ملخص اليوم — '+new Date().toLocaleDateString('ar')+'</strong><br><br>'
+    +'<span class="kpi-inline">👥 '+LIVE.riders_today+'K راكب</span> <span class="kpi-inline">💰 '+LIVE.revenue_today+'K د.ك</span><br><br>'
+    +'<strong>✅ الإيجابيات:</strong><ul>'
+    +'<li>الانتظام '+LIVE.route_punctuality+'% — ممتاز</li>'
+    +'<li>الاشتراكات +124 هذا الشهر</li>'
+    +'<li>الإيراد ارتفع 12.1% عن أمس</li></ul>'
+    +'<strong>⚠️ يحتاج متابعة:</strong><ul>'
+    +'<li>'+LIVE.complaints_pending+' شكوى معلقة — أعلى من أمس</li>'
+    +'<li>'+LIVE.late_routes+' خط متأخر (أبرزها: '+LIVE.worst_route+')</li>'
+    +'<li>'+LIVE.lost_items+' بلاغات مفقودات جديدة</li></ul>'
+    +'<div class="action-row"><button class="act-btn" onclick="quickCmd(\'اقتراحات تحسين\')">💡 اقتراحات</button><button class="act-btn" onclick="openReportPanel(\'تقرير مفصل\',getDetailedReport())">📋 تقرير مفصل</button></div>',
+    cmds:['الشكاوى المعلقة','أداء الخطوط','إيراد اليوم','أرسل تقرير']
+  };
+}
+
+function respondComplaints(){
+  return {
+    text:'<strong>📝 الشكاوى والاستفسارات</strong><br><br>'
+    +'<span class="kpi-inline">🔴 '+LIVE.complaints_pending+' معلقة</span> <span class="kpi-inline">🟡 '+LIVE.complaints_processing+' قيد المعالجة</span> <span class="kpi-inline">✅ '+LIVE.complaints_resolved+' محلولة</span><br><br>'
+    +'<strong>أبرز الشكاوى العاجلة:</strong><ul>'
+    +'<li>COMP-001 — خط 77 — سائق تصرف بشكل غير لائق</li>'
+    +'<li>COMP-003 — حادث بسيارة راكب</li>'
+    +'<li>COMP-008 — خط 102 — لم يقف للموظفين</li></ul>'
+    +'<strong>متوسط الرد:</strong> '+LIVE.response_avg+' — يمكن تحسينه<br><br>'
+    +'<div class="action-row"><button class="act-btn" onclick="quickCmd(\'من هي الشكوى الأكثر إلحاحاً؟\')">⚡ الأكثر إلحاحاً</button><button class="act-btn" onclick="T(\'👤 تم تعيين مسؤول لجميع الشكاوى المعلقة\',2000)">👤 تعيين للكل</button></div>',
+    cmds:['تعيين مسؤول للشكاوى','ما متوسط أوقات الرد؟','تقرير الشكاوى الأسبوعي']
+  };
+}
+
+function respondRiders(){
+  return {
+    text:'<strong>👥 الركاب اليوم</strong><br><br>'
+    +'<span class="kpi-inline">'+LIVE.riders_today+'K راكب</span> — ↑ +8.3% عن أمس<br><br>'
+    +'<strong>أكثر الخطوط ازدحاماً:</strong><ul>'
+    +'<li>خط 99 — السالمية ⇄ الكويت سيتي (16.1K راكب)</li>'
+    +'<li>خط 21 — الفروانية ⇄ المالية (15.2K راكب)</li>'
+    +'<li>خط 77 — السالمية ⇄ الشويخ (13.9K راكب)</li></ul>'
+    +'<strong>ساعات الذروة:</strong> 7:00-9:00ص و4:00-6:00م<br><br>'
+    +'📈 <em>يتوقع الوصول لـ 140K راكب بنهاية اليوم</em>',
+    cmds:['قارن مع الأسبوع الماضي','أداء الخطوط','الخطوط الأقل استخداماً']
+  };
+}
+
+function respondRevenue(){
+  return {
+    text:'<strong>💰 الإيرادات اليوم</strong><br><br>'
+    +'<span class="kpi-inline">'+LIVE.revenue_today+'K د.ك</span> — ↑ +12.1%<br><br>'
+    +'<strong>توزيع الإيرادات:</strong><ul>'
+    +'<li>الاشتراكات الشهرية — 40% (33.7K د.ك)</li>'
+    +'<li>التذاكر اليومية — 18% (15.2K د.ك)</li>'
+    +'<li>رحلات العمرة — 20% (16.8K د.ك)</li>'
+    +'<li>VIP والونش — 12% (10.1K د.ك)</li>'
+    +'<li>الإعلانات — 10% (8.4K د.ك)</li></ul>'
+    +'📈 <em>المتوقع نهاية الشهر: 72,300 د.ك (+8.3% عن الشهر الماضي)</em>',
+    cmds:['تقرير الإيرادات الأسبوعي','مقارنة بالشهر الماضي','أعلى مصادر الدخل']
+  };
+}
+
+function respondSubs(){
+  return {
+    text:'<strong>💳 الاشتراكات النشطة</strong><br><br>'
+    +'<span class="kpi-inline">'+LIVE.active_subs.toLocaleString()+' اشتراك</span> — +124 هذا الشهر<br><br>'
+    +'<strong>التوزيع:</strong><ul>'
+    +'<li>Growth — 1,900 مشترك (40%)</li>'
+    +'<li>Starter — 2,100 مشترك (43%)</li>'
+    +'<li>School — 821 مشترك (17%)</li></ul>'
+    +'<strong>⚠️ تنبيه:</strong> 234 اشتراك تنتهي هذا الشهر — يحتاج تواصل<br><br>'
+    +'<div class="action-row"><button class="act-btn" onclick="T(\'📧 تم إرسال رسائل تجديد لـ 234 مشترك\',2000)">📧 تذكير التجديد</button></div>',
+    cmds:['من ستنتهي اشتراكاتهم؟','إيراد الاشتراكات','الباقة الأكثر مبيعاً']
+  };
+}
+
+function respondRoutes(){
+  return {
+    text:'<strong>🗺️ أداء الخطوط اليوم</strong><br><br>'
+    +'<span class="kpi-inline">✅ '+LIVE.route_punctuality+'% انتظام</span> <span class="kpi-inline">⚠️ '+LIVE.late_routes+' متأخر</span><br><br>'
+    +'<strong>الخطوط المتأخرة (الأبرز):</strong><ul>'
+    +'<li>⚠️ خط 77 — متأخر 22 دقيقة — محطة السالمية</li>'
+    +'<li>⚠️ خط 15 — تأخر 8 دقائق — ازدحام الدائري</li>'
+    +'<li>⚠️ خط 103 — تأخر 5 دقائق</li></ul>'
+    +'<strong>الخطوط المثالية اليوم:</strong><ul>'
+    +'<li>✅ خط 99 — 100% انتظام</li>'
+    +'<li>✅ خط 21 — 99.8% انتظام</li></ul>'
+    +'<div class="action-row"><button class="act-btn" onclick="T(\'📱 تم إرسال تنبيه للسائقين المتأخرين\',1800)">📱 تنبيه السائقين</button></div>',
+    cmds:['خط 77 تفاصيل','أسباب التأخر','تقرير الخطوط الأسبوعي']
+  };
+}
+
+function respondLost(){
+  return {
+    text:'<strong>🔍 المفقودات اليوم</strong><br><br>'
+    +'<span class="kpi-inline">'+LIVE.lost_items+' بلاغات جديدة</span> <span class="kpi-inline">72% نسبة الاسترداد</span><br><br>'
+    +'<strong>أبرز البلاغات الجديدة:</strong><ul>'
+    +'<li>LF-100006 — هاتف Samsung — خط 15</li>'
+    +'<li>LF-100007 — نظارة طبية ذهبية — خط 21</li>'
+    +'<li>LF-100004 — محفظة جلد رجالي — خط 18</li></ul>'
+    +'<strong>⚠️ تنبيه:</strong> 3 أغراض تنتهي مدة حفظها خلال 48 ساعة — يلزم التواصل مع أصحابها',
+    cmds:['من لديهم أغراض تنتهي مدتها؟','إحصائيات المفقودات','الخط الأكثر نسياناً']
+  };
+}
+
+function respondWinch(){
+  return {
+    text:'<strong>🔧 خدمة الونش اليوم</strong><br><br>'
+    +'<span class="kpi-inline">🔴 '+LIVE.winch_active+' طلبات نشطة</span> <span class="kpi-inline">✅ 34 شاحنة متاحة</span><br><br>'
+    +'<strong>الطلبات النشطة:</strong><ul>'
+    +'<li>TOW-482191 — حولي — KPTC-W05 — ETA 12 دق</li>'
+    +'<li>TOW-482188 — الأحمدي — KPTC-W18 — ETA 31 دق</li></ul>'
+    +'<strong>الإيراد اليوم:</strong> 3,200 د.ك<br>'
+    +'<strong>متوسط وقت الاستجابة:</strong> 18 دقيقة',
+    cmds:['إضافة طلب ونش','طاقة الشاحنات','تقرير الونش الأسبوعي']
+  };
+}
+
+function respondEmployee(){
+  return {
+    text:'<strong>👥 الموظفون وبوابة الطلبات</strong><br><br>'
+    +'<span class="kpi-inline">✅ 4,891 حاضر</span> <span class="kpi-inline">🟡 234 إجازة</span><br><br>'
+    +'<strong>طلبات معلقة في البوابة: '+LIVE.portal_requests+'</strong><ul>'
+    +'<li>45 طلب إجازة (منها 12 عاجلة)</li>'
+    +'<li>38 طلب مستلزمات</li>'
+    +'<li>39 فاتورة للصرف</li></ul>'
+    +'<strong>بانتظار موافقتك:</strong><ul>'
+    +'<li>LVE-2026-041 — أحمد القطان — إجازة سنوية</li>'
+    +'<li>INV-2026-018 — إبراهيم الضعيان — فاتورة 45 د.ك</li></ul>'
+    +'<div class="action-row"><button class="act-btn" onclick="T(\'✅ تمت الموافقة على الطلبات العاجلة\',2000)">✅ موافقة العاجلة</button></div>',
+    cmds:['من في إجازة الأسبوع القادم؟','الفواتير المعلقة','تقرير الحضور']
+  };
+}
+
+function respondAds(){
+  return {
+    text:'<strong>📢 الإعلانات النشطة</strong><br><br>'
+    +'<span class="kpi-inline">'+LIVE.ads_active+' حملة نشطة</span> <span class="kpi-inline">128K انطباع يومي</span><br><br>'
+    +'<strong>أبرز الحملات:</strong><ul>'
+    +'<li>بنك الكويت الوطني — Dominance — 150K انطباع/يوم</li>'
+    +'<li>زين الكويت — Growth — 60K انطباع/يوم</li></ul>'
+    +'<strong>الإيراد الشهري:</strong> 42,500 د.ك',
+    cmds:['تقرير أداء الحملات','حملات تنتهي قريباً','إضافة حملة جديدة']
+  };
+}
+
+function respondWebsite(){
+  return {
+    text:'<strong>🌐 الموقع الإلكتروني اليوم</strong><br><br>'
+    +'<span class="kpi-inline">'+LIVE.website_visits.toLocaleString()+' زيارة</span> <span class="kpi-inline">234 حجز إلكتروني</span><br><br>'
+    +'<strong>أكثر الصفحات زيارة:</strong><ul>'
+    +'<li>الرئيسية — 1,842 زيارة</li>'
+    +'<li>الاشتراكات — 1,124 زيارة</li>'
+    +'<li>الخطوط — 987 زيارة</li></ul>'
+    +'<strong>⚠️ ملاحظة:</strong> سرعة التحميل 2.3 ثانية — تحسين مطلوب للوصول لـ 1.5 ثانية',
+    cmds:['الصفحات الأبطأ تحميلاً','مقارنة بالأسبوع الماضي','تحسين سرعة الموقع']
+  };
+}
+
+function respondWeekly(){
+  return {
+    text:'<strong>📅 ملخص الأسبوع الماضي</strong><br><br>'
+    +'<ul>'
+    +'<li>👥 إجمالي الركاب: <strong>892K راكب</strong> ↑ +5.2%</li>'
+    +'<li>💰 الإيراد: <strong>589K د.ك</strong> ↑ +7.8%</li>'
+    +'<li>📝 الشكاوى: 312 محلولة من 382 واردة (81.7%)</li>'
+    +'<li>🗺️ انتظام الخطوط: 97.8% متوسط الأسبوع</li>'
+    +'<li>💳 اشتراكات جديدة: +312 هذا الأسبوع</li></ul>'
+    +'<div class="action-row"><button class="act-btn" onclick="T(\'📄 جاري إنشاء التقرير الأسبوعي...\',2500)">📄 تصدير PDF</button><button class="act-btn" onclick="T(\'📧 تم إرسال التقرير للمهندس عبدالله\',1800)">📧 إرسال للمهندس</button></div>',
+    cmds:['مقارنة الأسابيع','تقرير شهري','أرسل للمديرة']
+  };
+}
+
+function respondSuggestions(){
+  return {
+    text:'<strong>💡 توصيات الذكاء الاصطناعي</strong><br><br>بناءً على تحليل بيانات اليوم:<br><br>'
+    +'<strong>1️⃣ أولوية عاجلة:</strong><br>'+LIVE.complaints_pending+' شكاوى معلقة — يُنصح بتعيين مسؤول لكل واحدة خلال ساعة<br><br>'
+    +'<strong>2️⃣ فرصة إيراد:</strong><br>234 اشتراك تنتهي هذا الشهر — إرسال رسائل تجديد يرفع الاحتفاظ 35%<br><br>'
+    +'<strong>3️⃣ تحسين تشغيلي:</strong><br>خط 77 متأخر باستمرار — تحليل السبب وإضافة حافلة احتياطية في ساعة الذروة<br><br>'
+    +'<strong>4️⃣ فرصة تسويقية:</strong><br>موسم الصيف قادم — إطلاق حملة باقة School مبكراً يرفع المبيعات<br><br>'
+    +'<strong>5️⃣ تحسين الموقع:</strong><br>سرعة التحميل 2.3 ثانية — تحسينها يرفع التحويلات 20%',
+    cmds:['تعيين مسؤول للشكاوى','إرسال رسائل تجديد','تحليل خط 77']
+  };
+}
+
+function respondSendReport(){
+  return {
+    text:'<strong>📧 إرسال التقرير</strong><br><br>اختر المستلم والنوع:<br><br>'
+    +'<div class="action-row">'
+    +'<button class="act-btn" onclick="T(\'✅ تم إرسال التقرير اليومي للمهندس عبدالله\',2000)">📧 المهندس عبدالله</button>'
+    +'<button class="act-btn" onclick="T(\'✅ تم إرسال التقرير للمديرة\',2000)">📧 المديرة</button>'
+    +'<button class="act-btn" onclick="T(\'📥 جاري تحميل PDF...\',2200)">📥 تحميل PDF</button>'
+    +'</div><br>'
+    +'<strong>التقرير يشمل:</strong><ul>'
+    +'<li>مؤشرات الأداء الرئيسية</li>'
+    +'<li>الشكاوى وحالة المعالجة</li>'
+    +'<li>الإيرادات والاشتراكات</li>'
+    +'<li>أداء الخطوط</li></ul>',
+    cmds:['تقرير يومي','تقرير أسبوعي','تخصيص التقرير']
+  };
+}
+
+function respondPerformance(){
+  return {
+    text:'<strong>📈 تقرير الأداء المقارن</strong><br><br>'
+    +'<strong>أفضل خطوط اليوم:</strong><ul>'
+    +'<li>🥇 خط 99 — 16.1K راكب — 100% انتظام</li>'
+    +'<li>🥈 خط 21 — 15.2K راكب — 99.8% انتظام</li>'
+    +'<li>🥉 خط 77 — 13.9K راكب — 96% انتظام ⚠️</li></ul>'
+    +'<strong>أسوأ خطوط اليوم:</strong><ul>'
+    +'<li>⚠️ خط 77 — تأخر متكرر (22 دق)</li>'
+    +'<li>⚠️ خط 103 — أقل ركاباً (12.7K)</li></ul>'
+    +'<strong>مقارنة الشهر:</strong><br>↑ +8.3% ركاب عن الشهر الماضي',
+    cmds:['خط 77 تفاصيل','مقارنة مع الربع الأول','توزيع الركاب بالساعة']
+  };
+}
+
+function respondUmrah(){
+  return {
+    text:'<strong>🕌 رحلات العمرة</strong><br><br>'
+    +'<span class="kpi-inline">'+LIVE.umrah_bookings+' حجز مؤكد</span> <span class="kpi-inline">6 رحلات قادمة</span><br><br>'
+    +'<strong>أقرب الرحلات:</strong><ul>'
+    +'<li>14 أغسطس — 3 مقاعد فقط — 76 د.ك</li>'
+    +'<li>20 أغسطس — 8 مقاعد — 108 د.ك</li></ul>'
+    +'<strong>⚠️ تنبيه:</strong> رحلة 3 سبتمبر ممتلئة بالكامل<br>'
+    +'<strong>الإيراد:</strong> 52,400 د.ك',
+    cmds:['تقرير الحجوزات','أضف رحلة جديدة','إشعار قائمة الانتظار']
+  };
+}
+
+function respondVip(){
+  return {
+    text:'<strong>👑 باصات VIP</strong><br><br>'
+    +'<span class="kpi-inline">'+LIVE.vip_active+' حجز نشط</span><br><br>'
+    +'<strong>حجوزات اليوم:</strong><ul>'
+    +'<li>VIP-002 — شركة الخليج — ديوانية 50 مقعد</li>'
+    +'<li>VIP-003 — نورة السالم — خارجية البحرين ✈️</li></ul>'
+    +'<strong>الإيراد:</strong> 12,800 د.ك',
+    cmds:['إضافة حجز VIP','تقرير VIP','المناطق الأكثر طلباً']
+  };
+}
+
+function respondThanks(){
+  return {text:'دائماً في خدمتك! 🌟 هل تحتاج أي شيء آخر أحمد؟',cmds:['ملخص اليوم','إرسال تقرير','اقتراحات تحسين']};
+}
+
+function respondHelp(){
+  return {
+    text:'<strong>🧠 قدراتي كمساعد إداري</strong><br><br>'
+    +'أستطيع مساعدتك في:<br><br>'
+    +'<span class="kpi-inline">📊 ملخصات</span> <span class="kpi-inline">📝 شكاوى</span> <span class="kpi-inline">💰 إيرادات</span><br>'
+    +'<span class="kpi-inline">🚌 خطوط</span> <span class="kpi-inline">👥 موظفين</span> <span class="kpi-inline">🔧 ونش</span><br>'
+    +'<span class="kpi-inline">💳 اشتراكات</span> <span class="kpi-inline">💡 اقتراحات</span> <span class="kpi-inline">📄 تقارير</span><br><br>'
+    +'اكتب سؤالك بالعربية الدارجة وأنا أفهم 😊',
+    cmds:['ملخص اليوم','الشكاوى المعلقة','اقتراحات تحسين']
+  };
+}
+
+function respondDefault(msg){
+  return {
+    text:'لم أفهم طلبك تماماً 🤔<br><br>جرّب:<br>• <em>"ملخص اليوم"</em><br>• <em>"كم الشكاوى المعلقة؟"</em><br>• <em>"اقتراحات تحسين"</em><br>• <em>"أرسل تقرير"</em>',
+    cmds:DEFAULT_CMDS.map(function(c){return c.icon+' '+c.label})
+  };
+}
+
+// Detailed report HTML
+function getDetailedReport(){
+  return '<div class="rp-stat-grid">'
+    +'<div class="rp-stat"><div class="rs-val">'+LIVE.riders_today+'K</div><div class="rs-lbl">راكب اليوم</div><div class="rs-chg rc-up">↑ +8.3%</div></div>'
+    +'<div class="rp-stat"><div class="rs-val">'+LIVE.revenue_today+'K</div><div class="rs-lbl">إيراد (د.ك)</div><div class="rs-chg rc-up">↑ +12.1%</div></div>'
+    +'<div class="rp-stat"><div class="rs-val" style="color:var(--red)">'+LIVE.complaints_pending+'</div><div class="rs-lbl">شكاوى معلقة</div><div class="rs-chg rc-dn">↑ من 19</div></div>'
+    +'<div class="rp-stat"><div class="rs-val">'+LIVE.route_punctuality+'%</div><div class="rs-lbl">انتظام الخطوط</div><div class="rs-chg rc-up">↑ ممتاز</div></div>'
+    +'<div class="rp-stat"><div class="rs-val">'+LIVE.active_subs.toLocaleString()+'</div><div class="rs-lbl">اشتراكات نشطة</div><div class="rs-chg rc-up">↑ +124</div></div>'
+    +'<div class="rp-stat"><div class="rs-val">'+LIVE.employees.toLocaleString()+'</div><div class="rs-lbl">إجمالي الموظفين</div></div>'
+    +'</div>'
+    +'<div style="margin-top:10px;display:flex;gap:7px">'
+    +'<button onclick="T(\'📥 جاري تصدير التقرير...\',2200)" style="flex:1;background:var(--yellow);color:var(--navy);border:none;border-radius:9px;padding:9px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit">📥 تصدير PDF</button>'
+    +'<button onclick="T(\'📧 تم الإرسال للمهندس عبدالله\',1800)" style="flex:1;background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px;font-size:.73rem;font-weight:600;cursor:pointer;font-family:inherit">📧 إرسال</button>'
+    +'</div>';
+}
+
+// Load alerts tab
+function loadAlerts(){
+  var alerts=[
+    {title:'شكاوى معلقة — '+LIVE.complaints_pending,desc:'COMP-001 و COMP-004 و COMP-008 تحتاج متابعة عاجلة',cls:'ri-s-r',act:'الشكاوى المعلقة'},
+    {title:'خط 77 — تأخر 22 دقيقة',desc:'متأخر في محطة السالمية — يؤثر على 13.9K راكب',cls:'ri-s-o',act:'خط 77 تفاصيل'},
+    {title:'234 اشتراك تنتهي هذا الشهر',desc:'يلزم إرسال رسائل تجديد لتجنب الإلغاء',cls:'ri-s-o',act:'إرسال رسائل تجديد'},
+    {title:'3 أغراض مفقودة — تنتهي مدة حفظها',desc:'لازم التواصل مع أصحابها خلال 48 ساعة',cls:'ri-s-r',act:'المفقودات'},
+    {title:'موقع الإلكتروني — سرعة التحميل 2.3 ثانية',desc:'يُنصح بتحسينها للوصول لـ 1.5 ثانية',cls:'ri-s-o',act:'تحسين سرعة الموقع'},
+  ];
+  var box=document.getElementById('alertsList');
+  if(!box)return;
+  box.innerHTML=alerts.map(function(a){
+    return '<div class="rp-item" style="margin-bottom:7px"><div class="ri-top"><span class="ri-name">'+a.title+'</span><span class="ri-status '+a.cls+'">تنبيه</span></div><div class="ri-desc" style="margin-bottom:7px">'+a.desc+'</div><button onclick="switchTab(\'chat\');quickCmd(\''+a.act+'\')" style="background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.67rem;font-weight:700;padding:4px 10px;border-radius:7px;cursor:pointer;font-family:inherit">→ معالجة</button></div>';
+  }).join('');
+}
+
+// Toast
+var TT;
+function T(msg,delay){
+  var el=document.getElementById('toastEl');
+  el.textContent=msg;el.style.transform='translateX(50%) translateY(0)';
+  clearTimeout(TT);
+  TT=setTimeout(function(){el.style.transform='translateX(50%) translateY(120px)'},delay||2800);
+}
+
+// Init cmds
+function initCmds(){
+  var box=document.getElementById('aiCmds');
+  if(!box)return;
+  box.innerHTML=DEFAULT_CMDS.map(function(c){return'<button class="cmd-chip" onclick="quickCmd(\''+c.label+'\')">'+c.icon+' '+c.label+'</button>'}).join('');
+}
+initCmds();
+
+// Auto-open prompt after 5 seconds
+setTimeout(function(){
+  if(!aiOpened){
+    document.getElementById('aiBadge').textContent='!';
+    document.getElementById('aiBadge').style.background='var(--orange)';
+  }
+},5000);
+</script>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+</html>

@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPTC — حجز باصات VIP</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#2E2C78;--navy-l:#3D3B95;--navy-d:#1F1D5C;
+  --yellow:#FFC93C;--gold:#c9a227;--gold-l:#f0d060;
+  --white:#fff;--light:#F5F5FA;
+  --gray:#5D5C80;--dark:#14133A;--border:#DEDDEC;
+  --green:#10B981;--red:#EF4444;--orange:#F59E0B;
+  --diwaniya:#4a1a6b;--diwaniya-l:#6b2d99;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;background:var(--light);color:var(--dark);min-height:100vh}
+
+/* NAV */
+nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px solid rgba(255,201,60,.15)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;color:var(--navy);font-size:.85rem}
+.logo-name{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--yellow)}
+.logo-sub{font-size:.58rem;color:rgba(255,255,255,.5);letter-spacing:1px}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-links{display:flex;gap:2px;list-style:none}
+.nav-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.8rem;padding:6px 12px;border-radius:7px;transition:.2s}
+.nav-links a:hover,.nav-links a.active{color:var(--yellow);background:rgba(255,201,60,.1)}
+.nav-links a.active{font-weight:700}
+.vip-hotline{background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.25);color:var(--yellow);border-radius:8px;padding:6px 14px;font-size:.78rem;font-weight:700;display:flex;align-items:center;gap:6px}
+
+/* HERO */
+.hero{background:linear-gradient(150deg,#060412 0%,#0d0820 30%,#1a1040 60%,#0f0a2a 100%);min-height:360px;position:relative;overflow:hidden;display:flex;flex-direction:column;padding-bottom:0}
+.hero-stars{position:absolute;inset:0;background-image:radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 70% 15%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 85% 60%,rgba(255,255,255,.25) 0%,transparent 100%),radial-gradient(1px 1px at 40% 80%,rgba(255,255,255,.2) 0%,transparent 100%),radial-gradient(2px 2px at 55% 45%,rgba(255,201,60,.4) 0%,transparent 100%);pointer-events:none}
+.hero-glow{position:absolute;top:-100px;right:20%;width:400px;height:400px;background:radial-gradient(circle,rgba(255,201,60,.06) 0%,transparent 70%);pointer-events:none}
+.hero-crown{position:absolute;left:3%;top:50%;transform:translateY(-50%);font-size:13rem;opacity:.04;pointer-events:none;line-height:1}
+.hero-content{position:relative;z-index:2;padding:40px 36px 0;flex:1}
+.vip-label{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(201,162,39,.2),rgba(255,201,60,.1));border:1px solid rgba(201,162,39,.4);color:var(--gold-l);padding:6px 18px;border-radius:30px;font-size:.78rem;font-weight:700;margin-bottom:16px;letter-spacing:1px}
+.vip-dot{width:7px;height:7px;background:var(--gold-l);border-radius:50%;animation:gpulse 2s infinite}
+@keyframes gpulse{0%,100%{box-shadow:0 0 0 0 rgba(201,162,39,.5)}50%{box-shadow:0 0 0 6px rgba(201,162,39,0)}}
+.hero h1{font-size:2.6rem;color:white;font-weight:700;line-height:1.22;margin-bottom:10px}
+.hero h1 .gold{color:var(--yellow)}
+.hero h1 .vip-text{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:3.2rem;letter-spacing:3px;background:linear-gradient(135deg,var(--yellow),var(--gold-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{color:rgba(255,255,255,.6);font-size:.92rem;line-height:1.85;max-width:600px;margin-bottom:24px}
+.hero-hotline{display:inline-flex;align-items:center;gap:10px;background:var(--yellow);color:var(--navy);border-radius:14px;padding:12px 24px;font-weight:700;font-size:1.1rem;margin-bottom:30px;cursor:pointer;transition:.2s;text-decoration:none}
+.hero-hotline:hover{background:var(--gold-l);transform:translateY(-2px);box-shadow:0 6px 24px rgba(255,201,60,.35)}
+.hero-hotline .phone-num{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.4rem;letter-spacing:2px}
+
+/* SERVICE TABS */
+.service-tabs{display:flex;background:rgba(0,0,0,.3);border-radius:16px 16px 0 0;margin:0 36px;border:1px solid rgba(255,255,255,.08);border-bottom:none;overflow:hidden;position:relative;z-index:2}
+.stab{flex:1;padding:15px 8px;text-align:center;cursor:pointer;transition:.25s;border:none;background:transparent;font-family:inherit;color:rgba(255,255,255,.5);font-size:.82rem;font-weight:600;position:relative}
+.stab::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:transparent;transition:.3s}
+.stab.active{background:white;color:var(--navy);font-weight:700}
+.stab.active::after{background:var(--yellow)}
+.stab-icon{display:block;font-size:1.4rem;margin-bottom:5px}
+.stab.diwaniya-tab{border-right:1px solid rgba(255,255,255,.08)}
+.stab.diwaniya-tab.active{background:linear-gradient(135deg,#f8f0ff,white);color:var(--diwaniya)}
+
+/* MAIN CONTENT */
+.main-content{background:white;min-height:60vh}
+.tab-content{display:none;padding:28px 32px}
+.tab-content.active{display:block}
+
+/* ── SERVICE CARDS (overview) ── */
+.svc-overview{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:32px}
+.svc-card{border-radius:18px;overflow:hidden;border:2px solid var(--border);background:white;transition:all .25s;cursor:pointer}
+.svc-card:hover{border-color:var(--gold);box-shadow:0 10px 32px rgba(201,162,39,.15);transform:translateY(-3px)}
+.svc-card.selected{border-color:var(--navy);box-shadow:0 10px 32px rgba(46,44,120,.15)}
+.svc-card-img{height:140px;display:flex;align-items:center;justify-content:center;font-size:4.5rem;position:relative}
+.svc-card-body{padding:18px}
+.svc-card h3{font-size:.95rem;font-weight:700;color:var(--navy);margin-bottom:5px}
+.svc-card p{font-size:.77rem;color:var(--gray);line-height:1.65;margin-bottom:12px}
+.svc-price{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.4rem;color:var(--navy)}
+.svc-price span{font-family:inherit;font-size:.78rem;font-weight:400;color:var(--gray)}
+.svc-badge{position:absolute;top:10px;right:10px;background:var(--yellow);color:var(--navy);font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:20px}
+
+/* ── BOOKING FORM ── */
+.booking-layout{display:grid;grid-template-columns:1fr 320px;gap:22px;align-items:start}
+.form-card{background:white;border-radius:16px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:18px}
+.form-card-header{background:var(--light);padding:14px 20px;border-bottom:1px solid var(--border);font-weight:700;font-size:.88rem;color:var(--navy);display:flex;align-items:center;gap:8px}
+.form-card-body{padding:20px}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:span 2}
+.f-label{font-size:.72rem;font-weight:700;color:var(--gray);letter-spacing:.3px}
+.f-input,.f-select,.f-textarea{border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:.86rem;font-family:inherit;outline:none;transition:.2s;background:white;color:var(--dark);width:100%}
+.f-input:focus,.f-select:focus,.f-textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,44,120,.08)}
+.f-textarea{resize:vertical;min-height:80px}
+
+/* Bus type selector */
+.bus-types{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:0}
+.bus-type{border:2px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;transition:.2s;background:white}
+.bus-type:hover{border-color:var(--navy-l);transform:translateY(-2px)}
+.bus-type.selected{border-color:var(--yellow);background:rgba(255,201,60,.05)}
+.bus-type-icon{font-size:2rem;margin-bottom:6px}
+.bus-type-name{font-size:.78rem;font-weight:700;color:var(--navy);margin-bottom:3px}
+.bus-type-cap{font-size:.68rem;color:var(--gray)}
+.bus-type-price{font-size:.78rem;font-weight:700;color:var(--gold);margin-top:5px}
+
+/* Extras */
+.extras-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.extra-item{border:1.5px solid var(--border);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s}
+.extra-item:hover{border-color:var(--navy-l);background:rgba(46,44,120,.02)}
+.extra-item.selected{border-color:var(--green);background:rgba(16,185,129,.04)}
+.extra-checkbox{width:20px;height:20px;border-radius:6px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:.2s}
+.extra-item.selected .extra-checkbox{background:var(--green);border-color:var(--green);color:white}
+.extra-info{flex:1}
+.extra-name{font-size:.8rem;font-weight:700;color:var(--dark)}
+.extra-price{font-size:.72rem;color:var(--gold);font-weight:700}
+
+/* ── SEAT MAP — VIP BUS ── */
+.seat-map-wrap{background:white;border-radius:16px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:18px}
+.smap-header{background:linear-gradient(135deg,var(--navy-d),var(--navy));color:white;padding:14px 20px;font-size:.88rem;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.smap-body{padding:20px}
+.vip-bus-shell{background:linear-gradient(135deg,#f8f9ff,var(--light));border-radius:16px;padding:16px;border:1px solid var(--border);position:relative}
+.vip-bus-front{background:linear-gradient(135deg,var(--navy-d),var(--navy));border-radius:12px 12px 0 0;padding:12px;text-align:center;color:white;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.vip-driver-seat{width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.vip-bus-label{font-size:.72rem;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.8)}
+.vip-rows{display:flex;flex-direction:column;gap:7px}
+.vip-row{display:flex;align-items:center;gap:5px}
+.vrow-num{width:20px;font-size:.62rem;color:var(--gray);text-align:center;font-weight:700;flex-shrink:0}
+.vrow-seats{display:flex;gap:5px;flex:1}
+.vrow-aisle{width:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:rgba(0,0,0,.2)}
+.vseat{width:38px;height:38px;border-radius:9px;border:2px solid var(--border);background:white;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:var(--gray);position:relative;flex-shrink:0}
+.vseat:hover:not(.vtaken):not(.vselected){border-color:var(--navy);background:rgba(46,44,120,.06);transform:scale(1.1)}
+.vseat.vtaken{background:#f0f0f0;border-color:#e0e0e0;cursor:not-allowed;color:#ccc}
+.vseat.vselected{background:var(--navy);border-color:var(--navy);color:var(--yellow);transform:scale(1.1);box-shadow:0 3px 10px rgba(46,44,120,.3)}
+.vseat.vgold{border-color:var(--gold);background:linear-gradient(135deg,#fffbea,#fff8d6)}
+.vseat.vgold:hover:not(.vtaken):not(.vselected){background:linear-gradient(135deg,#fff3c4,#ffee99)}
+.vseat.vgold.vselected{background:linear-gradient(135deg,var(--gold),var(--yellow));border-color:var(--gold);color:var(--navy)}
+.vseat-tip{position:absolute;bottom:calc(100%+5px);left:50%;transform:translateX(-50%);background:var(--dark);color:white;font-size:.58rem;padding:3px 7px;border-radius:5px;white-space:nowrap;pointer-events:none;opacity:0;transition:.15s;z-index:20}
+.vseat:hover .vseat-tip{opacity:1}
+.vip-bus-rear{background:var(--light);border-radius:0 0 12px 12px;padding:8px;text-align:center;font-size:.65rem;color:var(--gray);border-top:2px dashed var(--border);margin-top:8px}
+.seat-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.sl-item{display:flex;align-items:center;gap:5px;font-size:.68rem;color:var(--gray);font-weight:600}
+.sl-box{width:16px;height:16px;border-radius:4px}
+
+/* Seat Panel */
+.seat-panel{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:16px;position:sticky;top:72px}
+.sp-head{background:var(--navy);color:white;padding:12px 16px;font-size:.85rem;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.sp-body{padding:14px}
+.sp-empty{text-align:center;padding:20px;color:var(--gray);font-size:.78rem}
+.sp-seat-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--border)}
+.sp-seat-item:last-child{border:none}
+.sp-num{width:28px;height:28px;background:var(--navy);color:var(--yellow);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;flex-shrink:0}
+.sp-num.gold{background:var(--gold)}
+.sp-info{flex:1}
+.sp-sname{font-size:.78rem;font-weight:600;color:var(--dark)}
+.sp-stype{font-size:.65rem;color:var(--gray)}
+.sp-remove{color:var(--red);background:none;border:none;cursor:pointer;font-size:.75rem;font-family:inherit;padding:0;opacity:.6;transition:.2s}
+.sp-remove:hover{opacity:1}
+
+/* Booking Summary */
+.order-panel{background:white;border-radius:14px;border:1.5px solid var(--border);overflow:hidden;position:sticky;top:72px}
+.op-head{background:linear-gradient(135deg,var(--navy-d),var(--navy));color:white;padding:14px 18px}
+.op-head h3{font-size:.9rem;font-weight:700;margin-bottom:2px}
+.op-head p{font-size:.68rem;color:rgba(255,255,255,.5)}
+.op-body{padding:16px}
+.op-section{margin-bottom:14px}
+.op-sec-title{font-size:.72rem;font-weight:700;color:var(--gray);letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.op-row{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:6px;color:var(--gray)}
+.op-row strong{color:var(--dark)}
+.op-divider{height:1px;background:var(--border);margin:12px 0}
+.op-total{display:flex;justify-content:space-between;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:14px}
+.btn-book{width:100%;background:var(--yellow);color:var(--navy);border:none;border-radius:12px;padding:14px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.25s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-book:hover{background:var(--gold-l);box-shadow:0 6px 20px rgba(255,201,60,.4);transform:translateY(-1px)}
+.btn-book:active{transform:scale(.97)}
+.btn-book:disabled{background:var(--border);color:var(--gray);cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ── DIWANIYA TAB ── */
+.diw-hero{background:linear-gradient(135deg,#1a0a2e,#2d1a4a,#3d2860);border-radius:18px;padding:32px;margin-bottom:24px;position:relative;overflow:hidden}
+.diw-hero::before{content:'🏠';position:absolute;left:3%;top:50%;transform:translateY(-50%);font-size:10rem;opacity:.06;pointer-events:none}
+.diw-badge{background:rgba(155,100,220,.2);border:1px solid rgba(155,100,220,.4);color:#c084fc;padding:5px 14px;border-radius:20px;font-size:.75rem;font-weight:700;display:inline-block;margin-bottom:14px}
+.diw-hero h2{font-size:1.7rem;color:white;font-weight:700;margin-bottom:8px}
+.diw-hero p{color:rgba(255,255,255,.65);font-size:.85rem;line-height:1.8;max-width:500px}
+.diw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+.diw-card{background:white;border-radius:16px;border:2px solid var(--border);padding:20px;text-align:center;cursor:pointer;transition:.25s;position:relative}
+.diw-card:hover{border-color:var(--diwaniya-l);transform:translateY(-3px);box-shadow:0 10px 28px rgba(74,26,107,.12)}
+.diw-card.selected{border-color:var(--diwaniya);background:linear-gradient(135deg,#f8f0ff,white)}
+.diw-icon{font-size:2.5rem;margin-bottom:10px}
+.diw-name{font-size:.9rem;font-weight:700;color:var(--diwaniya);margin-bottom:4px}
+.diw-desc{font-size:.74rem;color:var(--gray);line-height:1.6;margin-bottom:10px}
+.diw-price{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.4rem;color:var(--diwaniya)}
+.diw-price span{font-family:inherit;font-size:.75rem;font-weight:400;color:var(--gray)}
+.diw-check{position:absolute;top:10px;left:10px;background:var(--diwaniya);color:white;width:22px;height:22px;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:.72rem;font-weight:700}
+.diw-card.selected .diw-check{display:flex}
+
+/* Map section */
+.map-section{background:linear-gradient(135deg,#ECEBF6,#E3E2F2);border-radius:16px;overflow:hidden;position:relative;height:260px;margin-bottom:18px}
+.fake-kuwait-map{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.map-grid-lines{position:absolute;inset:0;background-image:linear-gradient(rgba(46,44,120,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(46,44,120,.05) 1px,transparent 1px);background-size:35px 35px}
+.map-roads{position:absolute;inset:0}
+.map-road-h{position:absolute;height:5px;background:white;border-radius:3px;opacity:.8}
+.map-road-v{position:absolute;width:5px;background:white;border-radius:3px;opacity:.8}
+.map-area{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;transition:.2s;font-size:.62rem;font-weight:700;color:var(--navy);text-align:center}
+.map-area:hover{transform:scale(1.15)}
+.map-area.selected .area-dot{background:var(--yellow);box-shadow:0 0 0 4px rgba(255,201,60,.3)}
+.area-dot{width:12px;height:12px;background:var(--navy);border-radius:50%;margin-bottom:3px;transition:.2s}
+.area-label{color:var(--navy);font-size:.6rem;white-space:nowrap;background:rgba(255,255,255,.85);padding:1px 5px;border-radius:4px}
+.map-route-line{position:absolute;height:3px;background:linear-gradient(90deg,var(--navy),var(--yellow));border-radius:3px;transform-origin:right;opacity:0;transition:opacity .4s}
+.map-route-line.show{opacity:.7}
+
+/* Trip route display */
+.route-display{background:white;border-radius:12px;padding:16px;border:1.5px solid var(--border);margin-bottom:14px}
+.rd-title{font-size:.78rem;font-weight:700;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rd-path{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rd-stop{background:var(--light);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:.75rem;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:4px;cursor:pointer;transition:.2s}
+.rd-stop:hover{background:var(--navy);color:var(--yellow);border-color:var(--navy)}
+.rd-stop.selected{background:var(--navy);color:var(--yellow);border-color:var(--navy)}
+.rd-arrow{color:var(--gray);font-size:.9rem}
+
+/* International */
+.intl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:22px}
+.intl-card{border:2px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:.2s;background:white;position:relative;overflow:hidden}
+.intl-card:hover{border-color:var(--navy-l);transform:translateY(-2px)}
+.intl-card.selected{border-color:var(--yellow);background:rgba(255,201,60,.03)}
+.intl-flag{font-size:2.2rem;margin-bottom:8px}
+.intl-dest{font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:3px}
+.intl-route{font-size:.73rem;color:var(--gray);margin-bottom:8px}
+.intl-details{display:flex;gap:8px;flex-wrap:wrap}
+.intl-detail{background:var(--light);border:1px solid var(--border);border-radius:8px;padding:3px 9px;font-size:.68rem;color:var(--navy);font-weight:600}
+.intl-price{position:absolute;top:14px;left:14px;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.1rem;color:var(--navy)}
+.intl-price span{font-family:inherit;font-size:.7rem;font-weight:400;color:var(--gray)}
+
+/* SUCCESS */
+.success-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.success-overlay.show{display:flex}
+.success-modal{background:white;border-radius:24px;max-width:460px;width:90%;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.4);animation:popModal .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popModal{from{transform:scale(.8) translateY(40px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.sm-top{background:linear-gradient(135deg,var(--navy-d),var(--navy));padding:28px;text-align:center;color:white}
+.sm-icon{font-size:4.5rem;margin-bottom:12px;display:block;animation:bounceIn .6s cubic-bezier(.34,1.56,.64,1) .3s both}
+@keyframes bounceIn{from{transform:scale(0)}to{transform:scale(1)}}
+.sm-title{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sm-sub{font-size:.78rem;color:rgba(255,255,255,.6)}
+.sm-body{padding:22px 26px}
+.sm-ref{background:var(--light);border-radius:12px;padding:14px;text-align:center;margin-bottom:16px}
+.sm-ref-label{font-size:.72rem;color:var(--gray);margin-bottom:5px}
+.sm-ref-num{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.5rem;color:var(--navy);letter-spacing:2px}
+.sm-rows{margin-bottom:16px}
+.sm-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--border);font-size:.8rem}
+.sm-row:last-child{border:none}
+.sm-row-label{color:var(--gray)}
+.sm-row-val{font-weight:700;color:var(--dark)}
+.sm-actions{display:flex;gap:10px}
+.sm-btn{flex:1;padding:11px;border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;text-align:center;border:none}
+.sm-primary{background:var(--yellow);color:var(--navy)}
+.sm-primary:hover{background:var(--gold-l)}
+.sm-sec{background:var(--light);color:var(--navy);border:1.5px solid var(--border)!important;border:none}
+.sm-sec:hover{background:var(--border)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--navy);color:white;padding:11px 22px;border-radius:12px;font-size:.83rem;font-weight:600;z-index:600;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 28px rgba(0,0,0,.25);pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(46,44,120,.2);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:900px){
+  .booking-layout,.svc-overview,.diw-grid,.intl-grid{grid-template-columns:1fr}
+  .bus-types{grid-template-columns:1fr 1fr}
+  .hero h1{font-size:1.9rem}
+  .hero h1 .vip-text{font-size:2.3rem}
+  .nav-links{display:none}
+  .order-panel,.seat-panel{position:relative;top:0}
+}
+</style>
+
+<style id="k2-shell">
+:root{--k2-indigo:#2E2C78;--k2-deep:#1F1D5C;--k2-ink:#14133A;--k2-sign:#FFC93C;--k2-paper:#F5F5FA;--k2-line:#DEDDEC;--k2-muted:#5D5C80;--k2-font:-apple-system,BlinkMacSystemFont,"SF Arabic","Geeza Pro","Segoe UI","Noto Sans Arabic",Tahoma,sans-serif}
+html,body{overflow-x:clip}body{font-family:var(--k2-font)}
+.k2-util{background:var(--k2-ink);color:#C9C8E6;font:13px/1 var(--k2-font)}
+.k2-util .k2-w{display:flex;align-items:center;justify-content:space-between;gap:16px;height:38px}
+.k2-util .k2-ul{display:flex;gap:22px;white-space:nowrap}
+.k2-util a{color:inherit;text-decoration:none}.k2-util a:hover{color:#fff}
+.k2-lang{background:transparent;border:1px solid #3A3970;border-radius:6px;padding:2px 8px;color:#fff;font:13px var(--k2-font)}
+.k2-lang option{color:#000}
+.k2-w{max-width:1200px;margin:0 auto;padding:0 24px;box-sizing:border-box}
+.k2-head{background:var(--k2-indigo);color:#fff;position:sticky;top:0;z-index:400;box-shadow:0 1px 0 rgba(255,255,255,.06);font-family:var(--k2-font)}
+.k2-head .k2-w{display:flex;align-items:center;gap:28px;height:72px}
+.k2-brand{display:flex;align-items:center;gap:10px;flex-shrink:0;color:#fff;text-decoration:none}
+.k2-brand svg{width:30px;height:38px}
+.k2-brand b{font-size:24px;letter-spacing:.06em;font-weight:800;direction:ltr;display:block;line-height:1.2}
+.k2-brand small{display:block;font-size:11px;color:#B9B8E0;font-weight:500;line-height:1.2}
+.k2-nav{display:flex;gap:4px;flex:1;margin:0;padding:0;background:none;position:static;border:0}
+.k2-nav a{padding:8px 14px;border-radius:6px;font-size:15px;color:#E4E3F7;font-weight:500;text-decoration:none;line-height:1.5}
+.k2-nav a:hover,.k2-nav a[aria-current]{background:rgba(255,255,255,.1);color:#fff}
+.k2-nav a[aria-current]{box-shadow:inset 0 -3px 0 var(--k2-sign)}
+.k2-act{display:flex;gap:10px;align-items:center}
+.k2-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:6px;font:700 15px var(--k2-font);padding:10px 18px;border:0;cursor:pointer;text-decoration:none;position:relative;line-height:1.3}
+.k2-btn-sign{background:var(--k2-sign);color:var(--k2-ink)}.k2-btn-sign:hover{background:#FFD566}
+.k2-btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.28)}.k2-btn-ghost:hover{border-color:#fff}
+.k2-cnt{position:absolute;top:-7px;left:-7px;min-width:20px;height:20px;border-radius:10px;background:#D93C42;color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px}
+.k2-menu{display:none;background:none;border:0;color:#fff;padding:8px;cursor:pointer}
+.k2-menu svg{width:26px;height:26px}
+.k2-drawer{position:fixed;inset:0;z-index:1000;display:none;font-family:var(--k2-font)}
+.k2-drawer.open{display:block}
+.k2-scrim{position:absolute;inset:0;background:rgba(20,19,58,.55)}
+.k2-panel{position:absolute;top:0;bottom:0;right:0;width:min(320px,86vw);background:#fff;padding:20px;display:flex;flex-direction:column;gap:4px;overflow:auto}
+.k2-panel a{padding:14px 12px;border-radius:6px;font-weight:600;font-size:17px;border-bottom:1px solid var(--k2-line);color:var(--k2-ink);text-decoration:none}
+.k2-panel a[aria-current]{color:var(--k2-indigo);background:var(--k2-paper)}
+.k2-close{align-self:flex-end;background:none;border:0;font-size:28px;cursor:pointer;color:var(--k2-indigo);padding:4px 10px}
+.k2-foot{background:var(--k2-ink);color:#B9B8E0;font:14px/1.7 var(--k2-font);padding:56px 0 28px;margin-top:0}
+.k2-fg{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:40px;margin-bottom:40px}
+.k2-fg h4{color:#fff;font-size:15px;margin:0 0 14px}
+.k2-fg ul{list-style:none;display:grid;gap:8px;margin:0;padding:0}
+.k2-fg a{color:inherit;text-decoration:none}.k2-fg a:hover{color:#fff}
+.k2-fg p{margin:14px 0 0;max-width:26em;line-height:1.8}
+.k2-fb{border-top:1px solid #2A2950;padding-top:22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.k2-head :focus-visible,.k2-foot :focus-visible,.k2-util :focus-visible{outline:3px solid var(--k2-sign);outline-offset:2px}
+@media(max-width:1100px){.k2-nav a{padding:8px 10px;font-size:14px}}
+@media(max-width:920px){.k2-nav,.k2-act .k2-btn-ghost{display:none}.k2-menu{display:block}.k2-head .k2-w{justify-content:space-between}.k2-fg{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.k2-w{padding:0 16px}.k2-util .k2-ul>*:not(:first-child){display:none}.k2-act .k2-hide-m{display:none}.k2-fg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22228800">خدمة العملاء <span dir="ltr">22228800</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — حولي</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
+<header class="k2-head"><div class="k2-w"><a class="k2-brand" href="KPTC_Home.html" aria-label="KPTC — الرئيسية"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b><small>شركة النقل العام الكويتية</small></span></a>
+<div class="k2-nav" role="navigation" aria-label="القائمة الرئيسية"><a href="KPTC_Routes.html">الخطوط</a><a href="KPTC_Subscriptions.html">الاشتراكات</a><a href="KPTC_Umrah.html">العمرة</a><a href="KPTC_VIP.html" aria-current="page">VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_Advertising.html">أعلن معنا</a></div>
+<div class="k2-act"><a class="k2-btn k2-btn-ghost" href="KPTC_Portal.html">بوابة الموظفين</a><a class="k2-btn k2-btn-sign k2-hide-m" href="KPTC_Subscriptions.html">اشترك الآن</a><button class="k2-menu" aria-label="فتح القائمة" aria-expanded="false" onclick="k2Drawer(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
+<div class="k2-drawer" id="k2Drawer" aria-hidden="true"><div class="k2-scrim" onclick="k2Drawer(0)"></div><div class="k2-panel" role="dialog" aria-label="القائمة"><button class="k2-close" onclick="k2Drawer(0)" aria-label="إغلاق">×</button><a href="KPTC_Home.html">الرئيسية</a><a href="KPTC_Routes.html">الخطوط والمسارات</a><a href="KPTC_Subscriptions.html">الاشتراكات والتذاكر</a><a href="KPTC_Umrah.html">رحلات العمرة</a><a href="KPTC_VIP.html" aria-current="page">باصات VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_LostFound.html">المفقودات</a><a href="KPTC_Advertising.html">أعلن معنا</a><a href="KPTC_RE_Client.html">مساحات للإيجار</a><a href="KPTC_Portal.html">بوابة الموظفين</a></div></div>
+<script>function k2Drawer(o){var d=document.getElementById('k2Drawer');d.classList.toggle('open',!!o);d.setAttribute('aria-hidden',o?'false':'true');var b=document.querySelector('.k2-menu');if(b)b.setAttribute('aria-expanded',o?'true':'false')}document.addEventListener('keydown',function(e){if(e.key==='Escape')k2Drawer(0)});</script>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-stars"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-crown">👑</div>
+  <div class="hero-content">
+    <div class="vip-label"><div class="vip-dot"></div> VIP BUS SERVICES — PRESTIGE & PROTOCOL</div>
+    <h1>تنقّل بأسلوب<br><span class="vip-text">VIP</span> <span class="gold">لا يُقارَن</span></h1>
+    <p class="hero-sub">حافلات فاخرة بمقاعد جلدية، سائقون بروتوكوليون معتمدون، وتجربة نقل تليق بمقامك. للرحلات الداخلية، الخارجية، والديوانيات.</p>
+    <a class="hero-hotline" onclick="showToast('📞 جاري الاتصال بفريق VIP...')">
+      <span>📞</span>
+      <div>
+        <div style="font-size:.65rem;font-weight:600;margin-bottom:1px">احجز مع فريق VIP</div>
+        <div class="phone-num">1880001</div>
+      </div>
+    </a>
+  </div>
+
+  <!-- SERVICE TABS -->
+  <div class="service-tabs">
+    <button class="stab active" onclick="switchTab('domestic',this)"><span class="stab-icon">🇰🇼</span>رحلات داخلية</button>
+    <button class="stab" onclick="switchTab('international',this)"><span class="stab-icon">✈️</span>رحلات خارجية</button>
+    <button class="stab diwaniya-tab" onclick="switchTab('diwaniya',this)"><span class="stab-icon">🏠</span>باص الديوانية</button>
+    <button class="stab" onclick="switchTab('corporate',this)"><span class="stab-icon">🏢</span>الشركات والمؤسسات</button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+
+  <!-- ── DOMESTIC ── -->
+  <div class="tab-content active" id="tab-domestic">
+    <div class="booking-layout">
+      <div>
+        <!-- Bus Type -->
+        <div class="form-card">
+          <div class="form-card-header">🚌 اختر نوع الحافلة</div>
+          <div class="form-card-body">
+            <div class="bus-types">
+              <div class="bus-type selected" id="bt-mini" onclick="selectBus('mini',this)">
+                <div class="bus-type-icon">🚐</div>
+                <div class="bus-type-name">ميني باص VIP</div>
+                <div class="bus-type-cap">14 مقعد</div>
+                <div class="bus-type-price">من 45 د.ك</div>
+              </div>
+              <div class="bus-type" id="bt-mid" onclick="selectBus('mid',this)">
+                <div class="bus-type-icon">🚌</div>
+                <div class="bus-type-name">حافلة VIP</div>
+                <div class="bus-type-cap">30 مقعد</div>
+                <div class="bus-type-price">من 85 د.ك</div>
+              </div>
+              <div class="bus-type" id="bt-large" onclick="selectBus('large',this)">
+                <div class="bus-type-icon">🚍</div>
+                <div class="bus-type-name">حافلة Grand VIP</div>
+                <div class="bus-type-cap">50 مقعد</div>
+                <div class="bus-type-price">من 130 د.ك</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trip Details -->
+        <div class="form-card">
+          <div class="form-card-header">📍 تفاصيل الرحلة</div>
+          <div class="form-card-body">
+            <div class="field-grid">
+              <div class="field">
+                <label class="f-label">📍 نقطة الانطلاق</label>
+                <select class="f-select" id="d-from" onchange="updateOrderPanel()">
+                  <option value="">اختر</option>
+                  <option>منزلي (يحدد عند الحجز)</option>
+                  <option>فندق كراون بلازا — الكويت</option>
+                  <option>فندق ماريوت — الكويت</option>
+                  <option>قصر العزيزية</option>
+                  <option>مركز الكويت التجاري</option>
+                  <option>المطار الدولي</option>
+                  <option>أفنيوز مول</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="f-label">🏁 الوجهة</label>
+                <select class="f-select" id="d-to" onchange="updateOrderPanel()">
+                  <option value="">اختر</option>
+                  <option>الشاليه (العارضية / النويصيب)</option>
+                  <option>منتزه الأحمدي</option>
+                  <option>مزرعة الجهراء</option>
+                  <option>منطقة الصليبيخات</option>
+                  <option>جزيرة فيلكا</option>
+                  <option>أي موقع مخصص</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="f-label">📅 تاريخ الرحلة</label>
+                <input type="date" class="f-input" id="d-date" value="2026-04-15" onchange="updateOrderPanel()">
+              </div>
+              <div class="field">
+                <label class="f-label">🕐 وقت التوجه</label>
+                <input type="time" class="f-input" id="d-time" value="08:00">
+              </div>
+              <div class="field">
+                <label class="f-label">👥 عدد الركاب</label>
+                <input type="number" class="f-input" id="d-pax" value="10" min="1" max="50" onchange="updateOrderPanel()">
+              </div>
+              <div class="field">
+                <label class="f-label">🔄 نوع الرحلة</label>
+                <select class="f-select" id="d-triptype" onchange="updateOrderPanel()">
+                  <option value="oneway">ذهاب فقط</option>
+                  <option value="return">ذهاب وعودة</option>
+                  <option value="fullday">يوم كامل (مع انتظار)</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label class="f-label">📝 ملاحظات خاصة</label>
+                <textarea class="f-textarea" id="d-notes" placeholder="أي تفاصيل إضافية: وجبات، توقفات، متطلبات خاصة..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Extras -->
+        <div class="form-card">
+          <div class="form-card-header">✨ خدمات إضافية</div>
+          <div class="form-card-body">
+            <div class="extras-grid">
+              <div class="extra-item" onclick="toggleExtra(this,'استقبال بالورد',5)">
+                <div class="extra-checkbox">✓</div>
+                <div class="extra-info"><div class="extra-name">💐 استقبال بالورد والترحيب</div><div class="extra-price">+5 د.ك</div></div>
+              </div>
+              <div class="extra-item" onclick="toggleExtra(this,'مياه وعصائر',8)">
+                <div class="extra-checkbox">✓</div>
+                <div class="extra-info"><div class="extra-name">🥤 مياه وعصائر طازجة</div><div class="extra-price">+8 د.ك</div></div>
+              </div>
+              <div class="extra-item" onclick="toggleExtra(this,'قهوة وتمر',10)">
+                <div class="extra-checkbox">✓</div>
+                <div class="extra-info"><div class="extra-name">☕ قهوة عربية وتمور</div><div class="extra-price">+10 د.ك</div></div>
+              </div>
+              <div class="extra-item" onclick="toggleExtra(this,'واي فاي',6)">
+                <div class="extra-checkbox">✓</div>
+                <div class="extra-info"><div class="extra-name">📶 واي فاي عالي السرعة</div><div class="extra-price">+6 د.ك</div></div>
+              </div>
+              <div class="extra-item" onclick="toggleExtra(this,'مرشد سياحي',25)">
+                <div class="extra-checkbox">✓</div>
+                <div class="extra-info"><div class="extra-name">🧭 مرشد سياحي معتمد</div><div class="extra-price">+25 د.ك</div></div>
+              </div>
+              <div class="extra-item" onclick="toggleExtra(this,'تصوير فيديو',50)">
+                <div class="extra-checkbox">✓</div>
+                <div class="extra-info"><div class="extra-name">🎥 مصور احترافي للرحلة</div><div class="extra-price">+50 د.ك</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEAT SELECTION -->
+        <div class="seat-map-wrap">
+          <div class="smap-header">
+            💺 اختر مقاعدك <span id="seatCountLabel" style="font-size:.75rem;opacity:.7">— لم تختر بعد</span>
+          </div>
+          <div class="smap-body">
+            <div class="seat-legend">
+              <div class="sl-item"><div class="sl-box" style="background:white;border:2px solid var(--border)"></div>متاح</div>
+              <div class="sl-item"><div class="sl-box" style="background:var(--navy)"></div>مختار</div>
+              <div class="sl-item"><div class="sl-box" style="background:#f0f0f0;border:2px solid #ddd"></div>محجوز</div>
+              <div class="sl-item"><div class="sl-box" style="background:linear-gradient(135deg,#fffbea,#fff8d6);border:2px solid var(--gold)"></div>مقعد ذهبي VIP</div>
+            </div>
+            <div class="vip-bus-shell">
+              <div class="vip-bus-front">
+                <div style="font-size:.7rem;color:rgba(255,255,255,.7)">🚌 حافلة VIP — KPTC</div>
+                <div class="vip-driver-seat">🧑‍✈️</div>
+                <div class="vip-bus-label">الامامة</div>
+              </div>
+              <div class="vip-rows" id="vipRows"></div>
+              <div class="vip-bus-rear">🚪 مخرج الطوارئ</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Passenger Info -->
+        <div class="form-card">
+          <div class="form-card-header">👤 بيانات العميل</div>
+          <div class="form-card-body">
+            <div class="field-grid">
+              <div class="field"><label class="f-label">الاسم</label><input class="f-input" placeholder="أحمد القطان"></div>
+              <div class="field"><label class="f-label">رقم الجوال</label><input class="f-input" placeholder="+965 ●●●● ●●●●"></div>
+              <div class="field"><label class="f-label">البريد الإلكتروني</label><input class="f-input" type="email" placeholder="email@example.com"></div>
+              <div class="field"><label class="f-label">طريقة الدفع</label>
+                <select class="f-select" id="payM" onchange="updateOrderPanel()">
+                  <option>KNET</option><option>Visa / Mastercard</option><option>نقداً عند الاستلام</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDER PANEL -->
+      <div>
+        <!-- Seat summary -->
+        <div class="seat-panel">
+          <div class="sp-head">
+            💺 مقاعدك
+            <span id="sp-count" style="font-size:.72rem;opacity:.75">0 مقعد</span>
+          </div>
+          <div class="sp-body" id="seatPanelBody">
+            <div class="sp-empty">لم تختر أي مقعد — انقر على الخريطة</div>
+          </div>
+        </div>
+
+        <div class="order-panel">
+          <div class="op-head">
+            <h3>📋 ملخص الحجز</h3>
+            <p>يتحدث تلقائياً</p>
+          </div>
+          <div class="op-body">
+            <div class="op-section">
+              <div class="op-sec-title">الرحلة</div>
+              <div class="op-row"><span>النوع</span><strong id="op-bustype">ميني باص VIP</strong></div>
+              <div class="op-row"><span>التاريخ</span><strong id="op-date">—</strong></div>
+              <div class="op-row"><span>الركاب</span><strong id="op-pax">10</strong></div>
+              <div class="op-row"><span>المسار</span><strong id="op-route">—</strong></div>
+            </div>
+            <div class="op-divider"></div>
+            <div class="op-section">
+              <div class="op-sec-title">التكلفة</div>
+              <div class="op-row"><span>سعر الحافلة</span><span id="op-base">45 د.ك</span></div>
+              <div class="op-row"><span>المقاعد الذهبية</span><span id="op-gold">—</span></div>
+              <div class="op-row"><span>الإضافات</span><span id="op-extras">—</span></div>
+              <div class="op-row"><span>طريقة الدفع</span><span id="op-pay">KNET</span></div>
+            </div>
+            <div class="op-divider"></div>
+            <div class="op-total"><span>الإجمالي</span><span id="op-total">45.000 د.ك</span></div>
+            <button class="btn-book" id="bookBtn" onclick="confirmBooking()">
+              👑 تأكيد حجز VIP
+            </button>
+            <div style="text-align:center;margin-top:10px;font-size:.7rem;color:var(--gray)">🔒 دفع آمن · تأكيد فوري بالرسائل</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── INTERNATIONAL ── -->
+  <div class="tab-content" id="tab-international">
+    <div style="margin-bottom:22px">
+      <div style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:5px">✈️ اختر الوجهة الخارجية</div>
+      <div style="font-size:.8rem;color:var(--gray)">رحلات بالحافلة الفاخرة لدول الجوار — تشمل السائق والوقود والإقامة بالسيارة</div>
+    </div>
+    <div class="intl-grid">
+      <div class="intl-card" onclick="selectIntl(this,'المملكة العربية السعودية')">
+        <div class="intl-flag">🇸🇦</div>
+        <div class="intl-dest">المملكة العربية السعودية</div>
+        <div class="intl-route">الكويت → الدمام / الرياض / جدة</div>
+        <div class="intl-details">
+          <div class="intl-detail">🕐 8-12 ساعة</div>
+          <div class="intl-detail">🛂 تأشيرة مطلوبة</div>
+          <div class="intl-detail">⭐ سائق بروتوكولي</div>
+        </div>
+        <div class="intl-price">320 <span>د.ك / يوم</span></div>
+      </div>
+      <div class="intl-card" onclick="selectIntl(this,'البحرين')">
+        <div class="intl-flag">🇧🇭</div>
+        <div class="intl-dest">البحرين</div>
+        <div class="intl-route">الكويت → المنامة عبر جسر الملك فهد</div>
+        <div class="intl-details">
+          <div class="intl-detail">🕐 4-5 ساعات</div>
+          <div class="intl-detail">🛂 تأشيرة على الحدود</div>
+          <div class="intl-detail">💺 30 مقعد VIP</div>
+        </div>
+        <div class="intl-price">180 <span>د.ك / يوم</span></div>
+      </div>
+      <div class="intl-card" onclick="selectIntl(this,'الإمارات')">
+        <div class="intl-flag">🇦🇪</div>
+        <div class="intl-dest">الإمارات العربية المتحدة</div>
+        <div class="intl-route">الكويت → دبي / أبوظبي / الشارقة</div>
+        <div class="intl-details">
+          <div class="intl-detail">🕐 12-15 ساعة</div>
+          <div class="intl-detail">🛂 تأشيرة مسبقة</div>
+          <div class="intl-detail">🛏️ حافلة نوم VIP</div>
+        </div>
+        <div class="intl-price">450 <span>د.ك / يوم</span></div>
+      </div>
+      <div class="intl-card" onclick="selectIntl(this,'الأردن')">
+        <div class="intl-flag">🇯🇴</div>
+        <div class="intl-dest">الأردن</div>
+        <div class="intl-route">الكويت → عمّان (جوي + استقبال)</div>
+        <div class="intl-details">
+          <div class="intl-detail">✈️ تنسيق طيران</div>
+          <div class="intl-detail">🏨 فندق 5 نجوم</div>
+          <div class="intl-detail">🧭 مرشد سياحي</div>
+        </div>
+        <div class="intl-price">280 <span>د.ك / شخص</span></div>
+      </div>
+    </div>
+
+    <!-- Intl Booking Form -->
+    <div class="form-card">
+      <div class="form-card-header">📋 تفاصيل رحلتك الخارجية</div>
+      <div class="form-card-body">
+        <div class="field-grid">
+          <div class="field"><label class="f-label">الوجهة المختارة</label><input class="f-input" id="intl-dest" placeholder="ستُضاف تلقائياً عند الاختيار" readonly></div>
+          <div class="field"><label class="f-label">تاريخ المغادرة</label><input class="f-input" type="date" value="2026-05-01"></div>
+          <div class="field"><label class="f-label">تاريخ العودة</label><input class="f-input" type="date" value="2026-05-04"></div>
+          <div class="field"><label class="f-label">عدد الركاب</label><input class="f-input" type="number" value="20" min="1" max="50"></div>
+          <div class="field full"><label class="f-label">متطلبات خاصة</label><textarea class="f-textarea" placeholder="إقامة، مواعيد، زيارات مرغوبة..."></textarea></div>
+        </div>
+        <button class="btn-book" style="max-width:280px;margin-top:4px" onclick="showToast('📞 سيتواصل معك فريق VIP خلال ساعة');showSuccess('international')">
+          📤 إرسال طلب الرحلة الخارجية
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DIWANIYA ── -->
+  <div class="tab-content" id="tab-diwaniya">
+    <div class="diw-hero">
+      <div style="position:relative;z-index:2">
+        <div class="diw-badge">🏠 خدمة حصرية — باص الديوانية</div>
+        <h2 class="diw-hero">باص الديوانية<br>للمجالس الكويتية</h2>
+        <p>خدمة نقل مميزة مصممة خصيصاً للديوانيات والمجالس الكويتية. نوصل ضيوفك بأسلوب يليق بكرمك الكويتي، مع سائق ملتزم ومحترم.</p>
+      </div>
+    </div>
+
+    <!-- Package Selection -->
+    <div style="font-size:.88rem;font-weight:700;color:var(--navy);margin-bottom:14px">اختر باقة الديوانية</div>
+    <div class="diw-grid">
+      <div class="diw-card" onclick="selectDiw(this,'الباقة الأساسية')">
+        <div class="diw-check">✓</div>
+        <div class="diw-icon">🚐</div>
+        <div class="diw-name">الأساسية</div>
+        <div class="diw-desc">ميني باص 14 مقعد، سائق محترم، مناسبة للديوانيات الصغيرة</div>
+        <div class="diw-price">35 <span>د.ك / ليلة</span></div>
+      </div>
+      <div class="diw-card" onclick="selectDiw(this,'الباقة المميزة')">
+        <div class="diw-check">✓</div>
+        <div class="diw-icon">🚌</div>
+        <div class="diw-name">المميزة</div>
+        <div class="diw-desc">حافلة 30 مقعد بمقاعد جلدية فاخرة، مناسبة للمجالس الكبيرة</div>
+        <div class="diw-price">65 <span>د.ك / ليلة</span></div>
+      </div>
+      <div class="diw-card" onclick="selectDiw(this,'الباقة الملكية')">
+        <div class="diw-check">✓</div>
+        <div class="diw-icon">👑</div>
+        <div class="diw-name">الملكية</div>
+        <div class="diw-desc">حافلة Grand VIP 50 مقعد، قهوة عربية، تمور، واستقبال رسمي</div>
+        <div class="diw-price">120 <span>د.ك / ليلة</span></div>
+      </div>
+    </div>
+
+    <!-- Kuwait Map - Route Planning -->
+    <div style="font-size:.88rem;font-weight:700;color:var(--navy);margin-bottom:10px">📍 خطط مسار الديوانية</div>
+    <div class="map-section">
+      <div class="map-grid-lines"></div>
+      <div class="map-roads">
+        <div class="map-road-h" style="top:40%;left:5%;width:90%"></div>
+        <div class="map-road-h" style="top:60%;left:10%;width:80%"></div>
+        <div class="map-road-v" style="right:30%;top:10%;height:80%"></div>
+        <div class="map-road-v" style="right:55%;top:20%;height:60%"></div>
+      </div>
+      <!-- Areas -->
+      <div class="map-area" style="top:20%;right:60%" onclick="selectArea(this,'حولي')">
+        <div class="area-dot"></div><div class="area-label">حولي</div>
+      </div>
+      <div class="map-area" style="top:35%;right:42%" onclick="selectArea(this,'الكويت سيتي')">
+        <div class="area-dot"></div><div class="area-label">الكويت سيتي</div>
+      </div>
+      <div class="map-area" style="top:50%;right:65%" onclick="selectArea(this,'الفروانية')">
+        <div class="area-dot"></div><div class="area-label">الفروانية</div>
+      </div>
+      <div class="map-area" style="top:30%;right:25%" onclick="selectArea(this,'الجهراء')">
+        <div class="area-dot"></div><div class="area-label">الجهراء</div>
+      </div>
+      <div class="map-area" style="top:65%;right:50%" onclick="selectArea(this,'الأحمدي')">
+        <div class="area-dot"></div><div class="area-label">الأحمدي</div>
+      </div>
+      <div class="map-area" style="top:45%;right:78%" onclick="selectArea(this,'السالمية')">
+        <div class="area-dot"></div><div class="area-label">السالمية</div>
+      </div>
+      <div class="map-area" style="top:22%;right:80%" onclick="selectArea(this,'خيطان')">
+        <div class="area-dot"></div><div class="area-label">خيطان</div>
+      </div>
+      <!-- Route lines -->
+      <div class="map-route-line" id="routeLine" style="top:40%;right:40%;width:0;transform:rotate(0deg)"></div>
+      <div style="position:absolute;bottom:12px;right:12px;background:rgba(255,255,255,.85);border-radius:10px;padding:8px 14px;font-size:.7rem;color:var(--navy);font-weight:600">انقر على المناطق لتحديد المسار</div>
+    </div>
+
+    <!-- Selected Route -->
+    <div class="route-display">
+      <div class="rd-title">🗺️ المسار المحدد</div>
+      <div class="rd-path" id="routePath">
+        <span style="color:var(--gray);font-size:.78rem">انقر على المناطق أعلاه لإضافتها للمسار</span>
+      </div>
+    </div>
+
+    <!-- Diwaniya Form -->
+    <div class="form-card">
+      <div class="form-card-header">📋 تفاصيل الديوانية</div>
+      <div class="form-card-body">
+        <div class="field-grid">
+          <div class="field"><label class="f-label">📅 ليلة الديوانية</label><input class="f-input" type="date"></div>
+          <div class="field"><label class="f-label">🕐 وقت التوجه</label><input class="f-input" type="time" value="20:00"></div>
+          <div class="field"><label class="f-label">🕐 وقت العودة</label><input class="f-input" type="time" value="23:30"></div>
+          <div class="field"><label class="f-label">👥 عدد الضيوف</label><input class="f-input" type="number" value="15" min="1" max="50"></div>
+          <div class="field"><label class="f-label">📍 موقع الديوانية</label><input class="f-input" placeholder="اسم الحي / القريب من..."></div>
+          <div class="field"><label class="f-label">👤 اسم الشيخ / صاحب الديوانية</label><input class="f-input" placeholder="للتنسيق المباشر"></div>
+          <div class="field full"><label class="f-label">📋 ملاحظات إضافية</label><textarea class="f-textarea" placeholder="هل تريد قهوة عربية؟ جهاز عرض؟ سجادة للصلاة؟ أي طلب خاص..."></textarea></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:4px;flex-wrap:wrap">
+          <button class="btn-book" style="max-width:240px" onclick="showToast('✅ تم إرسال طلب الديوانية');showSuccess('diwaniya')">🏠 احجز باص الديوانية</button>
+          <button style="background:white;color:var(--navy);border:1.5px solid var(--border);border-radius:12px;padding:13px 20px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s" onclick="showToast('📞 جاري التحويل لفريق VIP...')">📞 تواصل مباشر</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CORPORATE ── -->
+  <div class="tab-content" id="tab-corporate">
+    <div style="text-align:center;padding:60px 32px;max-width:600px;margin:0 auto">
+      <div style="font-size:4rem;margin-bottom:16px">🏢</div>
+      <h2 style="font-size:1.5rem;color:var(--navy);font-weight:700;margin-bottom:10px">نقل الشركات والمؤسسات</h2>
+      <p style="color:var(--gray);line-height:1.85;margin-bottom:28px">عقود سنوية مخصصة لنقل موظفيك يومياً. تشمل السائقين المعتمدين، الجداول الثابتة، وتقارير الأداء الشهرية.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;text-align:right">
+        <div style="background:var(--light);border-radius:12px;padding:16px;border:1px solid var(--border)">
+          <div style="font-size:1.5rem;margin-bottom:6px">📋</div>
+          <div style="font-weight:700;color:var(--navy);margin-bottom:4px">عقود مرنة</div>
+          <div style="font-size:.78rem;color:var(--gray)">شهري، ربع سنوي، أو سنوي</div>
+        </div>
+        <div style="background:var(--light);border-radius:12px;padding:16px;border:1px solid var(--border)">
+          <div style="font-size:1.5rem;margin-bottom:6px">📊</div>
+          <div style="font-weight:700;color:var(--navy);margin-bottom:4px">تقارير شهرية</div>
+          <div style="font-size:.78rem;color:var(--gray)">رحلات، مواعيد، تكاليف</div>
+        </div>
+        <div style="background:var(--light);border-radius:12px;padding:16px;border:1px solid var(--border)">
+          <div style="font-size:1.5rem;margin-bottom:6px">🧑‍✈️</div>
+          <div style="font-weight:700;color:var(--navy);margin-bottom:4px">سائقون ثابتون</div>
+          <div style="font-size:.78rem;color:var(--gray)">نفس السائق لرحلاتك</div>
+        </div>
+        <div style="background:var(--light);border-radius:12px;padding:16px;border:1px solid var(--border)">
+          <div style="font-size:1.5rem;margin-bottom:6px">🛡️</div>
+          <div style="font-weight:700;color:var(--navy);margin-bottom:4px">تأمين شامل</div>
+          <div style="font-size:.78rem;color:var(--gray)">مشمول بجميع العقود</div>
+        </div>
+      </div>
+      <button class="btn-book" style="max-width:300px;margin:0 auto" onclick="showToast('📧 سيتواصل معك مدير الحسابات خلال 24 ساعة')">
+        📧 اطلب عرض سعر للشركة
+      </button>
+    </div>
+  </div>
+
+</div><!-- end main-content -->
+
+<!-- SUCCESS MODAL -->
+<div class="success-overlay" id="successOverlay" onclick="closeSuccess(event)">
+  <div class="success-modal">
+    <div class="sm-top">
+      <span class="sm-icon">👑</span>
+      <div class="sm-title">تم تأكيد حجز VIP!</div>
+      <div class="sm-sub">سيتواصل معك فريق VIP خلال 30 دقيقة</div>
+    </div>
+    <div class="sm-body">
+      <div class="sm-ref">
+        <div class="sm-ref-label">رقم الحجز</div>
+        <div class="sm-ref-num" id="refNum">VIP-0000-0000</div>
+      </div>
+      <div class="sm-rows" id="smRows"></div>
+      <div class="sm-actions">
+        <button class="sm-btn sm-primary" onclick="showToast('📱 تم إرسال التأكيد على واتساب');closeSuccess()">📱 واتساب</button>
+        <button class="sm-btn sm-sec" onclick="closeSuccess()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let selectedBusType = 'mini';
+let selectedSeats = [];
+let extras = [];
+let extrasTotal = 0;
+let busBasePrices = {mini:45, mid:85, large:130};
+let selectedRoute = [];
+let diwPackage = null;
+
+// ── BUS TYPE ──
+function selectBus(type, el) {
+  selectedBusType = type;
+  document.querySelectorAll('.bus-type').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  buildVipSeats(type);
+  selectedSeats = [];
+  renderSeatPanel();
+  updateOrderPanel();
+  showToast(`✅ ${el.querySelector('.bus-type-name').textContent}`);
+}
+
+// ── VIP SEAT MAP ──
+const takenMap = {mini:[3,7,10], mid:[4,8,12,18,22], large:[5,10,15,20,25,30,35]};
+const goldRows = [1,2];
+
+function buildVipSeats(busType) {
+  const rows = document.getElementById('vipRows');
+  const caps = {mini:14, mid:30, large:50};
+  const numRows = {mini:4, mid:8, large:13}[busType];
+  const taken = takenMap[busType]||[];
+  let seatNum = 1;
+  let html = '';
+  for(let r=1; r<=numRows; r++) {
+    const isGold = goldRows.includes(r);
+    const seatsPerSide = busType==='mini' ? 2 : 2;
+    html += `<div class="vip-row"><div class="vrow-num">${r}</div><div class="vrow-seats">`;
+    for(let s=0;s<seatsPerSide;s++) {
+      const n = seatNum++;
+      const isTaken = taken.includes(n);
+      const isSel = selectedSeats.includes(n);
+      html += makeSeat(n,isGold,isTaken,isSel);
+    }
+    html += `</div><div class="vrow-aisle">│</div><div class="vrow-seats">`;
+    for(let s=0;s<seatsPerSide;s++) {
+      const n = seatNum++;
+      const isTaken = taken.includes(n);
+      const isSel = selectedSeats.includes(n);
+      html += makeSeat(n,isGold,isTaken,isSel);
+    }
+    html += `</div></div>`;
+  }
+  rows.innerHTML = html;
+}
+
+function makeSeat(n,isGold,isTaken,isSel) {
+  const cls = ['vseat', isGold?'vgold':'', isTaken?'vtaken':'', isSel?'vselected':''].filter(Boolean).join(' ');
+  const tip = `${isGold?'💛 ':''} مقعد ${n}${isGold?' (VIP +3 د.ك)':''}`;
+  const click = isTaken ? '' : `onclick="toggleVSeat(${n})"`;
+  return `<div class="${cls}" ${click}><div class="vseat-tip">${tip}</div>${n}</div>`;
+}
+
+function toggleVSeat(n) {
+  const idx = selectedSeats.indexOf(n);
+  if(idx>-1) { selectedSeats.splice(idx,1); showToast(`❌ إلغاء مقعد ${n}`); }
+  else { selectedSeats.push(n); showToast(`✅ مقعد ${n} محدد`); }
+  buildVipSeats(selectedBusType);
+  renderSeatPanel();
+  updateOrderPanel();
+  document.getElementById('seatCountLabel').textContent = selectedSeats.length ? `— ${selectedSeats.length} مقعد محدد` : '— لم تختر بعد';
+}
+
+function renderSeatPanel() {
+  const body = document.getElementById('seatPanelBody');
+  document.getElementById('sp-count').textContent = `${selectedSeats.length} مقعد`;
+  if(!selectedSeats.length) { body.innerHTML='<div class="sp-empty">لم تختر أي مقعد — انقر على الخريطة</div>'; return; }
+  body.innerHTML = selectedSeats.map(n=>{
+    const isGold = n<=8;
+    return `<div class="sp-seat-item">
+      <div class="sp-num ${isGold?'gold':''}">${n}</div>
+      <div class="sp-info"><div class="sp-sname">مقعد ${n}</div><div class="sp-stype">${isGold?'💛 VIP ذهبي +3 د.ك':'عادي'}</div></div>
+      <button class="sp-remove" onclick="toggleVSeat(${n})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ── EXTRAS ──
+function toggleExtra(el, name, price) {
+  el.classList.toggle('selected');
+  if(el.classList.contains('selected')) {
+    extras.push({name,price});
+    extrasTotal += price;
+    showToast(`✅ تمت إضافة ${name}`);
+  } else {
+    extras = extras.filter(e=>e.name!==name);
+    extrasTotal -= price;
+    showToast(`❌ تم إزالة ${name}`);
+  }
+  updateOrderPanel();
+}
+
+// ── ORDER PANEL ──
+function updateOrderPanel() {
+  const busName = {mini:'ميني باص VIP (14 مقعد)',mid:'حافلة VIP (30 مقعد)',large:'حافلة Grand VIP (50 مقعد)'}[selectedBusType];
+  const date = document.getElementById('d-date')?.value || '—';
+  const pax = document.getElementById('d-pax')?.value || '—';
+  const from = document.getElementById('d-from')?.value;
+  const to = document.getElementById('d-to')?.value;
+  const route = (from&&to) ? `${from.split('(')[0].trim()} ← ${to.split('(')[0].trim()}` : '—';
+  const payMethod = document.getElementById('payM')?.value || 'KNET';
+  const tripType = document.getElementById('d-triptype')?.value||'oneway';
+  const tripMult = tripType==='return'?2:tripType==='fullday'?1.5:1;
+  const goldCount = selectedSeats.filter(n=>n<=8).length;
+  const goldExtra = goldCount*3;
+  const basePrice = busBasePrices[selectedBusType]*tripMult;
+  const total = basePrice + goldExtra + extrasTotal;
+
+  document.getElementById('op-bustype').textContent = busName;
+  document.getElementById('op-date').textContent = date;
+  document.getElementById('op-pax').textContent = pax+' شخص';
+  document.getElementById('op-route').textContent = route;
+  document.getElementById('op-base').textContent = basePrice.toFixed(3)+' د.ك';
+  document.getElementById('op-gold').textContent = goldExtra ? goldExtra.toFixed(3)+' د.ك ('+goldCount+' مقعد)' : '—';
+  document.getElementById('op-extras').textContent = extrasTotal ? extrasTotal.toFixed(3)+' د.ك' : '—';
+  document.getElementById('op-pay').textContent = payMethod;
+  document.getElementById('op-total').textContent = total.toFixed(3)+' د.ك';
+}
+
+// ── CONFIRM BOOKING ──
+function confirmBooking() {
+  const btn = document.getElementById('bookBtn');
+  btn.innerHTML = '<div class="spinner"></div> جاري تأكيد الحجز...';
+  btn.disabled = true;
+  setTimeout(()=>{
+    btn.innerHTML = '👑 تأكيد حجز VIP';
+    btn.disabled = false;
+    showSuccess('domestic');
+  }, 2000);
+}
+
+function showSuccess(type) {
+  const ref = 'VIP-'+(new Date().getFullYear())+'-'+Math.floor(Math.random()*90000+10000);
+  document.getElementById('refNum').textContent = ref;
+  const rows = {
+    domestic:`<div class="sm-row"><span class="sm-row-label">الخدمة</span><span class="sm-row-val">رحلة داخلية VIP</span></div>
+      <div class="sm-row"><span class="sm-row-label">الحافلة</span><span class="sm-row-val">${{mini:'ميني باص VIP',mid:'حافلة VIP',large:'Grand VIP'}[selectedBusType]}</span></div>
+      <div class="sm-row"><span class="sm-row-label">المقاعد</span><span class="sm-row-val">${selectedSeats.length?selectedSeats.join('، '):'عشوائي'}</span></div>
+      <div class="sm-row"><span class="sm-row-label">الإجمالي</span><span class="sm-row-val" style="color:var(--navy)">${document.getElementById('op-total').textContent}</span></div>`,
+    international:`<div class="sm-row"><span class="sm-row-label">الخدمة</span><span class="sm-row-val">رحلة خارجية VIP</span></div>
+      <div class="sm-row"><span class="sm-row-label">الوجهة</span><span class="sm-row-val">${document.getElementById('intl-dest')?.value||'—'}</span></div>
+      <div class="sm-row"><span class="sm-row-label">الحالة</span><span class="sm-row-val" style="color:var(--green)">قيد المراجعة</span></div>`,
+    diwaniya:`<div class="sm-row"><span class="sm-row-label">الخدمة</span><span class="sm-row-val">باص الديوانية</span></div>
+      <div class="sm-row"><span class="sm-row-label">الباقة</span><span class="sm-row-val">${diwPackage||'الأساسية'}</span></div>
+      <div class="sm-row"><span class="sm-row-label">الحالة</span><span class="sm-row-val" style="color:var(--green)">مؤكد</span></div>`
+  };
+  document.getElementById('smRows').innerHTML = rows[type]||rows.domestic;
+  document.getElementById('successOverlay').classList.add('show');
+}
+
+function closeSuccess(e) {
+  if(!e||e.target===document.getElementById('successOverlay')) document.getElementById('successOverlay').classList.remove('show');
+}
+
+// ── DIWANIYA ──
+function selectDiw(el, name) {
+  document.querySelectorAll('.diw-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  diwPackage = name;
+  showToast(`✅ ${name}`);
+}
+
+let routePoints = [];
+function selectArea(el, name) {
+  el.classList.toggle('selected');
+  if(el.classList.contains('selected')) { routePoints.push(name); showToast(`📍 تمت إضافة ${name}`); }
+  else { routePoints = routePoints.filter(r=>r!==name); showToast(`❌ تمت إزالة ${name}`); }
+  renderRoute();
+}
+
+function renderRoute() {
+  const path = document.getElementById('routePath');
+  if(!routePoints.length) { path.innerHTML='<span style="color:var(--gray);font-size:.78rem">انقر على المناطق أعلاه لإضافتها للمسار</span>'; return; }
+  path.innerHTML = routePoints.map((r,i)=>`
+    <div class="rd-stop selected" onclick="removeArea('${r}')">${i===0?'🏠':i===routePoints.length-1?'🏁':'📍'} ${r}</div>
+    ${i<routePoints.length-1?'<div class="rd-arrow">←</div>':''}
+  `).join('');
+}
+
+function removeArea(name) {
+  routePoints = routePoints.filter(r=>r!==name);
+  document.querySelectorAll('.map-area').forEach(a=>{if(a.querySelector('.area-label').textContent===name) a.classList.remove('selected')});
+  renderRoute();
+}
+
+// ── INTERNATIONAL ──
+function selectIntl(el, dest) {
+  document.querySelectorAll('.intl-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('intl-dest').value = dest;
+  showToast(`✅ تم اختيار ${dest}`);
+}
+
+// ── TABS ──
+function switchTab(tab, btn) {
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── TOAST ──
+let toastT;
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ── INIT ──
+buildVipSeats('mini');
+updateOrderPanel();
+</script>
+<footer class="k2-foot"><div class="k2-w"><div class="k2-fg">
+<div><a class="k2-brand" href="KPTC_Home.html"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b></span></a><p>شركة النقل العام الكويتية، أول وأكبر مشغّل للنقل العام في الكويت منذ 1962، مملوكة بالكامل للدولة.</p></div>
+<div><h4>خدماتنا</h4><ul><li><a href="KPTC_Routes.html">الخطوط والمسارات</a></li><li><a href="KPTC_Subscriptions.html">الاشتراكات</a></li><li><a href="KPTC_Umrah.html">رحلات العمرة</a></li><li><a href="KPTC_VIP.html">باصات VIP</a></li><li><a href="KPTC_Winch.html">الونش</a></li></ul></div>
+<div><h4>خدمة العملاء</h4><ul><li><a href="KPTC_LostFound.html">المفقودات</a></li><li><a href="KPTC_AI_Assistant.html">المساعد الذكي</a></li><li><a href="KPTC_Home.html#contact">الشكاوى</a></li><li><a href="KPTC_Home.html#contact">تواصل معنا</a></li></ul></div>
+<div><h4>الشركة</h4><ul><li><a href="KPTC_Home.html#about">عن KPTC</a></li><li><a href="KPTC_Advertising.html">أعلن معنا</a></li><li><a href="KPTC_RE_Client.html">مساحات للإيجار</a></li><li><a href="KPTC_Portal.html">بوابة الموظفين</a></li></ul></div>
+</div><div class="k2-fb"><span>© 2026 شركة النقل العام الكويتية. جميع الحقوق محفوظة.</span><span>kptc.com.kw</span></div></div></footer>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+</html>

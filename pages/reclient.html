@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPTC — مساحات للإيجار</title>
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#2E2C78;--nd:#0C1547;--nx:#060E30;
+  --yellow:#FFC93C;--gold:#C9A227;--gold-l:#E8C547;
+  --light:#F2F5FC;--cream:#FAFBFF;
+  --border:#DEDDEC;--gray:#5D5C80;--dark:#14133A;
+  --green:#059669;--red:#DC2626;--orange:#D97706;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;background:var(--cream);color:var(--dark);overflow-x:hidden;line-height:1.65}
+
+/* ━━━━ NAV ━━━━ */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(6,14,48,.88);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,201,60,.12)}
+.nav-wrap{max-width:1200px;margin:0 auto;padding:0 24px;height:62px;display:flex;align-items:center;gap:12px}
+.nav-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--yellow),var(--gold));border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--navy);font-size:1rem;box-shadow:0 4px 14px rgba(255,201,60,.25)}
+.nav-title{font-weight:800;font-size:.95rem;letter-spacing:3px;color:var(--yellow)}
+.nav-sub{font-size:.55rem;color:rgba(255,255,255,.35);letter-spacing:1.5px;margin-top:1px}
+.nav-links{display:flex;gap:3px;list-style:none;margin-right:auto}
+.nav-links a{color:rgba(255,255,255,.6);text-decoration:none;font-size:.8rem;padding:7px 13px;border-radius:8px;transition:.2s;font-weight:500}
+.nav-links a:hover{color:var(--yellow);background:rgba(255,201,60,.08)}
+.nav-cta{background:var(--yellow);color:var(--navy);border:none;border-radius:10px;padding:9px 18px;font-size:.8rem;font-weight:700;cursor:pointer;transition:.2s;font-family:inherit}
+.nav-cta:hover{background:white;box-shadow:0 5px 18px rgba(255,201,60,.3)}
+
+/* ━━━━ HERO ━━━━ */
+.hero{min-height:100vh;background:linear-gradient(150deg,var(--nx) 0%,var(--nd) 55%,var(--navy) 100%);color:white;display:flex;align-items:center;padding:100px 24px 80px;position:relative;overflow:hidden}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,201,60,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,201,60,.03) 1px,transparent 1px);background-size:70px 70px;pointer-events:none}
+.hero-glow{position:absolute;top:20%;right:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(255,201,60,.1),transparent 70%);pointer-events:none}
+.hero-glow2{position:absolute;bottom:-20%;left:-5%;width:400px;height:400px;background:radial-gradient(circle,rgba(29,78,216,.12),transparent 70%);pointer-events:none}
+.hero-wrap{max-width:1200px;margin:0 auto;width:100%;position:relative;z-index:2;display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:center}
+.h-chip{display:inline-flex;align-items:center;gap:7px;background:rgba(255,201,60,.08);border:1px solid rgba(255,201,60,.2);color:var(--yellow);padding:6px 16px;border-radius:30px;font-size:.7rem;font-weight:700;margin-bottom:22px;letter-spacing:.5px}
+.h-chip-dot{width:6px;height:6px;background:var(--yellow);border-radius:50%;animation:hdot 2s infinite}
+@keyframes hdot{0%,100%{box-shadow:0 0 0 0 rgba(255,201,60,.6)}70%{box-shadow:0 0 0 8px rgba(255,201,60,0)}}
+.hero h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:800;line-height:1.15;margin-bottom:18px;letter-spacing:-.5px}
+.h-accent{background:linear-gradient(135deg,var(--yellow),var(--gold-l));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:.95rem;color:rgba(255,255,255,.65);max-width:500px;margin-bottom:28px;line-height:1.9}
+.hero-ctas{display:flex;gap:10px;flex-wrap:wrap}
+.btn-gold{background:linear-gradient(135deg,var(--yellow),var(--gold));color:var(--navy);border:none;border-radius:12px;padding:13px 24px;font-size:.87rem;font-weight:800;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px;transition:.25s;box-shadow:0 6px 22px rgba(255,201,60,.25)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(255,201,60,.4)}
+.btn-ghost{background:transparent;color:white;border:1.5px solid rgba(255,255,255,.2);border-radius:12px;padding:13px 24px;font-size:.87rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px;transition:.2s}
+.btn-ghost:hover{background:rgba(255,255,255,.05);border-color:rgba(255,201,60,.4)}
+.hero-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,201,60,.15);border-radius:20px;padding:28px;backdrop-filter:blur(10px);position:relative}
+.hero-card::before{content:"";position:absolute;top:-1px;left:-1px;right:-1px;height:2px;background:linear-gradient(90deg,transparent,var(--yellow),transparent);border-radius:20px 20px 0 0}
+.hc-label{font-size:.58rem;color:rgba(255,255,255,.38);letter-spacing:3px;font-weight:700;margin-bottom:12px}
+.hc-title{font-size:1rem;color:var(--yellow);font-weight:800;margin-bottom:20px}
+.hc-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.hcs{padding:13px;background:rgba(0,0,0,.15);border-radius:11px;border:1px solid rgba(255,255,255,.04)}
+.hcs-v{font-size:1.6rem;font-weight:900;color:var(--yellow);line-height:1}
+.hcs-l{font-size:.63rem;color:rgba(255,255,255,.45);margin-top:3px}
+
+/* ━━━━ FILTER SECTION ━━━━ */
+.filter-sec{background:white;border-bottom:1px solid var(--border);padding:16px 24px;position:sticky;top:62px;z-index:80;box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.filter-wrap{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fsearch{flex:1;max-width:280px;border:1.5px solid var(--border);border-radius:10px;padding:9px 14px;font-size:.8rem;font-family:inherit;outline:none;transition:.2s;background:var(--light)}
+.fsearch:focus{border-color:var(--navy);background:white}
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap}
+.fchip{border:1.5px solid var(--border);border-radius:20px;padding:6px 14px;font-size:.72rem;font-weight:600;cursor:pointer;background:white;color:var(--gray);font-family:inherit;transition:.2s;white-space:nowrap}
+.fchip.on,.fchip:hover{background:var(--navy);color:var(--yellow);border-color:var(--navy)}
+.fselect{border:1.5px solid var(--border);border-radius:9px;padding:8px 12px;font-size:.76rem;font-family:inherit;outline:none;background:white;color:var(--dark);margin-right:auto}
+.fcount{font-size:.72rem;color:var(--gray);font-weight:600;white-space:nowrap;background:var(--light);padding:5px 12px;border-radius:20px;border:1px solid var(--border)}
+
+/* ━━━━ UNITS SECTION ━━━━ */
+.units-sec{padding:40px 24px;max-width:1200px;margin:0 auto}
+.units-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.unit-card{background:white;border-radius:16px;border:1.5px solid var(--border);overflow:hidden;transition:.25s;cursor:pointer;animation:cardIn .3s ease both}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.unit-card:hover{border-color:rgba(46,44,120,.22);box-shadow:0 12px 36px rgba(46,44,120,.1);transform:translateY(-4px)}
+
+.uc-banner{height:115px;display:flex;align-items:center;justify-content:center;font-size:2.8rem;position:relative;overflow:hidden}
+.uc-banner::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.25))}
+.uc-status{position:absolute;top:10px;right:10px;font-size:.62rem;font-weight:700;padding:4px 10px;border-radius:20px}
+.uc-status.available{background:rgba(5,150,105,.9);color:white}
+.uc-status.taken{background:rgba(220,38,38,.9);color:white}
+.uc-status.nego{background:rgba(217,119,6,.9);color:white}
+.uc-location{position:absolute;bottom:8px;right:10px;font-size:.6rem;color:rgba(255,255,255,.85);font-weight:600;background:rgba(0,0,0,.4);padding:2px 8px;border-radius:10px;backdrop-filter:blur(4px)}
+
+.uc-body{padding:16px}
+.uc-type{font-size:.62rem;color:var(--gray);font-weight:700;letter-spacing:.5px;margin-bottom:3px;text-transform:uppercase}
+.uc-name{font-size:.97rem;font-weight:800;color:var(--navy);margin-bottom:6px;line-height:1.3}
+.uc-meta{display:flex;gap:12px;font-size:.71rem;color:var(--gray);margin-bottom:12px;flex-wrap:wrap}
+.uc-meta span{display:flex;align-items:center;gap:3px}
+.uc-price{display:flex;align-items:baseline;gap:5px;margin-bottom:13px}
+.uc-price-val{font-size:1.3rem;font-weight:900;color:var(--navy)}
+.uc-price-unit{font-size:.68rem;color:var(--gray);font-weight:500}
+.uc-features{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.feat{background:var(--light);border:1px solid var(--border);border-radius:20px;font-size:.62rem;color:var(--navy);font-weight:600;padding:3px 9px}
+.uc-actions{display:flex;gap:7px}
+.ua-btn{flex:1;border:none;border-radius:9px;padding:9px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s}
+.ua-primary{background:var(--navy);color:white}.ua-primary:hover{background:var(--nd);box-shadow:0 4px 14px rgba(46,44,120,.2)}
+.ua-secondary{background:var(--light);color:var(--navy);border:1.5px solid var(--border)}.ua-secondary:hover{background:var(--navy);color:white;border-color:var(--navy)}
+
+/* ━━━━ LOCATIONS ━━━━ */
+.locs-sec{padding:60px 24px;background:var(--light)}
+.locs-wrap{max-width:1200px;margin:0 auto}
+.sec-label{display:inline-block;font-size:.65rem;font-weight:800;color:var(--gold);letter-spacing:3px;margin-bottom:10px;padding:3px 12px;background:rgba(201,162,39,.08);border-radius:20px}
+.sec-title{font-size:clamp(1.5rem,2.8vw,2rem);font-weight:900;color:var(--navy);margin-bottom:8px}
+.sec-sub{font-size:.88rem;color:var(--gray);max-width:550px;margin-bottom:40px;line-height:1.8}
+.locs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.loc-card{background:white;border:1.5px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.loc-card::before{content:"";position:absolute;top:0;right:0;width:60px;height:60px;background:linear-gradient(135deg,rgba(255,201,60,.08),transparent);border-radius:0 14px 0 100%}
+.loc-card:hover{border-color:rgba(46,44,120,.2);box-shadow:0 7px 22px rgba(46,44,120,.08);transform:translateY(-3px)}
+.lc-icon{font-size:1.8rem;margin-bottom:12px;display:block}
+.lc-name{font-size:.88rem;font-weight:800;color:var(--navy);margin-bottom:4px}
+.lc-gov{font-size:.65rem;color:var(--gray);margin-bottom:10px}
+.lc-stats{display:flex;gap:0;border-top:1px solid var(--border);padding-top:10px}
+.lcs{flex:1;text-align:center;border-left:1px solid var(--border)}
+.lcs:last-child{border:none}
+.lcs-v{font-size:.85rem;font-weight:800;color:var(--navy)}
+.lcs-l{font-size:.55rem;color:var(--gray);margin-top:1px}
+.lc-occ{position:absolute;top:12px;left:12px;font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:8px}
+.occ-full{background:rgba(5,150,105,.1);color:var(--green)}
+.occ-avail{background:rgba(217,119,6,.1);color:var(--orange)}
+
+/* ━━━━ WHY ━━━━ */
+.why-sec{padding:70px 24px;background:white}
+.why-wrap{max-width:1200px;margin:0 auto}
+.why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.why-card{padding:28px;border:1.5px solid var(--border);border-radius:16px;transition:.2s;position:relative;overflow:hidden}
+.why-card:hover{border-color:rgba(46,44,120,.18);box-shadow:0 8px 24px rgba(46,44,120,.07);transform:translateY(-3px)}
+.wc-ic{width:50px;height:50px;border-radius:13px;background:linear-gradient(135deg,var(--nd),var(--navy));display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:18px;box-shadow:0 6px 18px rgba(46,44,120,.18)}
+.wc-title{font-size:1rem;font-weight:800;color:var(--navy);margin-bottom:9px}
+.wc-text{font-size:.82rem;color:var(--gray);line-height:1.8}
+
+/* ━━━━ CTA SECTION ━━━━ */
+.cta-sec{padding:70px 24px;background:linear-gradient(145deg,var(--nx),var(--nd),var(--navy));color:white;position:relative;overflow:hidden}
+.cta-sec::before{content:"";position:absolute;top:-60px;left:-60px;width:300px;height:300px;border-radius:50%;border:60px solid rgba(255,201,60,.05)}
+.cta-sec::after{content:"";position:absolute;bottom:-80px;right:-80px;width:320px;height:320px;border-radius:50%;border:60px solid rgba(255,201,60,.04)}
+.cta-box{max-width:780px;margin:0 auto;text-align:center;position:relative;z-index:2}
+.cta-chip{display:inline-block;background:rgba(255,201,60,.1);color:var(--yellow);font-size:.65rem;font-weight:800;padding:5px 14px;border-radius:20px;letter-spacing:2px;margin-bottom:16px;border:1px solid rgba(255,201,60,.2)}
+.cta-sec h2{font-size:clamp(1.5rem,2.8vw,2rem);font-weight:800;margin-bottom:14px;line-height:1.3}
+.cta-sec h2 .hl{color:var(--yellow)}
+.cta-sec p{font-size:.9rem;color:rgba(255,255,255,.65);max-width:520px;margin:0 auto 28px;line-height:1.9}
+.cta-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* ━━━━ MODAL ━━━━ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(5px);padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:white;border-radius:20px;width:100%;max-width:580px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.25);animation:modalIn .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes modalIn{from{transform:scale(.88) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.modal-head{background:linear-gradient(135deg,var(--nd),var(--navy));color:white;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-head h3{font-size:.95rem;font-weight:800}
+.modal-close{background:rgba(255,255,255,.1);border:none;color:white;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:22px;overflow-y:auto;flex:1}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.form-grid.g1{grid-template-columns:1fr}
+.ff{display:flex;flex-direction:column;gap:5px}
+.ff.s2{grid-column:span 2}
+.ff label{font-size:.68rem;font-weight:700;color:var(--gray)}
+.ff input,.ff select,.ff textarea{border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;font-size:.82rem;font-family:inherit;outline:none;transition:.2s;width:100%}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(46,44,120,.07)}
+.ff textarea{resize:vertical;min-height:80px}
+.submit-btn{background:linear-gradient(135deg,var(--navy),var(--nd));color:white;border:none;border-radius:10px;padding:12px 22px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;flex:1;transition:.2s}
+.submit-btn:hover{background:var(--nd);box-shadow:0 5px 18px rgba(46,44,120,.22)}
+.cancel-btn{background:var(--light);color:var(--gray);border:1.5px solid var(--border);border-radius:10px;padding:12px 18px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
+.cancel-btn:hover{border-color:var(--navy);color:var(--navy)}
+.unit-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.ud{background:var(--light);border-radius:9px;padding:11px}
+.ud-lbl{font-size:.62rem;color:var(--gray);font-weight:700;margin-bottom:3px}
+.ud-val{font-size:.88rem;font-weight:800;color:var(--navy)}
+
+/* ━━━━ TOAST ━━━━ */
+.toast{position:fixed;bottom:22px;right:50%;transform:translateX(50%) translateY(120px);background:var(--navy);color:white;padding:11px 24px;border-radius:14px;font-size:.82rem;font-weight:600;z-index:600;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 28px rgba(0,0,0,.2);pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{transform:translateX(50%) translateY(0)}
+.toast.ok{background:var(--green)}
+
+/* ━━━━ FOOTER ━━━━ */
+footer{background:var(--nx);color:rgba(255,255,255,.4);padding:36px 24px;text-align:center;border-top:1px solid rgba(255,201,60,.08);font-size:.75rem;line-height:2}
+footer strong{color:var(--yellow)}
+
+/* ━━━━ RESPONSIVE ━━━━ */
+@media(max-width:900px){
+  .nav-links{display:none}
+  .hero-wrap{grid-template-columns:1fr}
+  .hc-hero{display:none}
+  .units-grid{grid-template-columns:1fr 1fr}
+  .locs-grid{grid-template-columns:1fr 1fr}
+  .why-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .units-grid,.locs-grid,.why-grid{grid-template-columns:1fr}
+  .filter-wrap{flex-direction:column;align-items:stretch}
+  .fsearch{max-width:100%}
+}
+</style>
+
+<style id="k2-shell">
+:root{--k2-indigo:#2E2C78;--k2-deep:#1F1D5C;--k2-ink:#14133A;--k2-sign:#FFC93C;--k2-paper:#F5F5FA;--k2-line:#DEDDEC;--k2-muted:#5D5C80;--k2-font:-apple-system,BlinkMacSystemFont,"SF Arabic","Geeza Pro","Segoe UI","Noto Sans Arabic",Tahoma,sans-serif}
+html,body{overflow-x:clip}body{font-family:var(--k2-font)}
+.k2-util{background:var(--k2-ink);color:#C9C8E6;font:13px/1 var(--k2-font)}
+.k2-util .k2-w{display:flex;align-items:center;justify-content:space-between;gap:16px;height:38px}
+.k2-util .k2-ul{display:flex;gap:22px;white-space:nowrap}
+.k2-util a{color:inherit;text-decoration:none}.k2-util a:hover{color:#fff}
+.k2-lang{background:transparent;border:1px solid #3A3970;border-radius:6px;padding:2px 8px;color:#fff;font:13px var(--k2-font)}
+.k2-lang option{color:#000}
+.k2-w{max-width:1200px;margin:0 auto;padding:0 24px;box-sizing:border-box}
+.k2-head{background:var(--k2-indigo);color:#fff;position:sticky;top:0;z-index:400;box-shadow:0 1px 0 rgba(255,255,255,.06);font-family:var(--k2-font)}
+.k2-head .k2-w{display:flex;align-items:center;gap:28px;height:72px}
+.k2-brand{display:flex;align-items:center;gap:10px;flex-shrink:0;color:#fff;text-decoration:none}
+.k2-brand svg{width:30px;height:38px}
+.k2-brand b{font-size:24px;letter-spacing:.06em;font-weight:800;direction:ltr;display:block;line-height:1.2}
+.k2-brand small{display:block;font-size:11px;color:#B9B8E0;font-weight:500;line-height:1.2}
+.k2-nav{display:flex;gap:4px;flex:1;margin:0;padding:0;background:none;position:static;border:0}
+.k2-nav a{padding:8px 14px;border-radius:6px;font-size:15px;color:#E4E3F7;font-weight:500;text-decoration:none;line-height:1.5}
+.k2-nav a:hover,.k2-nav a[aria-current]{background:rgba(255,255,255,.1);color:#fff}
+.k2-nav a[aria-current]{box-shadow:inset 0 -3px 0 var(--k2-sign)}
+.k2-act{display:flex;gap:10px;align-items:center}
+.k2-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:6px;font:700 15px var(--k2-font);padding:10px 18px;border:0;cursor:pointer;text-decoration:none;position:relative;line-height:1.3}
+.k2-btn-sign{background:var(--k2-sign);color:var(--k2-ink)}.k2-btn-sign:hover{background:#FFD566}
+.k2-btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.28)}.k2-btn-ghost:hover{border-color:#fff}
+.k2-cnt{position:absolute;top:-7px;left:-7px;min-width:20px;height:20px;border-radius:10px;background:#D93C42;color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px}
+.k2-menu{display:none;background:none;border:0;color:#fff;padding:8px;cursor:pointer}
+.k2-menu svg{width:26px;height:26px}
+.k2-drawer{position:fixed;inset:0;z-index:1000;display:none;font-family:var(--k2-font)}
+.k2-drawer.open{display:block}
+.k2-scrim{position:absolute;inset:0;background:rgba(20,19,58,.55)}
+.k2-panel{position:absolute;top:0;bottom:0;right:0;width:min(320px,86vw);background:#fff;padding:20px;display:flex;flex-direction:column;gap:4px;overflow:auto}
+.k2-panel a{padding:14px 12px;border-radius:6px;font-weight:600;font-size:17px;border-bottom:1px solid var(--k2-line);color:var(--k2-ink);text-decoration:none}
+.k2-panel a[aria-current]{color:var(--k2-indigo);background:var(--k2-paper)}
+.k2-close{align-self:flex-end;background:none;border:0;font-size:28px;cursor:pointer;color:var(--k2-indigo);padding:4px 10px}
+.k2-foot{background:var(--k2-ink);color:#B9B8E0;font:14px/1.7 var(--k2-font);padding:56px 0 28px;margin-top:0}
+.k2-fg{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:40px;margin-bottom:40px}
+.k2-fg h4{color:#fff;font-size:15px;margin:0 0 14px}
+.k2-fg ul{list-style:none;display:grid;gap:8px;margin:0;padding:0}
+.k2-fg a{color:inherit;text-decoration:none}.k2-fg a:hover{color:#fff}
+.k2-fg p{margin:14px 0 0;max-width:26em;line-height:1.8}
+.k2-fb{border-top:1px solid #2A2950;padding-top:22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.k2-head :focus-visible,.k2-foot :focus-visible,.k2-util :focus-visible{outline:3px solid var(--k2-sign);outline-offset:2px}
+@media(max-width:1100px){.k2-nav a{padding:8px 10px;font-size:14px}}
+@media(max-width:920px){.k2-nav,.k2-act .k2-btn-ghost{display:none}.k2-menu{display:block}.k2-head .k2-w{justify-content:space-between}.k2-fg{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.k2-w{padding:0 16px}.k2-util .k2-ul>*:not(:first-child){display:none}.k2-act .k2-hide-m{display:none}.k2-fg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ━━━━ NAV ━━━━ -->
+<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22228800">خدمة العملاء <span dir="ltr">22228800</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — حولي</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
+<header class="k2-head"><div class="k2-w"><a class="k2-brand" href="KPTC_Home.html" aria-label="KPTC — الرئيسية"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b><small>شركة النقل العام الكويتية</small></span></a>
+<div class="k2-nav" role="navigation" aria-label="القائمة الرئيسية"><a href="KPTC_Routes.html">الخطوط</a><a href="KPTC_Subscriptions.html">الاشتراكات</a><a href="KPTC_Umrah.html">العمرة</a><a href="KPTC_VIP.html">VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_Advertising.html">أعلن معنا</a></div>
+<div class="k2-act"><a class="k2-btn k2-btn-ghost" href="KPTC_Portal.html">بوابة الموظفين</a><a class="k2-btn k2-btn-sign k2-hide-m" href="KPTC_Subscriptions.html">اشترك الآن</a><button class="k2-menu" aria-label="فتح القائمة" aria-expanded="false" onclick="k2Drawer(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
+<div class="k2-drawer" id="k2Drawer" aria-hidden="true"><div class="k2-scrim" onclick="k2Drawer(0)"></div><div class="k2-panel" role="dialog" aria-label="القائمة"><button class="k2-close" onclick="k2Drawer(0)" aria-label="إغلاق">×</button><a href="KPTC_Home.html">الرئيسية</a><a href="KPTC_Routes.html">الخطوط والمسارات</a><a href="KPTC_Subscriptions.html">الاشتراكات والتذاكر</a><a href="KPTC_Umrah.html">رحلات العمرة</a><a href="KPTC_VIP.html">باصات VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_LostFound.html">المفقودات</a><a href="KPTC_Advertising.html">أعلن معنا</a><a href="KPTC_RE_Client.html" aria-current="page">مساحات للإيجار</a><a href="KPTC_Portal.html">بوابة الموظفين</a></div></div>
+<script>function k2Drawer(o){var d=document.getElementById('k2Drawer');d.classList.toggle('open',!!o);d.setAttribute('aria-hidden',o?'false':'true');var b=document.querySelector('.k2-menu');if(b)b.setAttribute('aria-expanded',o?'true':'false')}document.addEventListener('keydown',function(e){if(e.key==='Escape')k2Drawer(0)});</script>
+
+<!-- ━━━━ HERO ━━━━ -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-wrap">
+    <div>
+      <div class="h-chip"><div class="h-chip-dot"></div>مساحات تجارية مميزة</div>
+      <h1>وسّع نشاطك في<br><span class="h-accent">أكثر المحطات ازدحاماً</span><br>في الكويت</h1>
+      <p>محلات تجارية، مطاعم، لوحات إعلانية، ومكاتب داخل محطات KPTC — 128,000 راكب يومياً هم عملاؤك المحتملون.</p>
+      <div class="hero-ctas">
+        <button class="btn-gold" onclick="document.getElementById('units').scrollIntoView({behavior:'smooth'})">🏪 استعرض المساحات</button>
+        <button class="btn-ghost" onclick="openInquiry(null)">📞 تحدث مع مسؤول</button>
+      </div>
+    </div>
+    <div class="hc-hero">
+      <div class="hero-card">
+        <div class="hc-label">بالأرقام الحقيقية</div>
+        <div class="hc-title">لماذا تختار KPTC؟</div>
+        <div class="hc-stat-grid">
+          <div class="hcs"><div class="hcs-v">128K</div><div class="hcs-l">راكب يومياً</div></div>
+          <div class="hcs"><div class="hcs-v">8</div><div class="hcs-l">مواقع استراتيجية</div></div>
+          <div class="hcs"><div class="hcs-v">12</div><div class="hcs-l">وحدة شاغرة الآن</div></div>
+          <div class="hcs"><div class="hcs-v">6</div><div class="hcs-l">محافظات مغطاة</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━━ FILTER ━━━━ -->
+<div class="filter-sec">
+  <div class="filter-wrap">
+    <input class="fsearch" placeholder="🔍 ابحث عن مساحة..." id="searchInp" oninput="filterUnits()">
+    <div class="filter-chips">
+      <button class="fchip on" onclick="setFilter(this,'all')">الكل</button>
+      <button class="fchip" onclick="setFilter(this,'مطعم')">🍽️ مطاعم</button>
+      <button class="fchip" onclick="setFilter(this,'محل')">🛍️ محلات</button>
+      <button class="fchip" onclick="setFilter(this,'لوحة')">📢 لوحات</button>
+      <button class="fchip" onclick="setFilter(this,'موقف')">🅿️ مواقف</button>
+      <button class="fchip" onclick="setFilter(this,'مكتب')">🏢 مكاتب</button>
+    </div>
+    <select class="fselect" id="locFilter" onchange="filterUnits()">
+      <option value="all">جميع المواقع</option>
+      <option value="حولي">محطة حولي</option>
+      <option value="الفروانية">محطة الفروانية</option>
+      <option value="السالمية">محطة السالمية</option>
+      <option value="الصفاة">المقر الرئيسي</option>
+      <option value="الأحمدي">محطة الأحمدي</option>
+      <option value="الجهراء">محطة الجهراء</option>
+    </select>
+    <div class="fcount" id="unitCount">12 مساحة متاحة</div>
+  </div>
+</div>
+
+<!-- ━━━━ UNITS ━━━━ -->
+<div class="units-sec" id="units">
+  <div class="units-grid" id="unitsGrid"></div>
+</div>
+
+<!-- ━━━━ LOCATIONS ━━━━ -->
+<section class="locs-sec" id="locations">
+  <div class="locs-wrap">
+    <div class="sec-label">المواقع</div>
+    <h2 class="sec-title">8 مواقع استراتيجية</h2>
+    <p class="sec-sub">نغطي جميع محافظات الكويت بمواقع ذات حركة يومية عالية — اختر الموقع الأنسب لنشاطك.</p>
+    <div class="locs-grid" id="locsGrid"></div>
+  </div>
+</section>
+
+<!-- ━━━━ WHY ━━━━ -->
+<section class="why-sec" id="why">
+  <div class="why-wrap">
+    <div style="text-align:center;margin-bottom:44px">
+      <div class="sec-label">المميزات</div>
+      <h2 class="sec-title">لماذا تختار KPTC؟</h2>
+    </div>
+    <div class="why-grid">
+      <div class="why-card"><div class="wc-ic">👥</div><div class="wc-title">128,000 راكب يومياً</div><div class="wc-text">حركة طبيعية ومستمرة من العملاء بدون تكلفة تسويق إضافية — موقعك داخل المحطة هو إعلانك.</div></div>
+      <div class="why-card"><div class="wc-ic">📋</div><div class="wc-title">عقود مرنة</div><div class="wc-text">خيارات متعددة من 6 أشهر إلى 3 سنوات — شروط واضحة وشفافة بدون رسوم خفية.</div></div>
+      <div class="why-card"><div class="wc-ic">🔧</div><div class="wc-title">صيانة مشتركة</div><div class="wc-text">فريق صيانة متوفر طوال اليوم — الكهرباء والمياه والأمن مشمولة في الإيجار.</div></div>
+      <div class="why-card"><div class="wc-ic">🗺️</div><div class="wc-title">6 محافظات</div><div class="wc-text">حضور في جميع المحافظات — اختر محطة واحدة أو وسّع في عدة مواقع بسهولة.</div></div>
+      <div class="why-card"><div class="wc-ic">📢</div><div class="wc-title">لوحات إعلانية</div><div class="wc-text">مساحات إعلانية داخل وخارج الحافلات — أوصل رسالتك لجمهور واسع ومتنوع.</div></div>
+      <div class="why-card"><div class="wc-ic">⚡</div><div class="wc-title">إجراءات سريعة</div><div class="wc-text">من الاستفسار إلى توقيع العقد خلال أسبوع — فريقنا يتابع معك خطوة بخطوة.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━━ CTA ━━━━ -->
+<section class="cta-sec">
+  <div class="cta-box">
+    <div class="cta-chip">ابدأ الآن</div>
+    <h2>مساحتك التجارية المثالية<br><span class="hl">بانتظارك في KPTC</span></h2>
+    <p>تواصل معنا اليوم وسنساعدك في اختيار أفضل مساحة تناسب نشاطك وميزانيتك.</p>
+    <div class="cta-btns">
+      <button class="btn-gold" onclick="openInquiry(null)">📋 أرسل استفساراً الآن</button>
+      <button class="btn-ghost" onclick="T('📞 سيتصل بكم أحد مسؤولينا خلال 24 ساعة')">📞 اطلب اتصالاً</button>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━━ FOOTER ━━━━ -->
+<footer>
+  <div style="max-width:1200px;margin:0 auto">
+    <div style="margin-bottom:10px"><strong>KPTC — شركة النقل العام الكويتية</strong></div>
+    <div>ص.ب 375 — الصفاة، 13004 الكويت • 📞 1880 001 • marketing@kptc.com.kw</div>
+    <div style="margin-top:12px;font-size:.66rem;color:rgba(255,255,255,.25)">جميع الحقوق محفوظة لشركة النقل العام الكويتية © 2026</div>
+  </div>
+</footer>
+
+<!-- ━━━━ MODAL ━━━━ -->
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modalTitle">—</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+<div class="toast" id="toastEl"></div>
+
+<script>
+// UNITS DATA
+var UNITS = [
+  {id:'U007',name:'وحدة تجارية B2',type:'محل',loc:'محطة الفروانية',gov:'الفروانية',area:50,rent:700,status:'available',icon:'🏪',bg:'linear-gradient(135deg,#1F1D5C,#2E2C78)',features:['واجهة رئيسية','مكيفة','إضاءة كاملة'],desc:'وحدة تجارية رائعة في قلب محطة الفروانية بمرور يومي 15,000+ راكب — مناسبة لأي نشاط تجاري.'},
+  {id:'U010',name:'محل الاكسسوارات',type:'محل',loc:'محطة السالمية',gov:'السالمية',area:35,rent:650,status:'available',icon:'🛍️',bg:'linear-gradient(135deg,#1a3a6e,#2d5a8e)',features:['موقع مميز','واجهة زجاجية','تهوية ممتازة'],desc:'محل متميز في محطة السالمية ذات الحركة العالية — مساحة مدروسة تناسب الاكسسوارات والهدايا.'},
+  {id:'V001',name:'وحدة ونش وخدمات',type:'محل',loc:'ورشة الشويخ',gov:'العاصمة',area:120,rent:1200,status:'available',icon:'🔧',bg:'linear-gradient(135deg,#0d2137,#1a3d5c)',features:['مساحة واسعة','تمديدات خاصة','ارتفاع مرتفع'],desc:'وحدة صناعية/خدماتية واسعة في ورشة الشويخ — مثالية لخدمات السيارات والمعدات.'},
+  {id:'M001',name:'وحدة A1 — مبارك الكبير',type:'محل',loc:'محطة مبارك الكبير',gov:'مبارك الكبير',area:45,rent:550,status:'available',icon:'🏬',bg:'linear-gradient(135deg,#2E2C78,#2d4f8e)',features:['طابق أرضي','قريب من المدخل'],desc:'وحدة تجارية في محطة مبارك الكبير الجديدة — منطقة نامية بسرعة مع أسعار تنافسية.'},
+  {id:'M002',name:'وحدة B2 — مبارك الكبير',type:'مطعم',loc:'محطة مبارك الكبير',gov:'مبارك الكبير',area:70,rent:800,status:'available',icon:'🍽️',bg:'linear-gradient(135deg,#3d1a00,#7a3400)',features:['مخصصة للمطاعم','صرف مياه','شفط هواء'],desc:'وحدة مطعم متكاملة التجهيز في محطة مبارك الكبير — جاهزة للتشغيل الفوري.'},
+  {id:'A001',name:'لوحة إعلانية C1',type:'لوحة',loc:'محطة الأحمدي',gov:'الأحمدي',area:20,rent:380,status:'available',icon:'📢',bg:'linear-gradient(135deg,#1a0a3d,#3d1a7a)',features:['LED عالي الوضوح','طريق رئيسي','مرئية 24 ساعة'],desc:'لوحة إعلانية مضيئة على الطريق الرئيسي للأحمدي — 80,000+ سيارة يومياً.'},
+  {id:'A002',name:'لوحة إعلانية J1',type:'لوحة',loc:'محطة الجهراء',gov:'الجهراء',area:18,rent:350,status:'available',icon:'📊',bg:'linear-gradient(135deg,#0d3a1a,#1a7a3d)',features:['موقع مميز','طريق الجهراء','حركة كثيفة'],desc:'لوحة إعلانية استراتيجية على طريق الجهراء الرئيسي — تغطية واسعة لشمال الكويت.'},
+  {id:'P001',name:'موقف VIP — الأحمدي',type:'موقف',loc:'محطة الأحمدي',gov:'الأحمدي',area:300,rent:900,status:'available',icon:'🅿️',bg:'linear-gradient(135deg,#1a2a0d,#3a5a1a)',features:['50 موقف','إنارة ليلية','مسقوف جزئياً','أمن 24 ساعة'],desc:'موقف سيارات مسطح مع 50 خانة — مثالي لإدارة مواقف شركات أو مجمعات تجارية.'},
+  {id:'R001',name:'مطعم الوجبات السريعة',type:'مطعم',loc:'محطة حولي',gov:'حولي',area:65,rent:1050,status:'nego',icon:'🍔',bg:'linear-gradient(135deg,#3d1a00,#7a3d1a)',features:['مطبخ مجهز','عداد خدمة','تصريف مياه'],desc:'وحدة مطعم جاهزة في محطة حولي — مرور يومي 12,400 راكب. قيد التفاوض.'},
+  {id:'O001',name:'مكتب تجاري — الصفاة',type:'مكتب',loc:'المقر الرئيسي — الصفاة',gov:'العاصمة',area:80,rent:1400,status:'available',icon:'🏢',bg:'linear-gradient(135deg,#0d1d3d,#1a3a6e)',features:['طابق 3','مكيف مركزي','انترنت جاهز','موقف خاص'],desc:'مكتب احترافي في المقر الرئيسي لـ KPTC بمنطقة الصفاة التجارية المرموقة.'},
+  {id:'C001',name:'كشك الخدمات',type:'محل',loc:'محطة الجهراء',gov:'الجهراء',area:15,rent:280,status:'available',icon:'☕',bg:'linear-gradient(135deg,#1a3d0d,#2d6e1a)',features:['كشك مجهز','موقع مدخل','كهرباء جاهزة'],desc:'كشك صغير ومريح عند مدخل محطة الجهراء — مثالي للقهوة أو الوجبات الخفيفة.'},
+  {id:'L001',name:'لوحة داخلية — حولي',type:'لوحة',loc:'محطة حولي',gov:'حولي',area:8,rent:220,status:'available',icon:'💡',bg:'linear-gradient(135deg,#1a1a3d,#3d3d7a)',features:['داخل المحطة','أمام بوابة الدخول','إضاءة LED'],desc:'لوحة إعلانية داخلية في أكثر نقطة مشاهدة بمحطة حولي — تناسب جميع أنواع الإعلانات.'},
+];
+
+var LOCATIONS = [
+  {id:'P001',name:'محطة حولي الرئيسية',gov:'حولي',units:12,avail:2,riders:12400,icon:'🚌',occ:83},
+  {id:'P002',name:'محطة الفروانية',gov:'الفروانية',units:8,avail:2,riders:15200,icon:'🚉',occ:75},
+  {id:'P003',name:'محطة السالمية',gov:'حولي',units:10,avail:2,riders:13900,icon:'🚌',occ:80},
+  {id:'P004',name:'المقر الرئيسي — الصفاة',gov:'العاصمة',units:6,avail:1,riders:8400,icon:'🏢',occ:83},
+  {id:'P005',name:'محطة الجهراء',gov:'الجهراء',units:5,avail:2,riders:7100,icon:'🚌',occ:60},
+  {id:'P006',name:'محطة الأحمدي',gov:'الأحمدي',units:7,avail:2,riders:9200,icon:'🚉',occ:71},
+  {id:'P007',name:'محطة مبارك الكبير',gov:'مبارك الكبير',units:4,avail:2,riders:5800,icon:'🏗️',occ:50},
+  {id:'P008',name:'ورشة الشويخ',gov:'العاصمة',units:2,avail:1,riders:3200,icon:'🔧',occ:50},
+];
+
+var currentFilter = 'all';
+
+function renderUnits(list){
+  var g = document.getElementById('unitsGrid');
+  if(!list)list = UNITS;
+  g.innerHTML = list.map(function(u,i){
+    var statusLabel = u.status==='available'?'متاح للإيجار':u.status==='nego'?'قيد التفاوض':'مؤجّر';
+    var statusCls = u.status==='available'?'available':u.status==='nego'?'nego':'taken';
+    return '<div class="unit-card" style="animation-delay:'+i*.07+'s" onclick="viewUnit(\''+u.id+'\')">'+
+      '<div class="uc-banner" style="background:'+u.bg+'">'+u.icon+
+      '<div class="uc-status '+statusCls+'">'+statusLabel+'</div>'+
+      '<div class="uc-location">📍 '+u.loc+'</div>'+
+      '</div>'+
+      '<div class="uc-body">'+
+      '<div class="uc-type">'+u.type+'</div>'+
+      '<div class="uc-name">'+u.name+'</div>'+
+      '<div class="uc-meta"><span>📐 '+u.area+' م²</span><span>🏙️ '+u.gov+'</span></div>'+
+      '<div class="uc-price"><div class="uc-price-val">'+u.rent.toLocaleString()+'</div><div class="uc-price-unit">د.ك / شهر</div></div>'+
+      '<div class="uc-features">'+u.features.map(function(f){return'<span class="feat">✓ '+f+'</span>'}).join('')+'</div>'+
+      '<div class="uc-actions">'+
+      (u.status!=='taken'?'<button class="ua-btn ua-primary" onclick="event.stopPropagation();openInquiry(\''+u.id+'\')">📋 استفسر الآن</button>':'')+
+      '<button class="ua-btn ua-secondary" onclick="event.stopPropagation();viewUnit(\''+u.id+'\')">👁️ التفاصيل</button>'+
+      '</div></div></div>';
+  }).join('');
+  document.getElementById('unitCount').textContent=list.length+' مساحة متاحة';
+}
+
+function renderLocations(){
+  var g = document.getElementById('locsGrid');
+  g.innerHTML = LOCATIONS.map(function(l){
+    var isFull = l.avail===0;
+    return '<div class="loc-card" onclick="document.getElementById(\'locFilter\').value=\''+l.gov+'\';filterUnits();document.getElementById(\'units\').scrollIntoView({behavior:\'smooth\'})">'+
+      '<div class="lc-occ '+(isFull?'occ-full':'occ-avail')+'">'+l.occ+'% إشغال</div>'+
+      '<span class="lc-icon">'+l.icon+'</span>'+
+      '<div class="lc-name">'+l.name+'</div>'+
+      '<div class="lc-gov">📍 '+l.gov+'</div>'+
+      '<div class="lc-stats">'+
+      '<div class="lcs"><div class="lcs-v">'+l.avail+'</div><div class="lcs-l">متاح</div></div>'+
+      '<div class="lcs"><div class="lcs-v">'+l.units+'</div><div class="lcs-l">وحدة</div></div>'+
+      '<div class="lcs"><div class="lcs-v">'+(l.riders/1000).toFixed(1)+'K</div><div class="lcs-l">راكب/يوم</div></div>'+
+      '</div></div>';
+  }).join('');
+}
+
+function setFilter(btn,type){
+  document.querySelectorAll('.fchip').forEach(function(b){b.classList.remove('on')});
+  btn.classList.add('on');
+  currentFilter = type;
+  filterUnits();
+}
+
+function filterUnits(){
+  var q = document.getElementById('searchInp').value.toLowerCase();
+  var loc = document.getElementById('locFilter').value;
+  var list = UNITS.filter(function(u){
+    var matchType = currentFilter==='all' || u.type===currentFilter;
+    var matchLoc = loc==='all' || u.gov===loc;
+    var matchQ = !q || u.name.toLowerCase().includes(q) || u.loc.toLowerCase().includes(q) || u.type.includes(q);
+    return matchType && matchLoc && matchQ && u.status!=='taken';
+  });
+  renderUnits(list);
+}
+
+function viewUnit(id){
+  var u = UNITS.find(function(x){return x.id===id});
+  if(!u)return;
+  document.getElementById('modalTitle').textContent = u.icon+' '+u.name;
+  document.getElementById('modalBody').innerHTML =
+    '<div style="height:130px;background:'+u.bg+';border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:3rem;margin-bottom:16px;position:relative">'
+    +u.icon
+    +'<div style="position:absolute;bottom:10px;right:12px;font-size:.65rem;color:rgba(255,255,255,.8);background:rgba(0,0,0,.35);padding:3px 10px;border-radius:10px;backdrop-filter:blur(4px)">📍 '+u.loc+'</div>'
+    +'</div>'
+    +'<p style="font-size:.82rem;color:var(--gray);line-height:1.8;margin-bottom:16px">'+u.desc+'</p>'
+    +'<div class="unit-detail-grid">'
+    +'<div class="ud"><div class="ud-lbl">النوع</div><div class="ud-val">'+u.type+'</div></div>'
+    +'<div class="ud"><div class="ud-lbl">المساحة</div><div class="ud-val">'+u.area+' م²</div></div>'
+    +'<div class="ud"><div class="ud-lbl">الإيجار الشهري</div><div class="ud-val" style="color:var(--navy)">'+u.rent.toLocaleString()+' د.ك</div></div>'
+    +'<div class="ud"><div class="ud-lbl">الموقع</div><div class="ud-val">'+u.gov+'</div></div>'
+    +'</div>'
+    +'<div style="font-size:.74rem;font-weight:700;color:var(--gray);margin-bottom:8px">المميزات:</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:6px">'+u.features.map(function(f){return'<span class="feat">✓ '+f+'</span>'}).join('')+'</div>';
+  var ft = document.getElementById('modalFoot');
+  ft.innerHTML = '';
+  if(u.status!=='taken'){
+    var sb=document.createElement('button');sb.className='submit-btn';sb.textContent='📋 أرسل استفسار الآن';sb.onclick=function(){closeModal();openInquiry(u.id)};ft.appendChild(sb);
+  }
+  var cb=document.createElement('button');cb.className='cancel-btn';cb.textContent='إغلاق';cb.onclick=closeModal;ft.appendChild(cb);
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function openInquiry(unitId){
+  var u = unitId ? UNITS.find(function(x){return x.id===unitId}) : null;
+  document.getElementById('modalTitle').textContent = '📋 استفسار عن '+(u?u.name:'مساحة للإيجار');
+  document.getElementById('modalBody').innerHTML =
+    '<p style="font-size:.8rem;color:var(--gray);margin-bottom:16px;line-height:1.75">'+(u?'اهتمامك بـ <strong>'+u.name+'</strong> في '+u.loc+' — '+u.rent.toLocaleString()+' د.ك/شهر.<br>':'')+'أكمل بياناتك وسيتواصل معك فريقنا خلال 24 ساعة.</p>'
+    +'<div class="form-grid">'
+    +'<div class="ff"><label>الاسم الكامل *</label><input id="f_name" placeholder="اسمك الكامل"></div>'
+    +'<div class="ff"><label>رقم الجوال *</label><input id="f_phone" placeholder="9XXXXXXX" maxlength="8"></div>'
+    +'<div class="ff"><label>البريد الإلكتروني</label><input id="f_email" type="email" placeholder="example@email.com"></div>'
+    +'<div class="ff"><label>نوع النشاط التجاري</label><select id="f_type"><option>مطعم وكافيه</option><option>محل تجاري</option><option>خدمات</option><option>لوحة إعلانية</option><option>موقف سيارات</option><option>مكتب</option><option>أخرى</option></select></div>'
+    +'<div class="ff s2"><label>المساحة المطلوبة والموقع المفضل</label><input id="f_pref" placeholder="مثال: أكثر من 50م² في منطقة حولي أو الفروانية" value="'+(u?u.loc+' — '+u.area+' م²':'')+'"></div>'
+    +'<div class="ff s2"><label>ملاحظات إضافية</label><textarea id="f_notes" placeholder="أي تفاصيل إضافية تريد مشاركتها..."></textarea></div>'
+    +'</div>';
+  var ft = document.getElementById('modalFoot');
+  ft.innerHTML = '';
+  var sb=document.createElement('button');sb.className='submit-btn';sb.textContent='✅ إرسال الاستفسار';
+  sb.onclick=function(){
+    var name=document.getElementById('f_name').value.trim();
+    var phone=document.getElementById('f_phone').value.trim();
+    if(!name||!phone){T('⚠️ يرجى إدخال الاسم والجوال');return}
+    sb.disabled=true;sb.textContent='⏳ جاري الإرسال...';
+    setTimeout(function(){
+      closeModal();
+      T('✅ تم إرسال استفسارك بنجاح — سنتواصل معك خلال 24 ساعة','ok');
+    },1800);
+  };
+  var cb=document.createElement('button');cb.className='cancel-btn';cb.textContent='إلغاء';cb.onclick=closeModal;
+  ft.appendChild(sb);ft.appendChild(cb);
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modalBg').classList.remove('open')}
+
+var TT;
+function T(msg,type){var el=document.getElementById('toastEl');el.textContent=msg;el.className='toast'+(type?' '+type:'');el.classList.add('show');clearTimeout(TT);TT=setTimeout(function(){el.classList.remove('show')},3500)}
+
+// INIT
+renderUnits(UNITS.filter(function(u){return u.status!=='taken'}));
+renderLocations();
+</script>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━
+     AI ASSISTANT WIDGET
+     مساعد العملاء الذكي — كابتن KPTC
+━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<style>
+/* FAB */
+.chat-fab{position:fixed;bottom:26px;left:26px;z-index:980;width:62px;height:62px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--gold));border:none;cursor:pointer;box-shadow:0 8px 28px rgba(255,201,60,.42),0 0 0 4px rgba(255,201,60,.14);display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--navy);transition:all .3s cubic-bezier(.34,1.56,.64,1);flex-direction:column;gap:1px}
+.chat-fab:hover{transform:scale(1.08) translateY(-2px);box-shadow:0 12px 36px rgba(255,201,60,.55)}
+.chat-fab.hidden{transform:scale(0) rotate(90deg);pointer-events:none}
+.chat-fab::before{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px dashed rgba(255,201,60,.3);animation:fabspin 14s linear infinite}
+@keyframes fabspin{to{transform:rotate(360deg)}}
+.chat-fab-label{font-size:.42rem;font-weight:800;color:var(--navy);letter-spacing:.4px;line-height:1}
+.chat-badge{position:absolute;top:-4px;right:-4px;width:20px;height:20px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:white;border:2px solid var(--cream)}
+
+/* Chat Window */
+.chat-win{position:fixed;bottom:26px;left:26px;z-index:981;width:390px;max-width:calc(100vw - 40px);height:640px;max-height:calc(100vh - 40px);background:#0B1535;border-radius:22px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 28px 72px rgba(0,0,0,.5),0 0 0 1px rgba(255,201,60,.1);transform:scale(0) translateY(24px);opacity:0;transform-origin:bottom left;transition:all .32s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.chat-win.open{transform:scale(1) translateY(0);opacity:1;pointer-events:auto}
+
+/* Header */
+.cw-head{background:linear-gradient(135deg,#060E30,#2E2C78);padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,201,60,.1);flex-shrink:0;position:relative}
+.cw-head::after{content:"";position:absolute;bottom:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,201,60,.25),transparent)}
+.cw-av{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--yellow),var(--gold));display:flex;align-items:center;justify-content:center;font-size:1.15rem;font-weight:900;color:var(--navy);flex-shrink:0;box-shadow:0 4px 14px rgba(255,201,60,.3)}
+.cw-name{font-size:.88rem;font-weight:800;color:var(--yellow);display:flex;align-items:center;gap:6px;margin-bottom:2px}
+.cw-ai-tag{background:rgba(255,201,60,.15);color:var(--yellow);font-size:.5rem;padding:2px 7px;border-radius:8px;font-weight:700;letter-spacing:.5px}
+.cw-st{font-size:.63rem;color:rgba(255,255,255,.42);display:flex;align-items:center;gap:4px}
+.cw-st::before{content:"";width:5px;height:5px;background:var(--green);border-radius:50%;animation:cwpulse 2s infinite}
+@keyframes cwpulse{0%,100%{opacity:1}50%{opacity:.2}}
+.cw-hbtns{display:flex;gap:5px;margin-right:auto}
+.cw-hbtn{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.07);border:none;cursor:pointer;color:rgba(255,255,255,.55);font-size:.8rem;display:flex;align-items:center;justify-content:center;transition:.15s}
+.cw-hbtn:hover{background:rgba(255,255,255,.14);color:var(--yellow)}
+
+/* Welcome screen */
+.cw-welcome{padding:20px 16px 14px;text-align:center;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
+.cw-wl-av{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--gold));margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:900;color:var(--navy);box-shadow:0 8px 22px rgba(255,201,60,.3);position:relative}
+.cw-wl-av::before{content:"";position:absolute;inset:-4px;border-radius:50%;border:1.5px dashed rgba(255,201,60,.3);animation:fabspin 12s linear infinite}
+.cw-wl-title{font-size:.92rem;font-weight:800;color:var(--yellow);margin-bottom:4px}
+.cw-wl-sub{font-size:.7rem;color:rgba(255,255,255,.42);line-height:1.7}
+
+/* Body */
+.cw-body{flex:1;overflow-y:auto;padding:12px 11px;display:flex;flex-direction:column;gap:9px;background:rgba(0,0,0,.15);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.07) transparent}
+.cw-body::-webkit-scrollbar{width:3px}
+.cw-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:3px}
+
+/* Messages */
+.cwmsg{display:flex;gap:7px;align-items:flex-end;animation:cwmsgIn .25s ease}
+@keyframes cwmsgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.cwmsg.user{flex-direction:row-reverse}
+.cwav{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:800}
+.cwmsg.bot .cwav{background:linear-gradient(135deg,var(--yellow),var(--gold));color:var(--navy)}
+.cwmsg.user .cwav{background:linear-gradient(135deg,#3D3B95,#2E2C78);color:var(--yellow)}
+.cwwrap{max-width:82%;display:flex;flex-direction:column;gap:3px}
+.cwmsg.user .cwwrap{align-items:flex-end}
+.cwbub{padding:9px 13px;border-radius:14px;font-size:.78rem;line-height:1.7;word-wrap:break-word}
+.cwmsg.bot .cwbub{background:rgba(255,255,255,.06);color:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.07);border-bottom-right-radius:4px}
+.cwmsg.user .cwbub{background:linear-gradient(135deg,var(--yellow),var(--gold));color:var(--navy);font-weight:600;border-bottom-left-radius:4px}
+.cwtime{font-size:.56rem;color:rgba(255,255,255,.22);padding:0 3px}
+.cwmsg.user .cwtime{text-align:left}
+.cwbub strong{color:var(--yellow)}.cwmsg.user .cwbub strong{color:var(--navy)}
+.cwbub ul{padding-right:14px;margin:4px 0}.cwbub li{font-size:.74rem;margin:2px 0;color:rgba(255,255,255,.8)}
+.cwtag{display:inline-flex;align-items:center;gap:3px;background:rgba(255,201,60,.12);border:1px solid rgba(255,201,60,.18);color:var(--yellow);font-size:.66rem;font-weight:700;padding:2px 8px;border-radius:9px;margin:2px 2px 2px 0}
+.cwact-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.cwact{background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.67rem;font-weight:700;padding:4px 10px;border-radius:7px;cursor:pointer;font-family:inherit;transition:.15s}
+.cwact:hover{background:var(--yellow);color:var(--navy)}
+
+/* Typing */
+.cwtyping{display:flex;gap:7px;align-items:flex-end}
+.cwtbub{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:14px;border-bottom-right-radius:4px;padding:10px 14px;display:flex;gap:4px;align-items:center}
+.cwtd{width:6px;height:6px;background:rgba(255,201,60,.6);border-radius:50%}
+.cwtd:nth-child(1){animation:cwtd 1.3s infinite .1s}
+.cwtd:nth-child(2){animation:cwtd 1.3s infinite .3s}
+.cwtd:nth-child(3){animation:cwtd 1.3s infinite .5s}
+@keyframes cwtd{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+/* Suggestions */
+.cw-sugs{padding:8px 10px;background:rgba(0,0,0,.25);border-top:1px solid rgba(255,255,255,.05);display:flex;flex-wrap:wrap;gap:5px;flex-shrink:0}
+.cwsug{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.55);font-size:.64rem;font-weight:600;padding:5px 10px;border-radius:20px;cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap}
+.cwsug:hover{background:rgba(255,201,60,.1);border-color:rgba(255,201,60,.2);color:var(--yellow)}
+
+/* Input */
+.cw-input{padding:9px 10px;background:rgba(0,0,0,.3);border-top:1px solid rgba(255,255,255,.05);display:flex;gap:7px;align-items:center;flex-shrink:0}
+.cw-inp{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:9px 14px;font-size:.79rem;font-family:inherit;outline:none;color:white;transition:.2s}
+.cw-inp::placeholder{color:rgba(255,255,255,.28)}
+.cw-inp:focus{border-color:rgba(255,201,60,.3);background:rgba(255,255,255,.09)}
+.cw-send{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--gold));border:none;cursor:pointer;color:var(--navy);font-size:.88rem;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
+.cw-send:hover{transform:scale(1.1);box-shadow:0 4px 14px rgba(255,201,60,.4)}
+.cw-foot{padding:4px 12px;text-align:center;font-size:.56rem;color:rgba(255,255,255,.18);flex-shrink:0;background:rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;gap:5px}
+.cw-foot strong{color:rgba(255,201,60,.5)}
+@media(max-width:480px){.chat-win{width:calc(100vw - 20px);left:10px;right:10px;bottom:10px;height:calc(100vh - 20px);border-radius:16px}.chat-fab{bottom:14px;left:14px;width:56px;height:56px;font-size:1.4rem}}
+</style>
+
+<!-- FAB BUTTON -->
+<button class="chat-fab" id="cwFab" onclick="cwOpen()" aria-label="مساعد العملاء الذكي">
+  <span>💬</span>
+  <span class="chat-fab-label">مساعد</span>
+  <div class="chat-badge" id="cwBadge">1</div>
+</button>
+
+<!-- CHAT WINDOW -->
+<div class="chat-win" id="cwWin">
+  <div class="cw-head">
+    <div class="cw-av">ك</div>
+    <div style="flex:1">
+      <div class="cw-name">كابتن KPTC <span class="cw-ai-tag">AI</span></div>
+      <div class="cw-st">متاح الآن — يرد خلال ثوانٍ</div>
+    </div>
+    <div class="cw-hbtns">
+      <button class="cw-hbtn" onclick="cwReset()" title="محادثة جديدة">🔄</button>
+      <button class="cw-hbtn" onclick="cwClose()" title="إغلاق">✕</button>
+    </div>
+  </div>
+  <div class="cw-welcome" id="cwWelcome">
+    <div class="cw-wl-av">ك</div>
+    <div class="cw-wl-title">مرحباً! أنا كابتن KPTC 🇰🇼</div>
+    <div class="cw-wl-sub">مساعدك الذكي لاستفساراتك عن<br>المساحات التجارية للإيجار</div>
+  </div>
+  <div class="cw-body" id="cwBody"></div>
+  <div class="cw-sugs" id="cwSugs"></div>
+  <div class="cw-input">
+    <input class="cw-inp" id="cwInp" placeholder="اكتب سؤالك هنا..." onkeypress="if(event.key==='Enter')cwSend()" maxlength="200">
+    <button class="cw-send" onclick="cwSend()">➤</button>
+  </div>
+  <div class="cw-foot"><strong>KPTC AI</strong> • مساعد عقاري ذكي</div>
+</div>
+
+<script>
+// ━━━━ AI CLIENT ASSISTANT ━━━━
+var CW = {
+  opened: false,
+  msgs: [],
+  DEFAULT_SUGS: ['ما المساحات المتاحة؟','كم الإيجار؟','أين مواقعكم؟','كيف أحجز مساحة؟','ما الوثائق المطلوبة؟']
+};
+
+var CW_INTENTS = [
+  {kw:['مرحب','هلا','السلام','صباح','مساء','hi','hello'],fn:cwGreet},
+  {kw:['متاح','شاغر','موجود','ما عندكم','ما المساحات','أنواع'],fn:cwAvailable},
+  {kw:['إيجار','سعر','كلفة','كم','تكلفة','بكم'],fn:cwPrice},
+  {kw:['موقع','أين','محطة','منطقة','محافظة'],fn:cwLocations},
+  {kw:['مطعم','كافيه','أكل','food'],fn:cwRestaurant},
+  {kw:['محل','بيع','تجارة','بضاعة'],fn:cwShop},
+  {kw:['لوحة','إعلان','تسويق','advertising'],fn:cwAds},
+  {kw:['موقف','سيارة','parking','باركينج'],fn:cwParking},
+  {kw:['مكتب','office','شركة','إداري'],fn:cwOffice},
+  {kw:['احجز','أبغى','أريد','أطلب','استفسر'],fn:cwBook},
+  {kw:['وثيقة','مستند','ورقة','متطلب','شرط','يحتاج'],fn:cwDocs},
+  {kw:['عقد','مدة','سنة','شهر','تجديد','فترة'],fn:cwContract},
+  {kw:['صيانة','خدمة','كهرباء','ماء','انترنت','شامل'],fn:cwServices},
+  {kw:['تواصل','اتصل','جوال','رقم','ايميل','بريد'],fn:cwContact},
+  {kw:['شكر','مشكور','ممتاز','thank','رائع'],fn:cwThanks},
+];
+
+function cwOpen(){
+  document.getElementById('cwWin').classList.add('open');
+  document.getElementById('cwFab').classList.add('hidden');
+  document.getElementById('cwBadge').style.display='none';
+  if(!CW.opened){
+    CW.opened=true;
+    cwInitSugs(CW.DEFAULT_SUGS);
+    setTimeout(function(){
+      cwAddBot('مرحباً! 👋 أنا <strong>كابتن KPTC</strong> — مساعدك لاستفساراتك عن المساحات التجارية.<br><br>لدينا <strong>12 مساحة متاحة</strong> الآن في 8 مواقع استراتيجية — مطاعم، محلات، لوحات، مواقف ومكاتب.<br><br>بماذا يمكنني مساعدتك؟ 👇',CW.DEFAULT_SUGS);
+    },500);
+  }
+  setTimeout(function(){document.getElementById('cwInp').focus()},350);
+}
+function cwClose(){document.getElementById('cwWin').classList.remove('open');setTimeout(function(){document.getElementById('cwFab').classList.remove('hidden')},200)}
+function cwReset(){if(!confirm('بدء محادثة جديدة؟'))return;document.getElementById('cwBody').innerHTML='';document.getElementById('cwWelcome').style.display='block';CW.opened=false;setTimeout(cwOpen,100)}
+
+function cwSend(){
+  var inp=document.getElementById('cwInp'),txt=inp.value.trim();if(!txt)return;
+  document.getElementById('cwWelcome').style.display='none';
+  cwAddUser(txt);inp.value='';
+  cwInitSugs([]);
+  cwShowTyping();
+  setTimeout(function(){cwHideTyping();var r=cwProcess(txt);cwAddBot(r.text,r.sugs||CW.DEFAULT_SUGS)},700+Math.random()*600);
+}
+function cwQuick(txt){document.getElementById('cwInp').value=txt;cwSend()}
+
+function cwAddUser(txt){
+  var t=cwTime();
+  var b=document.getElementById('cwBody');
+  b.innerHTML+='<div class="cwmsg user"><div class="cwav">أ</div><div class="cwwrap"><div class="cwbub">'+cwEsc(txt)+'</div><div class="cwtime">'+t+'</div></div></div>';
+  b.scrollTop=b.scrollHeight;
+}
+function cwAddBot(html,sugs){
+  var t=cwTime();
+  var b=document.getElementById('cwBody');
+  b.innerHTML+='<div class="cwmsg bot"><div class="cwav">ك</div><div class="cwwrap"><div class="cwbub">'+html+'</div><div class="cwtime">'+t+'</div></div></div>';
+  b.scrollTop=b.scrollHeight;
+  if(sugs&&sugs.length)cwInitSugs(sugs);
+}
+function cwShowTyping(){var b=document.getElementById('cwBody');b.innerHTML+='<div class="cwtyping" id="cwTyping"><div class="cwav" style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--yellow),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:900;color:var(--navy)">ك</div><div class="cwtbub"><div class="cwtd"></div><div class="cwtd"></div><div class="cwtd"></div></div></div>';b.scrollTop=b.scrollHeight}
+function cwHideTyping(){var t=document.getElementById('cwTyping');if(t)t.remove()}
+function cwInitSugs(arr){var b=document.getElementById('cwSugs');b.innerHTML=arr.map(function(s){return'<button class="cwsug" onclick="cwQuick(\''+s.replace(/'/g,"\\'")+'\')" >'+s+'</button>'}).join('')}
+function cwTime(){var n=new Date();return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0')}
+function cwEsc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function cwProcess(msg){
+  var low=msg.toLowerCase();
+  for(var i=0;i<CW_INTENTS.length;i++){var intent=CW_INTENTS[i];for(var j=0;j<intent.kw.length;j++){if(low.indexOf(intent.kw[j])!==-1)return intent.fn(low)}}
+  return cwDefault(msg);
+}
+
+// ━━ RESPONSE HANDLERS ━━
+function cwGreet(){return{text:'أهلاً وسهلاً! 😊 كيف يمكنني مساعدتك اليوم؟',sugs:CW.DEFAULT_SUGS}}
+
+function cwAvailable(){
+  return{text:'لدينا حالياً <strong>12 مساحة متاحة</strong> 🏪<br><br>'
+    +'<span class="cwtag">🍽️ مطاعم</span> <span class="cwtag">🛍️ محلات</span> <span class="cwtag">📢 لوحات</span><br>'
+    +'<span class="cwtag">🅿️ مواقف</span> <span class="cwtag">🏢 مكاتب</span> <span class="cwtag">☕ كشك</span><br><br>'
+    +'<strong>في 8 مواقع:</strong> حولي، الفروانية، السالمية، الصفاة، الأحمدي، الجهراء، مبارك الكبير، الشويخ<br><br>'
+    +'<div class="cwact-row"><button class="cwact" onclick="document.getElementById(\'units\').scrollIntoView({behavior:\'smooth\'});cwClose()">👁️ استعرض المساحات</button></div>',
+    sugs:['مطاعم متاحة','محلات للإيجار','ما الأسعار؟','أريد مساحة في حولي']
+  }
+}
+
+function cwPrice(){
+  return{text:'<strong>💰 الأسعار تبدأ من 220 د.ك/شهر</strong><br><br>'
+    +'☕ <strong>كشك صغير</strong> — 220-350 د.ك/شهر<br>'
+    +'📢 <strong>لوحة إعلانية</strong> — 220-550 د.ك/شهر<br>'
+    +'🛍️ <strong>محل تجاري</strong> — 550-1,000 د.ك/شهر<br>'
+    +'🍽️ <strong>مطعم/كافيه</strong> — 700-1,200 د.ك/شهر<br>'
+    +'🅿️ <strong>موقف سيارات</strong> — 900 د.ك/شهر<br>'
+    +'🏢 <strong>مكتب</strong> — 1,400 د.ك/شهر<br><br>'
+    +'<em>الأسعار حسب الموقع والمساحة — تواصل معنا للحصول على عرض مخصص</em>',
+    sugs:['كيف أحجز مساحة؟','ما المواقع المتاحة؟','أريد مطعم']
+  }
+}
+
+function cwLocations(){
+  return{text:'<strong>📍 مواقعنا في 6 محافظات</strong><br><br>'
+    +'🚌 <strong>محطة حولي</strong> — 12,400 راكب/يوم<br>'
+    +'🚉 <strong>محطة الفروانية</strong> — 15,200 راكب/يوم<br>'
+    +'🚌 <strong>محطة السالمية</strong> — 13,900 راكب/يوم<br>'
+    +'🏢 <strong>المقر الرئيسي — الصفاة</strong><br>'
+    +'🚌 <strong>محطة الجهراء</strong> — 7,100 راكب/يوم<br>'
+    +'🚉 <strong>محطة الأحمدي</strong> — 9,200 راكب/يوم<br>'
+    +'🏗️ <strong>محطة مبارك الكبير</strong> — جديدة ونامية<br>'
+    +'🔧 <strong>ورشة الشويخ</strong> — مساحات خدماتية<br><br>'
+    +'<div class="cwact-row"><button class="cwact" onclick="document.getElementById(\'locations\').scrollIntoView({behavior:\'smooth\'});cwClose()">🗺️ عرض المواقع</button></div>',
+    sugs:['ما المتاح في حولي؟','مطعم في الفروانية','محطة السالمية']
+  }
+}
+
+function cwRestaurant(){
+  return{text:'<strong>🍽️ المساحات المخصصة للمطاعم</strong><br><br>'
+    +'متوفر لدينا وحدات مطاعم متكاملة في:<br><br>'
+    +'• <strong>مبارك الكبير</strong> — 70م² — 800 د.ك/شهر — جاهزة للتشغيل<br>'
+    +'• <strong>الفروانية</strong> — 50م² — 700 د.ك/شهر — قيد التفاوض<br><br>'
+    +'<strong>مميزات وحدات المطاعم:</strong><ul>'
+    +'<li>تصريف مياه وشفط هواء</li>'
+    +'<li>تمديدات كهربائية مناسبة</li>'
+    +'<li>جمهور 5,000-15,000 راكب يومياً</li></ul>'
+    +'<div class="cwact-row"><button class="cwact" onclick="cwClose();openInquiry(\'M002\')">📋 استفسر عن مطعم</button></div>',
+    sugs:['ما الوثائق المطلوبة؟','كيف أحجز؟','ما الأسعار؟']
+  }
+}
+
+function cwShop(){
+  return{text:'<strong>🛍️ المحلات التجارية المتاحة</strong><br><br>'
+    +'• <strong>وحدة B2 — الفروانية</strong> — 50م² — 700 د.ك<br>'
+    +'• <strong>محل الاكسسوارات — السالمية</strong> — 35م² — 650 د.ك<br>'
+    +'• <strong>كشك الجهراء</strong> — 15م² — 280 د.ك<br><br>'
+    +'<strong>مميزات:</strong><ul>'
+    +'<li>واجهات زجاجية في معظم الوحدات</li>'
+    +'<li>حركة راكبين يومية عالية</li>'
+    +'<li>إضاءة وتكييف مشمولة</li></ul>'
+    +'<div class="cwact-row"><button class="cwact" onclick="document.getElementById(\'units\').scrollIntoView({behavior:\'smooth\'});cwClose()">👁️ عرض المحلات</button></div>',
+    sugs:['كيف أحجز؟','الوثائق المطلوبة','الأسعار']
+  }
+}
+
+function cwAds(){
+  return{text:'<strong>📢 اللوحات الإعلانية</strong><br><br>'
+    +'• <strong>لوحة إعلانية — الأحمدي</strong> — 20م² — 380 د.ك/شهر<br>'
+    +'• <strong>لوحة إعلانية — الجهراء</strong> — 18م² — 350 د.ك/شهر<br>'
+    +'• <strong>لوحة داخلية — حولي</strong> — 8م² — 220 د.ك/شهر<br><br>'
+    +'<strong>لماذا الإعلان مع KPTC؟</strong><ul>'
+    +'<li>128,000 راكب يومياً</li>'
+    +'<li>شاشات LED عالية الوضوح</li>'
+    +'<li>مرئية 24 ساعة</li>'
+    +'<li>جمهور متنوع ومستهدف</li></ul>',
+    sugs:['أريد لوحة في حولي','كيف أحجز لوحة؟','ما العقود المتاحة؟']
+  }
+}
+
+function cwParking(){
+  return{text:'<strong>🅿️ مواقف السيارات</strong><br><br>'
+    +'• <strong>موقف VIP — الأحمدي</strong><br>'
+    +'300م² — 50 خانة — 900 د.ك/شهر<br><br>'
+    +'<strong>المميزات:</strong><ul>'
+    +'<li>إنارة ليلية كاملة</li>'
+    +'<li>مسقوف جزئياً</li>'
+    +'<li>أمن على مدار الساعة</li>'
+    +'<li>مناسب لإدارة مواقف الشركات</li></ul>'
+    +'<div class="cwact-row"><button class="cwact" onclick="cwClose();openInquiry(\'P001\')">📋 استفسار عن الموقف</button></div>',
+    sugs:['كيف أحجز؟','الوثائق المطلوبة']
+  }
+}
+
+function cwOffice(){
+  return{text:'<strong>🏢 المكاتب الإدارية</strong><br><br>'
+    +'• <strong>مكتب تجاري — الصفاة</strong><br>'
+    +'80م² — طابق 3 — 1,400 د.ك/شهر<br><br>'
+    +'<strong>مميزات المكتب:</strong><ul>'
+    +'<li>مكيف مركزي</li>'
+    +'<li>انترنت جاهز</li>'
+    +'<li>موقف خاص</li>'
+    +'<li>في قلب المنطقة التجارية بالصفاة</li></ul>'
+    +'<div class="cwact-row"><button class="cwact" onclick="cwClose();openInquiry(\'O001\')">📋 استفسار عن المكتب</button></div>',
+    sugs:['الوثائق المطلوبة','كيف أحجز؟','مدة العقد']
+  }
+}
+
+function cwBook(){
+  return{text:'<strong>📋 طريقة الحجز والاستفسار</strong><br><br>'
+    +'الإجراء بسيط وسريع:<br><br>'
+    +'<strong>1️⃣</strong> اختر الوحدة التي تناسبك<br>'
+    +'<strong>2️⃣</strong> اضغط "استفسر الآن" في صفحة الوحدة<br>'
+    +'<strong>3️⃣</strong> أدخل بياناتك — سنتواصل خلال 24 ساعة<br>'
+    +'<strong>4️⃣</strong> جولة ميدانية للمعاينة<br>'
+    +'<strong>5️⃣</strong> توقيع العقد وتسليم المفاتيح<br><br>'
+    +'<div class="cwact-row"><button class="cwact" onclick="cwClose();openInquiry(null)">📝 أرسل استفساراً الآن</button></div>',
+    sugs:['ما الوثائق المطلوبة؟','كم مدة العقد؟','تواصل معنا']
+  }
+}
+
+function cwDocs(){
+  return{text:'<strong>📄 الوثائق المطلوبة للإيجار</strong><br><br>'
+    +'للأفراد:<ul>'
+    +'<li>بطاقة مدنية سارية</li>'
+    +'<li>كفيل كويتي (للمقيمين)</li></ul>'
+    +'للشركات:<ul>'
+    +'<li>سجل تجاري ساري</li>'
+    +'<li>بطاقة مدنية للمفوض</li>'
+    +'<li>توكيل رسمي</li></ul>'
+    +'<strong>✅ لا توجد رسوم خفية — الإيجار الأول والتأمين فقط</strong>',
+    sugs:['كيف أحجز؟','كم التأمين؟','مدة العقد']
+  }
+}
+
+function cwContract(){
+  return{text:'<strong>📋 تفاصيل العقد</strong><br><br>'
+    +'<strong>مدد متاحة:</strong><ul>'
+    +'<li>6 أشهر — للتجربة</li>'
+    +'<li>سنة واحدة — الأكثر شيوعاً</li>'
+    +'<li>سنتان أو 3 سنوات — خصم عند التجديد</li></ul>'
+    +'<strong>شروط التجديد:</strong><br>'
+    +'رفع لا يتجاوز 5% عند التجديد — إشعار مسبق بـ 60 يوم<br><br>'
+    +'<strong>التأمين:</strong> إيجار شهرين مسترد عند الانتهاء',
+    sugs:['الوثائق المطلوبة','كيف أحجز؟','الأسعار']
+  }
+}
+
+function cwServices(){
+  return{text:'<strong>⚡ الخدمات المشمولة في الإيجار</strong><br><br>'
+    +'<span class="cwtag">✓ كهرباء</span> <span class="cwtag">✓ مياه</span> <span class="cwtag">✓ تكييف مركزي</span><br>'
+    +'<span class="cwtag">✓ إضاءة مشتركة</span> <span class="cwtag">✓ أمن 24 ساعة</span><br>'
+    +'<span class="cwtag">✓ صيانة المناطق المشتركة</span><br><br>'
+    +'<strong>غير مشمول:</strong> انترنت الوحدة، الزينة الداخلية',
+    sugs:['كيف أحجز؟','الأسعار','الوثائق']
+  }
+}
+
+function cwContact(){
+  return{text:'<strong>📞 تواصل مع فريق التأجير</strong><br><br>'
+    +'📱 <strong>الجوال/واتساب:</strong><br><span class="cwtag">1880 001</span><br><br>'
+    +'📧 <strong>البريد الإلكتروني:</strong><br>marketing@kptc.com.kw<br><br>'
+    +'⏰ <strong>ساعات العمل:</strong><br>الأحد – الخميس: 7:30 ص – 2:30 م<br><br>'
+    +'<div class="cwact-row"><button class="cwact" onclick="cwClose();openInquiry(null)">📝 أرسل استفساراً</button></div>',
+    sugs:['أرسل استفساراً','الوثائق المطلوبة']
+  }
+}
+
+function cwThanks(){
+  var r=['العفو! 🌸 أتمنى أن تجد المساحة المناسبة لنشاطك.','وأنت كذلك! 😊 لا تتردد بالتواصل متى تريد.','سعدت بمساعدتك! 🌟 KPTC في خدمتك دائماً.'];
+  return{text:r[Math.floor(Math.random()*r.length)],sugs:CW.DEFAULT_SUGS}
+}
+
+function cwDefault(){
+  return{text:'لم أفهم سؤالك تماماً 🤔<br><br>يمكنني مساعدتك في:<br>• المساحات المتاحة وأسعارها<br>• مواقعنا في الكويت<br>• إجراءات الحجز والوثائق<br>• الخدمات المشمولة في الإيجار<br><br>أو <strong>تواصل معنا مباشرة على 1880 001</strong>',sugs:CW.DEFAULT_SUGS}
+}
+
+// Auto-attention pulse after 8 seconds
+setTimeout(function(){
+  if(!CW.opened){
+    var fab=document.getElementById('cwFab');
+    fab.style.animation='none';
+    var b=document.getElementById('cwBadge');
+    b.style.background='var(--orange)';
+    b.textContent='💬';
+  }
+},8000);
+</script>
+<footer class="k2-foot"><div class="k2-w"><div class="k2-fg">
+<div><a class="k2-brand" href="KPTC_Home.html"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b></span></a><p>شركة النقل العام الكويتية، أول وأكبر مشغّل للنقل العام في الكويت منذ 1962، مملوكة بالكامل للدولة.</p></div>
+<div><h4>خدماتنا</h4><ul><li><a href="KPTC_Routes.html">الخطوط والمسارات</a></li><li><a href="KPTC_Subscriptions.html">الاشتراكات</a></li><li><a href="KPTC_Umrah.html">رحلات العمرة</a></li><li><a href="KPTC_VIP.html">باصات VIP</a></li><li><a href="KPTC_Winch.html">الونش</a></li></ul></div>
+<div><h4>خدمة العملاء</h4><ul><li><a href="KPTC_LostFound.html">المفقودات</a></li><li><a href="KPTC_AI_Assistant.html">المساعد الذكي</a></li><li><a href="KPTC_Home.html#contact">الشكاوى</a></li><li><a href="KPTC_Home.html#contact">تواصل معنا</a></li></ul></div>
+<div><h4>الشركة</h4><ul><li><a href="KPTC_Home.html#about">عن KPTC</a></li><li><a href="KPTC_Advertising.html">أعلن معنا</a></li><li><a href="KPTC_RE_Client.html">مساحات للإيجار</a></li><li><a href="KPTC_Portal.html">بوابة الموظفين</a></li></ul></div>
+</div><div class="k2-fb"><span>© 2026 شركة النقل العام الكويتية. جميع الحقوق محفوظة.</span><span>kptc.com.kw</span></div></div></footer>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+</html>

@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPTC — التحول الرقمي والخطة التنفيذية</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#0B1535;--navy-d:#060C24;--navy-l:#2E2C78;
+  --gold:#D4A017;--yellow:#FFC93C;--yellow-l:#FFE08A;
+  --cream:#FAF7F0;--paper:#F5F1E8;
+  --ink:#0A0F24;--gray:#5D5C80;--line:#D9D3C2;
+  --green:#0F766E;--red:#9F1239;--orange:#C2410C;
+}
+
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;background:var(--cream);color:var(--ink);overflow-x:hidden;line-height:1.65}
+
+/*━━━━━ NAVIGATION ━━━━━*/
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(11,21,53,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,160,23,.15)}
+.nav-wrap{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{display:flex;align-items:center;gap:12px;cursor:pointer}
+.nav-logo{width:42px;height:42px;background:linear-gradient(135deg,var(--gold),var(--yellow));border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;color:var(--navy);box-shadow:0 4px 16px rgba(255,201,60,.25);position:relative}
+.nav-logo::before{content:"";position:absolute;inset:-2px;border-radius:13px;background:linear-gradient(135deg,var(--gold),var(--yellow));z-index:-1;opacity:.4;filter:blur(8px)}
+.nav-title{font-weight:800;font-size:1.05rem;letter-spacing:3.5px;color:var(--yellow)}
+.nav-sub{font-size:.56rem;color:rgba(255,255,255,.4);letter-spacing:2px;margin-top:2px;font-weight:500}
+.nav-menu{display:flex;gap:4px;list-style:none}
+.nav-menu a{color:rgba(255,255,255,.6);text-decoration:none;font-size:.8rem;padding:8px 15px;border-radius:8px;transition:.2s;font-weight:500}
+.nav-menu a:hover{color:var(--yellow);background:rgba(255,201,60,.08)}
+.nav-cta{background:var(--yellow);color:var(--navy);border:none;border-radius:10px;padding:10px 18px;font-size:.8rem;font-weight:700;cursor:pointer;transition:.2s;font-family:inherit}
+.nav-cta:hover{background:white;box-shadow:0 6px 20px rgba(255,201,60,.35)}
+
+/*━━━━━ HERO ━━━━━*/
+.hero{min-height:100vh;background:linear-gradient(145deg,var(--navy-d) 0%,var(--navy) 50%,var(--navy-l) 100%);color:white;display:flex;align-items:center;padding:110px 24px 80px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;top:10%;left:-15%;width:500px;height:500px;background:radial-gradient(circle,rgba(255,201,60,.12) 0%,transparent 60%);pointer-events:none}
+.hero::after{content:"";position:absolute;bottom:-20%;right:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(212,160,23,.08) 0%,transparent 70%);pointer-events:none}
+
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,201,60,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,201,60,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;opacity:.4}
+
+.hero-wrap{max-width:1200px;margin:0 auto;width:100%;position:relative;z-index:2;display:grid;grid-template-columns:1.2fr 1fr;gap:60px;align-items:center}
+
+.hero-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,201,60,.08);border:1px solid rgba(255,201,60,.2);color:var(--yellow);padding:7px 18px;border-radius:30px;font-size:.72rem;font-weight:700;margin-bottom:24px;letter-spacing:1px}
+.hero-chip::before{content:"";width:6px;height:6px;background:var(--yellow);border-radius:50%;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,201,60,.6)}70%{box-shadow:0 0 0 7px rgba(255,201,60,0)}}
+
+.hero h1{font-size:clamp(2rem,4.5vw,3.4rem);font-weight:900;line-height:1.1;margin-bottom:22px;letter-spacing:-1px}
+.hero h1 .accent{background:linear-gradient(135deg,var(--yellow),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;position:relative;display:inline-block}
+.hero h1 .accent::after{content:"";position:absolute;bottom:-4px;right:0;left:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--yellow),transparent);border-radius:3px}
+
+.hero p{font-size:1.02rem;color:rgba(255,255,255,.7);max-width:540px;margin-bottom:32px;line-height:1.85}
+
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
+.btn-primary{background:linear-gradient(135deg,var(--yellow),var(--gold));color:var(--navy);border:none;border-radius:12px;padding:14px 26px;font-size:.88rem;font-weight:800;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;transition:.25s;box-shadow:0 6px 24px rgba(255,201,60,.25)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(255,201,60,.4)}
+.btn-secondary{background:transparent;color:white;border:1.5px solid rgba(255,255,255,.2);border-radius:12px;padding:14px 26px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;transition:.2s}
+.btn-secondary:hover{background:rgba(255,255,255,.05);border-color:rgba(255,201,60,.4)}
+
+/* Hero Right - Stats Card */
+.hero-card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));border:1px solid rgba(255,201,60,.15);border-radius:20px;padding:32px;position:relative;backdrop-filter:blur(10px)}
+.hero-card::before{content:"";position:absolute;top:-1px;left:-1px;right:-1px;height:2px;background:linear-gradient(90deg,transparent,var(--yellow),transparent);border-radius:20px 20px 0 0}
+.hc-label{font-size:.6rem;color:rgba(255,255,255,.4);letter-spacing:3px;font-weight:700;margin-bottom:14px}
+.hc-title{font-size:1.1rem;color:var(--yellow);font-weight:800;margin-bottom:24px}
+.hc-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.hc-stat{padding:14px;background:rgba(0,0,0,.15);border-radius:12px;border:1px solid rgba(255,255,255,.04)}
+.hc-num{font-size:1.7rem;font-weight:900;color:var(--yellow);line-height:1;font-variant-numeric:tabular-nums}
+.hc-lbl{font-size:.65rem;color:rgba(255,255,255,.5);margin-top:4px}
+
+/* Scroll indicator */
+.scroll-indicator{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.5);font-size:.7rem;display:flex;flex-direction:column;align-items:center;gap:6px;animation:bounce 2s infinite}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-6px)}}
+
+/*━━━━━ SECTIONS ━━━━━*/
+section{padding:90px 24px;position:relative}
+.section-wrap{max-width:1200px;margin:0 auto}
+.section-label{display:inline-block;font-size:.68rem;font-weight:800;color:var(--gold);letter-spacing:3px;margin-bottom:12px;padding:4px 14px;background:rgba(212,160,23,.08);border-radius:20px}
+.section-title{font-size:clamp(1.8rem,3.2vw,2.4rem);font-weight:900;color:var(--navy);margin-bottom:14px;line-height:1.2;letter-spacing:-.5px}
+.section-subtitle{font-size:1rem;color:var(--gray);max-width:620px;margin-bottom:56px;line-height:1.8}
+
+/*━━━━━ VISION ━━━━━*/
+.vision{background:var(--cream);position:relative}
+.vision::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent)}
+
+.vision-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.vision-card{background:white;border:1px solid var(--line);border-radius:18px;padding:32px 28px;position:relative;transition:.25s;overflow:hidden}
+.vision-card::before{content:"";position:absolute;top:0;right:0;width:80px;height:80px;background:linear-gradient(135deg,var(--yellow),transparent);opacity:.12;border-radius:0 18px 0 100%;transition:.3s}
+.vision-card:hover{transform:translateY(-4px);border-color:var(--gold);box-shadow:0 20px 50px rgba(11,21,53,.08)}
+.vision-card:hover::before{opacity:.2;transform:scale(1.3)}
+
+.vc-num{font-size:.68rem;font-weight:900;color:var(--gold);letter-spacing:2px;margin-bottom:18px}
+.vc-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--navy),var(--navy-l));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:20px;box-shadow:0 8px 22px rgba(11,21,53,.15)}
+.vc-title{font-size:1.15rem;font-weight:800;color:var(--navy);margin-bottom:10px}
+.vc-text{font-size:.85rem;color:var(--gray);line-height:1.8}
+
+/*━━━━━ METRICS ━━━━━*/
+.metrics{background:var(--paper);position:relative}
+.metrics::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:var(--line)}
+.metrics-hd{text-align:center;margin-bottom:50px}
+
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.metric{background:white;border-radius:18px;padding:28px 22px;border:1px solid var(--line);text-align:center;position:relative;transition:.25s}
+.metric:hover{transform:translateY(-3px);box-shadow:0 15px 40px rgba(11,21,53,.06)}
+.metric-icon{width:52px;height:52px;margin:0 auto 14px;background:rgba(212,160,23,.1);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.4rem}
+.metric-val{font-size:2.2rem;font-weight:900;color:var(--navy);line-height:1;margin-bottom:6px;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.metric-lbl{font-size:.74rem;color:var(--gray);font-weight:500;margin-bottom:10px}
+.metric-chg{font-size:.66rem;font-weight:700;padding:3px 10px;border-radius:12px;display:inline-block}
+.chg-up{background:rgba(15,118,110,.08);color:var(--green)}
+.chg-down{background:rgba(159,18,57,.08);color:var(--red)}
+
+/*━━━━━ TIMELINE ━━━━━*/
+.timeline-sec{background:var(--cream)}
+.timeline{position:relative;max-width:880px;margin:0 auto}
+.timeline::before{content:"";position:absolute;right:50%;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),var(--line),var(--gold));transform:translateX(50%)}
+
+.t-item{position:relative;padding:20px 0;display:grid;grid-template-columns:1fr 80px 1fr;gap:0;align-items:center}
+.t-content{padding:0 28px}
+.t-content.right{text-align:left;grid-column:3}
+.t-content.left{text-align:right;grid-column:1}
+.t-dot{grid-column:2;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--gold));justify-self:center;box-shadow:0 0 0 4px white,0 0 0 5px var(--gold);z-index:2;position:relative}
+.t-dot::before{content:"";position:absolute;inset:-8px;border-radius:50%;background:rgba(255,201,60,.3);animation:ping 2.5s infinite}
+@keyframes ping{0%{transform:scale(1);opacity:.6}100%{transform:scale(2);opacity:0}}
+
+.t-card{background:white;border:1px solid var(--line);border-radius:16px;padding:24px;transition:.25s;position:relative;display:inline-block;width:100%}
+.t-card:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 15px 40px rgba(11,21,53,.08)}
+.t-card::before{content:"";position:absolute;top:24px;width:12px;height:12px;background:white;border:1px solid var(--line);transform:rotate(45deg)}
+.t-content.right .t-card::before{right:-7px;border-bottom:none;border-left:none}
+.t-content.left .t-card::before{left:-7px;border-top:none;border-right:none}
+
+.t-phase{font-size:.62rem;font-weight:800;color:var(--gold);letter-spacing:2.5px;margin-bottom:6px}
+.t-date{font-size:.78rem;font-weight:700;color:var(--navy);margin-bottom:8px}
+.t-title{font-size:1rem;font-weight:800;color:var(--navy);margin-bottom:10px}
+.t-desc{font-size:.8rem;color:var(--gray);line-height:1.75;margin-bottom:12px}
+.t-tags{display:flex;gap:5px;flex-wrap:wrap}
+.t-tag{font-size:.62rem;padding:3px 10px;background:var(--paper);border-radius:20px;color:var(--navy);font-weight:600;border:1px solid var(--line)}
+.t-status{display:inline-flex;align-items:center;gap:5px;font-size:.64rem;font-weight:700;padding:3px 10px;border-radius:12px;margin-top:4px}
+.ts-done{background:rgba(15,118,110,.1);color:var(--green)}
+.ts-active{background:rgba(194,65,12,.1);color:var(--orange)}
+.ts-planned{background:rgba(107,114,128,.1);color:var(--gray)}
+
+/*━━━━━ PROJECTS ━━━━━*/
+.projects{background:white;position:relative}
+.projects::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:var(--line)}
+
+.projects-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+.proj{background:var(--cream);border:1px solid var(--line);border-radius:18px;padding:28px;transition:.25s;position:relative;overflow:hidden}
+.proj:hover{transform:translateY(-3px);border-color:var(--gold);box-shadow:0 15px 40px rgba(11,21,53,.06)}
+.proj::before{content:"";position:absolute;top:0;right:0;width:200px;height:200px;background:radial-gradient(circle,rgba(255,201,60,.1),transparent 60%);pointer-events:none}
+
+.p-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;position:relative}
+.p-icon{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,var(--navy),var(--navy-l));display:flex;align-items:center;justify-content:center;font-size:1.45rem;color:var(--yellow);box-shadow:0 8px 20px rgba(11,21,53,.2)}
+.p-status{font-size:.62rem;font-weight:800;padding:4px 12px;border-radius:20px;letter-spacing:.5px}
+.p-status.done{background:rgba(15,118,110,.1);color:var(--green);border:1px solid rgba(15,118,110,.2)}
+.p-status.active{background:rgba(194,65,12,.1);color:var(--orange);border:1px solid rgba(194,65,12,.2)}
+.p-status.plan{background:rgba(11,21,53,.06);color:var(--navy);border:1px solid rgba(11,21,53,.1)}
+
+.p-title{font-size:1.15rem;font-weight:800;color:var(--navy);margin-bottom:8px;line-height:1.3}
+.p-desc{font-size:.82rem;color:var(--gray);line-height:1.75;margin-bottom:18px}
+
+.p-progress{margin-bottom:16px}
+.p-prog-label{display:flex;justify-content:space-between;font-size:.68rem;font-weight:700;color:var(--navy);margin-bottom:6px}
+.p-prog-bar{height:6px;background:var(--line);border-radius:10px;overflow:hidden}
+.p-prog-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--gold),var(--yellow));transition:width 1s ease;position:relative}
+.p-prog-fill::after{content:"";position:absolute;top:0;right:0;bottom:0;width:30px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);animation:shimmer 2s infinite}
+@keyframes shimmer{0%{transform:translateX(30px)}100%{transform:translateX(-200px)}}
+
+.p-meta{display:flex;gap:18px;padding-top:14px;border-top:1px solid var(--line);font-size:.7rem;color:var(--gray)}
+.p-meta strong{color:var(--navy);font-weight:700;display:block;font-size:.76rem}
+
+/*━━━━━ IMPACT ━━━━━*/
+.impact{background:linear-gradient(145deg,var(--navy-d),var(--navy),var(--navy-l));color:white;position:relative;overflow:hidden}
+.impact::before{content:"";position:absolute;top:0;right:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(255,201,60,.1),transparent 70%);pointer-events:none}
+
+.impact-hd{text-align:center;margin-bottom:50px;position:relative;z-index:2}
+.impact-hd .section-label{background:rgba(255,201,60,.1);color:var(--yellow)}
+.impact-hd h2{color:white}
+.impact-hd p{color:rgba(255,255,255,.6);margin:0 auto}
+
+.impact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;position:relative;z-index:2}
+.impact-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,201,60,.15);border-radius:18px;padding:32px 26px;backdrop-filter:blur(10px);transition:.25s}
+.impact-card:hover{transform:translateY(-4px);border-color:rgba(255,201,60,.35);background:rgba(255,255,255,.05)}
+
+.ic-icon{width:58px;height:58px;background:linear-gradient(135deg,var(--yellow),var(--gold));border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:20px;color:var(--navy)}
+.ic-val{font-size:2.4rem;font-weight:900;color:var(--yellow);line-height:1;margin-bottom:8px;letter-spacing:-1px}
+.ic-lbl{font-size:.8rem;color:rgba(255,255,255,.8);font-weight:600;margin-bottom:14px}
+.ic-desc{font-size:.76rem;color:rgba(255,255,255,.55);line-height:1.75}
+
+/*━━━━━ TEAM ━━━━━*/
+.team{background:var(--paper)}
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.tm-card{background:white;border:1px solid var(--line);border-radius:18px;padding:30px 24px;text-align:center;transition:.25s;position:relative;overflow:hidden}
+.tm-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),var(--yellow),var(--gold));transform:scaleX(0);transform-origin:right;transition:transform .3s}
+.tm-card:hover{transform:translateY(-3px);box-shadow:0 15px 40px rgba(11,21,53,.08)}
+.tm-card:hover::before{transform:scaleX(1);transform-origin:left}
+
+.tm-av{width:80px;height:80px;background:linear-gradient(135deg,var(--navy),var(--navy-l));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:var(--yellow);font-weight:900;margin:0 auto 16px;box-shadow:0 10px 30px rgba(11,21,53,.2);position:relative}
+.tm-av::after{content:"";position:absolute;inset:-4px;border:2px dashed rgba(212,160,23,.3);border-radius:50%;animation:rotate 12s linear infinite}
+@keyframes rotate{to{transform:rotate(360deg)}}
+
+.tm-name{font-size:1rem;font-weight:800;color:var(--navy);margin-bottom:4px}
+.tm-role{font-size:.72rem;color:var(--gold);font-weight:700;margin-bottom:14px;letter-spacing:.5px}
+.tm-desc{font-size:.74rem;color:var(--gray);line-height:1.75}
+
+/*━━━━━ CTA ━━━━━*/
+.cta{padding:90px 24px;background:var(--cream)}
+.cta-box{max-width:900px;margin:0 auto;background:linear-gradient(135deg,var(--navy-d),var(--navy));color:white;border-radius:24px;padding:56px 48px;text-align:center;position:relative;overflow:hidden}
+.cta-box::before{content:"";position:absolute;top:-60px;left:-60px;width:250px;height:250px;border-radius:50%;border:50px solid rgba(255,201,60,.06);pointer-events:none}
+.cta-box::after{content:"";position:absolute;bottom:-80px;right:-80px;width:280px;height:280px;border-radius:50%;border:50px solid rgba(255,201,60,.04);pointer-events:none}
+
+.cta-chip{display:inline-block;background:rgba(255,201,60,.1);color:var(--yellow);font-size:.65rem;font-weight:800;padding:5px 16px;border-radius:20px;letter-spacing:2px;margin-bottom:18px;border:1px solid rgba(255,201,60,.2)}
+.cta h2{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:900;margin-bottom:16px;line-height:1.3}
+.cta h2 .hl{color:var(--yellow)}
+.cta p{font-size:.92rem;color:rgba(255,255,255,.7);max-width:560px;margin:0 auto 32px;line-height:1.85}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;z-index:2}
+
+/*━━━━━ FOOTER ━━━━━*/
+footer{background:var(--navy-d);color:rgba(255,255,255,.5);padding:36px 24px;text-align:center;border-top:1px solid rgba(255,201,60,.1);font-size:.76rem;line-height:1.9}
+footer strong{color:var(--yellow);font-weight:700}
+
+/*━━━━━ RESPONSIVE ━━━━━*/
+@media(max-width:900px){
+  .nav-menu{display:none}
+  .hero-wrap{grid-template-columns:1fr}
+  .hero-card{margin-top:20px}
+  .vision-grid,.metrics-grid,.projects-grid,.impact-grid,.team-grid{grid-template-columns:1fr 1fr}
+  .timeline::before{right:30px;transform:none}
+  .t-item{grid-template-columns:60px 1fr;gap:0}
+  .t-content.right,.t-content.left{grid-column:2;text-align:right;padding:0 0 0 10px}
+  .t-dot{grid-column:1;justify-self:center}
+  .t-card::before{right:-7px;left:auto;border-bottom:none;border-left:none}
+  .t-content.left .t-card::before{right:-7px;left:auto;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:none;border-left:none;transform:rotate(45deg)}
+  section{padding:60px 20px}
+}
+@media(max-width:600px){
+  .metrics-grid,.team-grid,.vision-grid,.projects-grid,.impact-grid{grid-template-columns:1fr}
+  .hero{padding-top:100px;padding-bottom:60px}
+  .hero h1{font-size:2rem}
+  .hc-grid{grid-template-columns:1fr}
+  .cta-box{padding:40px 24px}
+}
+</style>
+</head>
+<body>
+
+<!--━━━━━ NAV ━━━━━-->
+<nav>
+  <div class="nav-wrap">
+    <div class="nav-brand" onclick="scrollTo({top:0,behavior:'smooth'})">
+      <div class="nav-logo">K</div>
+      <div>
+        <div class="nav-title">KPTC</div>
+        <div class="nav-sub">EXECUTIVE BRIEF</div>
+      </div>
+    </div>
+    <ul class="nav-menu">
+      <li><a href="#vision">الرؤية</a></li>
+      <li><a href="#metrics">المؤشرات</a></li>
+      <li><a href="#timeline">الخطة</a></li>
+      <li><a href="#projects">المشاريع</a></li>
+      <li><a href="#impact">الأثر</a></li>
+    </ul>
+    <button class="nav-cta" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">📋 العرض التنفيذي</button>
+  </div>
+</nav>
+
+<!--━━━━━ HERO ━━━━━-->
+<header class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-wrap">
+    <div>
+      <div class="hero-chip">التحول الرقمي • إدارة التسويق والعلاقات العامة</div>
+      <h1>إعادة تعريف<br>تجربة النقل العام<br><span class="accent">في الكويت</span></h1>
+      <p>عرض تنفيذي شامل لخطة التطوير والإنجازات خلال فترة التكليف — ثلاثة أشهر من العمل الاستراتيجي المكثف الذي يعيد تموضع الشركة رقمياً وتشغيلياً لمواكبة معايير أفضل شركات النقل العالمية.</p>
+      <div class="hero-ctas">
+        <button class="btn-primary" onclick="document.getElementById('timeline').scrollIntoView({behavior:'smooth'})">
+          📋 استعراض الخطة الكاملة
+        </button>
+        <button class="btn-secondary" onclick="document.getElementById('metrics').scrollIntoView({behavior:'smooth'})">
+          📊 المؤشرات الحية
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <div class="hc-label">BY THE NUMBERS</div>
+      <div class="hc-title">الإنجازات حتى اليوم</div>
+      <div class="hc-grid">
+        <div class="hc-stat"><div class="hc-num">22</div><div class="hc-lbl">مبادرة تسويقية</div></div>
+        <div class="hc-stat"><div class="hc-num">9</div><div class="hc-lbl">صفحات موقع جديدة</div></div>
+        <div class="hc-stat"><div class="hc-num">5</div><div class="hc-lbl">ركائز استراتيجية</div></div>
+        <div class="hc-stat"><div class="hc-num">50%</div><div class="hc-lbl">توفير في الميزانية</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+    <span>اكتشف المزيد</span>
+    <span style="font-size:1.1rem">↓</span>
+  </div>
+</header>
+
+<!--━━━━━ VISION ━━━━━-->
+<section class="vision" id="vision">
+  <div class="section-wrap">
+    <div style="text-align:center;margin-bottom:50px">
+      <div class="section-label">الرؤية</div>
+      <h2 class="section-title">ثلاثة محاور لإعادة التموضع</h2>
+      <p class="section-subtitle" style="margin:0 auto">خطة متكاملة تتحرك في ثلاثة اتجاهات متوازية — بناء الأساس الرقمي، تحسين تجربة العميل، ورفع الكفاءة التشغيلية — وكلها تصب في مصلحة المستخدم النهائي.</p>
+    </div>
+
+    <div class="vision-grid">
+      <div class="vision-card">
+        <div class="vc-num">المحور الأول</div>
+        <div class="vc-icon">🌐</div>
+        <div class="vc-title">الحضور الرقمي الاحترافي</div>
+        <div class="vc-text">موقع إلكتروني عصري ثلاثي اللغات بمعايير RTA Dubai وTfL London — يقدم حجز إلكتروني، تتبع مباشر، ودفع رقمي متكامل عبر KNET وApple Pay.</div>
+      </div>
+
+      <div class="vision-card">
+        <div class="vc-num">المحور الثاني</div>
+        <div class="vc-icon">💳</div>
+        <div class="vc-title">تجربة العميل المتكاملة</div>
+        <div class="vc-text">ثلاث باقات اشتراك مرنة Starter وGrowth وSchool، نظام مفقودات رقمي، خدمة ونش على مدار الساعة، ورحلات عمرة وVIP بجودة عالمية.</div>
+      </div>
+
+      <div class="vision-card">
+        <div class="vc-num">المحور الثالث</div>
+        <div class="vc-icon">⚡</div>
+        <div class="vc-title">الكفاءة التشغيلية</div>
+        <div class="vc-text">لوحة تحكم إدارية متكاملة، تقارير تلقائية يومية وأسبوعية، وبوابة موظفين رقمية لإدارة الطلبات والموافقات بدلاً من الورق.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--━━━━━ METRICS ━━━━━-->
+<section class="metrics" id="metrics">
+  <div class="section-wrap">
+    <div class="metrics-hd">
+      <div class="section-label">المؤشرات الحية</div>
+      <h2 class="section-title">أرقام اليوم في KPTC</h2>
+      <p class="section-subtitle" style="margin:0 auto">لمحة حية من مؤشرات الأداء الرئيسية — محدّثة من قواعد البيانات التشغيلية في اللحظة الراهنة.</p>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric">
+        <div class="metric-icon">🚌</div>
+        <div class="metric-val" id="m1">2,547</div>
+        <div class="metric-lbl">حافلة نشطة يومياً</div>
+        <div class="metric-chg chg-up">↑ 98.2% معدل الانتظام</div>
+      </div>
+      <div class="metric">
+        <div class="metric-icon">👥</div>
+        <div class="metric-val" id="m2">128K</div>
+        <div class="metric-lbl">راكب اليوم</div>
+        <div class="metric-chg chg-up">↑ +8.3% عن أمس</div>
+      </div>
+      <div class="metric">
+        <div class="metric-icon">💳</div>
+        <div class="metric-val">4,821</div>
+        <div class="metric-lbl">اشتراك نشط</div>
+        <div class="metric-chg chg-up">↑ +124 هذا الشهر</div>
+      </div>
+      <div class="metric">
+        <div class="metric-icon">💰</div>
+        <div class="metric-val" id="m3">84.2K</div>
+        <div class="metric-lbl">إيراد اليوم (د.ك)</div>
+        <div class="metric-chg chg-up">↑ +12.1%</div>
+      </div>
+      <div class="metric">
+        <div class="metric-icon">🗺️</div>
+        <div class="metric-val">150</div>
+        <div class="metric-lbl">خط تشغيلي</div>
+        <div class="metric-chg chg-up">6 محافظات</div>
+      </div>
+      <div class="metric">
+        <div class="metric-icon">⭐</div>
+        <div class="metric-val">4.2</div>
+        <div class="metric-lbl">تقييم الخدمة /5</div>
+        <div class="metric-chg chg-up">↑ +0.3 نقطة</div>
+      </div>
+      <div class="metric">
+        <div class="metric-icon">🕌</div>
+        <div class="metric-val">487</div>
+        <div class="metric-lbl">حجز عمرة مؤكد</div>
+        <div class="metric-chg chg-up">6 رحلات قادمة</div>
+      </div>
+      <div class="metric">
+        <div class="metric-icon">📞</div>
+        <div class="metric-val">4h</div>
+        <div class="metric-lbl">متوسط الاستجابة</div>
+        <div class="metric-chg chg-up">↓ من 8 ساعات</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--━━━━━ TIMELINE ━━━━━-->
+<section class="timeline-sec" id="timeline">
+  <div class="section-wrap">
+    <div style="text-align:center;margin-bottom:50px">
+      <div class="section-label">خطة 90 يوماً</div>
+      <h2 class="section-title">ثلاث مراحل — تنفيذ منهجي</h2>
+      <p class="section-subtitle" style="margin:0 auto">الخطة التنفيذية مقسمة على ثلاث مراحل متتابعة، كل مرحلة تبني على ما قبلها — من الفهم إلى الإثبات إلى التقييم.</p>
+    </div>
+
+    <div class="timeline">
+      <div class="t-item">
+        <div class="t-content right">
+          <div class="t-card">
+            <div class="t-phase">PHASE 01</div>
+            <div class="t-date">الشهر الأول • الفهم والتحليل</div>
+            <div class="t-title">تشخيص الوضع الراهن</div>
+            <div class="t-desc">استعراض موقع الشركة الحالي، تحليل بيانات Call Center، دراسة شكاوى العملاء، ومقارنة تفصيلية مع معايير RTA Dubai وTfL London لتحديد فجوات التحسين.</div>
+            <div class="t-tags">
+              <span class="t-tag">تحليل منافسين</span>
+              <span class="t-tag">استماع للعملاء</span>
+              <span class="t-tag">تدقيق داخلي</span>
+            </div>
+            <div class="t-status ts-done">✓ مكتمل</div>
+          </div>
+        </div>
+        <div class="t-dot"></div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-dot"></div>
+        <div class="t-content left">
+          <div class="t-card">
+            <div class="t-phase">PHASE 02</div>
+            <div class="t-date">الشهر الثاني • الإثبات والتنفيذ</div>
+            <div class="t-title">تصميم الحلول وإطلاقها</div>
+            <div class="t-desc">بناء الموقع الإلكتروني الجديد بتسع صفحات، تصميم لوحة التحكم الإدارية، إعداد خطة تسويقية بخمس ركائز و22 مبادرة، وإطلاق نسخة اقتصادية بخفض 50% من الميزانية.</div>
+            <div class="t-tags">
+              <span class="t-tag">موقع جديد</span>
+              <span class="t-tag">Dashboard</span>
+              <span class="t-tag">خطة تسويقية</span>
+              <span class="t-tag">ميزانية مخفضة</span>
+            </div>
+            <div class="t-status ts-active">● قيد التنفيذ</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-content right">
+          <div class="t-card">
+            <div class="t-phase">PHASE 03</div>
+            <div class="t-date">الشهر الثالث • التقييم والتثبيت</div>
+            <div class="t-title">قياس الأثر والانتقال</div>
+            <div class="t-desc">تقارير أداء شاملة للإدارة العليا، جلسة ثلاثية لتثبيت هيكل التقارير، تنفيذ تدريجي للخطة التسويقية، ودراسة جدوى لنظام WhatsApp Business مع Octamos.</div>
+            <div class="t-tags">
+              <span class="t-tag">تقارير تنفيذية</span>
+              <span class="t-tag">WhatsApp Business</span>
+              <span class="t-tag">تقييم شامل</span>
+            </div>
+            <div class="t-status ts-planned">⌛ مخطط</div>
+          </div>
+        </div>
+        <div class="t-dot"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--━━━━━ PROJECTS ━━━━━-->
+<section class="projects" id="projects">
+  <div class="section-wrap">
+    <div style="text-align:center;margin-bottom:50px">
+      <div class="section-label">المشاريع</div>
+      <h2 class="section-title">المبادرات المُنجزة والجارية</h2>
+      <p class="section-subtitle" style="margin:0 auto">ستة مشاريع رئيسية في مراحل مختلفة من التنفيذ — كل مشروع يمثل نقلة نوعية في خدمة محددة.</p>
+    </div>
+
+    <div class="projects-grid">
+      <div class="proj">
+        <div class="p-head">
+          <div class="p-icon">🌐</div>
+          <div class="p-status active">قيد التنفيذ</div>
+        </div>
+        <div class="p-title">الموقع الإلكتروني الجديد</div>
+        <div class="p-desc">تسع صفحات متكاملة بتصميم عصري ثلاثي اللغات (عربي، إنجليزي، أردو) — نموذج تصوري جاهز لطلب عروض الأسعار.</div>
+        <div class="p-progress">
+          <div class="p-prog-label"><span>التقدم</span><span>78%</span></div>
+          <div class="p-prog-bar"><div class="p-prog-fill" style="width:78%"></div></div>
+        </div>
+        <div class="p-meta">
+          <div><strong>9 صفحات</strong><span>مكتملة</span></div>
+          <div><strong>3 لغات</strong><span>مدعومة</span></div>
+          <div><strong>اليوم</strong><span>آخر تحديث</span></div>
+        </div>
+      </div>
+
+      <div class="proj">
+        <div class="p-head">
+          <div class="p-icon">💻</div>
+          <div class="p-status done">مكتمل</div>
+        </div>
+        <div class="p-title">لوحة التحكم الإدارية</div>
+        <div class="p-desc">نظام إدارة متكامل يشمل 16 قسماً — من إدارة الخطوط إلى التقارير التلقائية — مع تحكم كامل في الإضافة والتعديل والحذف.</div>
+        <div class="p-progress">
+          <div class="p-prog-label"><span>التقدم</span><span>95%</span></div>
+          <div class="p-prog-bar"><div class="p-prog-fill" style="width:95%"></div></div>
+        </div>
+        <div class="p-meta">
+          <div><strong>16 قسم</strong><span>متكامل</span></div>
+          <div><strong>100+ زر</strong><span>تفاعلي</span></div>
+          <div><strong>أمس</strong><span>آخر تحديث</span></div>
+        </div>
+      </div>
+
+      <div class="proj">
+        <div class="p-head">
+          <div class="p-icon">📊</div>
+          <div class="p-status done">مكتمل</div>
+        </div>
+        <div class="p-title">الخطة التسويقية H2 2026</div>
+        <div class="p-desc">خمس ركائز استراتيجية و22 مبادرة تسويقية — مع نسختين: كاملة واقتصادية بخفض 50% من الميزانية استجابة لتوجيهات الإدارة.</div>
+        <div class="p-progress">
+          <div class="p-prog-label"><span>التقدم</span><span>100%</span></div>
+          <div class="p-prog-bar"><div class="p-prog-fill" style="width:100%"></div></div>
+        </div>
+        <div class="p-meta">
+          <div><strong>5 ركائز</strong><span>محورية</span></div>
+          <div><strong>22 مبادرة</strong><span>تفصيلية</span></div>
+          <div><strong>-50%</strong><span>توفير</span></div>
+        </div>
+      </div>
+
+      <div class="proj">
+        <div class="p-head">
+          <div class="p-icon">🔐</div>
+          <div class="p-status active">قيد التنفيذ</div>
+        </div>
+        <div class="p-title">وثيقة الصلاحيات والتقارير</div>
+        <div class="p-desc">وثيقة رسمية تُحدد ست صلاحيات محددة ومصفوفة اتخاذ القرار — لعرضها في الاجتماع الثلاثي وتنظيم هيكل التقارير.</div>
+        <div class="p-progress">
+          <div class="p-prog-label"><span>التقدم</span><span>85%</span></div>
+          <div class="p-prog-bar"><div class="p-prog-fill" style="width:85%"></div></div>
+        </div>
+        <div class="p-meta">
+          <div><strong>6 صلاحيات</strong><span>محددة</span></div>
+          <div><strong>مصفوفة</strong><span>قرار</span></div>
+          <div><strong>هذا الأسبوع</strong><span>المتوقع</span></div>
+        </div>
+      </div>
+
+      <div class="proj">
+        <div class="p-head">
+          <div class="p-icon">📱</div>
+          <div class="p-status plan">مخطط</div>
+        </div>
+        <div class="p-title">WhatsApp Business Integration</div>
+        <div class="p-desc">دراسة جدوى لدمج خدمة WhatsApp Business مع Octamos لتحسين قنوات التواصل مع العملاء وتقليل الضغط على Call Center.</div>
+        <div class="p-progress">
+          <div class="p-prog-label"><span>التقدم</span><span>30%</span></div>
+          <div class="p-prog-bar"><div class="p-prog-fill" style="width:30%"></div></div>
+        </div>
+        <div class="p-meta">
+          <div><strong>Octamos</strong><span>مزود مقترح</span></div>
+          <div><strong>دراسة</strong><span>جدوى</span></div>
+          <div><strong>الشهر القادم</strong><span>المتوقع</span></div>
+        </div>
+      </div>
+
+      <div class="proj">
+        <div class="p-head">
+          <div class="p-icon">📞</div>
+          <div class="p-status plan">مخطط</div>
+        </div>
+        <div class="p-title">تحسين أداء Call Center</div>
+        <div class="p-desc">خطة شاملة لتحسين أداء مركز الاتصالات — معالجة قضايا IVR، تقارير الأداء، ورفع جودة المكالمات.</div>
+        <div class="p-progress">
+          <div class="p-prog-label"><span>التقدم</span><span>15%</span></div>
+          <div class="p-prog-bar"><div class="p-prog-fill" style="width:15%"></div></div>
+        </div>
+        <div class="p-meta">
+          <div><strong>IVR</strong><span>مراجعة</span></div>
+          <div><strong>تقارير</strong><span>منتظمة</span></div>
+          <div><strong>قريباً</strong><span>المتوقع</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--━━━━━ IMPACT ━━━━━-->
+<section class="impact" id="impact">
+  <div class="section-wrap">
+    <div class="impact-hd">
+      <div class="section-label">الأثر المتوقع</div>
+      <h2 class="section-title">ماذا يعني كل هذا؟</h2>
+      <p class="section-subtitle" style="margin:0 auto">النتائج الملموسة المتوقعة من تنفيذ الخطة الكاملة — مؤشرات قابلة للقياس على مستوى الشركة والعميل.</p>
+    </div>
+
+    <div class="impact-grid">
+      <div class="impact-card">
+        <div class="ic-icon">📈</div>
+        <div class="ic-val">+35%</div>
+        <div class="ic-lbl">نمو الاشتراكات الرقمية</div>
+        <div class="ic-desc">تحول من الحضور المكتبي إلى الحجز الإلكتروني عبر الموقع الجديد — مدعوم ببوابات دفع متعددة ومدفوعات آمنة.</div>
+      </div>
+
+      <div class="impact-card">
+        <div class="ic-icon">⏱️</div>
+        <div class="ic-val">-60%</div>
+        <div class="ic-lbl">تقليص زمن الاستجابة</div>
+        <div class="ic-desc">من متوسط 8 ساعات إلى أقل من 4 — عبر نظام شكاوى رقمي متكامل مع تعيين تلقائي وتصعيد للحالات العاجلة.</div>
+      </div>
+
+      <div class="impact-card">
+        <div class="ic-icon">💰</div>
+        <div class="ic-val">-50%</div>
+        <div class="ic-lbl">توفير في الميزانية التسويقية</div>
+        <div class="ic-desc">تنفيذ الخطة الكاملة بنصف الميزانية عبر أدوات مجانية، شراكات محلية، وتوظيف ذكي للموارد الداخلية.</div>
+      </div>
+
+      <div class="impact-card">
+        <div class="ic-icon">🌟</div>
+        <div class="ic-val">4.5/5</div>
+        <div class="ic-lbl">تقييم الخدمة المستهدف</div>
+        <div class="ic-desc">رفع تقييم العملاء من 4.2 إلى 4.5 خلال 6 أشهر — عبر تحسين تجربة الخدمة الرقمية ومركز الاتصال.</div>
+      </div>
+
+      <div class="impact-card">
+        <div class="ic-icon">🗺️</div>
+        <div class="ic-val">3 لغات</div>
+        <div class="ic-lbl">تغطية شاملة للعملاء</div>
+        <div class="ic-desc">العربية والإنجليزية والأردو — لخدمة جميع شرائح العملاء في الكويت بما فيها الجالية المقيمة.</div>
+      </div>
+
+      <div class="impact-card">
+        <div class="ic-icon">🏆</div>
+        <div class="ic-val">Top 3</div>
+        <div class="ic-lbl">ضمن أفضل ناقلين في الخليج</div>
+        <div class="ic-desc">الوصول لمعايير RTA Dubai وTfL London — وتعزيز مكانة KPTC كأحد أفضل مشغلي النقل العام في منطقة الخليج.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--━━━━━ TEAM ━━━━━-->
+<section class="team">
+  <div class="section-wrap">
+    <div style="text-align:center;margin-bottom:50px">
+      <div class="section-label">الفريق</div>
+      <h2 class="section-title">قيادة التحول</h2>
+      <p class="section-subtitle" style="margin:0 auto">المشروع يحظى بدعم كامل من قيادات استراتيجية عبر عدة إدارات — بتعاون محوري بين التسويق والدراسات الاستراتيجية.</p>
+    </div>
+
+    <div class="team-grid">
+      <div class="tm-card">
+        <div class="tm-av">أ</div>
+        <div class="tm-name">أحمد فيصل القطان</div>
+        <div class="tm-role">القائم بأعمال مدير التسويق</div>
+        <div class="tm-desc">المسؤول الأول عن تصميم وتنفيذ خطة التحول — يقود ركائز التسويق والعلاقات العامة وخدمة العملاء بتكليف لمدة ثلاثة أشهر.</div>
+      </div>
+
+      <div class="tm-card">
+        <div class="tm-av" style="background:linear-gradient(135deg,var(--gold),var(--yellow));color:var(--navy)">ع</div>
+        <div class="tm-name">م. عبدالله صالح</div>
+        <div class="tm-role">رئيس الدراسات الاستراتيجية</div>
+        <div class="tm-desc">الشريك الاستراتيجي للمشروع — يوفر المرجعية البيانية والرؤية التشغيلية، ويتابع مخرجات التحول بشكل مباشر.</div>
+      </div>
+
+      <div class="tm-card">
+        <div class="tm-av">ف</div>
+        <div class="tm-name">فريق التسويق</div>
+        <div class="tm-role">إبراهيم الضعيان وعبدالله الزبن وأوراد الياسين</div>
+        <div class="tm-desc">فريق التنفيذ الميداني — العلاقات العامة، التسويق، والإشراف على الحملات والفعاليات والتواصل مع العملاء.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--━━━━━ CTA ━━━━━-->
+<div class="cta" id="cta">
+  <div class="cta-box">
+    <div class="cta-chip">العرض التنفيذي</div>
+    <h2>جاهز لعرض كامل؟<br><span class="hl">دعنا ننتقل من التخطيط إلى التنفيذ</span></h2>
+    <p>المشروع في مرحلة حاسمة تستدعي قراراً واضحاً لبدء المرحلة الثالثة من التنفيذ — مع ضمان الاستمرارية والتمكين اللازم لإتمام التحول الرقمي بالكامل.</p>
+    <div class="cta-btns">
+      <button class="btn-primary" onclick="alert('✅ سيتم التواصل معكم لترتيب جلسة العرض التنفيذي')">
+        📅 جدولة جلسة العرض
+      </button>
+      <button class="btn-secondary" onclick="window.print()" style="color:white;border-color:rgba(255,201,60,.3)">
+        📄 طباعة التقرير
+      </button>
+    </div>
+  </div>
+</div>
+
+<!--━━━━━ FOOTER ━━━━━-->
+<footer>
+  <div style="max-width:1200px;margin:0 auto">
+    <div style="margin-bottom:12px"><strong>KPTC — شركة النقل العام الكويتية</strong></div>
+    <div>عرض تنفيذي لخطة التحول الرقمي • إدارة التسويق والعلاقات العامة • 2026</div>
+    <div style="margin-top:14px;font-size:.68rem;color:rgba(255,255,255,.3)">هذا العرض للاستخدام الداخلي فقط • إعداد: أحمد فيصل القطان</div>
+  </div>
+</footer>
+
+<script>
+// Live metric updates
+setInterval(function(){
+  var m1=document.getElementById('m1');
+  if(m1){var v=parseInt(m1.textContent.replace(',',''));m1.textContent=(v+Math.floor(Math.random()*3-1)).toLocaleString()}
+  var m2=document.getElementById('m2');
+  if(m2){var v=parseInt(m2.textContent);m2.textContent=(v+Math.floor(Math.random()*3))+'K'}
+  var m3=document.getElementById('m3');
+  if(m3){var v=parseFloat(m3.textContent);m3.textContent=(v+Math.random()*.1).toFixed(1)+'K'}
+},4000);
+
+// Smooth scroll animation for progress bars
+var observer=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      var fills=e.target.querySelectorAll('.p-prog-fill');
+      fills.forEach(function(f){
+        var w=f.style.width;f.style.width='0';
+        setTimeout(function(){f.style.width=w},100);
+      });
+    }
+  });
+},{threshold:.3});
+document.querySelectorAll('.projects').forEach(function(el){observer.observe(el)});
+</script>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+</html>

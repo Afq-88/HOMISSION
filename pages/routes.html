@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPTC — الخطوط والمسارات</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#2E2C78; --navy-l:#3D3B95; --navy-d:#1F1D5C;
+  --yellow:#FFC93C; --white:#fff; --light:#F5F5FA;
+  --gray:#5D5C80; --dark:#14133A; --border:#DEDDEC;
+  --green:#10B981; --red:#EF4444; --orange:#F59E0B;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;background:var(--light);color:var(--dark);min-height:100vh}
+
+/* NAV */
+nav{background:var(--navy-d);backdrop-filter:blur(20px);position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(255,201,60,.15)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:62px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:38px;height:38px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;color:var(--navy);font-size:.9rem}
+.logo-name{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.2rem;letter-spacing:2px;color:var(--yellow)}
+.logo-sub{font-size:.6rem;color:rgba(255,255,255,.5);letter-spacing:1px}
+.nav-links{display:flex;gap:4px;list-style:none}
+.nav-links a{color:rgba(255,255,255,.75);text-decoration:none;font-size:.83rem;padding:7px 13px;border-radius:8px;transition:.2s}
+.nav-links a:hover,.nav-links a.active{color:var(--yellow);background:rgba(255,201,60,.08)}
+.nav-links a.active{font-weight:700}
+.btn-back{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px 14px;font-size:.8rem;cursor:pointer;font-family:inherit;transition:.2s}
+.btn-back:hover{background:rgba(255,255,255,.15);color:white}
+
+/* HERO */
+.page-hero{background:linear-gradient(135deg,var(--navy-d) 0%,var(--navy) 60%,var(--navy-l) 100%);padding:36px 32px 0;position:relative;overflow:hidden}
+.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 50%,rgba(255,201,60,.06) 0%,transparent 60%)}
+.hero-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;position:relative;z-index:2}
+.hero-top h1{font-size:1.7rem;color:white;font-weight:700}
+.hero-top h1 span{color:var(--yellow)}
+.live-badge{display:flex;align-items:center;gap:6px;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#34d399;padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:700}
+.live-dot{width:7px;height:7px;background:#34d399;border-radius:50%;animation:livepulse 1.5s infinite}
+@keyframes livepulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+
+/* SEARCH BOX */
+.search-box{background:white;border-radius:20px 20px 0 0;padding:24px 28px;position:relative;z-index:2;box-shadow:0 -4px 30px rgba(0,0,0,.1)}
+.search-row{display:grid;grid-template-columns:1fr 40px 1fr 1fr auto;gap:12px;align-items:end}
+.s-field label{font-size:.72rem;font-weight:700;color:var(--gray);display:block;margin-bottom:6px;letter-spacing:.5px}
+.s-input{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:11px 14px;font-size:.9rem;font-family:inherit;color:var(--dark);outline:none;transition:.2s;background:#fafafa}
+.s-input:focus{border-color:var(--navy);background:white;box-shadow:0 0 0 3px rgba(46,44,120,.08)}
+.swap-btn{width:40px;height:42px;background:var(--light);border:1.5px solid var(--border);border-radius:11px;cursor:pointer;font-size:1.1rem;transition:.2s;align-self:flex-end;display:flex;align-items:center;justify-content:center}
+.swap-btn:hover{background:var(--navy);border-color:var(--navy);color:white;transform:rotate(180deg)}
+.btn-search{background:var(--navy);color:white;border:none;border-radius:11px;padding:0 28px;height:42px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.btn-search:hover{background:var(--navy-l);transform:translateY(-1px);box-shadow:0 4px 16px rgba(46,44,120,.25)}
+.btn-search:active{transform:scale(.97)}
+.search-quick{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.quick-tag{background:var(--light);border:1px solid var(--border);border-radius:20px;padding:5px 13px;font-size:.75rem;color:var(--gray);cursor:pointer;transition:.2s}
+.quick-tag:hover{background:var(--navy);color:white;border-color:var(--navy)}
+
+/* MAIN LAYOUT */
+.main{display:grid;grid-template-columns:340px 1fr;gap:0;min-height:calc(100vh - 62px - 160px)}
+
+/* SIDEBAR */
+.sidebar{background:white;border-left:1px solid var(--border);overflow-y:auto;max-height:calc(100vh - 62px);position:sticky;top:62px}
+.sidebar-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--light)}
+.sidebar-title{font-size:.9rem;font-weight:700;color:var(--navy)}
+.result-count{background:var(--navy);color:var(--yellow);font-size:.72rem;font-weight:700;padding:2px 10px;border-radius:20px}
+.filter-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:white}
+.filter-tab{flex:1;padding:10px 4px;font-size:.78rem;font-weight:600;color:var(--gray);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;transition:.2s}
+.filter-tab.active{color:var(--navy);border-bottom-color:var(--yellow);background:rgba(46,44,120,.03)}
+
+/* ROUTE CARDS */
+.route-list{padding:8px}
+.route-card{border-radius:12px;border:1.5px solid var(--border);padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:all .2s;background:white}
+.route-card:hover{border-color:var(--navy-l);box-shadow:0 4px 16px rgba(46,44,120,.1);transform:translateX(-2px)}
+.route-card.active{border-color:var(--navy);background:linear-gradient(135deg,rgba(46,44,120,.04),rgba(46,44,120,.02));box-shadow:0 4px 20px rgba(46,44,120,.12)}
+.rc-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.rc-num{background:var(--navy);color:var(--yellow);font-weight:700;font-size:.88rem;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif}
+.rc-info{flex:1}
+.rc-name{font-weight:700;font-size:.9rem;color:var(--dark)}
+.rc-path{font-size:.75rem;color:var(--gray);margin-top:2px}
+.rc-meta{display:flex;gap:8px;flex-wrap:wrap}
+.rc-badge{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;padding:3px 9px;border-radius:20px;font-weight:600}
+.badge-green{background:rgba(16,185,129,.1);color:var(--green)}
+.badge-orange{background:rgba(245,158,11,.1);color:var(--orange)}
+.badge-red{background:rgba(239,68,68,.1);color:var(--red)}
+.badge-blue{background:rgba(46,44,120,.08);color:var(--navy)}
+.rc-times{display:flex;gap:12px;font-size:.75rem;color:var(--gray);margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+.rc-time-item strong{color:var(--dark);display:block}
+
+/* MAP PANEL */
+.map-panel{display:flex;flex-direction:column}
+.map-toolbar{padding:14px 20px;background:white;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.map-toolbar-title{font-size:.9rem;font-weight:700;color:var(--navy);flex:1}
+.view-btn{background:var(--light);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:.78rem;cursor:pointer;font-family:inherit;transition:.2s;color:var(--gray)}
+.view-btn.active,.view-btn:hover{background:var(--navy);color:white;border-color:var(--navy)}
+
+/* FAKE MAP */
+.fake-map{flex:1;background:linear-gradient(135deg,#ECEBF6 0%,#E3E2F2 100%);position:relative;min-height:420px;overflow:hidden}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(46,44,120,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(46,44,120,.06) 1px,transparent 1px);background-size:40px 40px}
+.map-road{position:absolute;background:white;border-radius:4px}
+.map-road.h{height:6px;left:0;right:0}
+.map-road.v{width:6px;top:0;bottom:0}
+.map-road.h.thick{height:10px;background:#fff}
+.map-road.v.thick{width:10px;background:#fff}
+.bus-route-line{position:absolute;background:var(--navy);border-radius:3px;opacity:.85}
+.bus-route-line.h{height:5px}
+.bus-route-line.v{width:5px}
+.map-stop{position:absolute;width:14px;height:14px;background:white;border:3px solid var(--navy);border-radius:50%;transform:translate(-50%,-50%);cursor:pointer;transition:.2s;z-index:5}
+.map-stop:hover,.map-stop.active{background:var(--yellow);border-color:var(--navy);width:18px;height:18px}
+.map-stop-label{position:absolute;background:white;border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:.68rem;font-weight:700;color:var(--navy);white-space:nowrap;transform:translateX(-50%);top:-28px;box-shadow:0 2px 8px rgba(0,0,0,.1);pointer-events:none;opacity:0;transition:.2s}
+.map-stop:hover .map-stop-label,.map-stop.active .map-stop-label{opacity:1}
+.bus-moving{position:absolute;width:28px;height:18px;background:var(--navy);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.65rem;color:var(--yellow);font-weight:700;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.2);transition:left 3s linear;cursor:pointer}
+.bus-moving::after{content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%);border:4px solid transparent;border-right:none;border-left-color:var(--navy)}
+.map-overlay{position:absolute;bottom:16px;right:16px;background:white;border-radius:12px;padding:12px 16px;box-shadow:0 4px 20px rgba(0,0,0,.1);border:1px solid var(--border);min-width:180px}
+.map-legend-title{font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:8px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:.7rem;color:var(--gray);margin-bottom:4px}
+.legend-dot{width:10px;height:10px;border-radius:50%}
+.map-zoom{position:absolute;bottom:16px;left:16px;display:flex;flex-direction:column;gap:4px}
+.zoom-btn{width:36px;height:36px;background:white;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:.2s;font-family:inherit}
+.zoom-btn:hover{background:var(--navy);color:white}
+
+/* DETAIL PANEL */
+.detail-panel{background:white;border-top:1px solid var(--border);padding:20px 24px}
+.detail-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border)}
+.detail-tab{padding:10px 18px;font-size:.82rem;font-weight:600;color:var(--gray);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:.2s}
+.detail-tab.active{color:var(--navy);border-bottom-color:var(--yellow)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* STOPS LIST */
+.stops-list{display:flex;flex-direction:column;gap:0}
+.stop-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;position:relative}
+.stop-item::before{content:'';position:absolute;right:15px;top:28px;bottom:-10px;width:2px;background:linear-gradient(to bottom,var(--navy),rgba(46,44,120,.2));z-index:0}
+.stop-item:last-child::before{display:none}
+.stop-circle{width:30px;height:30px;border-radius:50%;border:3px solid var(--navy);background:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;font-size:.65rem;font-weight:700;color:var(--navy)}
+.stop-circle.first,.stop-circle.last{background:var(--navy);color:var(--yellow)}
+.stop-circle.major{background:var(--yellow);border-color:var(--navy)}
+.stop-info{flex:1}
+.stop-name{font-weight:600;font-size:.88rem;color:var(--dark)}
+.stop-time{font-size:.75rem;color:var(--gray);margin-top:2px}
+.stop-arrive{font-size:.72rem;color:var(--green);font-weight:600;background:rgba(16,185,129,.08);padding:2px 8px;border-radius:10px;margin-top:4px;display:inline-block}
+
+/* SCHEDULE */
+.schedule-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sched-item{background:var(--light);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border);cursor:pointer;transition:.2s}
+.sched-item:hover{background:var(--navy);color:white;border-color:var(--navy)}
+.sched-item:hover .sched-period{color:rgba(255,255,255,.6)}
+.sched-time{font-weight:700;font-size:.92rem;color:var(--navy)}
+.sched-item:hover .sched-time{color:var(--yellow)}
+.sched-period{font-size:.68rem;color:var(--gray);margin-top:2px}
+
+/* FARE */
+.fare-card{background:linear-gradient(135deg,var(--navy),var(--navy-l));border-radius:16px;padding:24px;color:white;margin-bottom:16px}
+.fare-main{font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:3rem;color:var(--yellow)}
+.fare-sub{font-size:.8rem;color:rgba(255,255,255,.6);margin-top:4px}
+.fare-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.fare-opt{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px}
+.fare-opt-price{font-weight:700;font-size:1.1rem;color:var(--yellow)}
+.fare-opt-label{font-size:.72rem;color:rgba(255,255,255,.6);margin-top:2px}
+.btn-buy{width:100%;background:var(--yellow);color:var(--navy);border:none;border-radius:10px;padding:12px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;margin-top:12px}
+.btn-buy:hover{background:#ffd700;transform:translateY(-1px)}
+
+/* EMPTY / LOADING */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;color:var(--gray)}
+.empty-icon{font-size:4rem;margin-bottom:16px;opacity:.4}
+.empty-title{font-size:1rem;font-weight:700;color:var(--dark);margin-bottom:8px}
+.empty-desc{font-size:.82rem;line-height:1.7}
+
+/* LOADING */
+.loading-bar{height:3px;background:linear-gradient(90deg,var(--navy),var(--yellow),var(--navy));background-size:200%;animation:loadbar 1.5s infinite;border-radius:2px}
+@keyframes loadbar{0%{background-position:0%}100%{background-position:200%}}
+.skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200%;animation:shimmer 1.5s infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200%}100%{background-position:-200%}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--navy);color:white;padding:12px 24px;border-radius:12px;font-size:.85rem;font-weight:600;z-index:1000;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 30px rgba(0,0,0,.2);display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .search-row{grid-template-columns:1fr 1fr}
+  .swap-btn,.btn-search{grid-column:span 2}
+  .main{grid-template-columns:1fr}
+  .sidebar{max-height:none;position:relative}
+  .schedule-grid{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+
+<style id="k2-shell">
+:root{--k2-indigo:#2E2C78;--k2-deep:#1F1D5C;--k2-ink:#14133A;--k2-sign:#FFC93C;--k2-paper:#F5F5FA;--k2-line:#DEDDEC;--k2-muted:#5D5C80;--k2-font:-apple-system,BlinkMacSystemFont,"SF Arabic","Geeza Pro","Segoe UI","Noto Sans Arabic",Tahoma,sans-serif}
+html,body{overflow-x:clip}body{font-family:var(--k2-font)}
+.k2-util{background:var(--k2-ink);color:#C9C8E6;font:13px/1 var(--k2-font)}
+.k2-util .k2-w{display:flex;align-items:center;justify-content:space-between;gap:16px;height:38px}
+.k2-util .k2-ul{display:flex;gap:22px;white-space:nowrap}
+.k2-util a{color:inherit;text-decoration:none}.k2-util a:hover{color:#fff}
+.k2-lang{background:transparent;border:1px solid #3A3970;border-radius:6px;padding:2px 8px;color:#fff;font:13px var(--k2-font)}
+.k2-lang option{color:#000}
+.k2-w{max-width:1200px;margin:0 auto;padding:0 24px;box-sizing:border-box}
+.k2-head{background:var(--k2-indigo);color:#fff;position:sticky;top:0;z-index:400;box-shadow:0 1px 0 rgba(255,255,255,.06);font-family:var(--k2-font)}
+.k2-head .k2-w{display:flex;align-items:center;gap:28px;height:72px}
+.k2-brand{display:flex;align-items:center;gap:10px;flex-shrink:0;color:#fff;text-decoration:none}
+.k2-brand svg{width:30px;height:38px}
+.k2-brand b{font-size:24px;letter-spacing:.06em;font-weight:800;direction:ltr;display:block;line-height:1.2}
+.k2-brand small{display:block;font-size:11px;color:#B9B8E0;font-weight:500;line-height:1.2}
+.k2-nav{display:flex;gap:4px;flex:1;margin:0;padding:0;background:none;position:static;border:0}
+.k2-nav a{padding:8px 14px;border-radius:6px;font-size:15px;color:#E4E3F7;font-weight:500;text-decoration:none;line-height:1.5}
+.k2-nav a:hover,.k2-nav a[aria-current]{background:rgba(255,255,255,.1);color:#fff}
+.k2-nav a[aria-current]{box-shadow:inset 0 -3px 0 var(--k2-sign)}
+.k2-act{display:flex;gap:10px;align-items:center}
+.k2-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:6px;font:700 15px var(--k2-font);padding:10px 18px;border:0;cursor:pointer;text-decoration:none;position:relative;line-height:1.3}
+.k2-btn-sign{background:var(--k2-sign);color:var(--k2-ink)}.k2-btn-sign:hover{background:#FFD566}
+.k2-btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.28)}.k2-btn-ghost:hover{border-color:#fff}
+.k2-cnt{position:absolute;top:-7px;left:-7px;min-width:20px;height:20px;border-radius:10px;background:#D93C42;color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px}
+.k2-menu{display:none;background:none;border:0;color:#fff;padding:8px;cursor:pointer}
+.k2-menu svg{width:26px;height:26px}
+.k2-drawer{position:fixed;inset:0;z-index:1000;display:none;font-family:var(--k2-font)}
+.k2-drawer.open{display:block}
+.k2-scrim{position:absolute;inset:0;background:rgba(20,19,58,.55)}
+.k2-panel{position:absolute;top:0;bottom:0;right:0;width:min(320px,86vw);background:#fff;padding:20px;display:flex;flex-direction:column;gap:4px;overflow:auto}
+.k2-panel a{padding:14px 12px;border-radius:6px;font-weight:600;font-size:17px;border-bottom:1px solid var(--k2-line);color:var(--k2-ink);text-decoration:none}
+.k2-panel a[aria-current]{color:var(--k2-indigo);background:var(--k2-paper)}
+.k2-close{align-self:flex-end;background:none;border:0;font-size:28px;cursor:pointer;color:var(--k2-indigo);padding:4px 10px}
+.k2-foot{background:var(--k2-ink);color:#B9B8E0;font:14px/1.7 var(--k2-font);padding:56px 0 28px;margin-top:0}
+.k2-fg{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:40px;margin-bottom:40px}
+.k2-fg h4{color:#fff;font-size:15px;margin:0 0 14px}
+.k2-fg ul{list-style:none;display:grid;gap:8px;margin:0;padding:0}
+.k2-fg a{color:inherit;text-decoration:none}.k2-fg a:hover{color:#fff}
+.k2-fg p{margin:14px 0 0;max-width:26em;line-height:1.8}
+.k2-fb{border-top:1px solid #2A2950;padding-top:22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.k2-head :focus-visible,.k2-foot :focus-visible,.k2-util :focus-visible{outline:3px solid var(--k2-sign);outline-offset:2px}
+@media(max-width:1100px){.k2-nav a{padding:8px 10px;font-size:14px}}
+@media(max-width:920px){.k2-nav,.k2-act .k2-btn-ghost{display:none}.k2-menu{display:block}.k2-head .k2-w{justify-content:space-between}.k2-fg{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.k2-w{padding:0 16px}.k2-util .k2-ul>*:not(:first-child){display:none}.k2-act .k2-hide-m{display:none}.k2-fg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22228800">خدمة العملاء <span dir="ltr">22228800</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — حولي</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
+<header class="k2-head"><div class="k2-w"><a class="k2-brand" href="KPTC_Home.html" aria-label="KPTC — الرئيسية"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b><small>شركة النقل العام الكويتية</small></span></a>
+<div class="k2-nav" role="navigation" aria-label="القائمة الرئيسية"><a href="KPTC_Routes.html" aria-current="page">الخطوط</a><a href="KPTC_Subscriptions.html">الاشتراكات</a><a href="KPTC_Umrah.html">العمرة</a><a href="KPTC_VIP.html">VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_Advertising.html">أعلن معنا</a></div>
+<div class="k2-act"><a class="k2-btn k2-btn-ghost" href="KPTC_Portal.html">بوابة الموظفين</a><a class="k2-btn k2-btn-sign k2-hide-m" href="KPTC_Subscriptions.html">اشترك الآن</a><button class="k2-menu" aria-label="فتح القائمة" aria-expanded="false" onclick="k2Drawer(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
+<div class="k2-drawer" id="k2Drawer" aria-hidden="true"><div class="k2-scrim" onclick="k2Drawer(0)"></div><div class="k2-panel" role="dialog" aria-label="القائمة"><button class="k2-close" onclick="k2Drawer(0)" aria-label="إغلاق">×</button><a href="KPTC_Home.html">الرئيسية</a><a href="KPTC_Routes.html" aria-current="page">الخطوط والمسارات</a><a href="KPTC_Subscriptions.html">الاشتراكات والتذاكر</a><a href="KPTC_Umrah.html">رحلات العمرة</a><a href="KPTC_VIP.html">باصات VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_LostFound.html">المفقودات</a><a href="KPTC_Advertising.html">أعلن معنا</a><a href="KPTC_RE_Client.html">مساحات للإيجار</a><a href="KPTC_Portal.html">بوابة الموظفين</a></div></div>
+<script>function k2Drawer(o){var d=document.getElementById('k2Drawer');d.classList.toggle('open',!!o);d.setAttribute('aria-hidden',o?'false':'true');var b=document.querySelector('.k2-menu');if(b)b.setAttribute('aria-expanded',o?'true':'false')}document.addEventListener('keydown',function(e){if(e.key==='Escape')k2Drawer(0)});</script>
+
+<!-- PAGE HERO + SEARCH -->
+<div class="page-hero">
+  <div class="hero-top">
+    <div>
+      <div style="color:rgba(255,255,255,.5);font-size:.78rem;margin-bottom:6px">الخطوط والمسارات</div>
+      <h1>ابحث عن <span>خطّك</span></h1>
+    </div>
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      مواعيد مباشرة — محدّثة الآن
+    </div>
+  </div>
+  <div class="search-box">
+    <div id="loadingBar" style="display:none;margin-bottom:12px"><div class="loading-bar"></div></div>
+    <div class="search-row">
+      <div class="s-field">
+        <label>📍 من</label>
+        <select class="s-input" id="fromSel">
+          <option value="">اختر منطقة المغادرة</option>
+          <option>الكويت سيتي</option>
+          <option>حولي</option>
+          <option>الفروانية</option>
+          <option>السالمية</option>
+          <option>خيطان</option>
+          <option>الجابرية</option>
+          <option>الرميثية</option>
+          <option>الفحاحيل</option>
+          <option>الشويخ</option>
+          <option>الصليبية</option>
+          <option>قرطبة</option>
+          <option>الجهراء</option>
+          <option>أسواق القرين</option>
+          <option>المالية</option>
+          <option>مشرف</option>
+          <option>أبو حليفة</option>
+        </select>
+      </div>
+      <button class="swap-btn" onclick="swapLocations()" title="تبديل">⇄</button>
+      <div class="s-field">
+        <label>🏁 إلى</label>
+        <select class="s-input" id="toSel">
+          <option value="">اختر منطقة الوصول</option>
+          <option>الكويت سيتي</option>
+          <option>حولي</option>
+          <option>الفروانية</option>
+          <option>السالمية</option>
+          <option>خيطان</option>
+          <option>الجابرية</option>
+          <option>الرميثية</option>
+          <option>الفحاحيل</option>
+          <option>الشويخ</option>
+          <option>الصليبية</option>
+          <option>قرطبة</option>
+          <option>الجهراء</option>
+          <option>أسواق القرين</option>
+          <option>المالية</option>
+          <option>مشرف</option>
+          <option>أبو حليفة</option>
+        </select>
+      </div>
+      <div class="s-field">
+        <label>🕐 وقت المغادرة</label>
+        <input type="time" class="s-input" id="timeInput" value="08:00">
+      </div>
+      <button class="btn-search" onclick="doSearch()">
+        <span>🔍</span> ابحث
+      </button>
+    </div>
+    <div class="search-quick">
+      <span style="font-size:.72rem;color:var(--gray);align-self:center">بحث سريع:</span>
+      <div class="quick-tag" onclick="quickSearch('حولي','الكويت سيتي')">حولي ← الكويت سيتي</div>
+      <div class="quick-tag" onclick="quickSearch('الفروانية','السالمية')">الفروانية ← السالمية</div>
+      <div class="quick-tag" onclick="quickSearch('خيطان','الشويخ')">خيطان ← الشويخ</div>
+      <div class="quick-tag" onclick="quickSearch('الجابرية','الفحاحيل')">الجابرية ← الفحاحيل</div>
+      <div class="quick-tag" onclick="quickSearch('السالمية','الجهراء')">السالمية ← الجهراء</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title" id="sidebarTitle">جميع الخطوط</div>
+      <div class="result-count" id="resultCount">150+ خط</div>
+    </div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filterRoutes('all',this)">الكل</button>
+      <button class="filter-tab" onclick="filterRoutes('fast',this)">سريع</button>
+      <button class="filter-tab" onclick="filterRoutes('direct',this)">مباشر</button>
+      <button class="filter-tab" onclick="filterRoutes('24h',this)">24 ساعة</button>
+    </div>
+    <div class="route-list" id="routeList">
+      <!-- Initial state -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🗺️</div>
+        <div class="empty-title">ابدأ البحث</div>
+        <div class="empty-desc">اختر منطقة المغادرة والوصول من الأعلى، أو جرّب أحد البحوث السريعة</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAP + DETAIL -->
+  <div class="map-panel">
+    <div class="map-toolbar">
+      <div class="map-toolbar-title" id="mapTitle">🗺️ خريطة الخطوط — KPTC</div>
+      <button class="view-btn active" onclick="setView('map',this)">خريطة</button>
+      <button class="view-btn" onclick="setView('list',this)">قائمة</button>
+      <button class="view-btn" onclick="setView('schedule',this)">جداول</button>
+    </div>
+
+    <!-- FAKE MAP -->
+    <div class="fake-map" id="mapView">
+      <div class="map-grid"></div>
+
+      <!-- Roads -->
+      <div class="map-road h" style="top:30%"></div>
+      <div class="map-road h" style="top:55%"></div>
+      <div class="map-road h" style="top:75%"></div>
+      <div class="map-road v" style="right:25%"></div>
+      <div class="map-road v" style="right:55%"></div>
+      <div class="map-road h thick" style="top:43%;background:#f5f5f5"></div>
+      <div class="map-road v thick" style="right:40%;background:#f5f5f5"></div>
+
+      <!-- Bus Route -->
+      <div class="bus-route-line h" id="routeLine1" style="top:43%;right:15%;left:60%;display:none"></div>
+      <div class="bus-route-line v" id="routeLine2" style="right:40%;top:20%;bottom:40%;display:none"></div>
+
+      <!-- Stops -->
+      <div class="map-stop" id="stop1" style="top:43%;right:15%;display:none" onclick="selectStop('الكويت سيتي',this)">
+        <div class="map-stop-label">الكويت سيتي</div>
+      </div>
+      <div class="map-stop major" id="stop2" style="top:43%;right:28%;display:none" onclick="selectStop('الشرق',this)">
+        <div class="map-stop-label">الشرق</div>
+      </div>
+      <div class="map-stop" id="stop3" style="top:43%;right:40%;display:none" onclick="selectStop('حولي',this)">
+        <div class="map-stop-label">حولي</div>
+      </div>
+      <div class="map-stop major" id="stop4" style="top:43%;right:52%;display:none" onclick="selectStop('الجابرية',this)">
+        <div class="map-stop-label">الجابرية</div>
+      </div>
+      <div class="map-stop" id="stop5" style="top:30%;right:40%;display:none" onclick="selectStop('الشويخ',this)">
+        <div class="map-stop-label">الشويخ</div>
+      </div>
+      <div class="map-stop major" id="stop6" style="top:55%;right:40%;display:none" onclick="selectStop('خيطان',this)">
+        <div class="map-stop-label">خيطان</div>
+      </div>
+
+      <!-- Moving Bus -->
+      <div class="bus-moving" id="movingBus" style="top:calc(43% - 9px);right:40%;display:none" onclick="showBusInfo()">
+        🚌
+      </div>
+
+      <!-- Map Overlay -->
+      <div class="map-overlay" id="mapOverlay">
+        <div class="map-legend-title">المفتاح</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--navy)"></div> خط الباص</div>
+        <div class="legend-item"><div class="legend-dot" style="background:white;border:2px solid var(--navy)"></div> محطة عادية</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--yellow);border:2px solid var(--navy)"></div> محطة رئيسية</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--navy)"></div> باص متحرك 🚌</div>
+        <div id="nextBusOverlay" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <div style="font-size:.68rem;color:var(--gray)">الباص القادم</div>
+          <div style="font-weight:700;font-size:.9rem;color:var(--navy)" id="nextBusTime">—</div>
+        </div>
+      </div>
+      <div class="map-zoom">
+        <button class="zoom-btn" onclick="showToast('🔍 تكبير الخريطة')">+</button>
+        <button class="zoom-btn" onclick="showToast('🔍 تصغير الخريطة')">−</button>
+        <button class="zoom-btn" onclick="showToast('📍 موقعي الحالي')" style="font-size:.8rem">📍</button>
+      </div>
+
+      <!-- Empty Map Message -->
+      <div id="mapEmptyMsg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px">
+        <div style="font-size:3.5rem;opacity:.25">🗺️</div>
+        <div style="color:var(--gray);font-size:.9rem;font-weight:600">ابحث عن خط لعرضه على الخريطة</div>
+      </div>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <div class="detail-panel" id="detailPanel" style="display:none">
+      <div class="detail-tabs">
+        <button class="detail-tab active" onclick="switchTab('stops',this)">🚏 المحطات</button>
+        <button class="detail-tab" onclick="switchTab('schedule',this)">🕐 الجدول</button>
+        <button class="detail-tab" onclick="switchTab('fare',this)">💳 الأسعار</button>
+        <button class="detail-tab" onclick="switchTab('info',this)">ℹ️ معلومات</button>
+      </div>
+
+      <!-- STOPS TAB -->
+      <div class="tab-content active" id="tab-stops">
+        <div style="max-height:260px;overflow-y:auto" id="stopsList"></div>
+      </div>
+
+      <!-- SCHEDULE TAB -->
+      <div class="tab-content" id="tab-schedule">
+        <div style="margin-bottom:14px">
+          <div style="font-size:.8rem;font-weight:700;color:var(--navy);margin-bottom:10px">أوقات الرحلات — يوم عمل</div>
+          <div class="schedule-grid" id="schedGrid"></div>
+        </div>
+        <div style="font-size:.75rem;color:var(--gray)">⏱️ متوسط الرحلة: <strong id="avgTime" style="color:var(--navy)">—</strong> | 🔄 التكرار كل: <strong id="freqTime" style="color:var(--navy)">—</strong></div>
+      </div>
+
+      <!-- FARE TAB -->
+      <div class="tab-content" id="tab-fare">
+        <div class="fare-card">
+          <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:6px">سعر الرحلة الواحدة</div>
+          <div class="fare-main">250 فلس</div>
+          <div class="fare-sub">* بطاقة ذكية / كاش</div>
+          <div class="fare-options">
+            <div class="fare-opt">
+              <div class="fare-opt-price">15 د.ك</div>
+              <div class="fare-opt-label">اشتراك شهري غير محدود</div>
+            </div>
+            <div class="fare-opt">
+              <div class="fare-opt-price">40 د.ك</div>
+              <div class="fare-opt-label">اشتراك 3 أشهر — وفّر 10%</div>
+            </div>
+          </div>
+          <button class="btn-buy" onclick="showToast('✅ جاري فتح صفحة الدفع...')">اشترك الآن — 15 د.ك / شهر</button>
+        </div>
+        <div style="font-size:.75rem;color:var(--gray);line-height:1.8">
+          • الأطفال دون 6 سنوات مجاناً<br>
+          • خصم 50% لذوي الاحتياجات الخاصة<br>
+          • تقبل الدفع بكارت KNET وفيزا وماستركارد
+        </div>
+      </div>
+
+      <!-- INFO TAB -->
+      <div class="tab-content" id="tab-info">
+        <div id="routeInfoContent" style="font-size:.83rem;line-height:2;color:var(--dark)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+const routes = [
+  {num:'15', name:'خيطان ← السالمية', path:'خيطان — حولي — السالمية — الكويت سيتي', from:['خيطان','حولي'], to:['الكويت سيتي','السالمية'], status:'active', type:'fast', wait:5, stops:['خيطان','ميدان حولي','السالمية','الكويت سيتي'], first:'05:00', last:'11:30', freq:'كل 15 دقيقة', avg:'45 دقيقة', tags:['مباشر','سريع']},
+  {num:'21', name:'الفروانية ← المالية', path:'الفروانية — قرطبة — المالية', from:['الفروانية','قرطبة'], to:['المالية','الكويت سيتي'], status:'active', type:'direct', wait:12, stops:['الفروانية','قرطبة','المباركية','المالية'], first:'05:30', last:'11:00', freq:'كل 20 دقيقة', avg:'50 دقيقة', tags:['مباشر']},
+  {num:'40', name:'الفروانية ← القرين', path:'الفروانية — قرطبة — أسواق القرين', from:['الفروانية'], to:['أسواق القرين'], status:'busy', type:'direct', wait:8, stops:['الفروانية','قرطبة','الصليبية','أسواق القرين'], first:'06:00', last:'10:30', freq:'كل 25 دقيقة', avg:'55 دقيقة', tags:['مزدحم']},
+  {num:'66', name:'حولي ← الفروانية', path:'حولي — خيطان — حبيبة — الفروانية', from:['حولي','خيطان'], to:['الفروانية'], status:'active', type:'fast', wait:15, stops:['حولي','خيطان','الصليبية','حبيبة','الفروانية'], first:'05:00', last:'12:00', freq:'كل 15 دقيقة', avg:'40 دقيقة', tags:['سريع']},
+  {num:'77', name:'الشويخ ← حولي', path:'الشويخ — الصليبية — الجابرية — حولي', from:['الشويخ','الصليبية'], to:['حولي','الجابرية'], status:'active', type:'24h', wait:20, stops:['الشويخ','الصليبية','الجابرية','الرميثية','حولي'], first:'00:00', last:'23:59', freq:'كل 20 دقيقة', avg:'35 دقيقة', tags:['24 ساعة','مباشر']},
+  {num:'92', name:'الفروانية ← قرطبة', path:'الفروانية — جمعية — قرطبة', from:['الفروانية'], to:['قرطبة'], status:'active', type:'direct', wait:10, stops:['الفروانية','الجمعية','قرطبة'], first:'06:00', last:'10:00', freq:'كل 20 دقيقة', avg:'25 دقيقة', tags:['قصير']},
+  {num:'99', name:'السالمية ← الكويت سيتي', path:'السالمية — حولي — الكويت سيتي (سريع)', from:['السالمية','حولي'], to:['الكويت سيتي'], status:'active', type:'fast', wait:8, stops:['السالمية','حولي','العارضية','الكويت سيتي'], first:'06:00', last:'10:00', freq:'كل 30 دقيقة', avg:'30 دقيقة', tags:['سريع','محدود المحطات']},
+  {num:'103', name:'الفحاحيل ← القرين', path:'الفحاحيل — الفروانية — أسواق القرين', from:['الفحاحيل'], to:['أسواق القرين','الفروانية'], status:'active', type:'direct', wait:30, stops:['الفحاحيل','أبو حليفة','الفروانية','أسواق القرين'], first:'06:00', last:'10:00', freq:'كل 30 دقيقة', avg:'70 دقيقة', tags:['طويل']},
+  {num:'132', name:'الرميثية ← بيان', path:'الرميثية — بيان — المسيلة', from:['الرميثية'], to:['بيان'], status:'active', type:'direct', wait:40, stops:['الرميثية','بيان السكنية','المسيلة'], first:'06:30', last:'09:30', freq:'كل 40 دقيقة', avg:'20 دقيقة', tags:['قصير']},
+  {num:'A51', name:'جروزة ← الفحاحيل', path:'جروزة — دوار الإسمنت — الفحاحيل', from:['الجهراء'], to:['الفحاحيل'], status:'active', type:'direct', wait:18, stops:['جروزة','دوار الإسمنت','الأحمدي','الفحاحيل'], first:'06:00', last:'09:30', freq:'كل 40 دقيقة', avg:'80 دقيقة', tags:['طويل']},
+];
+
+let activeRoute = null;
+let currentFilter = 'all';
+let busAnimInterval = null;
+
+// ── SEARCH ──
+function doSearch() {
+  const from = document.getElementById('fromSel').value;
+  const to = document.getElementById('toSel').value;
+  if (!from || !to) { showToast('⚠️ اختر منطقة المغادرة والوصول'); return; }
+  if (from === to) { showToast('⚠️ نقطة البداية والنهاية متشابهة'); return; }
+  showLoading();
+  setTimeout(() => {
+    const results = routes.filter(r =>
+      r.from.some(f => f.includes(from.split(' ')[0])||from.includes(f)) ||
+      r.to.some(t => t.includes(to.split(' ')[0])||to.includes(t)) ||
+      r.path.includes(from.split(' ')[0]) || r.path.includes(to.split(' ')[0])
+    );
+    renderRoutes(results.length ? results : routes.slice(0,5), from, to);
+    hideLoading();
+  }, 1200);
+}
+
+function quickSearch(from, to) {
+  document.getElementById('fromSel').value = from;
+  document.getElementById('toSel').value = to;
+  doSearch();
+}
+
+function swapLocations() {
+  const f = document.getElementById('fromSel');
+  const t = document.getElementById('toSel');
+  const tmp = f.value; f.value = t.value; t.value = tmp;
+  if (f.value && t.value) doSearch();
+}
+
+function showLoading() {
+  document.getElementById('loadingBar').style.display = 'block';
+  document.getElementById('routeList').innerHTML = `
+    <div style="padding:12px">
+      ${[1,2,3].map(_=>`<div style="margin-bottom:12px">
+        <div class="skeleton" style="height:80px;border-radius:12px"></div>
+      </div>`).join('')}
+    </div>`;
+  document.getElementById('mapEmptyMsg').style.display = 'flex';
+}
+function hideLoading() { document.getElementById('loadingBar').style.display = 'none'; }
+
+function renderRoutes(results, from='', to='') {
+  const count = results.length;
+  document.getElementById('resultCount').textContent = `${count} خط`;
+  document.getElementById('sidebarTitle').textContent = from&&to ? `${from} ← ${to}` : 'جميع الخطوط';
+
+  if (!count) {
+    document.getElementById('routeList').innerHTML = `<div class="empty-state"><div class="empty-icon">😔</div><div class="empty-title">لا توجد نتائج</div><div class="empty-desc">لا يوجد خط مباشر بين هاتين المنطقتين حالياً. جرّب تغيير نقطة البداية أو النهاية.</div></div>`;
+    return;
+  }
+
+  document.getElementById('routeList').innerHTML = results.map(r => {
+    const statusBadge = r.status==='active'
+      ? `<span class="rc-badge badge-green">● نشط</span>`
+      : `<span class="rc-badge badge-orange">⚠ مزدحم</span>`;
+    const tagBadges = r.tags.map(t=>`<span class="rc-badge badge-blue">${t}</span>`).join('');
+    const waitColor = r.wait<=10?'var(--green)':r.wait<=20?'var(--orange)':'var(--red)';
+    return `
+    <div class="route-card" id="rc-${r.num}" onclick="selectRoute('${r.num}')">
+      <div class="rc-top">
+        <div class="rc-num">${r.num}</div>
+        <div class="rc-info">
+          <div class="rc-name">${r.name}</div>
+          <div class="rc-path">${r.path}</div>
+        </div>
+        <div style="text-align:center;flex-shrink:0">
+          <div style="font-size:1.2rem;font-weight:700;color:${waitColor}">${r.wait}</div>
+          <div style="font-size:.65rem;color:var(--gray)">دقيقة</div>
+        </div>
+      </div>
+      <div class="rc-meta">${statusBadge}${tagBadges}</div>
+      <div class="rc-times">
+        <div class="rc-time-item"><strong>${r.first}</strong>أول رحلة</div>
+        <div class="rc-time-item"><strong>${r.last}</strong>آخر رحلة</div>
+        <div class="rc-time-item"><strong>${r.freq.replace('كل ','')}</strong>التكرار</div>
+        <div class="rc-time-item"><strong>${r.avg}</strong>مدة الرحلة</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Auto select first
+  setTimeout(()=>selectRoute(results[0].num), 100);
+}
+
+// ── SELECT ROUTE ──
+function selectRoute(num) {
+  const r = routes.find(x=>x.num===num);
+  if (!r) return;
+  activeRoute = r;
+
+  // Update cards
+  document.querySelectorAll('.route-card').forEach(c=>c.classList.remove('active'));
+  const card = document.getElementById('rc-'+num);
+  if (card) { card.classList.add('active'); card.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+
+  // Update map title
+  document.getElementById('mapTitle').textContent = `🚌 خط ${r.num} — ${r.name}`;
+
+  // Show map elements
+  ['routeLine1','routeLine2'].forEach(id=>document.getElementById(id).style.display='block');
+  ['stop1','stop2','stop3','stop4','stop5','stop6'].forEach(id=>document.getElementById(id).style.display='block');
+  document.getElementById('movingBus').style.display='flex';
+  document.getElementById('mapEmptyMsg').style.display='none';
+
+  // Animate bus
+  animateBus();
+
+  // Next bus time
+  const mins = r.wait;
+  const now = new Date();
+  now.setMinutes(now.getMinutes()+mins);
+  const next = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('nextBusOverlay').style.display='block';
+  document.getElementById('nextBusTime').textContent = `${r.num} — ${next} (${mins} دق)`;
+
+  // Show detail panel
+  document.getElementById('detailPanel').style.display='block';
+  renderStops(r);
+  renderSchedule(r);
+  renderInfo(r);
+  showToast(`🚌 تم تحديد خط ${r.num}`);
+}
+
+function animateBus() {
+  const bus = document.getElementById('movingBus');
+  if (busAnimInterval) clearInterval(busAnimInterval);
+  let pos = 15;
+  const animate = () => {
+    pos += 0.8;
+    if (pos > 60) pos = 15;
+    bus.style.right = pos+'%';
+  };
+  busAnimInterval = setInterval(animate, 80);
+}
+
+// ── RENDER STOPS ──
+function renderStops(r) {
+  const now = new Date();
+  let h = now.getHours(), m = now.getMinutes();
+  const list = r.stops.map((s,i) => {
+    m += Math.floor(Math.random()*8+5);
+    if (m>=60){m-=60;h++}
+    const t = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+    const cls = i===0?'first':i===r.stops.length-1?'last':i%2===0?'major':'';
+    const arrive = i===1?`<div class="stop-arrive">⏱️ يصل في ${r.wait} دق</div>`:'';
+    return `<div class="stop-item">
+      <div class="stop-circle ${cls}">${i+1}</div>
+      <div class="stop-info">
+        <div class="stop-name">${s}</div>
+        <div class="stop-time">يصل: ${t}</div>
+        ${arrive}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('stopsList').innerHTML = list;
+}
+
+// ── RENDER SCHEDULE ──
+function renderSchedule(r) {
+  const slots = ['05:00','05:30','06:00','06:30','07:00','07:30','08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30'];
+  const now = new Date();
+  const cur = now.getHours()*60+now.getMinutes();
+  const html = slots.filter(s=>{
+    const [hh,mm]=s.split(':').map(Number);
+    return hh*60+mm >= parseInt(r.first.split(':')[0])*60 && hh*60+mm <= parseInt(r.last.split(':')[0])*60+30;
+  }).slice(0,12).map(s=>{
+    const [hh,mm]=s.split(':').map(Number);
+    const mins = hh*60+mm;
+    const isPast = mins < cur;
+    const isNext = !isPast && mins-cur < 60;
+    return `<div class="sched-item" style="${isPast?'opacity:.4':''}" onclick="showToast('🚌 الرحلة ${s} — خط ${r.num}')">
+      <div class="sched-time" style="${isNext?'color:var(--green)':''}">${s}</div>
+      <div class="sched-period">${isNext?'القادمة':isPast?'مضت':''}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('schedGrid').innerHTML = html;
+  document.getElementById('avgTime').textContent = r.avg;
+  document.getElementById('freqTime').textContent = r.freq.replace('كل ','');
+}
+
+// ── RENDER INFO ──
+function renderInfo(r) {
+  document.getElementById('routeInfoContent').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="background:var(--light);border-radius:10px;padding:12px"><div style="color:var(--gray);font-size:.7rem">رقم الخط</div><div style="font-weight:700;color:var(--navy)">${r.num}</div></div>
+      <div style="background:var(--light);border-radius:10px;padding:12px"><div style="color:var(--gray);font-size:.7rem">عدد المحطات</div><div style="font-weight:700;color:var(--navy)">${r.stops.length} محطة</div></div>
+      <div style="background:var(--light);border-radius:10px;padding:12px"><div style="color:var(--gray);font-size:.7rem">أول رحلة</div><div style="font-weight:700;color:var(--navy)">${r.first} ص</div></div>
+      <div style="background:var(--light);border-radius:10px;padding:12px"><div style="color:var(--gray);font-size:.7rem">آخر رحلة</div><div style="font-weight:700;color:var(--navy)">${r.last} م</div></div>
+    </div>
+    <div style="color:var(--gray);font-size:.78rem;line-height:2">
+      ✅ جميع رحلات هذا الخط مكيفة بالكامل<br>
+      ✅ مناسب لذوي الاحتياجات الخاصة<br>
+      ✅ يقبل الدفع نقداً وبالبطاقة الذكية<br>
+      ℹ️ ${r.freq} في أوقات الذروة<br>
+      📞 للاستفسار: 22228800
+    </div>`;
+}
+
+// ── SELECT STOP ──
+function selectStop(name, el) {
+  document.querySelectorAll('.map-stop').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  showToast(`🚏 محطة: ${name}`);
+}
+
+// ── TABS ──
+function switchTab(tab, btn) {
+  document.querySelectorAll('.detail-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+
+// ── VIEW ──
+function setView(v, btn) {
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (v==='map') {
+    showToast('🗺️ عرض الخريطة');
+  } else if (v==='list') {
+    showToast('📋 عرض القائمة التفصيلية');
+  } else {
+    showToast('📅 عرض الجداول الكاملة');
+  }
+}
+
+// ── FILTER ──
+function filterRoutes(f, btn) {
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = f;
+  const filtered = f==='all' ? routes : routes.filter(r=>r.type===f);
+  if (document.querySelectorAll('.route-card').length) {
+    renderRoutes(filtered);
+  }
+  showToast(`🔍 فلتر: ${btn.textContent}`);
+}
+
+// ── BUS INFO ──
+function showBusInfo() {
+  if (!activeRoute) return;
+  showToast(`🚌 باص ${activeRoute.num} — على بُعد ${activeRoute.wait} دق`);
+}
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// Init — show all routes lightly
+window.onload = () => {
+  document.getElementById('routeList').innerHTML = routes.map(r=>`
+    <div class="route-card" id="rc-${r.num}" onclick="selectRoute('${r.num}')">
+      <div class="rc-top">
+        <div class="rc-num">${r.num}</div>
+        <div class="rc-info">
+          <div class="rc-name">${r.name}</div>
+          <div class="rc-path">${r.path}</div>
+        </div>
+      </div>
+      <div class="rc-meta">
+        <span class="rc-badge badge-blue">${r.tags[0]}</span>
+        <span class="rc-badge ${r.status==='active'?'badge-green':'badge-orange'}">${r.status==='active'?'● نشط':'⚠ مزدحم'}</span>
+      </div>
+    </div>`).join('');
+  document.getElementById('emptyState') && (document.getElementById('emptyState').remove());
+};
+</script>
+<footer class="k2-foot"><div class="k2-w"><div class="k2-fg">
+<div><a class="k2-brand" href="KPTC_Home.html"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b></span></a><p>شركة النقل العام الكويتية، أول وأكبر مشغّل للنقل العام في الكويت منذ 1962، مملوكة بالكامل للدولة.</p></div>
+<div><h4>خدماتنا</h4><ul><li><a href="KPTC_Routes.html">الخطوط والمسارات</a></li><li><a href="KPTC_Subscriptions.html">الاشتراكات</a></li><li><a href="KPTC_Umrah.html">رحلات العمرة</a></li><li><a href="KPTC_VIP.html">باصات VIP</a></li><li><a href="KPTC_Winch.html">الونش</a></li></ul></div>
+<div><h4>خدمة العملاء</h4><ul><li><a href="KPTC_LostFound.html">المفقودات</a></li><li><a href="KPTC_AI_Assistant.html">المساعد الذكي</a></li><li><a href="KPTC_Home.html#contact">الشكاوى</a></li><li><a href="KPTC_Home.html#contact">تواصل معنا</a></li></ul></div>
+<div><h4>الشركة</h4><ul><li><a href="KPTC_Home.html#about">عن KPTC</a></li><li><a href="KPTC_Advertising.html">أعلن معنا</a></li><li><a href="KPTC_RE_Client.html">مساحات للإيجار</a></li><li><a href="KPTC_Portal.html">بوابة الموظفين</a></li></ul></div>
+</div><div class="k2-fb"><span>© 2026 شركة النقل العام الكويتية. جميع الحقوق محفوظة.</span><span>kptc.com.kw</span></div></div></footer>
+<script>(function(){var M={"KPTC_Executive_Landing.html": "exec", "KPTC_Home.html": "home", "KPTC_Routes.html": "routes", "KPTC_Subscriptions.html": "subs", "KPTC_Umrah.html": "umrah", "KPTC_VIP.html": "vip", "KPTC_Winch.html": "winch", "KPTC_LostFound.html": "lost", "KPTC_Advertising.html": "ads", "KPTC_AI_Assistant.html": "assistant", "KPTC_Admin_Dashboard_v3.html": "dashboard", "KPTC_Admin_AI.html": "adminai", "KPTC_Portal.html": "portal", "KPTC_RealEstate.html": "realestate", "KPTC_RE_AI.html": "reai", "KPTC_RE_Client.html": "reclient", "KPTC_Client_Portal.html": "tenant", "KPTC_Website_Prototype.html": "home", "KPTC_Subscriptions_v2.html": "subs"};document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var raw=a.getAttribute('href');var h=raw.split('#')[0].split('/').pop();if(M[h]&&window.parent!==window){e.preventDefault();try{parent.postMessage({kptcNav:M[h]},'*')}catch(x){}}},true);})();</script></body>
+</html>
