@@ -13,7 +13,13 @@ from collections import Counter
 def load(p):
     return open(p, encoding='utf-8').read()
 
+# Content removals requested by the owner (applied to the baseline before comparing)
+REWRITES = [('للمهندس عبدالله', 'للإدارة العليا'), ('لـ المهندس عبدالله', 'للإدارة العليا'),
+            ('المهندس عبدالله', 'الإدارة العليا'), ('إرسال للمهندس', 'إرسال للإدارة')]
+
 def strip_injected(s):
+    for a, b in REWRITES:
+        s = s.replace(a, b)
     # shared design-system blocks are additive; ignore them
     s = re.sub(r'<!--kptc:core-css-->.*?<!--/kptc:core-css-->', '', s, flags=re.S)
     s = re.sub(r'<!--kptc:core-js-->.*?<!--/kptc:core-js-->', '', s, flags=re.S)

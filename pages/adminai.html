@@ -925,7 +925,7 @@ function respondWeekly(){
     +'<li>📝 الشكاوى: 312 محلولة من 382 واردة (81.7%)</li>'
     +'<li>🗺️ انتظام الخطوط: 97.8% متوسط الأسبوع</li>'
     +'<li>💳 اشتراكات جديدة: +312 هذا الأسبوع</li></ul>'
-    +'<div class="action-row"><button class="act-btn" onclick="T(\'📄 جاري إنشاء التقرير الأسبوعي...\',2500)">📄 تصدير PDF</button><button class="act-btn" onclick="T(\'📧 تم إرسال التقرير للمهندس عبدالله\',1800)">📧 إرسال للمهندس</button></div>',
+    +'<div class="action-row"><button class="act-btn" onclick="T(\'📄 جاري إنشاء التقرير الأسبوعي...\',2500)">📄 تصدير PDF</button><button class="act-btn" onclick="T(\'📧 تم إرسال التقرير للإدارة العليا\',1800)">📧 إرسال للإدارة</button></div>',
     cmds:['مقارنة الأسابيع','تقرير شهري','أرسل للمديرة']
   };
 }
@@ -946,7 +946,7 @@ function respondSendReport(){
   return {
     text:'<strong>📧 إرسال التقرير</strong><br><br>اختر المستلم والنوع:<br><br>'
     +'<div class="action-row">'
-    +'<button class="act-btn" onclick="T(\'✅ تم إرسال التقرير اليومي للمهندس عبدالله\',2000)">📧 المهندس عبدالله</button>'
+    +'<button class="act-btn" onclick="T(\'✅ تم إرسال التقرير اليومي للإدارة العليا\',2000)">📧 الإدارة العليا</button>'
     +'<button class="act-btn" onclick="T(\'✅ تم إرسال التقرير للمديرة\',2000)">📧 المديرة</button>'
     +'<button class="act-btn" onclick="T(\'📥 جاري تحميل PDF...\',2200)">📥 تحميل PDF</button>'
     +'</div><br>'
@@ -1034,7 +1034,7 @@ function getDetailedReport(){
     +'</div>'
     +'<div style="margin-top:10px;display:flex;gap:7px">'
     +'<button onclick="T(\'📥 جاري تصدير التقرير...\',2200)" style="flex:1;background:var(--yellow);color:var(--navy);border:none;border-radius:9px;padding:9px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit">📥 تصدير PDF</button>'
-    +'<button onclick="T(\'📧 تم الإرسال للمهندس عبدالله\',1800)" style="flex:1;background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px;font-size:.73rem;font-weight:600;cursor:pointer;font-family:inherit">📧 إرسال</button>'
+    +'<button onclick="T(\'📧 تم الإرسال للإدارة العليا\',1800)" style="flex:1;background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px;font-size:.73rem;font-weight:600;cursor:pointer;font-family:inherit">📧 إرسال</button>'
     +'</div>';
 }
 
@@ -1334,8 +1334,25 @@ setTimeout(function(){
     if (sw && f) sw.addEventListener('click', function(){ f.classList.remove('swapped'); void f.offsetWidth; f.classList.add('swapped'); });
   }
 
+
+  function forms(){
+    // forms that point at another page (the home trip finder) go through the same routing as links
+    document.addEventListener('submit', function(e){
+      var f = e.target, act = (f.getAttribute && f.getAttribute('action') || '').split('/').pop().split('#')[0];
+      if (!MAP[act]) return;
+      e.preventDefault();
+      f.classList.add('kp-punched');
+      setTimeout(function(){
+        f.classList.remove('kp-punched');
+        if (window.parent !== window) { try { parent.postMessage({kptcNav: MAP[act]}, '*'); } catch(x){} }
+        else location.href = '../index.html#/' + MAP[act];
+      }, 420);
+    });
+  }
+
   function init(){
     walk(document.body);
+    forms();
     homeExtras();
     footerStrip();
     standalone();

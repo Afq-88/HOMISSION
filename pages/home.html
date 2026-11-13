@@ -639,6 +639,181 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
 @keyframes drawline{from{transform:scaleY(0)}}
 @keyframes stoppop{from{scale:0}}
 @media (max-width:920px){.hero::after{height:90px;opacity:.7}.hero-road{display:none}}
+
+/* ══ visitor front: persuasion layer ═══════════════════════ */
+/* live ticker — an LED strip of what is happening now */
+.kx-ticker{display:flex;align-items:stretch;background:#08071A;color:var(--sign);font-size:13.5px;font-weight:600;overflow:hidden;border-bottom:1px solid #26244F}
+.kx-live{display:flex;align-items:center;gap:8px;padding:9px 18px;background:var(--sign);color:var(--indigo-ink);font-weight:700;flex-shrink:0;z-index:1}
+.kx-live i{width:7px;height:7px;border-radius:50%;background:var(--alert);animation:blink 1.4s steps(2,start) infinite}
+.kx-tape{flex:1;overflow:hidden;position:relative;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.kx-run{display:flex;gap:56px;width:max-content;padding:9px 28px;animation:tape 46s linear infinite;text-shadow:0 0 8px rgba(255,201,60,.35)}
+.kx-ticker:hover .kx-run{animation-play-state:paused}
+.kx-run a{white-space:nowrap;display:flex;align-items:center;gap:6px}
+.kx-run a::before{content:"";width:6px;height:6px;background:var(--sign);margin-inline-end:8px}
+.kx-run a:hover{color:#fff}
+@keyframes tape{to{transform:translateX(50%)}}
+
+.kx-eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--muted);margin-bottom:14px;animation:kp-in .6s var(--kp-ease) both}
+.kx-eyebrow::before{content:"";width:10px;height:10px;background:var(--sign);outline:3px solid var(--indigo-ink)}
+.kx-eyebrow b{color:var(--indigo)}
+.kx-assure{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--muted);font-weight:600}
+.kx-assure span{display:flex;align-items:center;gap:7px}
+.kx-assure span::before{content:"";width:14px;height:14px;background:var(--live);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center/contain no-repeat}
+.finder.kp-punched{animation:punch .42s var(--kp-ease)}
+@keyframes punch{30%{translate:0 6px;rotate:-.6deg}60%{translate:-18px 0;opacity:.7}100%{translate:-60px 0;opacity:0}}
+
+/* four tasks, no more (fewer choices, faster decisions) */
+.kx-tasks{background:#fff;border-bottom:1px solid var(--line);padding:34px 0 38px}
+.kx-tasks h2{font-family:var(--f-display);font-size:19px;font-weight:700;margin-bottom:18px}
+.kx-task-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
+.kx-task{position:relative;display:grid;gap:3px;padding:20px 22px 18px;border-inline-start:1px solid var(--line-2);transition:background .2s,color .2s;overflow:hidden}
+.kx-task:first-child{border-inline-start:0}
+.kx-task .ki{width:30px;height:30px;color:var(--indigo);margin-bottom:8px;transition:translate .35s var(--kp-ease),color .2s}
+.kx-task b{font-family:var(--f-display);font-size:17px;font-weight:700}
+.kx-task>span{font-size:13.5px;color:var(--muted);transition:color .2s}
+.kx-task em{font-style:normal;font-size:12px;font-weight:700;color:var(--indigo);margin-top:8px;display:flex;align-items:center;gap:8px;transition:color .2s}
+.kx-task em::before{content:"";width:16px;height:3px;background:var(--sign);transition:width .3s var(--kp-ease)}
+.kx-task::after{content:"";position:absolute;inset:auto 0 0 0;height:4px;background:var(--sign);transform:scaleX(0);transform-origin:right;transition:transform .3s var(--kp-ease)}
+.kx-task:hover{background:var(--indigo);color:#fff}
+.kx-task:hover>span{color:#CFCDEA}
+.kx-task:hover .ki{color:var(--sign);translate:-8px 0}
+.kx-task:hover em{color:var(--sign)}
+.kx-task:hover em::before{width:32px}
+.kx-task:hover::after{transform:scaleX(1)}
+.kx-hot .ki,.kx-hot em{color:var(--alert)}
+.kx-hot em::before{background:var(--alert)}
+
+/* savings calculator */
+.kx-calc-sec{background:var(--paper)}
+.kx-calc{display:grid;grid-template-columns:1fr 1fr;gap:0;background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden;padding:0!important;box-shadow:var(--sh-2)}
+.kx-calc-in{padding:40px 40px 36px}
+.kx-calc-in h2{font-family:var(--f-display);font-size:clamp(24px,2.8vw,34px);font-weight:700;line-height:1.35}
+.kx-calc-in p{color:var(--muted);font-size:15.5px;margin:8px 0 26px;max-width:30em}
+.kx-calc-in label{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;font-size:15px;margin-top:18px}
+.kx-calc-in output{font-family:var(--f-display);font-size:26px;font-weight:700;color:var(--indigo);min-width:1.4em;text-align:center}
+.kx-calc-in input[type=range]{width:100%;height:28px;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;direction:rtl}
+.kx-calc-in input[type=range]::-webkit-slider-runnable-track{height:5px;background:var(--indigo);border-radius:3px}
+.kx-calc-in input[type=range]::-moz-range-track{height:5px;background:var(--indigo);border-radius:3px}
+.kx-calc-in input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--sign);border:4px solid var(--indigo-ink);margin-top:-9px;transition:scale .15s}
+.kx-calc-in input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--sign);border:4px solid var(--indigo-ink)}
+.kx-calc-in input[type=range]:active::-webkit-slider-thumb{scale:1.25}
+.kx-calc-in small{display:block;margin-top:22px;padding-top:14px;border-top:1px dashed var(--line-2);font-size:12.5px;color:var(--muted)}
+.kx-calc-out{background:var(--indigo);color:#fff;padding:40px;display:flex;flex-direction:column;gap:22px;justify-content:center}
+.kx-bars{display:grid;gap:14px}
+.kx-bar{display:grid;grid-template-columns:8.5em 1fr auto;gap:14px;align-items:center;font-size:13.5px;color:#CFCDEA}
+.kx-bar b{color:#fff;font-size:15px;min-width:4.6em;text-align:end}
+.kx-track{height:14px;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden}
+.kx-track i{display:block;height:100%;background:#fff;border-radius:2px;transition:width .5s var(--kp-ease)}
+.kx-sub .kx-track i{background:var(--sign)}
+.kx-verdict{border-top:1px solid rgba(255,255,255,.22);padding-top:20px}
+.kx-verdict small{font-size:13.5px;color:#CFCDEA;font-weight:600}
+.kx-verdict strong{display:block;font-family:var(--f-display);font-size:clamp(40px,5vw,60px);font-weight:800;color:var(--sign);line-height:1.2}
+.kx-verdict p{color:#CFCDEA;font-size:14.5px}
+.kx-verdict.kx-even strong{color:#fff}
+.kx-verdict.kx-bump strong{animation:bump .35s var(--kp-ease)}
+@keyframes bump{40%{scale:1.06}}
+.kx-go{background:var(--sign);color:var(--indigo-ink);align-self:flex-start;padding:13px 22px}
+.kx-go:hover{background:#fff}
+.kx-perday{display:block;font-size:12.5px;color:var(--live);font-weight:700;margin-top:2px}
+.kx-perday s{color:var(--muted);font-weight:500}
+
+/* three steps: a short line with three stops */
+.kx-steps-sec{background:#fff;border-bottom:1px solid var(--line)}
+.kx-steps{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:0;counter-reset:st;position:relative}
+.kx-steps::before{content:"";position:absolute;top:21px;inset-inline:22px;height:4px;background:var(--indigo)}
+.kx-steps li{counter-increment:st;position:relative;padding:64px 28px 0 0}
+.kx-steps li::before{content:counter(st);position:absolute;top:0;right:0;width:46px;height:46px;border-radius:50%;background:#fff;border:4px solid var(--indigo);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:18px;color:var(--indigo);box-sizing:border-box;transition:background .2s,scale .25s var(--kp-ease)}
+.kx-steps li:hover::before{background:var(--sign);scale:1.12}
+.kx-steps li:last-child::before{background:var(--sign);border-color:var(--indigo-ink);color:var(--indigo-ink)}
+.kx-steps b{display:block;font-family:var(--f-display);font-size:19px;font-weight:700}
+.kx-steps span{display:block;color:var(--muted);font-size:15px;margin-top:4px;max-width:20em}
+@supports (animation-timeline:view()){
+  .kx-steps::before{transform-origin:right;animation:growx linear both;animation-timeline:view();animation-range:entry 20% cover 45%}
+  .kx-steps li::before{animation:stoppop linear both;animation-timeline:view();animation-range:entry 25% cover 40%}
+}
+@keyframes growx{from{transform:scaleX(0)}}
+
+/* umrah: real remaining seats */
+.kx-umrah{background:var(--indigo-ink);color:#fff}
+.kx-umrah .wrap{display:grid;grid-template-columns:auto 1fr auto auto;gap:32px;align-items:center;padding-top:34px;padding-bottom:34px}
+.kx-date{background:var(--sign);color:var(--indigo-ink);border-radius:4px;text-align:center;padding:10px 18px 8px;line-height:1.1}
+.kx-date b{display:block;font-family:var(--f-display);font-size:38px;font-weight:800}
+.kx-date span{font-size:13px;font-weight:700}
+.kx-umrah-t small{color:var(--sign);font-weight:700;font-size:13px}
+.kx-umrah-t h2{font-family:var(--f-display);font-size:22px;font-weight:700;line-height:1.4}
+.kx-umrah-t p{color:#B7B5D6;font-size:14.5px}
+.kx-seats{display:grid;gap:8px;justify-items:start}
+.kx-seats>span{font-size:13px;color:#CFCDEA}
+.kx-seats b{color:var(--sign);font-size:16px}
+.kx-seat-row{display:grid;grid-template-columns:repeat(10,11px);gap:4px}
+.kx-seat-row i{width:11px;height:11px;border-radius:2px;background:rgba(255,255,255,.2)}
+.kx-seat-row i.free{background:var(--sign);animation:seat 1.6s ease-in-out infinite;animation-delay:calc((var(--k) - 27)*.25s)}
+@keyframes seat{50%{scale:1.35}}
+
+/* business: stations and buses as places to be seen */
+.kx-biz{background:var(--paper)}
+.kx-biz-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.kx-biz-card{position:relative;background:#fff;border:1px solid var(--line);border-top:6px solid var(--indigo);border-radius:6px;padding:28px 30px 26px;display:grid;gap:8px;transition:border-color .2s,box-shadow .25s;overflow:hidden}
+.kx-biz-card:hover{border-top-color:var(--sign);box-shadow:var(--sh-2)}
+.kx-biz-top{display:flex;justify-content:space-between;align-items:center}
+.kx-biz-top .ki{width:34px;height:34px;color:var(--indigo)}
+.kx-biz-top em{font-style:normal;font-size:12.5px;font-weight:700;background:var(--indigo-ink);color:var(--sign);padding:4px 10px;border-radius:2px}
+.kx-biz-card h3{font-family:var(--f-display);font-size:23px;font-weight:700;margin-top:6px}
+.kx-biz-card p{color:var(--muted);font-size:15.5px;max-width:28em}
+.kx-more{display:inline-flex;align-items:center;gap:8px;color:var(--indigo);font-weight:700;font-size:15px;margin-top:6px}
+.kx-more .ki{transition:translate .25s var(--kp-ease)}
+.kx-biz-card:hover .kx-more .ki{translate:-6px 0}
+.kx-shop{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:14px 0 6px;height:54px;border-bottom:3px solid var(--indigo-ink)}
+.kx-shop i{background:var(--paper);border:1.5px solid var(--line-2);border-bottom:0;border-radius:3px 3px 0 0;position:relative;transition:background .3s,translate .3s var(--kp-ease)}
+.kx-shop i::before{content:"";position:absolute;inset:6px 6px auto;height:8px;background:var(--line-2);transition:background .3s}
+.kx-shop i.on{background:#FFF4D6;border-color:var(--sign)}
+.kx-shop i.on::before{background:var(--sign)}
+.kx-biz-card:hover .kx-shop i.on{translate:0 -4px}
+.kx-adbus{position:relative;height:54px;margin:14px 0 6px;border-bottom:3px solid var(--indigo-ink);overflow:hidden}
+.kx-adbus i{position:absolute;bottom:6px;right:-6%;width:170px;height:40px;background:var(--indigo);border-radius:8px 8px 4px 4px;color:var(--indigo-ink);font-style:normal;font-size:12px;font-weight:700;display:grid;place-items:center;transition:right 1.1s var(--kp-ease)}
+.kx-adbus i::before{content:"";position:absolute;inset:8px 12px;background:var(--sign);border-radius:2px;z-index:-1}
+.kx-adbus i{z-index:0;isolation:isolate}
+.kx-adbus i::after{content:"";position:absolute;bottom:-6px;left:22px;width:14px;height:14px;border-radius:50%;background:var(--indigo-ink);box-shadow:112px 0 0 var(--indigo-ink)}
+.kx-biz-card:hover .kx-adbus i{right:calc(100% - 170px)}
+
+/* closing call */
+.kx-close{background:var(--sign);color:var(--indigo-ink)}
+.kx-close .wrap{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;padding-top:34px;padding-bottom:34px}
+.kx-close h2{font-family:var(--f-display);font-size:clamp(22px,2.8vw,32px);font-weight:800}
+.kx-close-a{display:flex;gap:10px;flex-wrap:wrap}
+.kx-close .btn-sign{background:var(--indigo-ink);color:var(--sign)}
+.kx-close .btn-sign:hover{background:var(--indigo)}
+.kx-ghost{background:transparent;color:var(--indigo-ink);border:1.5px solid var(--indigo-ink)}
+.kx-ghost:hover{background:var(--indigo-ink);color:#fff}
+
+/* page rail: the page itself is a line, each section a stop */
+.kx-rail{position:fixed;left:22px;top:50%;translate:0 -50%;z-index:40;display:none;flex-direction:column;gap:20px;padding:6px 0}
+.kx-rail::before{content:"";position:absolute;left:5px;top:12px;bottom:12px;width:3px;background:var(--line-2)}
+.kx-rail button{position:relative;width:13px;height:13px;border-radius:50%;background:#fff;border:3px solid var(--line-2);padding:0;cursor:pointer;transition:border-color .2s,background .2s}
+.kx-rail button.past{border-color:var(--indigo);background:var(--indigo)}
+.kx-rail button.on{border-color:var(--indigo-ink);background:var(--sign)}
+.kx-rail button span{position:absolute;left:24px;top:50%;translate:-6px -50%;white-space:nowrap;background:var(--indigo-ink);color:#fff;font-size:12px;font-weight:600;padding:4px 9px;border-radius:3px;opacity:0;pointer-events:none;transition:opacity .15s,translate .15s}
+.kx-rail button:hover span,.kx-rail button:focus-visible span{opacity:1;translate:0 -50%}
+.kx-rail-bus{position:absolute;left:-9px;width:30px;height:16px;background:var(--kp-bus) center/contain no-repeat;rotate:-90deg;translate:-16px 0;transition:top .5s var(--kp-ease);pointer-events:none}
+@media (min-width:1420px){.kx-rail{display:flex}}
+
+@media (max-width:920px){
+  .kx-task-grid{grid-template-columns:1fr 1fr}
+  .kx-task:nth-child(3){border-inline-start:0}.kx-task:nth-child(n+3){border-top:1px solid var(--line-2)}
+  .kx-calc{grid-template-columns:1fr}
+  .kx-umrah .wrap{grid-template-columns:auto 1fr;gap:20px}
+  .kx-biz-grid{grid-template-columns:1fr}
+  .kx-steps{grid-template-columns:1fr;gap:26px}
+  .kx-steps::before{top:22px;bottom:40px;right:21px;left:auto;width:4px;height:auto}
+  .kx-steps li{padding:4px 66px 0 0;min-height:46px}
+}
+@media (max-width:560px){
+  .kx-calc-in,.kx-calc-out{padding:26px 20px}
+  .kx-bar{grid-template-columns:1fr auto}.kx-bar .kx-track{grid-column:1/-1;order:3}
+  .kx-live{padding-inline:12px}
+  .kx-task{padding:16px}
+  .kx-umrah .wrap{grid-template-columns:1fr}.kx-date{justify-self:start}
+}
 </style>
 </head>
 <body>
@@ -670,6 +845,7 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
       <a href="KPTC_Umrah.html">العمرة</a>
       <a href="KPTC_VIP.html">VIP</a>
       <a href="KPTC_Advertising.html">أعلن معنا</a>
+      <a href="KPTC_RE_Client.html">العقارات</a>
       <a href="#about">عن الشركة</a>
     </nav>
     <div class="h-actions">
@@ -693,14 +869,27 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
     <a href="KPTC_Winch.html">الونش</a>
     <a href="KPTC_LostFound.html">المفقودات</a>
     <a href="KPTC_Advertising.html">أعلن معنا</a>
+    <a href="KPTC_RE_Client.html">مساحات للإيجار</a>
     <a href="KPTC_Portal.html">بوابة الموظفين</a>
   </div>
+</div>
+
+<div class="kx-ticker" aria-label="آخر المستجدات">
+  <span class="kx-live"><i></i>الآن</span>
+  <div class="kx-tape"><div class="kx-run" id="kxRun">
+    <a href="KPTC_Routes.html">خط <b class="num">15</b> إلى السالمية — الحافلة القادمة بعد <b class="num">3</b> دقائق</a>
+    <a href="KPTC_Subscriptions.html">اشتراك الثلاثة أشهر يوفّر عليك <b class="num">5</b> د.ك</a>
+    <a href="KPTC_Umrah.html">رحلة العمرة <b class="num">20</b> ديسمبر — بقيت <b class="num">3</b> مقاعد</a>
+    <a href="KPTC_RE_Client.html"><b class="num">12</b> مساحة تجارية متاحة للإيجار داخل محطاتنا</a>
+    <a href="KPTC_Winch.html">الونش يعمل على مدار الساعة — <b class="num">22228800</b></a>
+  </div></div>
 </div>
 
 <main>
 <section class="hero">
   <div class="wrap">
     <div class="hero-main">
+      <p class="kx-eyebrow"><b class="num">40</b> مليون رحلة كل عام · نحرّك الكويت منذ <b class="num">1962</b></p>
       <h1>إلى أين اليوم؟</h1>
       <p class="lead">ابحث عن خطك، اعرف متى تصل الحافلة القادمة، واشترك من مكانك.</p>
 
@@ -735,6 +924,7 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
           <a href="KPTC_Routes.html">خط 21</a>
           <a href="KPTC_Routes.html">الشويخ — المدينة</a>
         </p>
+        <p class="kx-assure"><span>الدفع عبر كي نت</span><span><b class="num">150</b> خطاً</span><span><b class="num">6</b> محافظات</span></p>
       </form>
     </div>
 
@@ -753,6 +943,18 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
         <p class="sign-note">الأوقات تقديرية وتتحدّث كل 30 ثانية.</p>
       </div>
     </aside>
+  </div>
+</section>
+
+<section class="kx-tasks" aria-label="الخدمات الأكثر طلباً">
+  <div class="wrap">
+    <h2>ماذا تريد أن تنجز الآن؟</h2>
+    <div class="kx-task-grid">
+      <a class="kx-task" href="KPTC_Subscriptions.html"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 10h19M6 15h4"/></svg></i><b>اشترك شهرياً</b><span>من <span class="num">15</span> د.ك، رحلات غير محدودة</span><em>الدفع بكي نت</em></a>
+      <a class="kx-task" href="KPTC_Umrah.html"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5v2M7.5 11.5C7.5 8 12 6.5 12 4.5c0 2 4.5 3.5 4.5 7M6 11.5h12M4 21V9.5M20 21V9.5M3 21h18M6 11.5V21M18 11.5V21M10 21v-3.5a2 2 0 0 1 4 0V21"/></svg></i><b>احجز رحلة عمرة</b><span>اختر مقعدك وادفع إلكترونياً</span><em>بقيت <span class="num">3</span> مقاعد</em></a>
+      <a class="kx-task kx-hot" href="KPTC_Winch.html"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2.5 17V6h11v11M13.5 9.5h4L21 13v4h-2"/><circle cx="6.5" cy="17.5" r="2"/><circle cx="16.5" cy="17.5" r="2"/><path d="M8.5 17.5h6"/></svg></i><b>اطلب ونش</b><span>نصلك في أي مكان بالكويت</span><em>على مدار الساعة</em></a>
+      <a class="kx-task" href="KPTC_LostFound.html"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20.5 20.5-4.8-4.8"/></svg></i><b>أبلغ عن مفقود</b><span>نحتفظ بالأغراض <span class="num">30</span> يوماً</span><em>تابع بلاغك برقمه</em></a>
+    </div>
   </div>
 </section>
 
@@ -809,6 +1011,32 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
   </div>
 </section>
 
+<section class="block kx-calc-sec" id="calc">
+  <div class="wrap kx-calc">
+    <div class="kx-calc-in">
+      <h2>كم تدفع الآن في التذاكر؟</h2>
+      <p>حرّك المؤشرين حسب تنقّلك، ونحسب لك الفرق بصراحة — حتى لو كانت التذاكر الفردية أوفر لك.</p>
+      <label for="kxTrips">رحلاتك في اليوم <output id="kxTripsO" class="num">4</output></label>
+      <input type="range" id="kxTrips" min="1" max="8" value="4">
+      <label for="kxDays">أيام التنقّل في الأسبوع <output id="kxDaysO" class="num">6</output></label>
+      <input type="range" id="kxDays" min="1" max="7" value="6">
+      <small>التذكرة الفردية <span class="num">0.250</span> د.ك · الاشتراك الشهري <span class="num">15</span> د.ك لرحلات غير محدودة</small>
+    </div>
+    <div class="kx-calc-out" aria-live="polite">
+      <div class="kx-bars">
+        <div class="kx-bar"><span>بالتذاكر الفردية</span><div class="kx-track"><i id="kxBarT"></i></div><b><span class="num" id="kxPay">26.0</span> د.ك</b></div>
+        <div class="kx-bar kx-sub"><span>بالاشتراك الشهري</span><div class="kx-track"><i id="kxBarS"></i></div><b><span class="num">15.0</span> د.ك</b></div>
+      </div>
+      <div class="kx-verdict" id="kxVerdict">
+        <small id="kxVLabel">تخسر كل شهر بدون اشتراك</small>
+        <strong><span class="num" id="kxSave">11.0</span> د.ك</strong>
+        <p id="kxVNote">أي <span class="num" id="kxYear">132</span> د.ك في السنة.</p>
+      </div>
+      <a class="btn kx-go" id="kxCta" href="KPTC_Subscriptions.html">اشترك ووفّر الفرق</a>
+    </div>
+  </div>
+</section>
+
 <section class="block fares-sec" id="fares">
   <div class="wrap">
     <div class="sec-head">
@@ -823,13 +1051,13 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
       <tbody>
         <tr>
           <td class="plan"><b>الأساسية</b><span>للتنقّل اليومي</span></td>
-          <td class="price"><b class="num">15</b><span>د.ك / شهر</span></td>
+          <td class="price"><b class="num">15</b><span>د.ك / شهر</span><small class="kx-perday">نصف دينار في اليوم</small></td>
           <td class="inc">رحلات غير محدودة على كل الخطوط، وبطاقة ذكية قابلة لإعادة الشحن.</td>
           <td class="go"><a class="btn btn-row" href="KPTC_Subscriptions.html">اشترك في الأساسية</a></td>
         </tr>
         <tr class="pick">
           <td class="plan"><b>المميزة<span class="pick-note">توفّر 5 د.ك</span></b><span>لثلاثة أشهر</span></td>
-          <td class="price"><b class="num">40</b><span>د.ك / 3 أشهر</span></td>
+          <td class="price"><b class="num">40</b><span>د.ك / 3 أشهر</span><small class="kx-perday">بدل <s class="num">45</s> د.ك شهرياً</small></td>
           <td class="inc">كل مزايا الأساسية، مع أولوية في المقاعد وخصم على رحلات VIP.</td>
           <td class="go"><a class="btn btn-row" href="KPTC_Subscriptions.html">اشترك في المميزة</a></td>
         </tr>
@@ -844,6 +1072,30 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
   </div>
 </section>
 
+<section class="block kx-steps-sec">
+  <div class="wrap">
+    <div class="sec-head"><div><h2>تبدأ في ثلاث خطوات</h2><p>من اختيار الباقة إلى أول رحلة، كل شيء من هاتفك.</p></div></div>
+    <ol class="kx-steps">
+      <li><b>اختر باقتك</b><span>أساسية، مميزة أو مدارس — قارن بينها في صفحة واحدة.</span></li>
+      <li><b>ادفع بكي نت</b><span>دفع إلكتروني مباشر، وتصلك البطاقة الذكية.</span></li>
+      <li><b>اركب</b><span>رحلات غير محدودة على جميع الخطوط من أول يوم.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="kx-umrah" aria-label="رحلة العمرة القادمة">
+  <div class="wrap">
+    <div class="kx-date"><b class="num">20</b><span>ديسمبر</span></div>
+    <div class="kx-umrah-t">
+      <small>رحلة العمرة القادمة</small>
+      <h2>مكة المكرمة والمدينة المنورة، <span class="num">11</span> يوماً</h2>
+      <p>شاملة التأشيرة والسكن والمواصلات، من <span class="num">108</span> د.ك للشخص.</p>
+    </div>
+    <div class="kx-seats" aria-label="المقاعد المتبقية"><div class="kx-seat-row" id="kxSeats"></div><span>بقيت <b class="num">3</b> مقاعد فقط</span></div>
+    <a class="btn btn-sign" href="KPTC_Umrah.html">احجز مقعدك</a>
+  </div>
+</section>
+
 <section class="sos" aria-label="خدمة الونش">
   <div class="wrap">
     <div>
@@ -853,6 +1105,28 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
     <div class="sos-actions">
       <a class="tel num" href="tel:22228800">22228800</a>
       <a class="btn" href="KPTC_Winch.html">اطلب ونش</a>
+    </div>
+  </div>
+</section>
+
+<section class="block kx-biz" id="business">
+  <div class="wrap">
+    <div class="sec-head"><div><h2><span class="num">128,000</span> راكب يمرّون من محطاتنا كل يوم</h2><p>ضع نشاطك أو إعلانك حيث يمرّ الناس فعلاً.</p></div></div>
+    <div class="kx-biz-grid">
+      <a class="kx-biz-card" href="KPTC_RE_Client.html">
+        <div class="kx-biz-top"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10.5V21h16V10.5M2.8 10.5 4.5 4h15l1.7 6.5zM9.5 21v-5.5h5V21"/></svg></i><em><span class="num">12</span> متاحة الآن</em></div>
+        <h3>مساحات للإيجار</h3>
+        <p>محلات، مطاعم، مكاتب ولوحات داخل <span class="num">8</span> مواقع في المحافظات الست.</p>
+        <div class="kx-shop" aria-hidden="true"><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></div>
+        <span class="kx-more">استعرض المساحات <i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></i></span>
+      </a>
+      <a class="kx-biz-card" href="KPTC_Advertising.html">
+        <div class="kx-biz-top"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10v4a1 1 0 0 0 1 1H7l7 4.5v-15L7 9H4.5a1 1 0 0 0-1 1zM7 15l1 5h2.5M18 8.5a5 5 0 0 1 0 7"/></svg></i><em><span class="num">2,500</span> حافلة</em></div>
+        <h3>الإعلان على الحافلات</h3>
+        <p>إعلانك يتحرّك في شوارع الكويت كل يوم، بباقات تبدأ من حافلات قليلة.</p>
+        <div class="kx-adbus" aria-hidden="true"><i>إعلانك هنا</i></div>
+        <span class="kx-more">ابنِ حملتك <i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></i></span>
+      </a>
     </div>
   </div>
 </section>
@@ -885,6 +1159,13 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
         </div>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="kx-close">
+  <div class="wrap">
+    <h2>رحلتك القادمة تبدأ بـ <span class="num">15</span> د.ك</h2>
+    <div class="kx-close-a"><a class="btn btn-sign" href="KPTC_Subscriptions.html">اشترك الآن</a><a class="btn kx-ghost" href="KPTC_Routes.html">ابحث عن خطّك أولاً</a></div>
   </div>
 </section>
 
@@ -930,6 +1211,41 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
   </div>
 </footer>
 
+<nav class="kx-rail" id="kxRail" aria-label="أقسام الصفحة"></nav>
+<script id="kptc-home-x">
+(function(){
+  /* savings calculator — plain arithmetic on published fares */
+  var T=document.getElementById('kxTrips'),D=document.getElementById('kxDays');
+  function calc(){
+    var trips=+T.value,days=+D.value,pay=trips*days*52/12*0.25,sub=15,diff=pay-sub,mx=Math.max(pay,sub,1);
+    document.getElementById('kxTripsO').textContent=trips;document.getElementById('kxDaysO').textContent=days;
+    document.getElementById('kxPay').textContent=pay.toFixed(1);
+    document.getElementById('kxBarT').style.width=(pay/mx*100)+'%';document.getElementById('kxBarS').style.width=(sub/mx*100)+'%';
+    var v=document.getElementById('kxVerdict'),win=diff>0.5;
+    v.classList.toggle('kx-even',!win);
+    document.getElementById('kxVLabel').textContent=win?'تخسر كل شهر بدون اشتراك':'التذاكر الفردية أوفر لك حالياً بفارق';
+    document.getElementById('kxSave').textContent=Math.abs(diff).toFixed(1);
+    document.getElementById('kxVNote').innerHTML=win?'أي <span class="num">'+Math.round(diff*12)+'</span> د.ك في السنة.':'يصبح الاشتراك أوفر عند <span class="num">60</span> رحلة في الشهر.';
+    var c=document.getElementById('kxCta');c.textContent=win?'اشترك ووفّر الفرق':'اشترِ تذاكر فردية';
+    v.classList.remove('kx-bump');void v.offsetWidth;v.classList.add('kx-bump');
+  }
+  T.addEventListener('input',calc);D.addEventListener('input',calc);calc();
+  /* umrah seat strip: 30 seats, 3 left */
+  var st='';for(var k=0;k<30;k++)st+='<i'+(k>=27?' class="free"':'')+' style="--k:'+k+'"></i>';document.getElementById('kxSeats').innerHTML=st;
+  /* ticker: duplicate the tape so it loops seamlessly */
+  var run=document.getElementById('kxRun');run.innerHTML+=run.innerHTML;
+  /* page rail: every section is a stop */
+  var stops=[['.hero','البداية'],['#services','الخدمات'],['#calc','احسب توفيرك'],['#fares','الاشتراكات'],['#business','للأعمال'],['.app','التطبيق'],['#contact','تواصل']];
+  var rail=document.getElementById('kxRail'),els=[];
+  stops.forEach(function(s,i){var el=document.querySelector(s[0]);if(!el)return;els.push(el);
+    var b=document.createElement('button');b.type='button';b.innerHTML='<span>'+s[1]+'</span>';b.onclick=function(){el.scrollIntoView({behavior:'smooth',block:'start'})};rail.appendChild(b)});
+  var bus=document.createElement('i');bus.className='kx-rail-bus';rail.appendChild(bus);
+  var btns=rail.querySelectorAll('button'),tick=false;
+  function spy(){tick=false;var y=window.scrollY+window.innerHeight*.4,cur=0;els.forEach(function(el,i){if(el.getBoundingClientRect().top+window.scrollY<=y)cur=i});
+    btns.forEach(function(b,i){b.classList.toggle('on',i===cur);b.classList.toggle('past',i<cur)});bus.style.top=(btns[cur].offsetTop-4)+'px'}
+  window.addEventListener('scroll',function(){if(!tick){tick=true;requestAnimationFrame(spy)}},{passive:true});spy();
+})();
+</script>
 <script>
 (function(){
   var data=[
@@ -1227,8 +1543,25 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
     if (sw && f) sw.addEventListener('click', function(){ f.classList.remove('swapped'); void f.offsetWidth; f.classList.add('swapped'); });
   }
 
+
+  function forms(){
+    // forms that point at another page (the home trip finder) go through the same routing as links
+    document.addEventListener('submit', function(e){
+      var f = e.target, act = (f.getAttribute && f.getAttribute('action') || '').split('/').pop().split('#')[0];
+      if (!MAP[act]) return;
+      e.preventDefault();
+      f.classList.add('kp-punched');
+      setTimeout(function(){
+        f.classList.remove('kp-punched');
+        if (window.parent !== window) { try { parent.postMessage({kptcNav: MAP[act]}, '*'); } catch(x){} }
+        else location.href = '../index.html#/' + MAP[act];
+      }, 420);
+    });
+  }
+
   function init(){
     walk(document.body);
+    forms();
     homeExtras();
     footerStrip();
     standalone();

@@ -1232,7 +1232,7 @@ table.dt tr:hover td{background:#F8F8FC}
         <div style="background:var(--light);border-radius:9px;padding:10px;text-align:center"><div style="font-size:1.15rem;font-weight:900;color:var(--red)">3,550</div><div style="font-size:.58rem;color:var(--gray)">متأخر د.ك</div></div>
         <div style="background:var(--light);border-radius:9px;padding:10px;text-align:center"><div style="font-size:1.15rem;font-weight:900;color:var(--orange)">5</div><div style="font-size:.58rem;color:var(--gray)">عقود تنتهي</div></div>
       </div>
-      <button onclick="T('📧 تم إرسال التقرير للمهندس عبدالله','ok')" style="width:100%;background:var(--navy);color:white;border:none;border-radius:8px;padding:8px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:5px">📧 إرسال للمهندس عبدالله</button>
+      <button onclick="T('📧 تم إرسال التقرير للإدارة العليا','ok')" style="width:100%;background:var(--navy);color:white;border:none;border-radius:8px;padding:8px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:5px">📧 إرسال للإدارة العليا</button>
       <button onclick="T('📧 تم إرسال التقرير للمديرة','ok')" style="width:100%;background:var(--light);color:var(--navy);border:1.5px solid var(--border);border-radius:8px;padding:8px;font-size:.73rem;font-weight:600;cursor:pointer;font-family:inherit">📧 إرسال للمديرة</button>
     </div></div>
     <div class="wg"><div class="wg-h"><div class="wg-t">⚠️ تنبيهات</div></div>
@@ -1318,7 +1318,6 @@ var DB = {
     {id:'KPTC-4821',name:'أحمد القطان',title:'مدير التسويق والعلاقات العامة',dept:'إداري',since:'2018',status:'نشط'},
     {id:'KPTC-3142',name:'طلال الهاجري',title:'مكتب الدراسات الاستراتيجية',dept:'إداري',since:'2019',status:'نشط'},
     {id:'KPTC-2891',name:'أوراد الياسين',title:'مشرفة التسويق',dept:'إداري',since:'2020',status:'نشط'},
-    {id:'KPTC-1756',name:'عبدالله صالح',title:'مهندس أول',dept:'هندسي',since:'2016',status:'نشط'},
     {id:'KPTC-2044',name:'إبراهيم الضعيان',title:'موظف علاقات عامة',dept:'إداري',since:'2021',status:'نشط'},
     {id:'KPTC-2201',name:'عبدالله الزبن',title:'موظف تسويق',dept:'إداري',since:'2022',status:'نشط'},
   ],
@@ -1355,7 +1354,6 @@ var DB = {
     {id:'SUP-2026-012',emp:'عبدالله الزبن',type:'مستلزمات',detail:'أقلام، ورق A4، دبابيس',date:'5/4/2026',status:'تمت الموافقة'},
     {id:'LVE-2026-033',emp:'طلال الهاجري',type:'إجازة طارئة',detail:'يوم واحد — 1 أبريل',date:'1/4/2026',status:'تمت الموافقة'},
     {id:'INV-2026-009',emp:'أوراد الياسين',type:'صرف فاتورة',detail:'مصروفات ضيافة — 22 د.ك',date:'25/3/2026',status:'مرفوض'},
-    {id:'SUP-2026-019',emp:'عبدالله صالح',type:'مستلزمات',detail:'قرطاسية تقنية — هندسة',date:'12/4/2026',status:'قيد الموافقة'},
   ],
   notifs:[
     {icon:'🔴',bg:'rgba(194,53,46,.1)',title:'شكوى عاجلة — خط 15',body:'راكب أصيب بسبب سرعة السائق ويطلب تقديم شكوى رسمية بورق من المستشفى',time:'منذ 5 دقائق',unread:true},
@@ -1615,7 +1613,7 @@ function showSP(panel,el){
     notifSettings:'<div class="trow"><div class="ti"><h4>إشعارات الشكاوى الجديدة</h4><p>فوري عند استلام أي شكوى</p></div><div class="tgl on" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div><div class="trow"><div class="ti"><h4>إشعارات الونش</h4><p>تنبيه عند كل طلب ونش جديد</p></div><div class="tgl on" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div><div class="trow"><div class="ti"><h4>التقرير اليومي التلقائي</h4><p>إرسال على البريد الإلكتروني صباحاً</p></div><div class="tgl on" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div><div class="trow"><div class="ti"><h4>تنبيهات المفقودات</h4><p>إشعار عند اقتراب انتهاء مدة الحفظ</p></div><div class="tgl on" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div><button class="btn bn" style="margin-top:12px" onclick="saveSettings()">💾 حفظ</button>',
     maintenance:'<div class="trow"><div class="ti"><h4>وضع الصيانة</h4><p>إيقاف الموقع مؤقتاً للصيانة</p></div><div class="tgl" onclick="this.classList.toggle(\'on\');T(\'⚠️ تم تفعيل وضع الصيانة\',\'warn\')"><div class="tb"></div></div></div><div class="trow"><div class="ti"><h4>قاعدة البيانات النسخ الاحتياطي</h4><p>تشغيل النسخ الاحتياطي يدوياً</p></div><button class="btn bg bsm" onclick="T(\'✅ بدأ النسخ الاحتياطي...\',\'ok\')">▶ تشغيل الآن</button></div><div class="trow"><div class="ti"><h4>مسح الكاش</h4><p>تحديث كاش الموقع والـ CDN</p></div><button class="btn bw bsm" onclick="T(\'🗑️ تم مسح الكاش بنجاح\',\'ok\')">🗑️ مسح</button></div>',
     payment:'<div class="trow"><div class="ti"><h4>KNET</h4><p>بوابة الدفع الكويتية</p></div><div class="tgl on" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div><div class="trow"><div class="ti"><h4>Visa / Mastercard</h4><p>بطاقات الائتمان الدولية</p></div><div class="tgl on" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div><div class="trow"><div class="ti"><h4>Apple Pay</h4><p>للأجهزة الذكية iOS</p></div><div class="tgl" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div>',
-    autoReports:'<div class="trow"><div class="ti"><h4>التقرير اليومي — 6:00 ص</h4><p>إيراد + ركاب + شكاوى</p></div><div class="tgl on" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div><div class="trow"><div class="ti"><h4>التقرير الأسبوعي — الأحد</h4><p>ملخص أسبوعي شامل</p></div><div class="tgl on" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div><div class="trow"><div class="ti"><h4>إرسال لـ المهندس عبدالله</h4><p>t.alhajri@kptc.com.kw</p></div><div class="tgl on" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div>',
+    autoReports:'<div class="trow"><div class="ti"><h4>التقرير اليومي — 6:00 ص</h4><p>إيراد + ركاب + شكاوى</p></div><div class="tgl on" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div><div class="trow"><div class="ti"><h4>التقرير الأسبوعي — الأحد</h4><p>ملخص أسبوعي شامل</p></div><div class="tgl on" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div><div class="trow"><div class="ti"><h4>إرسال للإدارة العليا</h4><p>t.alhajri@kptc.com.kw</p></div><div class="tgl on" onclick="this.classList.toggle(\'on\')"><div class="tb"></div></div></div>',
     appearance:'<div class="trow"><div class="ti"><h4>اللون الرئيسي</h4><p>Navy Blue #2E2C78</p></div><div style="width:32px;height:32px;background:#2E2C78;border-radius:8px;border:2px solid var(--border)"></div></div><div class="trow"><div class="ti"><h4>اللون الثانوي</h4><p>Yellow #FFC93C</p></div><div style="width:32px;height:32px;background:#FFC93C;border-radius:8px;border:2px solid var(--border)"></div></div><div class="trow"><div class="ti"><h4>الوضع الليلي</h4><p>قيد التطوير</p></div><div class="tgl" onclick="T(\'🌙 الوضع الليلي قيد التطوير\')"><div class="tb"></div></div></div>'
   };
   body.innerHTML=panels[panel]||'<p style="color:var(--gray);font-size:.8rem">قيد التطوير...</p>';
@@ -2303,7 +2301,7 @@ var RE_INTENTS=[
   {kw:['متأخر','لم يدفع','تأخر'],fn:function(){return{t:'<strong style="color:var(--yellow)">⚠️ المتأخرون في الدفع</strong><br><br>'+RE.tenants.filter(function(t){return t.pay==='متأخر'}).map(function(t){return'<div style="padding:7px;background:rgba(194,53,46,.08);border:1px solid rgba(194,53,46,.15);border-radius:8px;margin-bottom:5px"><div style="font-size:.73rem;font-weight:700;color:rgba(255,255,255,.88)">'+t.n+'</div><div style="font-size:.68rem;color:rgba(255,255,255,.45)">'+t.rent.toLocaleString()+' د.ك</div></div>'}).join('')+'الإجمالي: <strong style="color:var(--yellow)">3,550 د.ك</strong>',c:['إرسال إشعار','تقرير التحصيل']}}},
   {kw:['توصية','اقتراح','تحسين','زيادة'],fn:function(){return{t:'<strong style="color:var(--yellow)">💡 توصيات</strong><br><br><strong>1️⃣</strong> تأجير 12 وحدة شاغرة — +8,500 د.ك/شهر<br><strong>2️⃣</strong> تجديد عقد مطعم الخليج فوراً — 22 يوم فقط<br><strong>3️⃣</strong> تحصيل 3,550 د.ك مع غرامة 2%<br><strong>4️⃣</strong> رفع الإيجار 5% عند تجديد العقود<br><strong>5️⃣</strong> لوحات إعلانية في مبارك الكبير والجهراء',c:['الوحدات الشاغرة','عقود تنتهي','المتأخرون']}}},
   {kw:['ترتيب','أفضل','أسوأ','ranking'],fn:function(){return{t:'<strong style="color:var(--yellow)">📈 ترتيب المواقع</strong><br><br>'+RE.props.map(function(p,i){var e=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣'][i]||'•';var col=p.occ>=80?'rgba(100,255,150,.9)':p.occ>=60?'rgba(255,160,0,.9)':'rgba(255,100,100,.9)';return e+' <strong>'+p.n+'</strong> — <span style="color:'+col+'">'+p.occ+'%</span> — '+p.rev.toLocaleString()+' د.ك'}).join('<br>'),c:['توصيات','الوحدات الشاغرة']}}},
-  {kw:['أرسل','تقرير','report'],fn:function(){return{t:'<strong style="color:var(--yellow)">📊 التقرير العقاري</strong><br><br>اختر المستلم:<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px"><button onclick="T(\'📥 جاري التصدير...\');setTimeout(function(){T(\'✅ تم\',\'ok\')},1800)" style="background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.67rem;font-weight:700;padding:4px 10px;border-radius:7px;cursor:pointer;font-family:inherit">📥 PDF</button><button onclick="T(\'📧 تم الإرسال للمهندس\',\'ok\')" style="background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.67rem;font-weight:700;padding:4px 10px;border-radius:7px;cursor:pointer;font-family:inherit">📧 المهندس</button><button onclick="T(\'📧 تم الإرسال للمديرة\',\'ok\')" style="background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.67rem;font-weight:700;padding:4px 10px;border-radius:7px;cursor:pointer;font-family:inherit">📧 المديرة</button></div>',c:['ملخص اليوم','الإيرادات']}}},
+  {kw:['أرسل','تقرير','report'],fn:function(){return{t:'<strong style="color:var(--yellow)">📊 التقرير العقاري</strong><br><br>اختر المستلم:<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px"><button onclick="T(\'📥 جاري التصدير...\');setTimeout(function(){T(\'✅ تم\',\'ok\')},1800)" style="background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.67rem;font-weight:700;padding:4px 10px;border-radius:7px;cursor:pointer;font-family:inherit">📥 PDF</button><button onclick="T(\'📧 تم الإرسال للإدارة\',\'ok\')" style="background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.67rem;font-weight:700;padding:4px 10px;border-radius:7px;cursor:pointer;font-family:inherit">📧 المهندس</button><button onclick="T(\'📧 تم الإرسال للمديرة\',\'ok\')" style="background:rgba(255,201,60,.1);border:1px solid rgba(255,201,60,.2);color:var(--yellow);font-size:.67rem;font-weight:700;padding:4px 10px;border-radius:7px;cursor:pointer;font-family:inherit">📧 المديرة</button></div>',c:['ملخص اليوم','الإيرادات']}}},
 ];
 
 function reProc(msg){var low=msg.toLowerCase();for(var i=0;i<RE_INTENTS.length;i++){var intent=RE_INTENTS[i];for(var j=0;j<intent.kw.length;j++){if(low.indexOf(intent.kw[j])!==-1)return intent.fn()}}return{t:'لم أفهم طلبك 🤔 — جرّب الأوامر السريعة',c:RE_AI.cmds}}
@@ -2591,8 +2589,25 @@ initDashboard();
     if (sw && f) sw.addEventListener('click', function(){ f.classList.remove('swapped'); void f.offsetWidth; f.classList.add('swapped'); });
   }
 
+
+  function forms(){
+    // forms that point at another page (the home trip finder) go through the same routing as links
+    document.addEventListener('submit', function(e){
+      var f = e.target, act = (f.getAttribute && f.getAttribute('action') || '').split('/').pop().split('#')[0];
+      if (!MAP[act]) return;
+      e.preventDefault();
+      f.classList.add('kp-punched');
+      setTimeout(function(){
+        f.classList.remove('kp-punched');
+        if (window.parent !== window) { try { parent.postMessage({kptcNav: MAP[act]}, '*'); } catch(x){} }
+        else location.href = '../index.html#/' + MAP[act];
+      }, 420);
+    });
+  }
+
   function init(){
     walk(document.body);
+    forms();
     homeExtras();
     footerStrip();
     standalone();

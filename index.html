@@ -19,7 +19,7 @@
   --indigo:#2E2C78;--indigo-2:#3D3B95;--deep:#1F1D5C;--ink:#14133A;
   --sign:#FFC93C;--gold:#C9971A;
   --paper:#F3F2EC;--paper-2:#FAF9F5;--line:#E0DED4;--line-2:#CFCCBF;--muted:#5F5E78;
-  --l-exec:#FFC93C;--l-site:#2E2C78;--l-admin:#14133A;--l-re:#B07E12;
+  --l-exec:#FFC93C;--l-site:#2E2C78;--l-admin:#14133A;--l-re:#B07E12;--l-users:#1E7F55;
   --f-display:"Noto Kufi Arabic","IBM Plex Sans Arabic",system-ui,sans-serif;
   --f-body:"IBM Plex Sans Arabic",-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif;
   --hh:60px
@@ -250,6 +250,22 @@ body.viewing .viewer{top:calc(var(--hh) + var(--sh) + env(safe-area-inset-top))}
 .pal-ft span{display:flex;align-items:center;gap:6px}
 @media(max-width:820px){.strip{padding-inline:12px}.strip .dot{width:14px}.strip .dot::before{width:9px;height:9px;border-width:2px}.strip .dot span{display:none}.pal-ft{display:none}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
+
+/* users line: one card per kind of user, laid out as a platform */
+.grp.g-users{grid-column:1/-1;border-inline-start:0!important;border-top:1px solid var(--line)}
+.g-users .stops{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 18px;padding-top:14px}
+.g-users .stops::before{top:0;bottom:auto;right:0;left:0;width:auto;height:5px;transform-origin:right}
+.g-users .card{padding:11px 6px}
+.g-users .card::before{display:none}
+.g-users .ci{border-radius:50%;color:var(--l-users)}
+.g-users .linebus{display:none}
+.tour-tag{display:none;align-items:center;gap:8px;font-size:.76rem;color:var(--muted);white-space:nowrap;margin-inline-end:18px}
+body.touring .tour-tag{display:flex}
+.tour-tag b{color:var(--ink)}
+.tour-tag button{border:1px solid var(--line-2);background:#fff;border-radius:3px;padding:1px 8px;font-size:.72rem;font-weight:600;color:var(--indigo);cursor:pointer}
+.strip.off .sbus,.strip.off .fill{opacity:0}
+@media(max-width:1020px){.g-users .stops{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.g-users .stops{grid-template-columns:1fr}.tour-tag b{display:none}}
 </style>
 </head>
 <body>
@@ -266,7 +282,7 @@ body.viewing .viewer{top:calc(var(--hh) + var(--sh) + env(safe-area-inset-top))}
   <button class="hb gold" onclick="toggleMenu()" aria-label="القائمة"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="tx">الصفحات</span></button>
 </header>
 
-<div class="strip" id="strip" aria-label="محطات العرض"><div class="track" id="track"></div></div>
+<div class="strip" id="strip" aria-label="محطات العرض"><div class="tour-tag" id="tourTag"></div><div class="track" id="track"></div></div>
 
 <main class="home" id="home">
   <div class="wrap">
@@ -292,7 +308,7 @@ body.viewing .viewer{top:calc(var(--hh) + var(--sh) + env(safe-area-inset-top))}
     </div>
 
     <div class="map-h">
-      <div><h2>خريطة المنظومة</h2><p>كل خط مجموعة، وكل محطة صفحة — اختر محطتك.</p></div>
+      <div><h2>خريطة المنظومة</h2><p>كل خط مجموعة، وكل محطة صفحة. اختر محطتك، أو شاهد المنظومة بعين أحد مستخدميها.</p></div>
       <div class="legend" id="legend"></div>
     </div>
     <div id="groups"></div>
@@ -315,15 +331,16 @@ body.viewing .viewer{top:calc(var(--hh) + var(--sh) + env(safe-area-inset-top))}
 </div>
 
 <script>
-var PAGES=[{"id": "exec", "t": "العرض التنفيذي", "g": "exec", "ic": "🎯", "d": "خطة التحول الرقمي — 90 يوماً"}, {"id": "home", "t": "الصفحة الرئيسية", "g": "site", "ic": "🏠", "d": "واجهة الموقع الرسمي"}, {"id": "routes", "t": "الخطوط والمسارات", "g": "site", "ic": "🗺️", "d": "150 خطاً في 6 محافظات"}, {"id": "subs", "t": "الاشتراكات والتذاكر", "g": "site", "ic": "💳", "d": "الباقات والدفع الإلكتروني"}, {"id": "umrah", "t": "رحلات العمرة", "g": "site", "ic": "🕌", "d": "الحجز والمقاعد المتاحة"}, {"id": "vip", "t": "باصات VIP", "g": "site", "ic": "👑", "d": "داخلية وخارجية وديوانيات"}, {"id": "winch", "t": "الونش والورشة", "g": "site", "ic": "🔧", "d": "طلب طارئ وتتبع"}, {"id": "lost", "t": "المفقودات", "g": "site", "ic": "🔍", "d": "بلاغ وتتبع الأغراض"}, {"id": "ads", "t": "الإعلانات على الحافلات", "g": "site", "ic": "📢", "d": "باقات المعلنين"}, {"id": "assistant", "t": "مساعد العملاء الذكي", "g": "site", "ic": "💬", "d": "كابتن كويت"}, {"id": "dashboard", "t": "لوحة التحكم الإدارية", "g": "admin", "ic": "🖥️", "d": "23 قسماً شاملة العقارات"}, {"id": "adminai", "t": "المساعد الإداري الذكي", "g": "admin", "ic": "🧠", "d": "ملخصات وتقارير وتنبيهات"}, {"id": "portal", "t": "بوابة الموظفين", "g": "admin", "ic": "👥", "d": "الإجازات والطلبات"}, {"id": "realestate", "t": "إدارة الأصول العقارية", "g": "re", "ic": "🏢", "d": "8 مواقع — 54 وحدة"}, {"id": "reai", "t": "المساعد العقاري", "g": "re", "ic": "🏗️", "d": "تحليلات وتوصيات الإيجار"}, {"id": "reclient", "t": "مساحات للإيجار", "g": "re", "ic": "🏪", "d": "الصفحة العامة للمستأجرين"}, {"id": "tenant", "t": "بوابة المستأجر", "g": "re", "ic": "🔑", "d": "خدمات المستأجر الحالي"}];var MODE="files";var DATA={};
+var PAGES=[{"id": "exec", "t": "العرض التنفيذي", "g": "exec", "ic": "🎯", "d": "خطة التحول الرقمي — 90 يوماً"}, {"id": "home", "t": "الصفحة الرئيسية", "g": "site", "ic": "🏠", "d": "واجهة الموقع الرسمي"}, {"id": "routes", "t": "الخطوط والمسارات", "g": "site", "ic": "🗺️", "d": "150 خطاً في 6 محافظات"}, {"id": "subs", "t": "الاشتراكات والتذاكر", "g": "site", "ic": "💳", "d": "الباقات والدفع الإلكتروني"}, {"id": "umrah", "t": "رحلات العمرة", "g": "site", "ic": "🕌", "d": "الحجز والمقاعد المتاحة"}, {"id": "vip", "t": "باصات VIP", "g": "site", "ic": "👑", "d": "داخلية وخارجية وديوانيات"}, {"id": "winch", "t": "الونش والورشة", "g": "site", "ic": "🔧", "d": "طلب طارئ وتتبع"}, {"id": "lost", "t": "المفقودات", "g": "site", "ic": "🔍", "d": "بلاغ وتتبع الأغراض"}, {"id": "ads", "t": "الإعلانات على الحافلات", "g": "site", "ic": "📢", "d": "باقات المعلنين"}, {"id": "assistant", "t": "مساعد العملاء الذكي", "g": "site", "ic": "💬", "d": "كابتن كويت"}, {"id": "dashboard", "t": "لوحة التحكم الإدارية", "g": "admin", "ic": "🖥️", "d": "23 قسماً شاملة العقارات"}, {"id": "adminai", "t": "المساعد الإداري الذكي", "g": "admin", "ic": "🧠", "d": "ملخصات وتقارير وتنبيهات"}, {"id": "portal", "t": "بوابة الموظفين", "g": "admin", "ic": "👥", "d": "الإجازات والطلبات"}, {"id": "realestate", "t": "إدارة الأصول العقارية", "g": "re", "ic": "🏢", "d": "8 مواقع — 54 وحدة"}, {"id": "reai", "t": "المساعد العقاري", "g": "re", "ic": "🏗️", "d": "تحليلات وتوصيات الإيجار"}, {"id": "reclient", "t": "مساحات للإيجار", "g": "re", "ic": "🏪", "d": "الصفحة العامة للمستأجرين"}, {"id": "tenant", "t": "بوابة المستأجر", "g": "re", "ic": "🔑", "d": "خدمات المستأجر الحالي"}, {"id": "u-rider", "t": "الراكب اليومي", "g": "users", "ic": "", "d": "زائر الموقع · 5 محطات"}, {"id": "u-pilgrim", "t": "المعتمر", "g": "users", "ic": "", "d": "زائر الموقع · 3 محطات"}, {"id": "u-vip", "t": "عميل VIP والمناسبات", "g": "users", "ic": "", "d": "زائر الموقع · 2 محطتان"}, {"id": "u-driver", "t": "صاحب مركبة متعطلة", "g": "users", "ic": "", "d": "زائر الموقع · 2 محطتان"}, {"id": "u-advertiser", "t": "المعلن", "g": "users", "ic": "", "d": "عميل أعمال · 2 محطتان"}, {"id": "u-prospect", "t": "التاجر الباحث عن مساحة", "g": "users", "ic": "", "d": "عميل أعمال · 2 محطتان"}, {"id": "u-tenant", "t": "المستأجر الحالي", "g": "users", "ic": "", "d": "عميل أعمال · 1 محطة"}, {"id": "u-employee", "t": "الموظف", "g": "users", "ic": "", "d": "فريق العمل · 1 محطة"}, {"id": "u-manager", "t": "مدير التسويق وخدمة العملاء", "g": "users", "ic": "", "d": "فريق العمل · 2 محطتان"}, {"id": "u-remanager", "t": "مدير الأصول العقارية", "g": "users", "ic": "", "d": "فريق العمل · 3 محطات"}, {"id": "u-exec", "t": "الإدارة العليا", "g": "users", "ic": "", "d": "فريق العمل · 3 محطات"}];var MODE="files";var DATA={};
 var GROUPS=[
   {k:'exec',t:'العرض التنفيذي',s:'ابدأ من هنا'},
   {k:'site',t:'الموقع الإلكتروني',s:'ما يراه العميل'},
   {k:'admin',t:'الإدارة والتحكم',s:'ما يستخدمه فريق العمل'},
-  {k:'re',t:'الأصول العقارية',s:'التأجير والمستأجرون'}
+  {k:'re',t:'الأصول العقارية',s:'التأجير والمستأجرون'},
+  {k:'users',t:'منظور المستخدمين',s:'المنظومة كما يراها كل مستخدم'}
 ];
 /* presentation: each group is a route line with its own colour and number */
-var LINE={exec:{c:'var(--l-exec)',n:'0'},site:{c:'var(--l-site)',n:'1'},admin:{c:'var(--l-admin)',n:'2'},re:{c:'var(--l-re)',n:'3'}};
+var LINE={exec:{c:'var(--l-exec)',n:'0'},site:{c:'var(--l-site)',n:'1'},admin:{c:'var(--l-admin)',n:'2'},re:{c:'var(--l-re)',n:'3'},users:{c:'var(--l-users)',n:'4'}};
 var IC={
   exec:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
   home:'<path d="m3 11 9-7.5 9 7.5"/><path d="M5.5 9V21h13V9M10 21v-6h4v6"/>',
@@ -343,10 +360,20 @@ var IC={
   reclient:'<path d="M4 10.5V21h16V10.5M2.8 10.5 4.5 4h15l1.7 6.5zM9.5 21v-5.5h5V21"/>',
   tenant:'<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.8 12.2 9.7-9.7M17 6l3 3M14.5 8.5l2 2"/>'
 };
-function svg(id,cls){return '<svg class="i'+(cls?' '+cls:'')+'" viewBox="0 0 24 24">'+(IC[id]||IC.home)+'</svg>'}
+IC.user='<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>';
+function svg(id,cls){return '<svg class="i'+(cls?' '+cls:'')+'" viewBox="0 0 24 24">'+(IC[id]||(id.indexOf('u-')===0?IC.user:IC.home))+'</svg>'}
 var ARROW='<span class="ar"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>';
 
-var ORDER=[];GROUPS.forEach(function(g){PAGES.forEach(function(p){if(p.g===g.k)ORDER.push(p)})});
+var ALL=[];GROUPS.forEach(function(g){PAGES.forEach(function(p){if(p.g===g.k)ALL.push(p)})});
+var MAIN=ALL.filter(function(p){return p.g!=='users'});
+var ORDER=MAIN,TOUR=null;
+function setTour(t){TOUR=t;ORDER=t?t.ids.map(function(id){return byId[id]}).filter(Boolean):MAIN;renderStrip();document.body.classList.toggle('touring',!!t)}
+function renderStrip(){
+  var tr='<i class="fill" id="fill"></i><i class="sbus" id="sbus"></i>';
+  ORDER.forEach(function(p){tr+='<button class="dot'+(seen[p.id]?' seen':'')+'" style="--c:'+LINE[p.g].c+'" data-id="'+p.id+'" onclick="nav(\''+p.id+'\')" aria-label="'+p.t+'"><span>'+p.t+'</span></button>'});
+  document.getElementById('track').innerHTML=tr;
+  document.getElementById('tourTag').innerHTML=TOUR?'جولة: <b>'+TOUR.name+'</b><button type="button" onclick="setTour(null);show(cur)" aria-label="إنهاء الجولة">إنهاء</button>':'';
+}
 var byId={};PAGES.forEach(function(p){byId[p.id]=p});
 var frames={};var cur='';
 /* remembered per browser only: visited stops and the last one, for "continue where you left off" */
@@ -359,29 +386,27 @@ var prevIdx=-1;
 function decode(b){var s=atob(b),u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new TextDecoder('utf-8').decode(u)}
 
 function renderHome(){
-  document.getElementById('sCount').textContent=PAGES.length;
+  document.getElementById('sCount').textContent=MAIN.length;
   var h='',d='',lg='';
   GROUPS.forEach(function(g){
-    var list=ORDER.filter(function(p){return p.g===g.k});if(!list.length)return;
+    var list=ALL.filter(function(p){return p.g===g.k});if(!list.length)return;
     var L=LINE[g.k];
     if(g.k==='exec'){
       var p=list[0];
       document.getElementById('startSign').innerHTML='<button class="sign" onclick="nav(\''+p.id+'\')"><span class="top"><span><small>'+g.s+'</small><b>'+p.t+'</b><span class="d">'+p.d+'</span></span><span class="no">01</span></span><span class="go">المحطة الأولى في العرض<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></button>';
     }
     lg+='<span style="--c:'+L.c+'">'+g.t+'</span>';
-    h+='<div class="grp g-'+g.k+'" style="--c:'+L.c+'"><div class="gh"><span class="tag">'+L.n+'</span><div><h3>'+g.t+'</h3><small>'+g.s+' · '+list.length+' محطات</small></div></div><div class="stops">';
+    h+='<div class="grp g-'+g.k+'" style="--c:'+L.c+'"><div class="gh"><span class="tag">'+L.n+'</span><div><h3>'+g.t+'</h3><small>'+g.s+' · '+list.length+(g.k==='users'?' مستخدماً':' محطات')+'</small></div></div><div class="stops">';
     d+='<div class="dg" style="--c:'+L.c+'">'+g.t+'</div>';
     list.forEach(function(p){
-      h+='<button class="card'+(g.k==='exec'?' feat':'')+(seen[p.id]?' seen':'')+'" data-id="'+p.id+'" style="--n:'+ORDER.indexOf(p)+'" onclick="nav(\''+p.id+'\')"><div class="ci">'+svg(p.id)+'</div><div><div class="ct">'+p.t+'</div><div class="cd">'+p.d+'</div></div>'+ARROW+'</button>';
+      h+='<button class="card'+(g.k==='exec'?' feat':'')+(seen[p.id]?' seen':'')+'" data-id="'+p.id+'" style="--n:'+ALL.indexOf(p)+'" onclick="nav(\''+p.id+'\')"><div class="ci">'+svg(p.id)+'</div><div><div class="ct">'+p.t+'</div><div class="cd">'+p.d+'</div></div>'+ARROW+'</button>';
       d+='<div class="di" style="--c:'+L.c+'" data-id="'+p.id+'" onclick="nav(\''+p.id+'\')">'+svg(p.id)+p.t+'</div>';
     });
     h+='</div></div>';
   });
   document.getElementById('legend').innerHTML=lg;
   document.getElementById('groups').innerHTML=h;
-  var tr='<i class="fill" id="fill"></i><i class="sbus" id="sbus"></i>';
-  ORDER.forEach(function(p){tr+='<button class="dot'+(seen[p.id]?' seen':'')+'" style="--c:'+LINE[p.g].c+'" data-id="'+p.id+'" onclick="nav(\''+p.id+'\')" aria-label="'+p.t+'"><span>'+p.t+'</span></button>'});
-  document.getElementById('track').innerHTML=tr;
+  renderStrip();
   document.querySelectorAll('#groups .stops').forEach(function(list){
     var bus=document.createElement('i');bus.className='linebus';list.appendChild(bus);
     list.querySelectorAll('.card').forEach(function(c){c.addEventListener('mouseenter',function(){bus.style.top=(c.offsetTop-12)+'px';bus.style.opacity=1})});
@@ -400,17 +425,19 @@ function show(id){
   if(!id||!byId[id]){document.body.classList.remove('viewing');document.getElementById('crumb').innerHTML='المنظومة الرقمية المتكاملة';prevIdx=-1;if(last)renderResume();return}
   var p=byId[id];
   document.body.classList.add('viewing');
-  var i=ORDER.indexOf(p);
-  document.getElementById('crumb').innerHTML='<span class="ln" style="--c:'+LINE[p.g].c+'"></span><b>'+p.t+'</b><span class="pos">'+(i+1)+' / '+ORDER.length+'</span>';
+  if(TOUR&&ORDER.indexOf(p)<0)setTour(null);
+  var i=ORDER.indexOf(p),inSeq=i>-1;
+  document.getElementById('crumb').innerHTML='<span class="ln" style="--c:'+LINE[p.g].c+'"></span><b>'+p.t+'</b>'+(inSeq?'<span class="pos">'+(i+1)+' / '+ORDER.length+'</span>':'');
+  document.getElementById('strip').classList.toggle('off',!inSeq);
   document.getElementById('viewer').classList.toggle('back',prevIdx>-1&&i<prevIdx);prevIdx=i;
-  var pct=ORDER.length>1?i/(ORDER.length-1):0,tw=document.getElementById('track').clientWidth||1;
+  var pct=ORDER.length>1&&inSeq?i/(ORDER.length-1):0,tw=document.getElementById('track').clientWidth||1;
   document.getElementById('fill').style.width=(pct*100)+'%';
   document.getElementById('sbus').style.right='calc('+(pct*100)+'% - 14px)';
   document.querySelectorAll('.strip .dot').forEach(function(d){d.classList.toggle('on',d.getAttribute('data-id')===id)});
   document.getElementById('loaderNext').textContent=p.t;
   remember(id);
   document.getElementById('prevB').disabled=i<=0;
-  document.getElementById('nextB').disabled=i>=ORDER.length-1;
+  document.getElementById('nextB').disabled=!inSeq||i>=ORDER.length-1;
   document.getElementById('prevB').title=i>0?ORDER[i-1].t:'';
   document.getElementById('nextB').title=i<ORDER.length-1?ORDER[i+1].t:'';
   Object.keys(frames).forEach(function(k){frames[k].classList.remove('on')});
@@ -436,7 +463,7 @@ function norm(t){return t.toLowerCase().replace(/[\u064B-\u0652\u0640]/g,'').rep
 function palette(v){var el=document.getElementById('pal');el.classList.toggle('on',!!v);if(v){toggleMenu(false);var q=document.getElementById('palQ');q.value='';palRender('');setTimeout(function(){q.focus()},30)}}
 function palRender(q){
   q=norm(q.trim());
-  palItems=ORDER.filter(function(p){return !q||norm(p.t+' '+p.d+' '+p.id).indexOf(q)>-1});
+  palItems=ALL.filter(function(p){return !q||norm(p.t+' '+p.d+' '+p.id).indexOf(q)>-1});
   palSel=Math.min(palSel,Math.max(palItems.length-1,0));
   document.getElementById('palList').innerHTML=palItems.length?palItems.map(function(p,k){return '<button class="pal-it'+(k===palSel?' sel':'')+'" style="--c:'+LINE[p.g].c+'" data-k="'+k+'"><i class="tg"></i>'+svg(p.id)+'<b>'+p.t+'</b><small>'+p.d+'</small></button>'}).join(''):'<div class="pal-none">لا توجد صفحة بهذا الاسم. جرّب كلمة أخرى مثل «عمرة» أو «عقار».</div>';
 }
@@ -453,12 +480,13 @@ function palRender(q){
   el.addEventListener('mousedown',function(e){if(e.target===el)palette(false)});
 })();
 
-function step(n){var i=ORDER.indexOf(byId[cur]);var t=ORDER[i+n];if(t)nav(t.id)}
+function step(n){var i=ORDER.indexOf(byId[cur]);if(i<0)return;var t=ORDER[i+n];if(t)nav(t.id)}
 function toggleMenu(v){document.body.classList.toggle('menu',v)}
 function fs(){var e=document.documentElement;try{if(document.fullscreenElement||document.webkitFullscreenElement){(document.exitFullscreen||document.webkitExitFullscreen).call(document)}else{(e.requestFullscreen||e.webkitRequestFullscreen).call(e)}}catch(x){alert('على الآيباد: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية» للعرض بملء الشاشة')}}
 
 window.addEventListener('message',function(e){if(e.data&&e.data.kptcNav&&byId[e.data.kptcNav])nav(e.data.kptcNav)});
-window.addEventListener('message',function(e){if(!e.data)return;if(e.data.kptcStep&&cur)step(e.data.kptcStep);if(e.data.kptcPalette)palette(true)});
+window.addEventListener('message',function(e){if(!e.data)return;if(e.data.kptcStep&&cur)step(e.data.kptcStep);if(e.data.kptcPalette)palette(true);
+  if(e.data.kptcTour&&e.data.kptcTour.ids&&e.data.kptcTour.ids.length){setTour({name:String(e.data.kptcTour.name||''),ids:e.data.kptcTour.ids.filter(function(x){return byId[x]})});if(ORDER.length)nav(ORDER[0].id)}});
 document.addEventListener('keydown',function(e){
   var typing=/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||''));
   if(((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K'))||(e.key==='/'&&!typing)){e.preventDefault();palette(true)}

@@ -661,7 +661,7 @@ function respAdvice(){return{text:'<strong>💡 توصيات لزيادة الإ
 
 function respMaintenance(){return{text:'<strong>🔧 طلبات الصيانة المعلقة</strong><br><br><ul><li>🔴 كافيه النقل — تسرب مياه (عالي الأولوية)</li><li>🟡 بقالة الحي — انقطاع إضاءة (متوسط)</li><li>🟢 محل الألبسة — تكييف ضعيف (منخفض)</li></ul><br><strong>التكلفة التقديرية:</strong> 850 د.ك هذا الشهر<br><strong>التوصية:</strong> معالجة تسرب الكافيه أولاً لتجنب ضرر أكبر.',cmds:['تفاصيل الصيانة','تقرير التكاليف']}}
 
-function respReport(){return{text:'<strong>📊 التقرير المالي الشهري</strong><br><br>جاهز للإرسال والتصدير:<br><div class="act-row"><button class="act-btn" onclick="switchTab(\'report\')">📊 عرض التقرير</button><button class="act-btn" onclick="T(\'📥 جاري التصدير...\');setTimeout(function(){T(\'✅ تم التصدير\',\'ok\')},1800)">📥 تصدير PDF</button><button class="act-btn" onclick="T(\'📧 تم الإرسال على البريد\',\'ok\')">📧 إرسال</button></div>',cmds:['إرسال للمهندس عبدالله','إرسال للمديرة','ملخص الشهر']}}
+function respReport(){return{text:'<strong>📊 التقرير المالي الشهري</strong><br><br>جاهز للإرسال والتصدير:<br><div class="act-row"><button class="act-btn" onclick="switchTab(\'report\')">📊 عرض التقرير</button><button class="act-btn" onclick="T(\'📥 جاري التصدير...\');setTimeout(function(){T(\'✅ تم التصدير\',\'ok\')},1800)">📥 تصدير PDF</button><button class="act-btn" onclick="T(\'📧 تم الإرسال على البريد\',\'ok\')">📧 إرسال</button></div>',cmds:['إرسال للإدارة العليا','إرسال للمديرة','ملخص الشهر']}}
 
 function respRanking(){return{text:'<strong>📈 ترتيب المواقع حسب الأداء</strong><br><br>🥇 المقر الرئيسي — 100% إشغال — 4,200 د.ك<br>🥈 محطة حولي — 83% — 7,200 د.ك (أعلى إيراداً)<br>🥉 محطة السالمية — 80% — 6,400 د.ك<br>4️⃣ محطة الجهراء — 80% — 2,800 د.ك<br>5️⃣ محطة الفروانية — 75% — 5,100 د.ك<br>6️⃣ محطة الأحمدي — 71% — 3,800 د.ك<br>7️⃣ مبارك الكبير — 50% — 1,500 د.ك<br>8️⃣ ورشة الشويخ — 50% — 1,400 د.ك',cmds:['توصيات لمبارك الكبير','الوحدات الشاغرة']}}
 
@@ -950,8 +950,25 @@ setTimeout(function(){if(!opened){var b=document.getElementById('aiBadge');b.sty
     if (sw && f) sw.addEventListener('click', function(){ f.classList.remove('swapped'); void f.offsetWidth; f.classList.add('swapped'); });
   }
 
+
+  function forms(){
+    // forms that point at another page (the home trip finder) go through the same routing as links
+    document.addEventListener('submit', function(e){
+      var f = e.target, act = (f.getAttribute && f.getAttribute('action') || '').split('/').pop().split('#')[0];
+      if (!MAP[act]) return;
+      e.preventDefault();
+      f.classList.add('kp-punched');
+      setTimeout(function(){
+        f.classList.remove('kp-punched');
+        if (window.parent !== window) { try { parent.postMessage({kptcNav: MAP[act]}, '*'); } catch(x){} }
+        else location.href = '../index.html#/' + MAP[act];
+      }, 420);
+    });
+  }
+
   function init(){
     walk(document.body);
+    forms();
     homeExtras();
     footerStrip();
     standalone();

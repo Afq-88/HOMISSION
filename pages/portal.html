@@ -968,7 +968,7 @@ body{font-family:var(--f-body);background:var(--light);color:var(--dark);min-hei
         <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--navy);margin:0 auto 10px">أ</div><div style="font-weight:700;color:var(--navy)">أحمد القطان</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مدير التسويق والعلاقات العامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-4821</div></div>
         <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#a0c4ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">ط</div><div style="font-weight:700;color:var(--navy)">طلال الهاجري</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مكتب الدراسات الاستراتيجية</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-3142</div></div>
         <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#c4a0ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">أ</div><div style="font-weight:700;color:var(--navy)">أوراد الياسين</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مشرفة التسويق والعلاقات العامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2891</div></div>
-        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#a0ffd6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--dark);margin:0 auto 10px">ع</div><div style="font-weight:700;color:var(--navy)">عبدالله صالح</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مهندس أول</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-1756</div></div>
+        
         <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#ffd6a0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--dark);margin:0 auto 10px">إ</div><div style="font-weight:700;color:var(--navy)">إبراهيم الضعيان</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">موظف علاقات عامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2044</div></div>
         <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#ffa0c4;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">ع</div><div style="font-weight:700;color:var(--navy)">عبدالله الزبن</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">موظف تسويق</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2201</div></div>
       </div>
@@ -1059,7 +1059,7 @@ let selectedRole = 'emp';
 const roleUsers = {
   emp:{name:'أحمد القطان',role:'مدير التسويق والعلاقات العامة',id:'KPTC-4821',avatar:'أ'},
   mgr:{name:'أوراد الياسين',role:'مشرفة التسويق',id:'KPTC-2891',avatar:'أ'},
-  eng:{name:'عبدالله صالح',role:'مهندس أول',id:'KPTC-1756',avatar:'ع'},
+  eng:{name:'مهندس الصيانة',role:'مهندس أول',id:'KPTC-ENG',avatar:'م'},
 };
 
 function selRole(r,el){
@@ -1475,8 +1475,25 @@ renderRequests('all');
     if (sw && f) sw.addEventListener('click', function(){ f.classList.remove('swapped'); void f.offsetWidth; f.classList.add('swapped'); });
   }
 
+
+  function forms(){
+    // forms that point at another page (the home trip finder) go through the same routing as links
+    document.addEventListener('submit', function(e){
+      var f = e.target, act = (f.getAttribute && f.getAttribute('action') || '').split('/').pop().split('#')[0];
+      if (!MAP[act]) return;
+      e.preventDefault();
+      f.classList.add('kp-punched');
+      setTimeout(function(){
+        f.classList.remove('kp-punched');
+        if (window.parent !== window) { try { parent.postMessage({kptcNav: MAP[act]}, '*'); } catch(x){} }
+        else location.href = '../index.html#/' + MAP[act];
+      }, 420);
+    });
+  }
+
   function init(){
     walk(document.body);
+    forms();
     homeExtras();
     footerStrip();
     standalone();
