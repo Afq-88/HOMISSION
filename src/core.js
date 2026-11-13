@@ -194,10 +194,70 @@
     });
   }
 
+
+  /* ---- motion & workflow helpers ---------------------------------------- */
+  function countUp(){
+    // only static display figures that no page script reads back
+    var els = document.querySelectorAll('.facts strong.num, .facts .since b, .kp-stats .hstat-num, .kp-stats .hnum-val, .kp-stats .hstat-val');
+    if (!els.length || !('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (!e.isIntersecting) return; io.unobserve(e.target); run(e.target); }); }, {threshold:.6});
+    function run(el){
+      var txt = el.textContent, m = txt.match(/^(\D*)([\d,]+)(.*)$/); if (!m || el.children.length) return;
+      var end = parseInt(m[2].replace(/,/g,''),10); if (!(end > 9)) return;
+      var comma = m[2].indexOf(',') > -1, t0 = performance.now(), dur = 900;
+      (function tick(t){
+        var k = Math.min(1,(t - t0)/dur), v = Math.round(end * (1 - Math.pow(1-k,3)));
+        el.textContent = m[1] + (comma ? v.toLocaleString('en-US') : v) + m[3];
+        if (k < 1) requestAnimationFrame(tick); else el.textContent = txt;
+      })(t0);
+    }
+    els.forEach(function(el){ io.observe(el); });
+  }
+  function backToTop(){
+    if (!document.querySelector('.k2-foot, body > footer')) return;
+    var b = document.createElement('button'); b.className = 'kp-top'; b.type = 'button'; b.setAttribute('aria-label','العودة إلى أعلى الصفحة');
+    b.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
+    b.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+    document.body.appendChild(b);
+    var tick = false;
+    window.addEventListener('scroll', function(){ if (tick) return; tick = true; requestAnimationFrame(function(){ b.classList.toggle('on', window.scrollY > 700); tick = false; }); }, {passive:true});
+  }
+  function lineBus(){
+    document.querySelectorAll('.network .stops').forEach(function(list){
+      var bus = document.createElement('i'); bus.className = 'kp-linebus'; bus.setAttribute('aria-hidden','true'); list.appendChild(bus);
+      list.querySelectorAll('li').forEach(function(li){
+        li.addEventListener('mouseenter', function(){ bus.style.top = (li.offsetTop - 8) + 'px'; bus.style.opacity = 1; });
+      });
+      list.addEventListener('mouseleave', function(){ bus.style.opacity = 0; });
+    });
+  }
+  function gatewayKeys(){
+    // inside the gateway the page has keyboard focus; hand presentation shortcuts up to it
+    if (window.parent === window) return;
+    document.addEventListener('keydown', function(e){
+      var msg = null;
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) msg = {kptcPalette:1};
+      else if (e.altKey && e.key === 'ArrowLeft') msg = {kptcStep:1};
+      else if (e.altKey && e.key === 'ArrowRight') msg = {kptcStep:-1};
+      if (!msg) return;
+      e.preventDefault(); try { parent.postMessage(msg, '*'); } catch(x){}
+    });
+  }
+
+
+  function homeExtras(){
+    var hero = document.querySelector('main > section.hero'); if (!hero) return;
+    var road = document.createElement('div'); road.className = 'hero-road'; road.setAttribute('aria-hidden','true'); road.innerHTML = '<i></i>'; hero.appendChild(road);
+    var sw = document.getElementById('swap'), f = document.getElementById('finder');
+    if (sw && f) sw.addEventListener('click', function(){ f.classList.remove('swapped'); void f.offsetWidth; f.classList.add('swapped'); });
+  }
+
   function init(){
     walk(document.body);
+    homeExtras();
     footerStrip();
     standalone();
+    countUp(); backToTop(); lineBus(); gatewayKeys();
     new MutationObserver(function(ms){
       ms.forEach(function(m){
         if (m.type === 'characterData') return swapText(m.target);

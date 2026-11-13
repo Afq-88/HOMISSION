@@ -162,6 +162,94 @@ body.menu .drawer{transform:none}
   #groups{grid-template-columns:1fr}.grp{border-inline-start:0!important}.grp+.grp{border-top:1px solid var(--line)}
   .st b{font-size:2rem}
 }
+
+/* ── MOTION ───────────────────────────────────────────────────── */
+:root{--ease:cubic-bezier(.2,.7,.2,1);--sh:30px;
+  --bus:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 24'%3E%3Crect x='1' y='1.5' width='44' height='17' rx='4.5' fill='%232E2C78'/%3E%3Cpath d='M1 9.5V6a4.5 4.5 0 0 1 4.5-4.5H9v8z' fill='%23BFD4FF'/%3E%3Crect x='12' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='21' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='30' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='1' y='13' width='44' height='2' fill='%23FFC93C'/%3E%3Ccircle cx='11' cy='19' r='3.6' fill='%2314133A' stroke='%23fff' stroke-width='1.4'/%3E%3Ccircle cx='34' cy='19' r='3.6' fill='%2314133A' stroke='%23fff' stroke-width='1.4'/%3E%3C/svg%3E")}
+button{transition-property:background,color,border-color,scale,transform;transition-duration:.15s}
+button:active{scale:.96}
+@keyframes in{from{opacity:0;translate:0 18px}}
+@keyframes under{from{text-decoration-color:transparent}}
+.kicker{animation:in .6s var(--ease) both}
+.hero h1{animation:in .7s .05s var(--ease) both}
+.hero h1 em{animation:under .5s .7s both}
+.hero p{animation:in .7s .12s var(--ease) both}
+.cta{animation:in .7s .2s var(--ease) both}
+.sign{animation:in .8s .28s var(--ease) both}
+.sign .no{transition:rotate .4s var(--ease)}
+.sign:hover .no{rotate:-8deg}
+.sign .go .i{transition:translate .25s var(--ease)}
+.sign:hover .go .i{translate:-6px 0}
+.st{animation:in .6s var(--ease) both}
+.st:nth-child(1){animation-delay:.3s}.st:nth-child(2){animation-delay:.37s}.st:nth-child(3){animation-delay:.44s}.st:nth-child(4){animation-delay:.51s}
+.btn.g .k{transition:translate .25s var(--ease)}
+.btn.g:hover .k{translate:-4px 0}
+/* the map draws itself: lines first, then stops, then names */
+.stops::before{transform-origin:top;animation:draw .9s .5s var(--ease) both}
+@keyframes draw{from{transform:scaleY(0)}}
+.card{animation:in .5s var(--ease) both;animation-delay:calc(.55s + var(--n,0)*55ms)}
+.card::before{animation:pop .4s var(--ease) both;animation-delay:calc(.6s + var(--n,0)*55ms)}
+@keyframes pop{from{scale:0}}
+.card.seen::before{background:var(--c)}
+.card.seen:hover::before{background:var(--sign)}
+.linebus{position:absolute;right:-5px;top:0;width:30px;height:16px;background:var(--bus) center/contain no-repeat;rotate:-90deg;opacity:0;transition:top .45s var(--ease),opacity .25s;pointer-events:none;z-index:3}
+.resume{display:none;align-items:center;gap:10px;margin-top:18px;background:none;border:0;border-bottom:2px solid var(--sign);padding:4px 0;color:var(--indigo);font-weight:700;font-size:.86rem;cursor:pointer}
+.resume.on{display:inline-flex;animation:in .6s .35s var(--ease) both}
+.resume small{color:var(--muted);font-weight:500;font-size:.8rem}
+
+/* ── STATION STRIP (viewer) ───────────────────────────────────── */
+.strip{position:fixed;top:calc(var(--hh) + env(safe-area-inset-top));left:0;right:0;height:var(--sh);background:var(--paper-2);border-bottom:1px solid var(--line);z-index:40;display:none;align-items:center;padding-inline:22px}
+body.viewing .strip{display:flex}
+body.viewing .viewer{top:calc(var(--hh) + var(--sh) + env(safe-area-inset-top))}
+.strip .track{position:relative;flex:1;display:flex;justify-content:space-between;align-items:center;height:100%}
+.strip .track::before{content:"";position:absolute;inset-inline:0;top:50%;height:3px;margin-top:-1.5px;background:var(--line-2)}
+.strip .fill{position:absolute;right:0;top:50%;height:3px;margin-top:-1.5px;background:var(--indigo);transition:width .6s var(--ease)}
+.strip .sbus{position:absolute;top:50%;width:28px;height:15px;margin-top:-13px;background:var(--bus) center/contain no-repeat;transition:right .6s var(--ease);pointer-events:none;z-index:2}
+.strip .dot{position:relative;width:20px;height:100%;display:grid;place-items:center;background:none;border:0;cursor:pointer;padding:0;z-index:1}
+.strip .dot::before{content:"";width:11px;height:11px;border-radius:50%;background:#fff;border:3px solid var(--c);box-sizing:border-box;transition:scale .2s,background .2s}
+.strip .dot.seen::before{background:var(--c)}
+.strip .dot:hover::before{scale:1.35;background:var(--sign)}
+.strip .dot.on::before{background:var(--sign);border-color:var(--ink);scale:1.45}
+.strip .dot span{position:absolute;top:calc(100% + 6px);right:50%;translate:50% -4px;background:var(--ink);color:#fff;font-size:.74rem;font-weight:600;padding:5px 10px;border-radius:3px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s,translate .15s;z-index:5}
+.strip .dot:first-child span{right:0;translate:0 -4px}
+.strip .dot:last-child span{right:auto;left:0;translate:0 -4px}
+.strip .dot:hover span,.strip .dot:focus-visible span{opacity:1;translate:50% 0}
+.strip .dot:first-child:hover span,.strip .dot:last-child:hover span{translate:0 0}
+
+/* page change: the new page slides in from the direction of travel */
+.viewer iframe.on{animation:slide .45s var(--ease) both}
+.viewer.back iframe.on{animation-name:slideb}
+@keyframes slide{from{opacity:0;translate:-40px 0}}
+@keyframes slideb{from{opacity:0;translate:40px 0}}
+/* loader: the bus runs to the next station */
+.loader .next{font-family:var(--f-display);font-size:1.3rem;font-weight:700;color:var(--indigo)}
+.loader small{color:var(--muted);font-weight:500}
+.spin{width:240px;height:24px}
+.spin::before{top:19px;height:3px}
+.spin::after{top:0;width:44px;height:23px;border-radius:0;border:0;background:var(--bus) center/contain no-repeat;animation:run 1s var(--ease) infinite}
+@keyframes run{from{right:0}to{right:calc(100% - 44px)}}
+
+/* ── QUICK JUMP (palette) ─────────────────────────────────────── */
+.pal{position:fixed;inset:0;z-index:80;display:none;align-items:flex-start;justify-content:center;padding:12vh 16px 0;background:rgba(20,19,58,.55)}
+.pal.on{display:flex}
+.pal-box{width:min(560px,100%);background:var(--paper-2);border-radius:6px;border-top:6px solid var(--sign);box-shadow:0 30px 70px -20px rgba(20,19,58,.6);overflow:hidden;animation:palin .28s var(--ease) both}
+@keyframes palin{from{opacity:0;translate:0 -16px;scale:.97}}
+.pal-in{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.pal-in .i{color:var(--indigo)}
+.pal-in input{flex:1;border:0;outline:0;background:none;font:600 1.05rem var(--f-body);color:var(--ink);min-width:0}
+.pal-in kbd,.pal-ft kbd{font:600 .7rem var(--f-body);border:1px solid var(--line-2);border-bottom-width:2px;border-radius:3px;padding:2px 6px;color:var(--muted);background:#fff;direction:ltr}
+.pal-list{max-height:min(52vh,420px);overflow-y:auto;padding:6px 0}
+.pal-it{display:flex;align-items:center;gap:12px;width:100%;padding:10px 18px;background:none;border:0;text-align:right;cursor:pointer;color:var(--ink);font-size:.92rem}
+.pal-it .tg{width:10px;height:10px;border-radius:50%;border:3px solid var(--c);flex-shrink:0;box-sizing:content-box;background:#fff}
+.pal-it b{font-weight:600}
+.pal-it small{color:var(--muted);margin-inline-start:auto;font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pal-it.sel{background:rgba(255,201,60,.22)}
+.pal-it.sel .tg{background:var(--sign);border-color:var(--ink)}
+.pal-none{padding:22px 18px;color:var(--muted);font-size:.9rem}
+.pal-ft{display:flex;gap:16px;flex-wrap:wrap;padding:10px 18px;border-top:1px solid var(--line);font-size:.74rem;color:var(--muted)}
+.pal-ft span{display:flex;align-items:center;gap:6px}
+@media(max-width:820px){.strip{padding-inline:12px}.strip .dot{width:14px}.strip .dot::before{width:9px;height:9px;border-width:2px}.strip .dot span{display:none}.pal-ft{display:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
@@ -173,9 +261,12 @@ body.menu .drawer{transform:none}
   <button class="hb only-view" id="prevB" onclick="step(-1)" aria-label="السابق"><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="tx">السابق</span></button>
   <button class="hb only-view" id="nextB" onclick="step(1)" aria-label="التالي"><span class="tx">التالي</span><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
   <button class="hb only-view" onclick="nav('')" aria-label="الرئيسية"><svg class="i" viewBox="0 0 24 24"><path d="m3 11 9-7.5 9 7.5"/><path d="M5.5 9V21h13V9M10 21v-6h4v6"/></svg></button>
+  <button class="hb" onclick="palette(true)" aria-label="بحث سريع عن صفحة" title="بحث سريع  ( / )"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20.5 20.5-4.8-4.8"/></svg></button>
   <button class="hb" onclick="fs()" aria-label="ملء الشاشة"><svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   <button class="hb gold" onclick="toggleMenu()" aria-label="القائمة"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="tx">الصفحات</span></button>
 </header>
+
+<div class="strip" id="strip" aria-label="محطات العرض"><div class="track" id="track"></div></div>
 
 <main class="home" id="home">
   <div class="wrap">
@@ -188,6 +279,7 @@ body.menu .drawer{transform:none}
           <button class="btn g" onclick="nav('exec')">ابدأ العرض التنفيذي<span class="k"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg></span></button>
           <button class="btn o" onclick="nav('dashboard')"><svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="12.5" rx="1.5"/><path d="M8 20.5h8M12 16.5v4"/></svg>لوحة التحكم</button>
         </div>
+        <button class="resume" id="resume" type="button"></button>
       </div>
       <div id="startSign"></div>
     </section>
@@ -209,10 +301,18 @@ body.menu .drawer{transform:none}
   </div>
 </main>
 
-<section class="viewer" id="viewer"><div class="loader" id="loader"><div class="spin"></div>جاري التحميل…</div></section>
+<section class="viewer" id="viewer"><div class="loader" id="loader"><small>المحطة التالية</small><div class="next" id="loaderNext"></div><div class="spin"></div>جاري التحميل…</div></section>
 
 <div class="scrim" onclick="toggleMenu(false)"></div>
 <nav class="drawer" id="drawer"></nav>
+
+<div class="pal" id="pal" role="dialog" aria-label="بحث سريع عن صفحة">
+  <div class="pal-box">
+    <div class="pal-in"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20.5 20.5-4.8-4.8"/></svg><input id="palQ" type="text" placeholder="إلى أي محطة؟ اكتب اسم الصفحة…" autocomplete="off" aria-label="اسم الصفحة"><kbd>Esc</kbd></div>
+    <div class="pal-list" id="palList"></div>
+    <div class="pal-ft"><span><kbd>↑</kbd><kbd>↓</kbd> تنقّل</span><span><kbd>Enter</kbd> فتح</span><span><kbd>/</kbd> بحث سريع</span><span><kbd>←</kbd><kbd>→</kbd> التالي والسابق</span></div>
+  </div>
+</div>
 
 <script>
 var PAGES=[{"id": "exec", "t": "العرض التنفيذي", "g": "exec", "ic": "🎯", "d": "خطة التحول الرقمي — 90 يوماً"}, {"id": "home", "t": "الصفحة الرئيسية", "g": "site", "ic": "🏠", "d": "واجهة الموقع الرسمي"}, {"id": "routes", "t": "الخطوط والمسارات", "g": "site", "ic": "🗺️", "d": "150 خطاً في 6 محافظات"}, {"id": "subs", "t": "الاشتراكات والتذاكر", "g": "site", "ic": "💳", "d": "الباقات والدفع الإلكتروني"}, {"id": "umrah", "t": "رحلات العمرة", "g": "site", "ic": "🕌", "d": "الحجز والمقاعد المتاحة"}, {"id": "vip", "t": "باصات VIP", "g": "site", "ic": "👑", "d": "داخلية وخارجية وديوانيات"}, {"id": "winch", "t": "الونش والورشة", "g": "site", "ic": "🔧", "d": "طلب طارئ وتتبع"}, {"id": "lost", "t": "المفقودات", "g": "site", "ic": "🔍", "d": "بلاغ وتتبع الأغراض"}, {"id": "ads", "t": "الإعلانات على الحافلات", "g": "site", "ic": "📢", "d": "باقات المعلنين"}, {"id": "assistant", "t": "مساعد العملاء الذكي", "g": "site", "ic": "💬", "d": "كابتن كويت"}, {"id": "dashboard", "t": "لوحة التحكم الإدارية", "g": "admin", "ic": "🖥️", "d": "23 قسماً شاملة العقارات"}, {"id": "adminai", "t": "المساعد الإداري الذكي", "g": "admin", "ic": "🧠", "d": "ملخصات وتقارير وتنبيهات"}, {"id": "portal", "t": "بوابة الموظفين", "g": "admin", "ic": "👥", "d": "الإجازات والطلبات"}, {"id": "realestate", "t": "إدارة الأصول العقارية", "g": "re", "ic": "🏢", "d": "8 مواقع — 54 وحدة"}, {"id": "reai", "t": "المساعد العقاري", "g": "re", "ic": "🏗️", "d": "تحليلات وتوصيات الإيجار"}, {"id": "reclient", "t": "مساحات للإيجار", "g": "re", "ic": "🏪", "d": "الصفحة العامة للمستأجرين"}, {"id": "tenant", "t": "بوابة المستأجر", "g": "re", "ic": "🔑", "d": "خدمات المستأجر الحالي"}];var MODE="files";var DATA={};
@@ -249,6 +349,12 @@ var ARROW='<span class="ar"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14
 var ORDER=[];GROUPS.forEach(function(g){PAGES.forEach(function(p){if(p.g===g.k)ORDER.push(p)})});
 var byId={};PAGES.forEach(function(p){byId[p.id]=p});
 var frames={};var cur='';
+/* remembered per browser only: visited stops and the last one, for "continue where you left off" */
+var seen={},last='';
+try{seen=JSON.parse(localStorage.getItem('kptc.seen')||'{}')||{};last=localStorage.getItem('kptc.last')||''}catch(x){}
+function remember(id){seen[id]=1;last=id;try{localStorage.setItem('kptc.seen',JSON.stringify(seen));localStorage.setItem('kptc.last',id)}catch(x){}
+  document.querySelectorAll('[data-id="'+id+'"]').forEach(function(e){if(e.classList.contains('card')||e.classList.contains('dot'))e.classList.add('seen')})}
+var prevIdx=-1;
 
 function decode(b){var s=atob(b),u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new TextDecoder('utf-8').decode(u)}
 
@@ -266,13 +372,23 @@ function renderHome(){
     h+='<div class="grp g-'+g.k+'" style="--c:'+L.c+'"><div class="gh"><span class="tag">'+L.n+'</span><div><h3>'+g.t+'</h3><small>'+g.s+' · '+list.length+' محطات</small></div></div><div class="stops">';
     d+='<div class="dg" style="--c:'+L.c+'">'+g.t+'</div>';
     list.forEach(function(p){
-      h+='<button class="card'+(g.k==='exec'?' feat':'')+'" onclick="nav(\''+p.id+'\')"><div class="ci">'+svg(p.id)+'</div><div><div class="ct">'+p.t+'</div><div class="cd">'+p.d+'</div></div>'+ARROW+'</button>';
+      h+='<button class="card'+(g.k==='exec'?' feat':'')+(seen[p.id]?' seen':'')+'" data-id="'+p.id+'" style="--n:'+ORDER.indexOf(p)+'" onclick="nav(\''+p.id+'\')"><div class="ci">'+svg(p.id)+'</div><div><div class="ct">'+p.t+'</div><div class="cd">'+p.d+'</div></div>'+ARROW+'</button>';
       d+='<div class="di" style="--c:'+L.c+'" data-id="'+p.id+'" onclick="nav(\''+p.id+'\')">'+svg(p.id)+p.t+'</div>';
     });
     h+='</div></div>';
   });
   document.getElementById('legend').innerHTML=lg;
   document.getElementById('groups').innerHTML=h;
+  var tr='<i class="fill" id="fill"></i><i class="sbus" id="sbus"></i>';
+  ORDER.forEach(function(p){tr+='<button class="dot'+(seen[p.id]?' seen':'')+'" style="--c:'+LINE[p.g].c+'" data-id="'+p.id+'" onclick="nav(\''+p.id+'\')" aria-label="'+p.t+'"><span>'+p.t+'</span></button>'});
+  document.getElementById('track').innerHTML=tr;
+  document.querySelectorAll('#groups .stops').forEach(function(list){
+    var bus=document.createElement('i');bus.className='linebus';list.appendChild(bus);
+    list.querySelectorAll('.card').forEach(function(c){c.addEventListener('mouseenter',function(){bus.style.top=(c.offsetTop-12)+'px';bus.style.opacity=1})});
+    list.addEventListener('mouseleave',function(){bus.style.opacity=0});
+  });
+  var r=document.getElementById('resume');
+  if(last&&byId[last]&&last!=='exec'){r.innerHTML='أكمل من حيث توقفت <small>'+byId[last].t+'</small>';r.onclick=function(){nav(last)};r.classList.add('on')}else r.classList.remove('on');
   document.getElementById('drawer').innerHTML='<div class="di home-di" data-id="" onclick="nav(\'\')">'+svg('home')+'الصفحة الرئيسية للعرض</div>'+d;
 }
 
@@ -281,11 +397,18 @@ function nav(id){toggleMenu(false);location.hash=id?'#/'+id:'#/'}
 function show(id){
   cur=id;
   document.querySelectorAll('.di').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-id')===id)});
-  if(!id||!byId[id]){document.body.classList.remove('viewing');document.getElementById('crumb').innerHTML='المنظومة الرقمية المتكاملة';return}
+  if(!id||!byId[id]){document.body.classList.remove('viewing');document.getElementById('crumb').innerHTML='المنظومة الرقمية المتكاملة';prevIdx=-1;if(last)renderResume();return}
   var p=byId[id];
   document.body.classList.add('viewing');
   var i=ORDER.indexOf(p);
   document.getElementById('crumb').innerHTML='<span class="ln" style="--c:'+LINE[p.g].c+'"></span><b>'+p.t+'</b><span class="pos">'+(i+1)+' / '+ORDER.length+'</span>';
+  document.getElementById('viewer').classList.toggle('back',prevIdx>-1&&i<prevIdx);prevIdx=i;
+  var pct=ORDER.length>1?i/(ORDER.length-1):0,tw=document.getElementById('track').clientWidth||1;
+  document.getElementById('fill').style.width=(pct*100)+'%';
+  document.getElementById('sbus').style.right='calc('+(pct*100)+'% - 14px)';
+  document.querySelectorAll('.strip .dot').forEach(function(d){d.classList.toggle('on',d.getAttribute('data-id')===id)});
+  document.getElementById('loaderNext').textContent=p.t;
+  remember(id);
   document.getElementById('prevB').disabled=i<=0;
   document.getElementById('nextB').disabled=i>=ORDER.length-1;
   document.getElementById('prevB').title=i>0?ORDER[i-1].t:'';
@@ -305,11 +428,42 @@ function show(id){
   f.classList.add('on');
 }
 
+function renderResume(){var r=document.getElementById('resume');if(last&&byId[last]&&last!=='exec'){r.innerHTML='أكمل من حيث توقفت <small>'+byId[last].t+'</small>';r.onclick=function(){nav(last)};r.classList.add('on')}}
+
+/* quick jump */
+var palSel=0,palItems=[];
+function norm(t){return t.toLowerCase().replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي')}
+function palette(v){var el=document.getElementById('pal');el.classList.toggle('on',!!v);if(v){toggleMenu(false);var q=document.getElementById('palQ');q.value='';palRender('');setTimeout(function(){q.focus()},30)}}
+function palRender(q){
+  q=norm(q.trim());
+  palItems=ORDER.filter(function(p){return !q||norm(p.t+' '+p.d+' '+p.id).indexOf(q)>-1});
+  palSel=Math.min(palSel,Math.max(palItems.length-1,0));
+  document.getElementById('palList').innerHTML=palItems.length?palItems.map(function(p,k){return '<button class="pal-it'+(k===palSel?' sel':'')+'" style="--c:'+LINE[p.g].c+'" data-k="'+k+'"><i class="tg"></i>'+svg(p.id)+'<b>'+p.t+'</b><small>'+p.d+'</small></button>'}).join(''):'<div class="pal-none">لا توجد صفحة بهذا الاسم. جرّب كلمة أخرى مثل «عمرة» أو «عقار».</div>';
+}
+(function(){
+  var q=document.getElementById('palQ'),list=document.getElementById('palList'),el=document.getElementById('pal');
+  q.addEventListener('input',function(){palSel=0;palRender(q.value)});
+  q.addEventListener('keydown',function(e){
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();palSel=(palSel+(e.key==='ArrowDown'?1:-1)+palItems.length)%Math.max(palItems.length,1);palRender(q.value);var s=list.querySelector('.sel');if(s)s.scrollIntoView({block:'nearest'})}
+    else if(e.key==='Enter'){if(palItems[palSel]){palette(false);nav(palItems[palSel].id)}}
+    else if(e.key==='Escape'){e.stopPropagation();palette(false)}
+    else if(e.key==='ArrowLeft'||e.key==='ArrowRight')e.stopPropagation();
+  });
+  list.addEventListener('click',function(e){var b=e.target.closest('.pal-it');if(b){palette(false);nav(palItems[+b.getAttribute('data-k')].id)}});
+  el.addEventListener('mousedown',function(e){if(e.target===el)palette(false)});
+})();
+
 function step(n){var i=ORDER.indexOf(byId[cur]);var t=ORDER[i+n];if(t)nav(t.id)}
 function toggleMenu(v){document.body.classList.toggle('menu',v)}
 function fs(){var e=document.documentElement;try{if(document.fullscreenElement||document.webkitFullscreenElement){(document.exitFullscreen||document.webkitExitFullscreen).call(document)}else{(e.requestFullscreen||e.webkitRequestFullscreen).call(e)}}catch(x){alert('على الآيباد: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية» للعرض بملء الشاشة')}}
 
 window.addEventListener('message',function(e){if(e.data&&e.data.kptcNav&&byId[e.data.kptcNav])nav(e.data.kptcNav)});
+window.addEventListener('message',function(e){if(!e.data)return;if(e.data.kptcStep&&cur)step(e.data.kptcStep);if(e.data.kptcPalette)palette(true)});
+document.addEventListener('keydown',function(e){
+  var typing=/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||''));
+  if(((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K'))||(e.key==='/'&&!typing)){e.preventDefault();palette(true)}
+  else if(e.key==='Escape'&&document.getElementById('pal').classList.contains('on')){e.stopImmediatePropagation();palette(false)}
+},true);
 window.addEventListener('hashchange',function(){show(location.hash.replace(/^#\/?/,''))});
 document.addEventListener('keydown',function(e){if(!cur)return;if(e.key==='ArrowLeft')step(1);if(e.key==='ArrowRight')step(-1);if(e.key==='Escape')nav('')});
 

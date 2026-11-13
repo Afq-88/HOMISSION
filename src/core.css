@@ -209,3 +209,79 @@ h1{line-height:1.25}
 .kp-kpi b,.kp-kpi [class*="val"],.kp-kpi [class*="num"]{font-family:var(--f-display)!important;letter-spacing:0!important}
 .kp-panel{border-radius:4px!important;box-shadow:none!important;border:1px solid var(--kp-line)!important}
 @media(max-width:700px){.kp-stats{flex-wrap:wrap;row-gap:16px}.kp-stats>*{padding-inline:14px!important}}
+
+/* ==========================================================================
+   Motion & delight layer — "الحركة على الخط"
+   Everything here is progressive: without support (or with reduced motion)
+   the page is simply still and complete.
+   ========================================================================== */
+:root{
+  --kp-ease:cubic-bezier(.2,.7,.2,1);
+  --kp-bus:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 24'%3E%3Crect x='1' y='1.5' width='44' height='17' rx='4.5' fill='%232E2C78'/%3E%3Cpath d='M1 9.5V6a4.5 4.5 0 0 1 4.5-4.5H9v8z' fill='%23BFD4FF'/%3E%3Crect x='12' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='21' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='30' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='1' y='13' width='44' height='2' fill='%23FFC93C'/%3E%3Ccircle cx='11' cy='19' r='3.6' fill='%2314133A' stroke='%23fff' stroke-width='1.4'/%3E%3Ccircle cx='34' cy='19' r='3.6' fill='%2314133A' stroke='%23fff' stroke-width='1.4'/%3E%3C/svg%3E");
+}
+
+/* tactile press — uses the independent `scale` property so it never fights a page's own transform */
+:where(button,.k2-btn,.btn,[role="button"]){transition-property:background,color,border-color,box-shadow,scale;transition-duration:.15s}
+:where(button,.k2-btn,.btn,[role="button"]):active{scale:.96}
+
+/* reading progress: the header's bottom edge is a route, and a bus rides it as you scroll */
+@supports (animation-timeline:scroll()){
+  .k2-head::after,body>header::after{content:"";position:absolute;inset-inline:0;bottom:-1px;height:3px;background:var(--kp-sign);transform-origin:right;transform:scaleX(0);animation:kp-prog linear both;animation-timeline:scroll(root)}
+  .k2-head::before,body>header::before{content:"";position:absolute;bottom:-3px;inset-inline-start:0;width:30px;height:16px;margin-inline-start:-4px;background:var(--kp-bus) center/contain no-repeat;z-index:2;opacity:0;animation:kp-ride linear both;animation-timeline:scroll(root);pointer-events:none}
+}
+@keyframes kp-prog{to{transform:scaleX(1)}}
+@keyframes kp-ride{0%{inset-inline-start:0;opacity:0}3%{opacity:1}100%{inset-inline-start:calc(100% - 26px);opacity:1}}
+
+/* sections arrive as they enter the viewport (only a `from` state, so resting styles always win) */
+@supports (animation-timeline:view()){
+  :where(.kp-rise,.sec-head,.net-line,.fares,.contact-grid,.sub-card,.trip-card,.unit-card,.why-card,.demo-card,.impact-card,.faq-item,.route-card,.pkg-card,.pos-card,.feat-card,.loc-card,.kpi-c,.k2-fg>*){animation:kp-rise linear both;animation-timeline:view();animation-range:entry 0% entry 42%}
+  .kp-strip::after{content:"";position:absolute;top:44px;width:34px;height:18px;background:var(--kp-bus) center/contain no-repeat;animation:kp-strip-bus linear both;animation-timeline:view();animation-range:entry 20% cover 70%}
+}
+@keyframes kp-rise{from{opacity:0;translate:0 22px}}
+@keyframes kp-strip-bus{from{right:0}to{right:calc(100% - 34px)}}
+
+/* heroes: staged arrival on load */
+.kp-hero h1{animation:kp-in .7s var(--kp-ease) both}
+.kp-hero .kp-tag{animation:kp-in .6s var(--kp-ease) both}
+.kp-hero p{animation:kp-in .7s .08s var(--kp-ease) both}
+.kp-hero h1 span,.kp-hero h1 em{background:linear-gradient(var(--kp-sign),var(--kp-sign)) right 100%/0 .09em no-repeat!important;animation:kp-under .6s .55s var(--kp-ease) forwards;padding-bottom:.04em}
+.kp-stats>*{animation:kp-in .6s var(--kp-ease) both}
+.kp-stats>*:nth-child(2){animation-delay:.07s}.kp-stats>*:nth-child(3){animation-delay:.14s}.kp-stats>*:nth-child(4){animation-delay:.21s}.kp-stats>*:nth-child(n+5){animation-delay:.28s}
+@keyframes kp-in{from{opacity:0;translate:0 16px}}
+@keyframes kp-under{to{background-size:100% .09em}}
+
+/* switching a tab / step / dashboard page: content slides in from the direction of travel */
+:where(.tab-page.active,.step-page.active,.tab-content.active,.page.on,.pg.on,.pg.active,.section.active){animation:kp-swap .34s var(--kp-ease) both}
+@keyframes kp-swap{from{opacity:0;translate:-14px 0}}
+
+/* dialogs settle like a card placed on a counter */
+:where(.modal-overlay.show,.modal-bg.open,.success-overlay.show,.overlay.show)>*{animation:kp-pop .32s var(--kp-ease) both}
+@keyframes kp-pop{from{opacity:0;scale:.94;translate:0 14px}}
+
+/* toasts: a departure slip with a countdown edge */
+.toast{background:var(--kp-ink)!important;color:#fff!important;border-radius:4px!important;border-inline-start:5px solid var(--kp-sign)!important;box-shadow:var(--sh-3)!important;overflow:hidden;display:flex;align-items:center;gap:8px}
+.toast .ki{color:var(--kp-sign)}
+.toast .ki.ki-ok{color:#5FD3A2}.toast .ki.ki-bad{color:#FF8A84}
+.toast::after{content:"";position:absolute;inset-inline:0;bottom:0;height:2px;background:var(--kp-sign);transform-origin:right;transform:scaleX(0)}
+.toast.show::after{animation:kp-count 2.8s linear both}
+@keyframes kp-count{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+
+/* icons respond when their control is hovered */
+:where(button,a,.card,[onclick]):hover>.ki{animation:kp-nudge .45s var(--kp-ease)}
+@keyframes kp-nudge{40%{translate:0 -3px}}
+
+/* form focus: the underline travels in */
+:where(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){transition:border-color .2s,box-shadow .2s,background-color .2s}
+
+/* footer stops light up in sequence when hovered */
+.kp-strip span::before{transition:background .2s,scale .2s}
+.kp-strip span:hover::before{background:var(--kp-sign);scale:1.3}
+
+/* back-to-top: a small lift at the end of the line */
+.kp-top{border:1px solid rgba(255,201,60,.55)!important;position:fixed;inset-inline-end:max(16px,env(safe-area-inset-right,0px));bottom:88px;z-index:350;width:44px;height:44px;border-radius:4px;background:var(--kp-ink);color:var(--kp-sign);cursor:pointer;display:grid;place-items:center;box-shadow:var(--sh-2);opacity:0;translate:0 12px;pointer-events:none;transition:opacity .25s,translate .25s,background .15s}
+.kp-top.on{opacity:1;translate:0 0;pointer-events:auto}
+.kp-top:hover{background:var(--kp-indigo)}
+.kp-top svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* a bus that glides along a stop list to the hovered stop */
+.kp-linebus{position:absolute;inset-inline-start:-6px;top:0;width:30px;height:16px;background:var(--kp-bus) center/contain no-repeat;rotate:-90deg;opacity:0;transition:top .45s var(--kp-ease),opacity .25s;pointer-events:none;z-index:2}
