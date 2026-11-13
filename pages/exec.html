@@ -203,6 +203,19 @@ h1{line-height:1.25}
 .kp-fab::before,.kp-fab::after{display:none!important;animation:none!important}
 .kp-fab:hover{transform:none!important;background:var(--kp-indigo)!important}
 .kp-fab [class*="label"]{color:#fff!important}
+
+/* The official KPTC pin replaces generic letter monograms */
+.kp-mark{font-size:0!important;color:transparent!important;text-shadow:none!important;box-shadow:none!important;border-radius:4px!important;
+  background:var(--kp-indigo) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 38'%3E%3Cpath d='M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z' fill='none' stroke='%23FFC93C' stroke-width='2.8'/%3E%3Ccircle cx='15' cy='14.5' r='5' fill='%23FFC93C'/%3E%3C/svg%3E") center/auto 58% no-repeat!important}
+.kp-mark::before,.kp-mark::after{display:none!important}
+
+/* Admin shell — operations room: ink rail, yellow position marker */
+.kp-rail{background:var(--kp-ink)!important;box-shadow:none!important}
+.kp-rail-item.active,.kp-rail-item.on{background:rgba(255,201,60,.1)!important;color:#fff!important;box-shadow:inset -4px 0 0 var(--kp-sign)!important;border-color:transparent!important}
+.kp-kpi{border-radius:4px!important;box-shadow:none!important;border:1px solid var(--kp-line)!important;border-top:3px solid var(--kp-indigo)!important}
+.kp-kpi b,.kp-kpi [class*="val"],.kp-kpi [class*="num"]{font-family:var(--f-display)!important;letter-spacing:0!important}
+.kp-panel{border-radius:4px!important;box-shadow:none!important;border:1px solid var(--kp-line)!important}
+@media(max-width:700px){.kp-stats{flex-wrap:wrap;row-gap:16px}.kp-stats>*{padding-inline:14px!important}}
 </style><!--/kptc:core-css-->
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -438,6 +451,42 @@ footer strong{color:var(--yellow);font-weight:700}
   .cta-box{padding:40px 24px}
 }
 </style>
+<!--kptc:page-css--><style id="kptc-layer">
+/* العرض التنفيذي — page layer: an annual-report editorial, not a glowing deck */
+nav,.nav{background:var(--kp-ink)!important;backdrop-filter:none!important;border-bottom:3px solid var(--kp-sign)!important}
+.nav-logo{border-radius:3px!important}
+.nav-logo::before{display:none!important}
+.nav-title{font-family:var(--f-body);letter-spacing:.14em!important;direction:ltr}
+.nav-cta{border-radius:3px!important}
+
+.hero{background:var(--kp-paper)!important;color:var(--kp-ink)!important;min-height:92vh!important}
+.hero::before,.hero::after,.hero-grid,.scroll-indicator{display:none!important}
+.hero-chip{background:none!important;border:0!important;padding:0!important;color:var(--kp-muted)!important;font-size:.8rem!important;border-radius:0!important}
+.hero-chip::before{border-radius:0!important;width:10px!important;height:10px!important;animation:none!important;background:var(--kp-sign)!important;outline:3px solid var(--kp-ink)}
+.hero h1{font-family:var(--f-display);font-weight:800!important;letter-spacing:0!important;line-height:1.3!important;font-size:clamp(2.2rem,5vw,4rem)!important;color:var(--kp-ink)}
+.hero h1 .accent{color:var(--kp-indigo)!important;-webkit-text-fill-color:currentColor!important;background:none!important}
+.hero h1 .accent::after{height:.14em!important;bottom:.02em!important;background:var(--kp-sign)!important;border-radius:0!important;z-index:-1}
+.hero p{color:var(--kp-muted)!important}
+.hero .btn-primary{background:var(--kp-indigo)!important;color:#fff!important;border-radius:4px!important}
+.hero .btn-primary:hover{background:var(--kp-ink)!important}
+.hero .btn-secondary{color:var(--kp-ink)!important;border-color:var(--kp-line-2)!important;border-radius:4px!important}
+.hero .btn-secondary:hover{border-color:var(--kp-ink)!important;background:transparent!important}
+.hero-card{background:var(--kp-indigo)!important;border:0!important;border-radius:6px!important;backdrop-filter:none!important;box-shadow:var(--sh-3)!important;border-top:6px solid var(--kp-sign)!important}
+.hc-stat{background:transparent!important;border:0!important;border-top:1px solid rgba(255,255,255,.2)!important;border-radius:0!important;padding:14px 0!important}
+.hc-num{font-family:var(--f-display);font-weight:700!important;font-size:2.2rem!important}
+.hc-label{letter-spacing:.12em!important}
+
+.section-label{background:none!important;border:0!important;padding:0!important;color:var(--kp-muted)!important;font-size:.78rem!important;display:inline-flex!important;align-items:center;gap:10px;border-radius:0!important}
+.section-label::before{content:"";width:22px;height:4px;background:var(--kp-sign)}
+.impact-hd .section-label{color:#CFCDEA!important;background:none!important}
+.section-title{font-family:var(--f-display);font-weight:700!important;letter-spacing:0!important}
+.impact{background:var(--kp-ink)!important}
+.impact::before{display:none!important}
+.impact-card{background:transparent!important;backdrop-filter:none!important;border:0!important;border-top:3px solid var(--kp-sign)!important;border-radius:0!important}
+.cta-box{background:var(--kp-indigo)!important;border-radius:6px!important;border-bottom:8px solid var(--kp-sign)}
+.cta-box::before,.cta-box::after{display:none!important}
+.cta-chip{border-radius:2px!important}
+</style><!--/kptc:page-css-->
 </head>
 <body>
 
@@ -445,7 +494,7 @@ footer strong{color:var(--yellow);font-weight:700}
 <nav>
   <div class="nav-wrap">
     <div class="nav-brand" onclick="scrollTo({top:0,behavior:'smooth'})">
-      <div class="nav-logo">K</div>
+      <div class="nav-logo kp-mark">K</div>
       <div>
         <div class="nav-title">KPTC</div>
         <div class="nav-sub">EXECUTIVE BRIEF</div>
@@ -1039,7 +1088,7 @@ document.querySelectorAll('.projects').forEach(function(el){observer.observe(el)
   var E = {
     '✅':'check|ok','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
     '💳':'card','🔧':'wrench','🔩':'wrench','🛠':'wrench','📥':'download','📤':'upload','📞':'phone','🔍':'search','🔎':'search','📍':'pin','📌':'pin',
-    '📧':'mail','📬':'mail','📭':'mail','📅':'cal','📆':'cal','🗺':'map','👤':'user','🧑':'user','👔':'user','👷':'user','👶':'user','📱':'mobile','🍎':'mobile',
+    '📧':'mail','📬':'mail','📭':'mail','📅':'cal','📆':'cal','🗺':'map','👤':'user','👥':'users','🧑':'user','👔':'user','👷':'user','👶':'user','📱':'mobile','🍎':'mobile',
     '✏':'edit','📝':'doc','📄':'doc','🏢':'building','🏙':'building','🏭':'building','🏨':'building','🏬':'store','👁':'eye','📢':'mega','👑':'crown',
     '🔄':'refresh','🔁':'refresh','💡':'bulb','⚡':'bolt','🔥':'bolt','🕌':'mosque','☪':'mosque','🕐':'clock','⏰':'clock','📈':'trend','🚀':'trend','⏱':'timer',
     '🏪':'store','💬':'chat','🔔':'bell','🏠':'home','🧠':'cpu','🤖':'cpu','🚛':'truck','⚙':'gear','📦':'box','🔒':'lock','🔐':'lock','🔓':'unlock',

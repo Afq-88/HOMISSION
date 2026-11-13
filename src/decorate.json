@@ -6,7 +6,8 @@
  },
  "subs": {
   "page-hero": "kp-hero",
-  "hero-tag": "kp-tag"
+  "hero-tag": "kp-tag",
+  "ticket-logo": "kp-mark"
  },
  "umrah": {
   "hero": "kp-hero",
@@ -62,12 +63,34 @@
   "chat-fab": "kp-fab"
  },
  "adminai": {
-  "ai-fab": "kp-fab"
+  "ai-fab": "kp-fab",
+  "tb-logo": "kp-mark"
  },
  "tenant": {
-  "ai-fab": "kp-fab"
+  "ai-fab": "kp-fab",
+  "nav-logo": "kp-mark",
+  "hero": "kp-hero kp-ink",
+  "hero-chip": "kp-tag",
+  "hero-chip-dot": "kp-pulse"
  },
  "reai": {
-  "fab-main": "kp-fab"
+  "fab-main": "kp-fab",
+  "dh-logo": "kp-mark"
+ },
+ "dashboard": {
+  "sb-mark": "kp-mark"
+ },
+ "exec": {
+  "nav-logo": "kp-mark"
+ },
+ "portal": {
+  "lc-logo": "kp-mark",
+  "sb-logo-icon": "kp-mark",
+  "login-page": "kp-hero kp-ink",
+  "login-bg-1": "kp-deco",
+  "login-bg-2": "kp-deco"
+ },
+ "realestate": {
+  "tb-logo": "kp-mark"
  }
 }

@@ -1,0 +1,9 @@
+/* المساعد العقاري — page layer */
+.topbar{background:var(--kp-ink)!important;border-bottom:3px solid var(--kp-sign)!important;box-shadow:none!important}
+.sidebar{background:var(--kp-ink)!important;border-left:1px solid rgba(255,255,255,.08)!important}
+.sb-sec{letter-spacing:0!important;text-transform:none!important;color:rgba(255,255,255,.38)!important;font-size:.64rem!important}
+.tb-brand{letter-spacing:.14em!important;direction:ltr}
+.tb-chip,.ai-chip,.kpi-tag,.ai-ver,.ai-vr{border-radius:2px!important}
+.sb-ic{border-radius:3px!important}
+.ai-send{border-radius:4px!important}
+.ai-inp{border-radius:4px!important}

@@ -1,0 +1,5 @@
+/* بوابة المستأجر — page layer */
+.hero h1{letter-spacing:0!important}
+.hero-card{background:#1D1C45!important;backdrop-filter:none!important;border-radius:4px!important;border-top:4px solid var(--kp-sign)!important}
+.kpi-c{border-radius:4px!important;border-width:1px!important;border-top:3px solid var(--kp-indigo)!important}
+.kpi-c b,.kpi-c [class*="v"]{font-family:var(--f-display)}

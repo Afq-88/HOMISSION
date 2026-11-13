@@ -203,6 +203,19 @@ h1{line-height:1.25}
 .kp-fab::before,.kp-fab::after{display:none!important;animation:none!important}
 .kp-fab:hover{transform:none!important;background:var(--kp-indigo)!important}
 .kp-fab [class*="label"]{color:#fff!important}
+
+/* The official KPTC pin replaces generic letter monograms */
+.kp-mark{font-size:0!important;color:transparent!important;text-shadow:none!important;box-shadow:none!important;border-radius:4px!important;
+  background:var(--kp-indigo) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 38'%3E%3Cpath d='M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z' fill='none' stroke='%23FFC93C' stroke-width='2.8'/%3E%3Ccircle cx='15' cy='14.5' r='5' fill='%23FFC93C'/%3E%3C/svg%3E") center/auto 58% no-repeat!important}
+.kp-mark::before,.kp-mark::after{display:none!important}
+
+/* Admin shell — operations room: ink rail, yellow position marker */
+.kp-rail{background:var(--kp-ink)!important;box-shadow:none!important}
+.kp-rail-item.active,.kp-rail-item.on{background:rgba(255,201,60,.1)!important;color:#fff!important;box-shadow:inset -4px 0 0 var(--kp-sign)!important;border-color:transparent!important}
+.kp-kpi{border-radius:4px!important;box-shadow:none!important;border:1px solid var(--kp-line)!important;border-top:3px solid var(--kp-indigo)!important}
+.kp-kpi b,.kp-kpi [class*="val"],.kp-kpi [class*="num"]{font-family:var(--f-display)!important;letter-spacing:0!important}
+.kp-panel{border-radius:4px!important;box-shadow:none!important;border:1px solid var(--kp-line)!important}
+@media(max-width:700px){.kp-stats{flex-wrap:wrap;row-gap:16px}.kp-stats>*{padding-inline:14px!important}}
 </style><!--/kptc:core-css-->
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -465,16 +478,31 @@ body{font-family:var(--f-body);background:var(--light);color:var(--dark);min-hei
   .ps-employee{grid-template-columns:1fr 1fr}
 }
 </style>
+<!--kptc:page-css--><style id="kptc-layer">
+/* بوابة الموظفين — page layer */
+.login-card{border-radius:6px!important;box-shadow:var(--sh-3)!important;border-top:6px solid var(--kp-sign)}
+.lc-top{background:var(--kp-indigo)!important}
+.lc-logo{width:60px!important;height:60px!important}
+.lc-title{font-family:var(--f-body)!important;letter-spacing:.12em!important;direction:ltr}
+.lc-input{border-width:0 0 2px!important;border-radius:0!important;border-color:var(--kp-line-2)!important;background:transparent!important}
+.lc-input:focus{border-color:var(--kp-indigo)!important;box-shadow:none!important}
+.topbar{background:var(--kp-ink)!important;border-bottom:3px solid var(--kp-sign)!important;box-shadow:none!important}
+.sidebar{background:var(--kp-ink)!important;border-left:1px solid rgba(255,255,255,.08)!important}
+.sb-sec{letter-spacing:0!important;text-transform:none!important;color:rgba(255,255,255,.38)!important;font-size:.64rem!important}
+.tb-brand{letter-spacing:.14em!important;direction:ltr}
+.tb-chip,.ai-chip,.kpi-tag,.ai-ver,.ai-vr{border-radius:2px!important}
+.sb-ic{border-radius:3px!important}
+</style><!--/kptc:page-css-->
 </head>
 <body>
 
 <!-- ══ LOGIN PAGE ══ -->
-<div class="login-page" id="loginPage">
-  <div class="login-bg-1"></div>
-  <div class="login-bg-2"></div>
+<div class="login-page kp-hero kp-ink" id="loginPage">
+  <div class="login-bg-1 kp-deco"></div>
+  <div class="login-bg-2 kp-deco"></div>
   <div class="login-card">
     <div class="lc-top">
-      <div class="lc-logo">K</div>
+      <div class="lc-logo kp-mark">K</div>
       <div class="lc-title">KPTC PORTAL</div>
       <div class="lc-sub">بوابة الموظفين الإلكترونية الموحدة</div>
     </div>
@@ -512,7 +540,7 @@ body{font-family:var(--f-body);background:var(--light);color:var(--dark);min-hei
   <!-- SIDEBAR -->
   <div class="sidebar" id="sidebar">
     <div class="sb-logo">
-      <div class="sb-logo-icon">K</div>
+      <div class="sb-logo-icon kp-mark">K</div>
       <div class="sb-logo-text"><div class="name">KPTC</div><div class="sub">EMPLOYEE PORTAL</div></div>
     </div>
     <div class="sb-user">
@@ -1228,7 +1256,7 @@ renderRequests('all');
   var E = {
     '✅':'check|ok','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
     '💳':'card','🔧':'wrench','🔩':'wrench','🛠':'wrench','📥':'download','📤':'upload','📞':'phone','🔍':'search','🔎':'search','📍':'pin','📌':'pin',
-    '📧':'mail','📬':'mail','📭':'mail','📅':'cal','📆':'cal','🗺':'map','👤':'user','🧑':'user','👔':'user','👷':'user','👶':'user','📱':'mobile','🍎':'mobile',
+    '📧':'mail','📬':'mail','📭':'mail','📅':'cal','📆':'cal','🗺':'map','👤':'user','👥':'users','🧑':'user','👔':'user','👷':'user','👶':'user','📱':'mobile','🍎':'mobile',
     '✏':'edit','📝':'doc','📄':'doc','🏢':'building','🏙':'building','🏭':'building','🏨':'building','🏬':'store','👁':'eye','📢':'mega','👑':'crown',
     '🔄':'refresh','🔁':'refresh','💡':'bulb','⚡':'bolt','🔥':'bolt','🕌':'mosque','☪':'mosque','🕐':'clock','⏰':'clock','📈':'trend','🚀':'trend','⏱':'timer',
     '🏪':'store','💬':'chat','🔔':'bell','🏠':'home','🧠':'cpu','🤖':'cpu','🚛':'truck','⚙':'gear','📦':'box','🔒':'lock','🔐':'lock','🔓':'unlock',

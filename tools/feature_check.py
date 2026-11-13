@@ -36,6 +36,12 @@ def facts(s):
     f['names'] = Counter(re.findall(r'\sname="([^"]+)"', html))
     return f
 
+# Intentional, documented changes (bug fixes) — never feature removals.
+ALLOWED = {
+    # original called window.scrollTo('#payments') → TypeError; now uses the page's own helper
+    ('pages/tenant.html', 'handlers', "onclick=scrollTo('#payments')"),
+}
+
 def main(a, b):
     files = sorted(os.path.relpath(p, a) for p in glob.glob(os.path.join(a, '**/*.html'), recursive=True))
     bad = 0
@@ -46,6 +52,9 @@ def main(a, b):
         fa, fb = facts(load(os.path.join(a, rel))), facts(load(nb))
         for k in fa:
             lost = fa[k] - fb[k]
+            for x in list(lost):
+                if (rel, k, x) in ALLOWED:
+                    del lost[x]
             if lost:
                 bad += 1
                 print(f'{rel}: lost {k}: ' + ', '.join(f'{x}×{n}' for x, n in list(lost.items())[:12]))
