@@ -1,0 +1,21 @@
+/* الإعلان على الحافلات — the preview lives on a real K-Bus photo */
+.kp-stagebox{box-shadow:var(--sh-2)}
+.kp-stage{background-size:650px 364px;background-repeat:no-repeat}
+.kp-stagecap{position:absolute;inset:auto auto 8px 8px;background:rgba(20,19,58,.8);color:#fff;font-size:11px;font-weight:600;padding:3px 9px;border-radius:2px;z-index:3}
+.kp-onbus{position:absolute!important;left:0!important;top:0!important;right:auto!important;bottom:auto!important;width:300px!important;height:150px!important;margin:0!important;
+  transform-origin:0 0!important;transform:matrix3d(1.04799,0.221278,0,0.00112782,0,0.593333,0,0,0,0,1,0,415,214,0,1)!important;
+  border-radius:3px!important;animation:none!important;display:flex!important;align-items:center;justify-content:center;text-align:center;padding:10px 16px!important;
+  font-family:var(--f-display)!important;font-size:30px!important;font-weight:800!important;line-height:1.3!important;overflow:hidden;opacity:.96;transition:background .35s,color .35s;box-shadow:inset 0 0 0 2px rgba(255,255,255,.18)}
+.kp-onbus::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 38%,rgba(0,0,0,.16));pointer-events:none}
+.kp-onbus .ki{display:none}
+.kp-onbus .lp-ad-text{font-size:26px!important;font-family:var(--f-display);font-weight:800;line-height:1.3;padding:0!important}
+.kp-rearflag{position:absolute!important;inset:12px 12px auto auto!important;width:auto!important;height:auto!important;padding:5px 12px!important;border-radius:2px!important;font-size:13px!important;z-index:4;direction:rtl}
+.kp-rearflag .lp-ad-text{writing-mode:horizontal-tb!important;font-size:12px!important;color:#fff!important}
+.kp-rearflag .lp-ad-text::before{content:"الإعلان الخلفي مفعّل · "}
+.kp-live{margin-top:4px}
+.live-preview{background:none!important;padding:0!important;border:0!important}
+.kp-herobus{width:min(520px,100%);border-radius:8px;border:4px solid rgba(255,255,255,.14);animation:kp-in .8s .2s var(--kp-ease) both}
+.bus-mockup-wrap{align-items:center!important}
+/* a passing glint so the wrap reads as vinyl on metal */
+.kp-onbus::before{content:"";position:absolute;inset:0 auto 0 -40%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);animation:glint 5s 1.5s ease-in-out infinite;pointer-events:none}
+@keyframes glint{0%,60%{left:-40%}100%{left:130%}}

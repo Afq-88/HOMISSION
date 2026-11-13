@@ -721,6 +721,29 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 </style>
 
 
+<!--kptc:page-css--><style id="kptc-layer">
+/* الإعلان على الحافلات — the preview lives on a real K-Bus photo */
+.kp-stagebox{box-shadow:var(--sh-2)}
+.kp-stage{background-size:650px 364px;background-repeat:no-repeat}
+.kp-stagecap{position:absolute;inset:auto auto 8px 8px;background:rgba(20,19,58,.8);color:#fff;font-size:11px;font-weight:600;padding:3px 9px;border-radius:2px;z-index:3}
+.kp-onbus{position:absolute!important;left:0!important;top:0!important;right:auto!important;bottom:auto!important;width:300px!important;height:150px!important;margin:0!important;
+  transform-origin:0 0!important;transform:matrix3d(1.04799,0.221278,0,0.00112782,0,0.593333,0,0,0,0,1,0,415,214,0,1)!important;
+  border-radius:3px!important;animation:none!important;display:flex!important;align-items:center;justify-content:center;text-align:center;padding:10px 16px!important;
+  font-family:var(--f-display)!important;font-size:30px!important;font-weight:800!important;line-height:1.3!important;overflow:hidden;opacity:.96;transition:background .35s,color .35s;box-shadow:inset 0 0 0 2px rgba(255,255,255,.18)}
+.kp-onbus::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 38%,rgba(0,0,0,.16));pointer-events:none}
+.kp-onbus .ki{display:none}
+.kp-onbus .lp-ad-text{font-size:26px!important;font-family:var(--f-display);font-weight:800;line-height:1.3;padding:0!important}
+.kp-rearflag{position:absolute!important;inset:12px 12px auto auto!important;width:auto!important;height:auto!important;padding:5px 12px!important;border-radius:2px!important;font-size:13px!important;z-index:4;direction:rtl}
+.kp-rearflag .lp-ad-text{writing-mode:horizontal-tb!important;font-size:12px!important;color:#fff!important}
+.kp-rearflag .lp-ad-text::before{content:"الإعلان الخلفي مفعّل · "}
+.kp-live{margin-top:4px}
+.live-preview{background:none!important;padding:0!important;border:0!important}
+.kp-herobus{width:min(520px,100%);border-radius:8px;border:4px solid rgba(255,255,255,.14);animation:kp-in .8s .2s var(--kp-ease) both}
+.bus-mockup-wrap{align-items:center!important}
+/* a passing glint so the wrap reads as vinyl on metal */
+.kp-onbus::before{content:"";position:absolute;inset:0 auto 0 -40%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);animation:glint 5s 1.5s ease-in-out infinite;pointer-events:none}
+@keyframes glint{0%,60%{left:-40%}100%{left:130%}}
+</style><!--/kptc:page-css-->
 </head>
 <body>
 
@@ -1760,8 +1783,86 @@ function showToast(msg) {
     if (window.ResizeObserver) new ResizeObserver(fit).observe(list[0].parentNode);
   }
 
+
+  /* ---- routes: a real map (Leaflet + OpenStreetMap, both free) ---- */
+  var GEO = {'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
+  function routesMap(){
+    var box = document.getElementById('mapView'); if (!box || OWN !== 'routes') return;
+    var el = document.createElement('div'); el.id = 'kpMap'; box.insertBefore(el, box.firstChild);
+    var sc = document.createElement('script'); sc.src = '../assets/leaflet.min.js';
+    sc.onload = function(){
+      var L = window.L, map = L.map(el, {zoomControl:false, attributionControl:true}).setView([29.31, 47.98], 11);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18, attribution:'&copy; OpenStreetMap'}).addTo(map);
+      var layer = L.layerGroup().addTo(map), base = L.layerGroup().addTo(map), busTimer = null, list = [];
+      try { list = routes; } catch(x){}
+      function pts(r){ return r.path.replace(/\(.*?\)/g,'').split('—').map(function(n){ n = n.trim(); return GEO[n] ? {n:n, ll:GEO[n]} : null; }).filter(Boolean); }
+      function stop(p, end){ return L.marker(p.ll, {icon:L.divIcon({className:'', html:'<div class="kp-stop' + (end ? ' end' : '') + '"></div>', iconSize:[20,20], iconAnchor:[end?10:8, end?10:8]})}).bindTooltip(p.n, {className:'kp-tip', direction:'top', offset:[0,-8]}); }
+      list.forEach(function(r){ var p = pts(r); if (p.length > 1) L.polyline(p.map(function(x){ return x.ll; }), {color:'#2E2C78', weight:3, opacity:.22}).addTo(base); });
+      Object.keys(GEO).slice(0, 19).forEach(function(n){ L.circleMarker(GEO[n], {radius:4, color:'#2E2C78', weight:2, fillColor:'#fff', fillOpacity:1}).bindTooltip(n, {className:'kp-tip', direction:'top'}).addTo(base); });
+      function draw(num){
+        var r = list.filter(function(x){ return x.num === num; })[0]; if (!r) return;
+        var p = pts(r); if (p.length < 2) return;
+        layer.clearLayers(); clearInterval(busTimer); base.eachLayer(function(l){ if (l.setStyle) l.setStyle({opacity:.1}); });
+        var ll = p.map(function(x){ return x.ll; });
+        L.polyline(ll, {color:'#14133A', weight:9, opacity:.9, lineCap:'round'}).addTo(layer);
+        L.polyline(ll, {color:'#FFC93C', weight:4, opacity:1, lineCap:'round'}).addTo(layer);
+        p.forEach(function(x, i){ stop(x, i === 0 || i === p.length-1).addTo(layer); });
+        var bus = L.marker(ll[0], {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,22]}), interactive:false}).addTo(layer), t = 0;
+        busTimer = setInterval(function(){ t = (t + .004) % 1; var f = t * (ll.length-1), i = Math.floor(f), k = f - i, a = ll[i], b = ll[i+1] || a; bus.setLatLng([a[0] + (b[0]-a[0])*k, a[1] + (b[1]-a[1])*k]); }, 40);
+        map.flyToBounds(L.latLngBounds(ll).pad(.25), {duration:.8});
+      }
+      var orig = window.selectRoute; if (typeof orig === 'function') window.selectRoute = function(n){ var r = orig.apply(this, arguments); try { draw(n); } catch(x){} return r; };
+      var z = box.querySelectorAll('.map-zoom .zoom-btn');
+      if (z[0]) z[0].addEventListener('click', function(){ map.zoomIn(); });
+      if (z[1]) z[1].addEventListener('click', function(){ map.zoomOut(); });
+      if (z[2]) z[2].addEventListener('click', function(){ if (navigator.geolocation) navigator.geolocation.getCurrentPosition(function(g){ map.flyTo([g.coords.latitude, g.coords.longitude], 14); L.circleMarker([g.coords.latitude, g.coords.longitude], {radius:8, color:'#C2352E', fillOpacity:.6}).addTo(layer); }, function(){ map.flyTo([29.31, 47.98], 11); }); });
+      setTimeout(function(){ map.invalidateSize(); }, 300); window.addEventListener('resize', function(){ map.invalidateSize(); });
+      document.addEventListener('click', function(){ setTimeout(function(){ map.invalidateSize(); }, 60); });
+    };
+    document.head.appendChild(sc);
+  }
+
+
+  /* ---- ads: the campaign preview is painted onto a real K-Bus photo ---- */
+  function adsStage(){
+    if (OWN !== 'ads') return;
+    function stage(host, ad, cls){
+      if (!host || !ad) return;
+      var box = document.createElement('div'); box.className = 'kp-stagebox ' + cls;
+      var st = document.createElement('div'); st.className = 'kp-stage'; st.style.backgroundImage = 'url(../assets/kbus-side.jpg)';
+      st.appendChild(ad); ad.classList.add('kp-onbus'); box.appendChild(st);
+      var cap = document.createElement('span'); cap.className = 'kp-stagecap'; cap.textContent = 'حافلة K-Bus الرسمية — صورة حقيقية'; box.appendChild(cap);
+      host.parentNode.insertBefore(box, host); host.style.display = 'none';
+      return st;
+    }
+    var st = stage(document.getElementById('lpBus'), document.getElementById('lpSideAd'), 'kp-live');
+    var rear = document.getElementById('lpRearAd'); if (st && rear){ st.appendChild(rear); rear.classList.add('kp-rearflag'); }
+    var hero = document.querySelector('.bus-svg-wrap'); stage(hero, document.getElementById('heroBusAd'), 'kp-herobus');
+  }
+
+  /* ---- VIP: see the coach before you book ---- */
+  function vipGallery(){
+    if (OWN !== 'vip') return;
+    var hero = document.querySelector('.hero.kp-hero'); if (!hero) return;
+    var shots = [['coach-2.jpg','الخلف والجانب','حافلة سياحية كبيرة بهوية KPTC'],['coach-1.jpg','المنظر الجانبي','نوافذ بانورامية على طول الحافلة'],['coach-door.jpg','باب الصعود','درجات واسعة ومدخل مريح'],['coach-interior.jpg','المقصورة','مقاعد وثيرة مع طاولة للجلسات'],['coach-3.jpg','الواجهة الأمامية','زجاج أمامي بانورامي']];
+    var sec = document.createElement('section'); sec.className = 'kp-vipg';
+    sec.innerHTML = '<div class="kp-vipg-in"><div class="kp-vipg-view"><img id="kpVipImg" src="../assets/' + shots[0][0] + '" alt="' + shots[0][2] + '"><span id="kpVipCap">' + shots[0][2] + '</span><em>حرّك المؤشر للتكبير</em></div>' +
+      '<div class="kp-vipg-side"><small>صور حقيقية من أسطول KPTC</small><h2>شاهد حافلتك قبل أن تحجز</h2><p>هذه هي الحافلة التي ستصل إلى باب ضيوفك: حافلة سياحية كبيرة تتسع حتى <b>45</b> راكباً، بمقصورة هادئة وسائق معتمد.</p>' +
+      '<ul><li><b>45</b><span>راكباً في الحافلة الكبيرة</span></li><li><b>1962</b><span>خبرة في النقل منذ</span></li><li><b>6</b><span>محافظات ورحلات إقليمية</span></li></ul>' +
+      '<div class="kp-vipg-th">' + shots.map(function(s, i){ return '<button type="button" class="' + (i ? '' : 'on') + '" data-i="' + i + '" aria-label="' + s[1] + '"><img src="../assets/' + s[0] + '" alt=""><span>' + s[1] + '</span></button>'; }).join('') + '</div>' +
+      '<div class="kp-vipg-cta"><button type="button" class="k2-btn k2-btn-sign" id="kpVipGo">احجز هذه الحافلة</button><span>أو اتصل <b dir="ltr">1880001</b></span></div></div></div>';
+    hero.parentNode.insertBefore(sec, hero.nextSibling);
+    var img = sec.querySelector('#kpVipImg'), view = sec.querySelector('.kp-vipg-view'), cur = 0, auto;
+    function show(i){ cur = i; img.classList.add('out'); setTimeout(function(){ img.src = '../assets/' + shots[i][0]; img.alt = shots[i][2]; sec.querySelector('#kpVipCap').textContent = shots[i][2]; img.classList.remove('out'); }, 180); sec.querySelectorAll('.kp-vipg-th button').forEach(function(b, k){ b.classList.toggle('on', k === i); }); }
+    sec.querySelector('.kp-vipg-th').addEventListener('click', function(e){ var b = e.target.closest('[data-i]'); if (b){ clearInterval(auto); show(+b.getAttribute('data-i')); } });
+    view.addEventListener('mousemove', function(e){ var r = view.getBoundingClientRect(); img.style.transformOrigin = ((e.clientX - r.left)/r.width*100) + '% ' + ((e.clientY - r.top)/r.height*100) + '%'; view.classList.add('zoom'); clearInterval(auto); });
+    view.addEventListener('mouseleave', function(){ view.classList.remove('zoom'); });
+    sec.querySelector('#kpVipGo').addEventListener('click', function(){ var t = sec.nextElementSibling; if (t) t.scrollIntoView({behavior:'smooth', block:'start'}); });
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) auto = setInterval(function(){ show((cur + 1) % shots.length); }, 4200);
+  }
+
   function init(){
-    chrome(); capture();
+    chrome(); capture(); routesMap(); adsStage(); vipGallery();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });
