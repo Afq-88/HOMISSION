@@ -41,9 +41,30 @@
 .leaflet-tooltip.kp-tip{background:var(--kp-ink);color:#fff;border:0;border-radius:3px;font-weight:600;font-size:12.5px;padding:4px 9px;box-shadow:none}
 .leaflet-tooltip.kp-tip::before{display:none}
 .leaflet-control-attribution{font-size:10px}
-.kp-netmap{position:fixed;inset:0;z-index:5000;background:rgba(20,19,58,.92);display:none;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
-.kp-netmap.on{display:flex}
-.kp-netmap-in{position:relative;max-width:min(1400px,100%);max-height:100%;overflow:auto;background:#fff;border-radius:6px;padding:10px;cursor:default;animation:kp-pop .3s var(--kp-ease) both}
-.kp-netmap-in img{width:100%;min-width:900px;display:block}
-.kp-netmap-in p{font-size:12px;color:var(--kp-muted);padding:8px 4px 2px;position:sticky;right:0}
-.kp-netmap-in button{position:sticky;top:0;float:left;z-index:2;width:38px;height:38px;border:0;border-radius:4px;background:var(--kp-ink);color:#fff;font-size:22px;cursor:pointer}
+.kp-netmap{position:fixed;inset:0;z-index:5000;background:rgba(20,19,58,.9);display:none;padding:18px}
+.kp-netmap.on{display:block}
+.kp-nm{height:100%;display:grid;grid-template-rows:auto 1fr;background:var(--kp-paper-2);border-radius:8px;overflow:hidden;animation:kp-pop .35s var(--kp-ease) both;border-top:6px solid var(--kp-sign)}
+.kp-nm header{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 18px;background:var(--kp-ink);color:#fff}
+.kp-nm header b{display:block;font:700 17px var(--f-display)}
+.kp-nm header span{font-size:12.5px;color:#B7B5D6}
+.kp-nm-z{display:flex;gap:6px}
+.kp-nm-z button{width:38px;height:38px;border-radius:4px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-size:19px;cursor:pointer}
+.kp-nm-z button:hover{background:var(--kp-sign);color:var(--kp-ink);border-color:var(--kp-sign)}
+.kp-nm-b{display:grid;grid-template-columns:250px 1fr;min-height:0}
+.kp-nm aside{overflow:auto;padding:14px 12px;border-inline-end:1px solid var(--kp-line);position:relative}
+.kp-nm aside::before{content:"";position:absolute;top:58px;bottom:26px;right:24px;width:4px;background:var(--kp-indigo);border-radius:2px}
+.kp-nm aside h4{font:700 13px var(--f-display);color:var(--kp-muted);margin:2px 6px 12px}
+.kp-nm aside button{position:relative;display:block;width:100%;text-align:right;background:none;border:0;border-radius:4px;padding:9px 38px 9px 8px;cursor:pointer;color:var(--kp-ink);transition:background .15s}
+.kp-nm aside button::before{content:"";position:absolute;right:6px;top:15px;width:16px;height:16px;border-radius:50%;background:#fff;border:4px solid var(--kp-indigo);box-sizing:border-box;transition:background .2s,scale .2s}
+.kp-nm aside button:hover{background:rgba(46,44,120,.06)}
+.kp-nm aside button.on{background:rgba(255,201,60,.2)}
+.kp-nm aside button.on::before{background:var(--kp-sign);border-color:var(--kp-ink);scale:1.2}
+.kp-nm aside b{display:block;font:700 15px var(--f-display)}
+.kp-nm aside small{display:block;font-size:11.5px;color:var(--kp-muted);direction:ltr;text-align:right}
+.kp-nm-v{position:relative;overflow:hidden;background:#fff;cursor:grab;touch-action:none;direction:ltr}
+.kp-nm-v:active{cursor:grabbing}
+.kp-nm-c{position:absolute;top:0;left:0;width:2400px;height:1696px;transform-origin:0 0;will-change:transform}
+.kp-nm-c img{width:2400px;height:1696px;display:block;user-select:none;-webkit-user-drag:none;max-width:none}
+.kp-nm-pin{display:none;position:absolute;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;border:6px solid var(--kp-sign);box-shadow:0 0 0 4px var(--kp-ink),0 0 0 2000px rgba(20,19,58,.12);animation:nmpin 1.6s ease-in-out infinite;pointer-events:none}
+@keyframes nmpin{50%{scale:1.12}}
+@media(max-width:760px){.kp-netmap{padding:0}.kp-nm{border-radius:0}.kp-nm-b{grid-template-columns:1fr;grid-template-rows:auto 1fr}.kp-nm aside{display:flex;gap:6px;overflow-x:auto;border:0;border-bottom:1px solid var(--kp-line);padding:8px}.kp-nm aside::before,.kp-nm aside h4,.kp-nm aside small{display:none}.kp-nm aside button{width:auto;white-space:nowrap;padding:7px 12px 7px 30px;border:1px solid var(--kp-line-2)}.kp-nm aside button::before{right:auto;left:8px;top:11px;width:12px;height:12px;border-width:3px}.kp-nm header span{display:none}}

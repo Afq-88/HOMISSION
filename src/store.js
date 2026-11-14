@@ -35,7 +35,15 @@
   function seed(){
     return {
       pages: {},                                   // id -> false when hidden from visitors
-      notice: {on:false, text:''},                 // site-wide announcement bar
+      notice: {on:false, text:'', tone:'yellow', link:''},   // site-wide announcement bar
+      site: {                                      // everything the site studio controls
+        pages: {},                                 // id -> {status:'on'|'maint'|'off', nav, label, badge, from, until, msg}
+        navOrder: ['routes','subs','umrah','vip','winch','ads','reclient'],
+        home: {},                                  // section key -> false when switched off
+        ticker: [],                                // custom ticker lines (empty = the built-in ones)
+        maintenance: {on:false, text:''},
+        assistant: true
+      },
       users: { 'u-demo': {id:'u-demo', name:'أحمد العلي', phone:'55501234', email:'demo@kptc.com.kw', pass:'123456', civil:'', joined:today(-190)} },
       session: null,
       wallets: { 'u-demo': {balance:20, frozen:false, tx:[
@@ -125,8 +133,17 @@
     /* bookings made on the service pages */
     addBooking: function(b){ var d = load(); b.uid = b.uid || d.session || 'guest'; b.d = b.d || today(); b.status = b.status || 'قيد المعالجة'; d.bookings.unshift(b); log('طلب جديد ' + b.id + ' — ' + b.type); save(); return b; },
 
-    /* page visibility */
-    isHidden: function(pid){ return load().pages[pid] === false; },
+    /* site studio */
+    site: function(){ var d = load(), def = seed().site, s = d.site || (d.site = def); for (var k in def) if (!(k in s)) s[k] = def[k]; return s; },
+    page: function(pid){ var s = K.site(); return s.pages[pid] || (s.pages[pid] = {status: load().pages[pid] === false ? 'off' : 'on'}); },
+    /* 'on' | 'maint' | 'off' as a visitor sees it now (schedule and site-wide maintenance included) */
+    pageState: function(pid){
+      var s = K.site(), p = s.pages[pid] || {}, st = p.status || (load().pages[pid] === false ? 'off' : 'on'), t = today();
+      if (st === 'on' && ((p.from && t < p.from) || (p.until && t > p.until))) st = 'off';
+      if (st === 'on' && s.maintenance.on && ['siteadmin','dashboard','adminai','realestate','reai','exec','portal'].indexOf(pid) < 0) st = 'maint';
+      return st;
+    },
+    isHidden: function(pid){ return K.pageState(pid) === 'off'; },
     log: log
   };
 })();

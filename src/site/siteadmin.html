@@ -24,6 +24,36 @@ aside button em{font-style:normal;font-size:11px;font-weight:700;background:var(
 td .btn{margin-inline-end:4px}
 select.s{border:1.5px solid var(--kp-line-2);border-radius:4px;padding:5px 8px;font:600 13px var(--f-body);background:#fff}
 @media(max-width:900px){body{grid-template-columns:1fr}aside{position:static;height:auto}aside nav{display:flex;overflow-x:auto}aside h4{display:none}aside button{white-space:nowrap;border-right:0;border-bottom:4px solid transparent}aside button.on{border-bottom-color:var(--kp-sign)}.kp4{grid-template-columns:1fr 1fr}.mn{padding:18px 14px 50px}}
+/* studio */
+.studio{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,44%);gap:20px;align-items:start}
+.pv{position:sticky;top:16px;background:#fff;border:1px solid var(--kp-line);border-radius:6px;overflow:hidden}
+.pv-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--kp-line);font-size:13px;font-weight:700}
+.pv-h .seg{display:flex;border:1.5px solid var(--kp-line-2);border-radius:3px;overflow:hidden}
+.pv-h .seg button{border:0;background:#fff;padding:4px 10px;font:600 12px var(--f-body);cursor:pointer;color:var(--kp-muted)}
+.pv-h .seg button.on{background:var(--kp-ink);color:var(--kp-sign)}
+.pv-b{background:var(--kp-paper);position:relative;height:min(70vh,640px);overflow:hidden;direction:ltr}
+.pv-b iframe{position:absolute;top:0;left:0;border:0;background:#fff;width:1280px;transform-origin:0 0}
+.pv-b.mob iframe{width:390px;box-shadow:0 0 0 1px var(--kp-line-2)}
+.pg{background:#fff;border:1px solid var(--kp-line);border-radius:6px;margin-bottom:8px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.pg.sel{border-color:var(--kp-indigo);box-shadow:inset -5px 0 0 var(--kp-sign)}
+.pg-h{display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:center;padding:11px 14px;cursor:pointer}
+.pg-h b{display:block;font-size:15px}.pg-h small{color:var(--kp-muted);font-size:12.5px}
+.mv{display:grid;gap:2px}.mv button{width:24px;height:18px;border:1px solid var(--kp-line-2);background:#fff;border-radius:2px;cursor:pointer;font-size:10px;line-height:1;color:var(--kp-indigo)}
+.mv button[disabled]{opacity:.25}
+.st3{display:flex;border:1.5px solid var(--kp-line-2);border-radius:3px;overflow:hidden}
+.st3 button{border:0;background:#fff;padding:5px 10px;font:600 12.5px var(--f-body);cursor:pointer;color:var(--kp-muted)}
+.st3 button+button{border-inline-start:1.5px solid var(--kp-line-2)}
+.st3 button.on[data-v=on]{background:var(--kp-ok);color:#fff}.st3 button.on[data-v=maint]{background:var(--kp-warn);color:#fff}.st3 button.on[data-v=off]{background:var(--kp-bad);color:#fff}
+.pg-x{display:none;grid-template-columns:1fr 1fr;gap:12px;padding:4px 14px 16px;border-top:1px dashed var(--kp-line-2);background:var(--kp-paper-2)}
+.pg.open .pg-x{display:grid}
+.pg-x .full{grid-column:1/-1}
+.more{border:0;background:none;color:var(--kp-indigo);font:600 12.5px var(--f-body);cursor:pointer;padding:4px}
+.sec-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--kp-line);background:#fff}
+.sec-row:last-child{border:0}
+.gbox{display:grid;gap:12px;margin-bottom:16px}
+.gbox h3{display:flex;justify-content:space-between;align-items:center}
+textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-height:120px}
+@media(max-width:1100px){.studio{grid-template-columns:1fr}.pv{position:static}}
 </style>
 <aside>
   <div class="ab"><div class="kp-mark"></div><div><b>KPTC</b><small>مركز إدارة الموقع</small></div></div>
@@ -41,7 +71,9 @@ select.s{border:1.5px solid var(--kp-line-2);border-radius:4px;padding:5px 8px;f
   function flash(t){ var x = $('flash'); x.textContent = t; x.classList.add('on'); clearTimeout(flash.t); flash.t = setTimeout(function(){ x.classList.remove('on'); }, 2400); }
   var PAGES = [['home','الصفحة الرئيسية','واجهة الزوار'],['routes','الخطوط والمسارات','البحث والخريطة'],['subs','الاشتراكات والتذاكر','الباقات والدفع'],['umrah','رحلات العمرة','الحجز والمقاعد'],['vip','باصات VIP والتأجير','الحجز والمعاينة'],['winch','الونش والورشة','الطلبات الطارئة'],['lost','المفقودات','البلاغات'],['ads','الإعلان على الحافلات','باقات المعلنين'],['reclient','مساحات للإيجار','العقارات للزوار'],['assistant','المساعد الذكي','كابتن كويت'],['media','المركز الإعلامي','الأخبار والصور'],['tenders','المناقصات','الفرص المطروحة'],['careers','الوظائف','الشواغر والتقديم'],['account','حسابي والمحفظة','تسجيل العملاء'],['tenant','بوابة المستأجر','المستأجرون الحاليون'],['portal','بوابة الموظفين','الدخول الوظيفي']];
   var TABS = {
-    pages:['الصفحات والظهور','أظهر أو أخفِ أي صفحة من الموقع. الصفحة المخفية تختفي روابطها من القوائم ويرى من يفتحها رسالة «غير متاحة».'],
+    pages:['استوديو الصفحات','لكل صفحة: الحالة (ظاهرة، صيانة، مخفية)، مكانها وترتيبها في القائمة، اسمها وشارتها، وجدولة ظهورها. المعاينة على اليسار تتحدث فوراً.'],
+    home:['الصفحة الرئيسية','شغّل أو أوقف أي قسم من الصفحة الرئيسية، وحرّر الشريط المتحرك.'],
+    general:['إعدادات عامة','شريط التنبيه، وضع الصيانة الشامل، زر المساعد، ونسخ الإعدادات واستعادتها.'],
     news:['الأخبار والمركز الإعلامي','أضف خبراً أو بياناً صحفياً، عدّله، أو أوقف نشره.'],
     tenders:['المناقصات','اطرح مناقصة جديدة، غيّر حالتها، وراجع الشركات المهتمة.'],
     jobs:['الوظائف وطلبات التوظيف','أعلن عن وظيفة، وأدر طلبات المتقدمين وحالاتها.'],
@@ -49,9 +81,20 @@ select.s{border:1.5px solid var(--kp-line-2);border-radius:4px;padding:5px 8px;f
     bookings:['الحجوزات والطلبات','كل ما يحجزه العملاء من صفحات الخدمات، مع تغيير الحالة.'],
     log:['سجل النشاط','آخر ما حدث في الموقع.']
   };
+  var NAVABLE = ['routes','subs','umrah','vip','winch','ads','reclient'], selPg = 'home', openPg = '', dev = 'desk';
+  var HOME = [['ticker','الشريط المتحرك','رسائل تمر أعلى الصفحة'],['tasks','المهام السريعة','أربع بطاقات تحت الواجهة'],['facts','خط الأرقام','نحرّك الكويت منذ...'],['services','خريطة الخدمات','الخطوط الأربعة'],['calc','حاسبة التوفير','مقارنة التذاكر بالبطاقة'],['fares','جدول الاشتراكات','بطاقة التوفير'],['steps','ثلاث خطوات','كيف تبدأ'],['umrah','شريط العمرة','الأسعار والمدة'],['sos','شريط الونش','الطوارئ'],['biz','قسم الأعمال','العقارات والإعلان'],['app','قسم التطبيق','الهاتف والمتاجر'],['close','الدعوة الختامية','الشريط الأصفر'],['contact','تواصل معنا','الخط الساخن والعنوان']];
+  var LINKS = [['KPTC_Routes.html','الخطوط'],['KPTC_Subscriptions.html','الاشتراكات'],['KPTC_Umrah.html','العمرة'],['KPTC_VIP.html','VIP'],['KPTC_Winch.html','الونش'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']];
+  function preview(){ var p = PAGES.filter(function(x){ return x[0] === selPg; })[0] || PAGES[0]; return '<aside class="pv"><div class="pv-h"><span>معاينة: ' + p[1] + '</span><span class="seg"><button data-act="dev" data-v="desk" class="' + (dev === 'desk' ? 'on' : '') + '">حاسوب</button><button data-act="dev" data-v="mob" class="' + (dev === 'mob' ? 'on' : '') + '">جوال</button></span></div><div class="pv-b' + (dev === 'mob' ? ' mob' : '') + '" id="pvB"><iframe id="pvF" title="معاينة" data-src="' + selPg + '.html"></iframe></div></aside>'; }
+  var pvKeep = null;
+  function mountPreview(){
+    var b = $('pvB'), f = $('pvF'); if (!b || !f) return;
+    var want = f.getAttribute('data-src');
+    if (pvKeep && pvKeep.getAttribute('data-src') === want){ f.replaceWith(pvKeep); f = pvKeep; } else { f.src = want; pvKeep = f; }   // keep the frame alive across re-renders
+    var w = dev === 'mob' ? 390 : 1280, sc = Math.min(1, b.clientWidth / w); f.style.left = Math.max(0, (b.clientWidth - w * sc) / 2) + 'px'; f.style.transform = 'scale(' + sc + ')'; f.style.height = (b.clientHeight / sc) + 'px';
+  }
   function nav(){
     var d = K.db(), c = {tenders:d.bids.filter(function(b){ return b.status === 'جديد'; }).length, jobs:d.applications.filter(function(a){ return a.status === 'قيد المراجعة'; }).length, bookings:d.bookings.filter(function(b){ return b.status === 'قيد المعالجة'; }).length};
-    $('nav').innerHTML = '<h4>الموقع</h4>' + ['pages','news','tenders','jobs'].map(btn).join('') + '<h4>العملاء</h4>' + ['wallets','bookings'].map(btn).join('') + '<h4>النظام</h4>' + btn('log');
+    $('nav').innerHTML = '<h4>التحكم بالموقع</h4>' + ['pages','home','general'].map(btn).join('') + '<h4>المحتوى</h4>' + ['news','tenders','jobs'].map(btn).join('') + '<h4>العملاء</h4>' + ['wallets','bookings'].map(btn).join('') + '<h4>النظام</h4>' + btn('log');
     function btn(k){ return '<button type="button" class="' + (k === tab ? 'on' : '') + '" data-tab="' + k + '">' + TABS[k][0] + (c[k] ? '<em class="num">' + c[k] + '</em>' : '') + '</button>'; }
   }
   function tag(s){ var c = /منشور|مفتوح|فعّال|مؤكد|مدفوع|مكتمل|مقبول|مقابلة|نشطة/.test(s) ? 'ok' : /مغلق|ملغ|مرفوض|موقوف|مخفي/.test(s) ? 'bad' : 'warn'; return '<span class="tag ' + c + '">' + E(s) + '</span>'; }
@@ -59,10 +102,37 @@ select.s{border:1.5px solid var(--kp-line-2);border-radius:4px;padding:5px 8px;f
   var V = {
     pages: function(d){
       $('hA').innerHTML = '<a class="btn o" href="KPTC_Home.html">افتح الموقع</a>';
-      var on = PAGES.filter(function(p){ return d.pages[p[0]] !== false; }).length;
-      return '<div class="kp4"><div><b class="num">' + PAGES.length + '</b><span>صفحة في الموقع</span></div><div><b class="num">' + on + '</b><span>ظاهرة للزوار</span></div><div><b class="num">' + (PAGES.length - on) + '</b><span>مخفية</span></div><div><b>' + (d.notice.on ? 'مفعّل' : 'متوقف') + '</b><span>شريط التنبيه العام</span></div></div>' +
-        '<div class="box" style="margin-bottom:18px"><h3>شريط تنبيه أعلى الموقع</h3><div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center"><label class="f" style="margin:0"><input id="ntx" placeholder="مثال: تعديل مؤقت على مسار خط 15 حتى نهاية الأسبوع" value="' + E(d.notice.text) + '"></label><button class="btn sm" data-act="ntsave">حفظ النص</button><button class="sw ' + (d.notice.on ? 'on' : '') + '" data-act="nt" aria-label="تفعيل الشريط"></button></div></div>' +
-        '<div class="tw">' + PAGES.map(function(p){ var vis = d.pages[p[0]] !== false; return '<div class="row"><div><b>' + p[1] + '</b><small>' + p[2] + '</small></div>' + tag(vis ? 'منشورة' : 'مخفية') + '<button class="sw ' + (vis ? 'on' : '') + '" data-act="pg" data-id="' + p[0] + '" aria-label="إظهار ' + p[1] + '"' + (p[0] === 'home' ? ' disabled title="الصفحة الرئيسية لا تُخفى"' : '') + '></button></div>'; }).join('') + '</div>';
+      var S = K.site(), cnt = {on:0, maint:0, off:0}; PAGES.forEach(function(p){ cnt[K.pageState(p[0])]++; });
+      var order = S.navOrder.filter(function(i){ return NAVABLE.indexOf(i) > -1; }); NAVABLE.forEach(function(i){ if (order.indexOf(i) < 0) order.push(i); });
+      var list = order.map(function(i){ return PAGES.filter(function(p){ return p[0] === i; })[0]; }).concat(PAGES.filter(function(p){ return NAVABLE.indexOf(p[0]) < 0; }));
+      return '<div class="kp4"><div><b class="num">' + cnt.on + '</b><span>ظاهرة للزوار</span></div><div><b class="num">' + cnt.maint + '</b><span>تحت الصيانة</span></div><div><b class="num">' + cnt.off + '</b><span>مخفية</span></div><div><b class="num">' + order.filter(function(i){ return (S.pages[i]||{}).nav !== false; }).length + '</b><span>في القائمة الرئيسية</span></div></div>' +
+        '<div class="studio"><div>' + list.map(function(p, k){
+          var id = p[0], c = K.page(id), st = c.status || 'on', nav = NAVABLE.indexOf(id) > -1, real = K.pageState(id);
+          return '<div class="pg' + (selPg === id ? ' sel' : '') + (openPg === id ? ' open' : '') + '" data-pg="' + id + '"><div class="pg-h">' +
+            (nav ? '<span class="mv"><button data-act="mv" data-id="' + id + '" data-d="-1"' + (k === 0 ? ' disabled' : '') + ' aria-label="أعلى">▲</button><button data-act="mv" data-id="' + id + '" data-d="1"' + (k === order.length - 1 ? ' disabled' : '') + ' aria-label="أسفل">▼</button></span>' : '<span style="width:24px"></span>') +
+            '<div><b>' + E(c.label || p[1]) + (c.badge ? ' <span class="tag warn">' + E(c.badge) + '</span>' : '') + '</b><small>' + p[2] + (nav ? ' · ' + (c.nav === false ? 'خارج القائمة' : 'في القائمة') : '') + (real !== st ? ' · الآن: ' + ({on:'ظاهرة', maint:'صيانة', off:'مخفية'}[real]) : '') + '</small></div>' +
+            '<div class="st3" role="group">' + [['on','ظاهرة'],['maint','صيانة'],['off','مخفية']].map(function(o){ return '<button data-act="st" data-id="' + id + '" data-v="' + o[0] + '" class="' + (st === o[0] ? 'on' : '') + '"' + (id === 'home' && o[0] === 'off' ? ' disabled title="الرئيسية لا تُخفى"' : '') + '>' + o[1] + '</button>'; }).join('') + '</div>' +
+            '<button class="more" data-act="more" data-id="' + id + '">' + (openPg === id ? 'إغلاق' : 'خيارات') + '</button></div>' +
+            '<div class="pg-x">' + (nav ? '<label class="f">الاسم في القائمة<input data-f="label" data-id="' + id + '" value="' + E(c.label || '') + '" placeholder="' + E(p[1]) + '"></label><label class="f">الشارة<select data-f="badge" data-id="' + id + '">' + ['','جديد','قريباً','عرض'].map(function(o){ return '<option' + ((c.badge || '') === o ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select></label><label class="f full" style="display:flex;align-items:center;gap:10px;flex-direction:row"><button type="button" class="sw ' + (c.nav === false ? '' : 'on') + '" data-act="nav" data-id="' + id + '" aria-label="في القائمة"></button>تظهر في القائمة الرئيسية</label>' : '') +
+            '<label class="f">تظهر من تاريخ<input type="date" data-f="from" data-id="' + id + '" value="' + E(c.from || '') + '"></label><label class="f">حتى تاريخ<input type="date" data-f="until" data-id="' + id + '" value="' + E(c.until || '') + '"></label>' +
+            '<label class="f full">رسالة الصيانة لهذه الصفحة<input data-f="msg" data-id="' + id + '" value="' + E(c.msg || '') + '" placeholder="نعمل على تحسين هذه الصفحة. عُد إلينا قريباً."></label></div></div>';
+        }).join('') + '</div>' + preview() + '</div>';
+    },
+    home: function(d){
+      $('hA').innerHTML = ''; selPg = 'home';
+      var S = K.site();
+      return '<div class="studio"><div><div class="tw" style="margin-bottom:16px">' + HOME.map(function(h){ var on = S.home[h[0]] !== false; return '<div class="sec-row"><div><b>' + h[1] + '</b><br><small style="color:var(--kp-muted)">' + h[2] + '</small></div><button class="sw ' + (on ? 'on' : '') + '" data-act="hs" data-id="' + h[0] + '" aria-label="' + h[1] + '"></button></div>'; }).join('') + '</div>' +
+        '<div class="box gbox"><h3>الشريط المتحرك</h3><label class="f">سطر لكل رسالة. اتركه فارغاً لاستخدام الرسائل الأصلية.<textarea id="tkr" rows="5" placeholder="مثال: تعديل مؤقت على مسار خط 15 حتى نهاية الأسبوع">' + E((S.ticker || []).join('\n')) + '</textarea></label><div><button class="btn sm" data-act="tkr">حفظ الشريط</button></div></div></div>' + preview() + '</div>';
+    },
+    general: function(d){
+      $('hA').innerHTML = '';
+      var S = K.site(), n = d.notice;
+      return '<div class="studio"><div>' +
+        '<div class="box gbox"><h3>شريط التنبيه أعلى الموقع <button class="sw ' + (n.on ? 'on' : '') + '" data-act="nt" aria-label="تفعيل الشريط"></button></h3><label class="f">نص التنبيه<input id="ntx" value="' + E(n.text) + '" placeholder="مثال: تعديل مؤقت على مسار خط 15"></label><div class="grid g2" style="gap:12px"><label class="f">اللون<select id="ntone">' + [['yellow','أصفر (معلومة)'],['ink','كحلي (إعلان)'],['red','أحمر (عاجل)']].map(function(o){ return '<option value="' + o[0] + '"' + ((n.tone || 'yellow') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label><label class="f">يفتح صفحة<select id="nlink"><option value="">بدون رابط</option>' + LINKS.map(function(o){ return '<option value="' + o[0] + '"' + (n.link === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label></div><div><button class="btn sm" data-act="ntsave">حفظ التنبيه</button></div></div>' +
+        '<div class="box gbox"><h3>وضع الصيانة الشامل <button class="sw ' + (S.maintenance.on ? 'on' : '') + '" data-act="mt" aria-label="وضع الصيانة"></button></h3><p style="color:var(--kp-muted);font-size:14px">يضع كل صفحات الزوار تحت الصيانة دفعة واحدة. لوحات الإدارة لا تتأثر.</p><label class="f">الرسالة<input id="mtx" value="' + E(S.maintenance.text) + '" placeholder="الموقع تحت الصيانة. للاستفسار اتصل 1880001."></label><div><button class="btn sm" data-act="mtsave">حفظ الرسالة</button></div></div>' +
+        '<div class="box gbox"><h3>زر المساعد الذكي <button class="sw ' + (S.assistant === false ? '' : 'on') + '" data-act="as" aria-label="زر المساعد"></button></h3><p style="color:var(--kp-muted);font-size:14px">يظهر زر «اسأل المساعد» في كل صفحات الزوار.</p></div>' +
+        '<div class="box gbox"><h3>نسخة من الإعدادات</h3><p style="color:var(--kp-muted);font-size:14px">انسخ النص واحفظه، أو الصق نسخة سابقة ثم اضغط «استعادة».</p><label class="f"><textarea class="code" id="cfg" rows="6">' + E(JSON.stringify({site:S, notice:n})) + '</textarea></label><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm o" data-act="cfgcopy">نسخ</button><button class="btn sm" data-act="cfgload">استعادة من النص</button><button class="btn sm r" data-act="cfgreset">إعادة إعدادات الموقع للأصل</button></div></div>' +
+        '</div>' + preview() + '</div>';
     },
     news: function(d){
       $('hA').innerHTML = '<button class="btn y" data-act="new" data-k="news">خبر جديد</button>';
@@ -90,7 +160,8 @@ select.s{border:1.5px solid var(--kp-line-2);border-radius:4px;padding:5px 8px;f
       return '<div class="tw">' + (d.log.length ? d.log.map(function(l){ return '<div class="row" style="grid-template-columns:1fr auto"><div>' + E(l.msg) + '</div><small class="num">' + E(l.d.replace('T',' ').slice(0,16)) + '</small></div>'; }).join('') : '<div class="empty">لا يوجد نشاط مسجل بعد.</div>') + '</div>';
     }
   };
-  function render(){ nav(); $('hT').textContent = TABS[tab][0]; $('hD').textContent = TABS[tab][1]; $('view').innerHTML = V[tab](K.db()); }
+  function render(){ nav(); $('hT').textContent = TABS[tab][0]; $('hD').textContent = TABS[tab][1]; var foc = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-f') ? [document.activeElement.getAttribute('data-f'), document.activeElement.getAttribute('data-id')] : null; $('view').innerHTML = V[tab](K.db()); mountPreview(); if (foc){ var e2 = document.querySelector('[data-f="' + foc[0] + '"][data-id="' + foc[1] + '"]'); if (e2 && e2.focus){ e2.focus(); try { e2.setSelectionRange(e2.value.length, e2.value.length); } catch(x){} } } }
+  window.addEventListener('resize', mountPreview);
   var FORMS = {
     news:{t:'خبر', f:[['title','العنوان'],['cat','القسم','select',['أخبار الشركة','بيانات صحفية','المسؤولية الاجتماعية']],['d','التاريخ','date'],['img','الصورة','select',['kbus-fleet.jpg','kbus-ev.jpg','kbus-street.jpg','kbus-depot.jpg','coach-1.jpg','tow-1.jpg','workshop-1.jpg','hq.jpg','umrah-art.jpg']],['body','النص','textarea']], d:function(){ return {id:K.id('N'), pub:true, d:K.today(), cat:'أخبار الشركة', img:'kbus-fleet.jpg'}; }},
     tenders:{t:'مناقصة', f:[['no','الرقم / السنة'],['kind','النوع','select',['مناقصة','ممارسة','مزايدة']],['title','العنوان'],['meet','الاجتماع التمهيدي','date'],['place','مكان الاجتماع'],['close','آخر موعد للعطاءات','date'],['box','رقم الصندوق'],['fee','قيمة الوثائق (د.ك)','number']], d:function(){ return {id:K.id('T'), status:'مفتوحة', kind:'مناقصة', meet:K.today(7), close:K.today(21), fee:75, box:'1'}; }},
@@ -118,9 +189,22 @@ select.s{border:1.5px solid var(--kp-line-2);border-radius:4px;padding:5px 8px;f
     if (e.target.closest('[data-close]')){ $('dlg').classList.remove('on'); $('dF').onsubmit = null; return; }
     var b = e.target.closest('button[data-act]'); if (!b) return; var a = b.getAttribute('data-act'), id = b.getAttribute('data-id'), k = b.getAttribute('data-k'), d = K.db();
     function find(list){ return list.filter(function(x){ return x.id === id; })[0]; }
-    if (a === 'pg'){ var vis = d.pages[id] !== false; d.pages[id] = vis ? false : true; K.log((vis ? 'إخفاء' : 'إظهار') + ' صفحة: ' + PAGES.filter(function(p){ return p[0] === id; })[0][1]); K.save(); flash(vis ? 'أُخفيت الصفحة عن الزوار.' : 'الصفحة ظاهرة الآن.'); }
-    else if (a === 'nt'){ d.notice.on = !d.notice.on; d.notice.text = $('ntx').value.trim(); K.save(); }
-    else if (a === 'ntsave'){ d.notice.text = $('ntx').value.trim(); K.save(); flash('حُفظ نص التنبيه.'); }
+    var S = K.site();
+    if (a === 'st'){ var v = b.getAttribute('data-v'); K.page(id).status = v; d.pages[id] = v === 'off' ? false : true; selPg = id; K.log('حالة صفحة ' + id + ': ' + v); K.save(); flash({on:'الصفحة ظاهرة للزوار.', maint:'الصفحة تحت الصيانة.', off:'أُخفيت الصفحة عن الزوار.'}[v]); }
+    else if (a === 'more'){ openPg = openPg === id ? '' : id; selPg = id; render(); }
+    else if (a === 'nav'){ var c = K.page(id); c.nav = c.nav === false ? true : false; K.save(); }
+    else if (a === 'mv'){ var o = S.navOrder.filter(function(i){ return NAVABLE.indexOf(i) > -1; }); NAVABLE.forEach(function(i){ if (o.indexOf(i) < 0) o.push(i); }); var i0 = o.indexOf(id), j = i0 + (+b.getAttribute('data-d')); if (j >= 0 && j < o.length){ o.splice(i0, 1); o.splice(j, 0, id); S.navOrder = o; K.save(); flash('تغيّر ترتيب القائمة.'); } }
+    else if (a === 'dev'){ dev = b.getAttribute('data-v'); render(); }
+    else if (a === 'hs'){ S.home[id] = S.home[id] === false ? true : false; K.save(); }
+    else if (a === 'tkr'){ S.ticker = $('tkr').value.split('\n').map(function(x){ return x.trim(); }).filter(Boolean); K.save(); flash('حُفظ الشريط المتحرك.'); }
+    else if (a === 'nt'){ d.notice.on = !d.notice.on; d.notice.text = $('ntx').value.trim(); d.notice.tone = $('ntone').value; d.notice.link = $('nlink').value; K.save(); }
+    else if (a === 'ntsave'){ d.notice.text = $('ntx').value.trim(); d.notice.tone = $('ntone').value; d.notice.link = $('nlink').value; K.save(); flash('حُفظ التنبيه.'); }
+    else if (a === 'mt'){ S.maintenance.on = !S.maintenance.on; S.maintenance.text = $('mtx').value.trim(); K.log('وضع الصيانة الشامل: ' + (S.maintenance.on ? 'تشغيل' : 'إيقاف')); K.save(); flash(S.maintenance.on ? 'الموقع كله تحت الصيانة الآن.' : 'عاد الموقع للعمل.'); }
+    else if (a === 'mtsave'){ S.maintenance.text = $('mtx').value.trim(); K.save(); flash('حُفظت الرسالة.'); }
+    else if (a === 'as'){ S.assistant = S.assistant === false ? true : false; K.save(); }
+    else if (a === 'cfgcopy'){ var ta = $('cfg'); ta.select(); try { navigator.clipboard.writeText(ta.value).then(function(){ flash('نُسخت الإعدادات.'); }, function(){ flash('حدّد النص وانسخه يدوياً.'); }); } catch(x){ flash('حدّد النص وانسخه يدوياً.'); } }
+    else if (a === 'cfgload'){ try { var o2 = JSON.parse($('cfg').value); if (!o2.site) throw 0; d.site = o2.site; if (o2.notice) d.notice = o2.notice; K.save(); flash('استُعيدت الإعدادات.'); } catch(x){ flash('النص غير صالح. الصق نسخة منسوخة من هنا.'); } }
+    else if (a === 'cfgreset'){ if (b.getAttribute('data-sure')){ d.site = K.seed().site; d.pages = {}; d.notice = K.seed().notice; K.save(); flash('عادت إعدادات الموقع للأصل.'); } else { b.setAttribute('data-sure','1'); b.textContent = 'تأكيد الإعادة'; } }
     else if (a === 'new') openForm(k);
     else if (a === 'edit') openForm(k, id);
     else if (a === 'del'){ if (b.getAttribute('data-sure')){ d[k] = d[k].filter(function(x){ return x.id !== id; }); K.log('حذف من ' + k); K.save(); flash('تم الحذف.'); } else { b.setAttribute('data-sure','1'); b.textContent = 'تأكيد الحذف'; } }
@@ -132,6 +216,8 @@ select.s{border:1.5px solid var(--kp-line-2);border-radius:4px;padding:5px 8px;f
     else if (a === 'wref') amount('استرجاع إلى محفظة ' + d.users[id].name, function(v, n){ return K.walletTx(id, v, 'استرجاع', n || 'استرجاع مبلغ', 'الإدارة'); });
     else if (a === 'reset'){ if (b.getAttribute('data-sure')){ K.reset(); flash('أُعيدت البيانات التجريبية.'); } else { b.setAttribute('data-sure','1'); b.textContent = 'تأكيد: امسح كل التعديلات'; } }
   });
+  document.addEventListener('click', function(e){ var h = e.target.closest('.pg-h'); if (!h || e.target.closest('button')) return; var id = h.parentNode.getAttribute('data-pg'); if (selPg !== id){ selPg = id; render(); } });
+  document.addEventListener('change', function(e){ var f = e.target.closest('[data-f]'); if (!f) return; var c = K.page(f.getAttribute('data-id')); c[f.getAttribute('data-f')] = f.value.trim(); K.save(); flash('حُفظ.'); });
   document.addEventListener('change', function(e){ var s = e.target.closest('select[data-act]'); if (!s) return; var a = s.getAttribute('data-act'), id = s.getAttribute('data-id'), d = K.db(), L = {tst:d.tenders, bst:d.bids, ast:d.applications, kst:d.bookings}[a], it = L.filter(function(x){ return x.id === id; })[0]; it.status = s.value; K.log('تغيير حالة ' + id + ' إلى ' + s.value); K.save(); flash('حُدّثت الحالة.'); });
   K.onChange(render); render();
 })();

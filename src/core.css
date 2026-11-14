@@ -367,3 +367,8 @@ h1{line-height:1.25}
 @media(min-width:1300px){
   .kp-hero>*:not(.kp-deco):not(.kp-stagebox){max-width:1240px;margin-inline:auto!important;width:100%;box-sizing:border-box}
 }
+.kp-notice{display:block;text-decoration:none}
+.kp-notice[data-tone="ink"]{background:var(--kp-ink);color:#fff}
+.kp-notice[data-tone="red"]{background:var(--kp-bad);color:#fff}
+.kp-notice[href]:hover{text-decoration:underline}
+.kp-navb{font-style:normal;font-size:10.5px;font-weight:700;background:var(--kp-sign);color:var(--kp-ink);padding:1px 6px;border-radius:2px;margin-inline-start:6px}

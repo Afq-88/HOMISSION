@@ -314,30 +314,60 @@
       [['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ var li = document.createElement('li'); li.appendChild(link(x[0], x[1], 'kp-xl')); last.appendChild(li); });
     }
     visibility();
-    var n = K.db().notice;
-    if (n && n.on && n.text && document.querySelector('.k2-head, body > header') && !document.querySelector('.kp-notice')){
-      var bar = document.createElement('div'); bar.className = 'kp-notice'; bar.textContent = n.text; document.body.insertBefore(bar, document.body.firstChild);
-    }
   }
+  var HOME_SECTIONS = {ticker:'.kx-ticker', tasks:'.kx-tasks', facts:'.facts', services:'#services', calc:'#calc', fares:'#fares', steps:'.kx-steps-sec', umrah:'.kx-umrah', sos:'.sos', biz:'#business', app:'.block.app', close:'.kx-close', contact:'#contact'};
+  var tickerDefault = null;
   function visibility(){
-    var K = window.KPTC, hidden = K.db().pages, preview = /[?&]preview=1/.test(location.search);
+    var K = window.KPTC, S = K.site(), preview = /[?&]preview=1/.test(location.search);
+    // links to hidden pages disappear everywhere
     document.querySelectorAll('a[href]').forEach(function(a){
-      var id = MAP[a.getAttribute('href').split('#')[0].split('/').pop()];
-      if (!id) return;
-      var off = hidden[id] === false;
+      var id = MAP[a.getAttribute('href').split('#')[0].split('/').pop()]; if (!id) return;
+      var off = K.pageState(id) === 'off';
       a.classList.toggle('kp-off', off);
       var li = a.parentNode && a.parentNode.tagName === 'LI' && a.parentNode.children.length === 1 ? a.parentNode : null;
       if (li) li.classList.toggle('kp-off', off);
     });
-    var gate = document.querySelector('.kp-closed');
-    if (hidden[OWN] === false && !preview){
-      if (!gate){
-        gate = document.createElement('div'); gate.className = 'kp-closed';
-        gate.innerHTML = '<div><div class="kp-mark"></div><h2>هذه الصفحة غير متاحة حالياً</h2><p>أوقفتها إدارة الموقع مؤقتاً. يمكنك العودة إلى الصفحة الرئيسية.</p><a href="KPTC_Home.html" class="k2-btn k2-btn-sign">الصفحة الرئيسية</a></div>';
-        document.body.appendChild(gate);
+    // main navigation: order, presence, label and badge come from the studio
+    var nav = document.querySelector('.k2-nav, header nav.main');
+    if (nav){
+      var items = {}; nav.querySelectorAll('a[href]').forEach(function(a){ var id = MAP[a.getAttribute('href').split('#')[0].split('/').pop()]; if (id){ items[id] = a; if (!a.hasAttribute('data-label')) a.setAttribute('data-label', a.textContent.trim()); } });
+      var anchor = nav.querySelector('a[href^="#"]');
+      (S.navOrder || []).forEach(function(id){ var a = items[id]; if (!a) return; if (anchor) nav.insertBefore(a, anchor); else nav.appendChild(a); });
+      Object.keys(items).forEach(function(id){
+        var a = items[id], p = S.pages[id] || {};
+        if (p.nav === false) a.classList.add('kp-off');
+        var b = a.querySelector('.kp-navb'); if (b) b.remove();
+        a.firstChild.nodeValue = p.label || a.getAttribute('data-label');
+        if (p.badge){ var e = document.createElement('em'); e.className = 'kp-navb'; e.textContent = p.badge; a.appendChild(e); }
+      });
+    }
+    // home sections and ticker
+    if (OWN === 'home'){
+      Object.keys(HOME_SECTIONS).forEach(function(k){ var el = document.querySelector(HOME_SECTIONS[k]); if (el) el.classList.toggle('kp-off', S.home[k] === false); });
+      var run = document.getElementById('kxRun');
+      if (run){
+        if (tickerDefault === null) tickerDefault = run.innerHTML;
+        var want = S.ticker && S.ticker.length ? S.ticker.map(function(t){ return '<a href="#contact">' + K.esc(t) + '</a>'; }).join('') : null, html = want ? want + want : tickerDefault;
+        if (run.getAttribute('data-src') !== (want || 'default')){ run.innerHTML = html; run.setAttribute('data-src', want || 'default'); }
       }
+    }
+    document.querySelectorAll('.kp-ask, .kp-fab').forEach(function(e){ e.classList.toggle('kp-off', S.assistant === false); });
+    // notice bar
+    var n = K.db().notice, bar = document.querySelector('.kp-notice'), chrome = document.querySelector('.k2-head, body > header');
+    if (n && n.on && n.text && chrome){
+      if (!bar){ bar = document.createElement('a'); bar.className = 'kp-notice'; document.body.insertBefore(bar, document.body.firstChild); }
+      bar.textContent = n.text; bar.setAttribute('data-tone', n.tone || 'yellow');
+      if (n.link) bar.setAttribute('href', n.link); else bar.removeAttribute('href');
+    } else if (bar) bar.remove();
+    // the page itself
+    var st = K.pageState(OWN), gate = document.querySelector('.kp-closed'), p = S.pages[OWN] || {};
+    if (st !== 'on' && !preview && MAP_IDS[OWN]){
+      if (!gate){ gate = document.createElement('div'); gate.className = 'kp-closed'; document.body.appendChild(gate); }
+      var msg = st === 'maint' ? (p.msg || S.maintenance.text || 'نعمل على تحسين هذه الصفحة. عُد إلينا قريباً، أو اتصل بالخط الساخن 1880001.') : 'أوقفتها إدارة الموقع مؤقتاً. يمكنك العودة إلى الصفحة الرئيسية.';
+      gate.innerHTML = '<div><div class="kp-mark"></div><h2>' + (st === 'maint' ? 'الصفحة تحت الصيانة' : 'هذه الصفحة غير متاحة حالياً') + '</h2><p>' + K.esc(msg) + '</p>' + (OWN === 'home' ? '' : '<a href="KPTC_Home.html" class="k2-btn k2-btn-sign">الصفحة الرئيسية</a>') + '</div>';
     } else if (gate) gate.remove();
   }
+  var MAP_IDS = {}; Object.keys(MAP).forEach(function(k){ MAP_IDS[MAP[k]] = 1; });
 
   /* ---- bookings made on service pages are saved to the visitor's account ---- */
   function capture(){
@@ -412,15 +442,36 @@
         var bus = L.marker(p[0].ll, {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,32]}), interactive:false}).addTo(layer);
         map.flyTo(p[0].ll, 13, {duration:.8});
       }
+      // the official network map as an explorer: pan, zoom, and fly to any terminal
       window.kpOfficialMap = function(){
         var lb = document.getElementById('kpNetMap');
         if (!lb){
+          var T = [['المالية',.428,.066,'15 · 16 · 18 · 102A · 102X · 999'],['الشرق',.732,.058,'11 · 12 · 507'],['دوار الأمم المتحدة',.13,.05,'34 · 39 · 41'],['المرقاب',.501,.224,'13 · 21 · 23 · 51 · 59 · 103'],['السالمية',.964,.424,'77'],['جليب الشيوخ',.039,.921,'40 · 66 · 66X · 105 · 106 · 106X'],['خيطان',.478,.588,'محطة خيطان'],['صبحان',.525,.857,'محطة صبحان'],['الفحيحيل',.876,.958,'محطة الفحيحيل'],['المطار',.338,.9,'مطار الكويت']];
           lb = document.createElement('div'); lb.id = 'kpNetMap'; lb.className = 'kp-netmap';
-          lb.innerHTML = '<div class="kp-netmap-in"><button type="button" aria-label="إغلاق">×</button><img src="../assets/kbus-network-map.jpg" alt="خريطة شبكة K-Bus الرسمية"><p>خريطة شبكة K-Bus الرسمية من موقع شركة النقل العام الكويتية · اسحب للتنقل وكبّر بالأصبع</p></div>';
-          lb.addEventListener('click', function(e){ if (e.target === lb || e.target.tagName === 'BUTTON') lb.classList.remove('on'); });
+          lb.innerHTML = '<div class="kp-nm"><header><div><b>مستكشف شبكة K-Bus</b><span>الخريطة الرسمية · اسحب للتنقل، وكبّر بالعجلة أو بإصبعين</span></div><div class="kp-nm-z"><button type="button" data-z="1.35" aria-label="تكبير">+</button><button type="button" data-z=".74" aria-label="تصغير">−</button><button type="button" data-z="0" aria-label="الخريطة كاملة">⤢</button><button type="button" data-x aria-label="إغلاق">×</button></div></header>' +
+            '<div class="kp-nm-b"><aside><h4>المحطات الرئيسية</h4>' + T.map(function(t, i){ return '<button type="button" data-t="' + i + '"><b>' + t[0] + '</b><small>' + t[3] + '</small></button>'; }).join('') + '</aside><div class="kp-nm-v"><div class="kp-nm-c"><img src="../assets/kbus-network-map.jpg" alt="خريطة شبكة K-Bus الرسمية" draggable="false"><i class="kp-nm-pin"></i></div></div></div></div>';
           document.body.appendChild(lb);
+          var view = lb.querySelector('.kp-nm-v'), c = lb.querySelector('.kp-nm-c'), pin = lb.querySelector('.kp-nm-pin'), img = c.querySelector('img'), sc = 1, x = 0, y = 0, min = 1, IW = 2400, IH = 1696;
+          function apply(anim){ var vw = view.clientWidth, vh = view.clientHeight, w = IW * sc, h = IH * sc; x = w <= vw ? (vw - w) / 2 : Math.min(0, Math.max(vw - w, x)); y = h <= vh ? (vh - h) / 2 : Math.min(0, Math.max(vh - h, y)); c.style.transition = anim ? 'transform .7s cubic-bezier(.2,.7,.2,1)' : 'none'; c.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + sc + ')'; }
+          function fitAll(anim){ min = Math.min(view.clientWidth / IW, view.clientHeight / IH); sc = min; x = y = 0; pin.style.display = 'none'; apply(anim); }
+          function zoom(f, cx, cy, anim){ var n = Math.max(min, Math.min(2.2, sc * f)); cx = cx == null ? view.clientWidth / 2 : cx; cy = cy == null ? view.clientHeight / 2 : cy; x = cx - (cx - x) * (n / sc); y = cy - (cy - y) * (n / sc); sc = n; apply(anim); }
+          lb.addEventListener('click', function(e){
+            if (e.target === lb || e.target.closest('[data-x]')) return lb.classList.remove('on');
+            var z = e.target.closest('[data-z]'); if (z){ var f = +z.getAttribute('data-z'); return f ? zoom(f, null, null, true) : fitAll(true); }
+            var t = e.target.closest('[data-t]'); if (t){ var d = T[+t.getAttribute('data-t')]; sc = Math.max(min, .95); x = view.clientWidth / 2 - d[1] * IW * sc; y = view.clientHeight / 2 - d[2] * IH * sc; pin.style.display = 'block'; pin.style.left = (d[1] * IW) + 'px'; pin.style.top = (d[2] * IH) + 'px'; apply(true); lb.querySelectorAll('[data-t]').forEach(function(b){ b.classList.toggle('on', b === t); }); }
+          });
+          view.addEventListener('wheel', function(e){ e.preventDefault(); var r = view.getBoundingClientRect(); zoom(e.deltaY < 0 ? 1.15 : .87, e.clientX - r.left, e.clientY - r.top); }, {passive:false});
+          var pts = {}, pd = 0;
+          view.addEventListener('pointerdown', function(e){ pts[e.pointerId] = [e.clientX, e.clientY]; view.setPointerCapture(e.pointerId); });
+          view.addEventListener('pointermove', function(e){ if (!pts[e.pointerId]) return; var ids = Object.keys(pts), p0 = pts[e.pointerId];
+            if (ids.length === 1){ x += e.clientX - p0[0]; y += e.clientY - p0[1]; apply(); }
+            else { var o = pts[ids[0] == e.pointerId ? ids[1] : ids[0]], d = Math.hypot(e.clientX - o[0], e.clientY - o[1]), r = view.getBoundingClientRect(); if (pd) zoom(d / pd, (e.clientX + o[0]) / 2 - r.left, (e.clientY + o[1]) / 2 - r.top); pd = d; }
+            pts[e.pointerId] = [e.clientX, e.clientY]; });
+          var end = function(e){ delete pts[e.pointerId]; pd = 0; }; view.addEventListener('pointerup', end); view.addEventListener('pointercancel', end);
+          window.addEventListener('resize', function(){ if (lb.classList.contains('on')) fitAll(); });
+          lb._fit = fitAll;
         }
-        lb.classList.add('on');
+        lb.classList.add('on'); setTimeout(function(){ lb._fit(false); }, 30);
       };
       var orig = window.selectRoute; if (typeof orig === 'function') window.selectRoute = function(n){ var r = orig.apply(this, arguments); try { draw(n); } catch(x){} return r; };
       var z = box.querySelectorAll('.map-zoom .zoom-btn');
