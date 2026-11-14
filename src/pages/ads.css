@@ -19,3 +19,19 @@
 /* a passing glint so the wrap reads as vinyl on metal */
 .kp-onbus::before{content:"";position:absolute;inset:0 auto 0 -40%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);animation:glint 5s 1.5s ease-in-out infinite;pointer-events:none}
 @keyframes glint{0%,60%{left:-40%}100%{left:130%}}
+
+/* 3D bus preview */
+.kp-3d{border:1px solid var(--kp-line);border-radius:8px;overflow:hidden;background:#fff}
+.kp-3d-view{position:relative;aspect-ratio:16/9;background:
+  radial-gradient(120% 80% at 50% 100%,#DAD7CA 0,#EFEDE4 55%,#F7F6F1 100%);
+  overflow:hidden}
+.kp-3d-view canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;outline:0}
+.kp-3d-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--kp-line);background:var(--kp-paper-2)}
+.kp-3d-hint{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--kp-muted)}
+.kp-3d-hint .ki{color:var(--kp-indigo);animation:spinhint 3.5s linear infinite}
+@keyframes spinhint{to{rotate:360deg}}
+.kp-3d-views{display:flex;gap:6px;flex-wrap:wrap}
+.kp-3d-views button{border:1.5px solid var(--kp-line-2);background:#fff;border-radius:3px;padding:6px 12px;font:600 12.5px var(--f-body);color:var(--kp-ink);cursor:pointer}
+.kp-3d-views button:hover{border-color:var(--kp-indigo)}
+.kp-3d-views button.on{background:var(--kp-ink);color:var(--kp-sign);border-color:var(--kp-ink)}
+.kp-3d-note{font-size:12.5px;color:var(--kp-muted);padding:8px 14px 12px;background:var(--kp-paper-2)}

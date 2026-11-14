@@ -21,3 +21,63 @@
 .hero-tab .tab-badge{border-radius:2px!important}
 /* the published Savings Card has fixed 31/91-day prices: no monthly/annual switch */
 div:has(>#billingToggle){display:none!important}
+
+/* ── تذاكري: a boarding pass, not a card ───────────────── */
+#page-mytickets{background:var(--kp-paper)}
+.ticket-wrap{display:grid!important;grid-template-columns:minmax(0,760px) minmax(260px,340px);gap:34px;justify-content:center;align-items:start;max-width:1160px;margin:0 auto}
+.digital-ticket{width:auto!important;display:grid;grid-template-columns:1.25fr 0 1fr;border-radius:14px!important;overflow:visible!important;background:transparent!important;box-shadow:none!important;filter:drop-shadow(0 22px 28px rgba(20,19,58,.22));animation:pass-in .7s var(--kp-ease) both}
+@keyframes pass-in{from{opacity:0;translate:0 26px;rotate:-1.2deg}}
+.ticket-top{background:var(--kp-indigo)!important;border-radius:0 14px 14px 0;padding:28px 30px 26px!important;display:grid;align-content:space-between;gap:22px;overflow:hidden;
+  -webkit-mask:radial-gradient(circle 13px at 0 0,#0000 12.5px,#000 13px) left top/100% 51% no-repeat,radial-gradient(circle 13px at 0 100%,#0000 12.5px,#000 13px) left bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle 13px at 0 0,#0000 12.5px,#000 13px) left top/100% 51% no-repeat,radial-gradient(circle 13px at 0 100%,#0000 12.5px,#000 13px) left bottom/100% 51% no-repeat}
+.ticket-top::before{inset:auto -70px -90px auto!important;top:auto!important;left:auto!important;width:260px!important;height:260px!important;border:36px solid rgba(255,201,60,.12)!important}
+.ticket-top::after{content:"";position:absolute;top:0;inset-inline:0;height:7px;background:var(--kp-sign)}
+.ticket-logo-row{margin:0!important}
+.ticket-logo{border-radius:4px!important;width:40px!important;height:40px!important}
+.ticket-brand{font-weight:800;letter-spacing:.14em!important;direction:ltr;color:#fff!important}
+.ticket-type-badge{margin-inline-start:auto;margin-right:auto;border-radius:2px!important;background:var(--kp-sign)!important;color:var(--kp-ink)!important;border:0!important;font-size:.74rem!important;padding:4px 12px!important}
+/* route as a line with two stops */
+.ticket-route-display{background:none!important;border:0!important;padding:0!important;margin:0!important;display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;column-gap:16px;align-items:center;position:relative;z-index:1}
+.trd-from{grid-column:1;grid-row:1}.trd-to{grid-column:3;grid-row:1;text-align:left}
+#tkFrom{grid-column:1;grid-row:2}#tkTo{grid-column:3;grid-row:2;text-align:left}
+.trd-city{font-family:var(--f-display);font-size:1.7rem!important;font-weight:800!important;line-height:1.3}
+.trd-arrow{grid-column:2;grid-row:2;font-size:0!important;padding:0!important;height:4px;background:var(--kp-sign);position:relative;border-radius:2px}
+.trd-arrow::before,.trd-arrow::after{content:"";position:absolute;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--kp-indigo);border:4px solid var(--kp-sign);box-sizing:border-box}
+.trd-arrow::before{right:-2px}.trd-arrow::after{left:-2px;background:var(--kp-sign)}
+.trd-arrow .ki{position:absolute;top:-22px;left:50%;width:34px;height:18px;margin-left:-17px;background:var(--kp-bus) center/contain no-repeat;animation:pass-bus 4.5s var(--kp-ease) infinite alternate}
+.trd-arrow .ki svg{display:none}
+@keyframes pass-bus{from{left:88%}to{left:12%}}
+.ticket-validity{border-top:1px dashed rgba(255,255,255,.3);padding-top:16px;position:relative;z-index:1}
+.ticket-validity-item small{font-size:.7rem}
+.ticket-validity-item strong{font-size:.92rem}
+/* perforation */
+.tear-line{position:relative;width:0;height:auto!important;margin:0!important;background:none!important}
+.tear-line::before{inset:16px auto 16px -1px!important;right:auto!important;left:-1px!important;top:16px!important;width:0!important;height:auto!important;border-top:0!important;border-left:2px dashed var(--kp-line-2)}
+.tear-circle-r,.tear-circle-l{display:none!important}
+/* stub */
+.ticket-bottom{background:#fff;border-radius:14px 0 0 14px;padding:24px 26px 20px!important;display:grid;gap:14px;align-content:start;
+  -webkit-mask:radial-gradient(circle 13px at 100% 0,#0000 12.5px,#000 13px) right top/100% 51% no-repeat,radial-gradient(circle 13px at 100% 100%,#0000 12.5px,#000 13px) right bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle 13px at 100% 0,#0000 12.5px,#000 13px) right top/100% 51% no-repeat,radial-gradient(circle 13px at 100% 100%,#0000 12.5px,#000 13px) right bottom/100% 51% no-repeat}
+.ticket-info-grid{margin:0!important;gap:12px 14px!important}
+.ti-item strong{font-family:var(--f-display);font-size:.95rem!important}
+.qr-section{padding:4px 0 0!important;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center;text-align:start!important;border-top:1px dashed var(--kp-line-2);padding-top:14px!important}
+.qr-code{margin:0!important;width:104px!important;height:104px!important;border-radius:4px!important;grid-row:span 2;transition:scale .3s var(--kp-ease)}
+.qr-code:hover{scale:1.08}
+.ticket-barcode{margin:0!important;height:34px!important;border-radius:2px!important;opacity:1!important;background:repeating-linear-gradient(90deg,var(--kp-ink) 0 2px,transparent 2px 4px,var(--kp-ink) 4px 7px,transparent 7px 9px,var(--kp-ink) 9px 10px,transparent 10px 13px)!important}
+.ticket-num{letter-spacing:.12em!important;font-size:.72rem!important;direction:ltr;text-align:right}
+/* side column */
+.ticket-actions{width:auto!important;max-width:none!important;display:grid;gap:12px}
+.account-card{border-radius:8px!important}
+.ticket-action-card{border-radius:6px!important;border-width:1px!important;display:grid;grid-template-columns:auto 1fr;gap:2px 14px;align-items:center;padding:16px 18px!important}
+.ticket-action-card .tac-icon{grid-row:span 2;font-size:1.5rem;color:var(--kp-indigo);width:44px;height:44px;border:1px solid var(--kp-line);border-radius:4px;display:grid;place-items:center;margin:0!important;transition:background .2s,color .2s}
+.ticket-action-card:hover .tac-icon{background:var(--kp-indigo);color:var(--kp-sign)}
+.ticket-action-card:hover{box-shadow:none!important;border-color:var(--kp-indigo)!important}
+@media(max-width:980px){.ticket-wrap{grid-template-columns:minmax(0,560px)}}
+@media(max-width:640px){
+  .digital-ticket{grid-template-columns:1fr;grid-template-rows:auto 0 auto}
+  .ticket-top{border-radius:14px 14px 0 0;-webkit-mask:none;mask:none;padding:24px 20px!important}
+  .ticket-bottom{border-radius:0 0 14px 14px;-webkit-mask:none;mask:none;padding:22px 20px!important}
+  .tear-line{width:auto;height:0!important}
+  .tear-line::before{inset:-1px 14px auto 14px!important;left:14px!important;right:14px!important;top:-1px!important;width:auto!important;border-left:0;border-top:2px dashed var(--kp-line-2)!important}
+  .trd-city{font-size:1.25rem!important}
+}

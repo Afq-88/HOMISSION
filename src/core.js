@@ -210,12 +210,12 @@
   /* ---- motion & workflow helpers ---------------------------------------- */
   function countUp(){
     // only static display figures that no page script reads back
-    var els = document.querySelectorAll('.facts strong.num, .facts .since b, .kp-stats .hstat-num, .kp-stats .hnum-val, .kp-stats .hstat-val');
+    var els = document.querySelectorAll('.fx-line b, .kp-stats .hstat-num, .kp-stats .hnum-val, .kp-stats .hstat-val');
     if (!els.length || !('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (!e.isIntersecting) return; io.unobserve(e.target); run(e.target); }); }, {threshold:.6});
     function run(el){
       var txt = el.textContent, m = txt.match(/^(\D*)([\d,]+)(.*)$/); if (!m || el.children.length) return;
-      var end = parseInt(m[2].replace(/,/g,''),10); if (!(end > 9)) return;
+      var end = parseInt(m[2].replace(/,/g,''),10); if (!(end > 9) || /^(19|20)\d\d$/.test(m[2])) return;   // never count a year
       var comma = m[2].indexOf(',') > -1, t0 = performance.now(), dur = 900;
       (function tick(t){
         var k = Math.min(1,(t - t0)/dur), v = Math.round(end * (1 - Math.pow(1-k,3)));
@@ -287,8 +287,13 @@
   function chrome(){
     var K = window.KPTC; if (!K) return;
     var util = document.querySelector('.k2-util .k2-ul, .util .util-l');
-    if (util && !util.querySelector('.kp-xl')){
-      [['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف'],['KPTC_Portal.html','بوابة الموظفين']].forEach(function(x){ util.appendChild(link(x[0], x[1], 'kp-xl')); });
+    if (util && !util.querySelector('.kp-hot')){
+      // rebuilt utility bar: hotline · quiet links · staff door (the language switch stays where it is)
+      util.innerHTML = '<a class="kp-hot" href="tel:1880001"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + P.phone + '</svg></i><span>الخط الساخن</span><b>1880001</b></a>' +
+        '<nav class="kp-ulinks" aria-label="روابط الشركة"><a class="kp-xl" href="KPTC_Media.html">المركز الإعلامي</a><a class="kp-xl" href="KPTC_Tenders.html">المناقصات</a><a class="kp-xl" href="KPTC_Careers.html">الوظائف</a></nav>';
+      var staff = link('KPTC_Portal.html', 'بوابة الموظفين', 'kp-staff');
+      staff.insertAdjacentHTML('afterbegin', '<i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + P.idcard + '</svg></i>');
+      util.parentNode.insertBefore(staff, util.nextSibling);
     }
     var act = document.querySelector('.k2-act, header .h-actions');
     if (act && !act.querySelector('.kp-acct')){
@@ -301,6 +306,8 @@
     var panel = document.querySelector('.k2-panel, .drawer .panel');
     if (panel && !panel.querySelector('.kp-xl')){
       [['KPTC_Account.html','حسابي ومحفظتي'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ panel.appendChild(link(x[0], x[1], 'kp-xl')); });
+      panel.querySelectorAll('a[href="KPTC_Portal.html"]').forEach(function(x){ x.remove(); });
+      var st2 = link('KPTC_Portal.html', 'بوابة الموظفين', 'kp-staff'); panel.appendChild(st2);
     }
     var cols = document.querySelectorAll('.k2-fg > div ul, .f-grid > div ul'), last = cols[cols.length-1];
     if (last && !last.querySelector('.kp-xl')){
@@ -427,6 +434,39 @@
   }
 
 
+
+  /* ---- ads: a 3D K-Bus the visitor can spin, with the campaign on the faces they picked ---- */
+  function bus3d(fallback){
+    var host = document.getElementById('lpBus'); if (!host) return;
+    function val(id){ var e = document.getElementById(id); return e ? e.value.trim() : ''; }
+    function state(){
+      var sel = []; try { sel = selectedPositions.map(function(p){ return p.id; }); } catch(x){}
+      var col = '#2E2C78'; try { col = adColor; } catch(x){}
+      var has = function(k){ return sel.indexOf(k) > -1; }, wrap = has('wrap'), side = wrap || has('side-full') || has('side-half');
+      var faces = {right: side, left: side, rear: wrap || has('rear'), front: wrap || has('front'), roof: wrap || has('roof')};
+      var any = faces.right || faces.rear || faces.front || faces.roof, demo = !any;
+      if (demo) faces.right = faces.left = true;                      // nothing chosen yet: show a sample on the sides
+      return {color: col, brand: val('brandName') || 'علامتك التجارية', message: val('adMessage') || 'رسالتك الإعلانية هنا', contact: val('adContact'), faces: faces,
+              mode: wrap ? 'wrap' : has('side-full') ? 'full' : 'half', demo: demo, inside: has('interior') || has('digital')};
+    }
+    function load(src, cb){ var sc = document.createElement('script'); sc.src = src; sc.onload = cb; sc.onerror = fallback; document.head.appendChild(sc); }
+    load('../assets/three.min.js', function(){ load('../assets/bus3d.js', function(){
+      var wrap = document.createElement('div'); wrap.className = 'kp-3d';
+      wrap.innerHTML = '<div class="kp-3d-view"></div><div class="kp-3d-bar"><span class="kp-3d-hint"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + P.refresh + '</svg></i>اسحب لتدوير الحافلة</span><div class="kp-3d-views" role="group" aria-label="زاوية العرض">' +
+        [['right','الجانب الأيمن'],['left','الجانب الأيسر'],['rear','الخلف'],['front','المقدمة'],['roof','السقف']].map(function(v){ return '<button type="button" data-v="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div></div><p class="kp-3d-note" aria-live="polite"></p>';
+      host.parentNode.insertBefore(wrap, host);
+      var api = window.KPBus3D && KPBus3D.mount(wrap.querySelector('.kp-3d-view'), state);
+      if (!api){ wrap.remove(); return fallback(); }
+      host.style.display = 'none';
+      var note = wrap.querySelector('.kp-3d-note');
+      function sync(){ api.refresh(); var s = state(); note.textContent = s.demo ? 'معاينة تجريبية على الجانبين. اختر مواضع الإعلان من البطاقات أعلاه لتراها على الحافلة.' : (s.inside ? 'المواضع الداخلية والشاشات الرقمية لا تظهر على هيكل الحافلة الخارجي.' : 'هذا شكل إعلانك على المواضع التي اخترتها.'); }
+      wrap.querySelector('.kp-3d-views').addEventListener('click', function(e){ var b = e.target.closest('[data-v]'); if (!b) return; api.look(b.getAttribute('data-v')); wrap.querySelectorAll('[data-v]').forEach(function(x){ x.classList.toggle('on', x === b); }); });
+      var up = window.updatePreview; if (typeof up === 'function') window.updatePreview = function(){ var r = up.apply(this, arguments); try { sync(); } catch(x){} return r; };
+      var tg = window.togglePosition; if (typeof tg === 'function') window.togglePosition = function(el, id){ var r = tg.apply(this, arguments); var v = {'side-full':'right','side-half':'right','rear':'rear','front':'front','roof':'roof','wrap':'hero'}[id]; if (v && el.classList.contains('selected')) api.look(v); return r; };
+      sync();
+    }); });
+  }
+
   /* ---- ads: the campaign preview is painted onto a real K-Bus photo ---- */
   function adsStage(){
     if (OWN !== 'ads') return;
@@ -439,8 +479,10 @@
       host.parentNode.insertBefore(box, host); host.style.display = 'none';
       return st;
     }
-    var st = stage(document.getElementById('lpBus'), document.getElementById('lpSideAd'), 'kp-live');
-    var rear = document.getElementById('lpRearAd'); if (st && rear){ st.appendChild(rear); rear.classList.add('kp-rearflag'); }
+    bus3d(function(){   // no WebGL: fall back to the photo stage
+      var st = stage(document.getElementById('lpBus'), document.getElementById('lpSideAd'), 'kp-live');
+      var rear = document.getElementById('lpRearAd'); if (st && rear){ st.appendChild(rear); rear.classList.add('kp-rearflag'); }
+    });
     var hero = document.querySelector('.bus-svg-wrap'); stage(hero, document.getElementById('heroBusAd'), 'kp-herobus');
   }
 
@@ -448,11 +490,11 @@
   function vipGallery(){
     if (OWN !== 'vip') return;
     var hero = document.querySelector('.hero.kp-hero'); if (!hero) return;
-    var shots = [['coach-2.jpg','الخلف والجانب','حافلة سياحية كبيرة بهوية KPTC'],['coach-1.jpg','المنظر الجانبي','نوافذ بانورامية على طول الحافلة'],['coach-door.jpg','باب الصعود','درجات واسعة ومدخل مريح'],['coach-interior.jpg','المقصورة','مقاعد وثيرة مع طاولة للجلسات'],['coach-3.jpg','الواجهة الأمامية','زجاج أمامي بانورامي']];
+    var shots = [['coach-2.jpg','الخلف والجانب','حافلة VIP بهوية KPTC'],['coach-1.jpg','المنظر الجانبي','نوافذ بانورامية على طول الحافلة'],['coach-door.jpg','باب الصعود','درجات واسعة ومدخل مريح'],['coach-interior.jpg','المقصورة','مقاعد وثيرة مع طاولة للجلسات'],['coach-3.jpg','الواجهة الأمامية','زجاج أمامي بانورامي']];
     var sec = document.createElement('section'); sec.className = 'kp-vipg';
     sec.innerHTML = '<div class="kp-vipg-in"><div class="kp-vipg-view"><img id="kpVipImg" src="../assets/' + shots[0][0] + '" alt="' + shots[0][2] + '"><span id="kpVipCap">' + shots[0][2] + '</span><em>حرّك المؤشر للتكبير</em></div>' +
-      '<div class="kp-vipg-side"><small>صور حقيقية من أسطول KPTC</small><h2>شاهد حافلتك قبل أن تحجز</h2><p>هذه هي الحافلة التي ستصل إلى باب ضيوفك: حافلة سياحية كبيرة تتسع حتى <b>45</b> راكباً، بمقصورة هادئة وسائق معتمد.</p>' +
-      '<ul><li><b>45</b><span>راكباً في الحافلة الكبيرة</span></li><li><b>1962</b><span>خبرة في النقل منذ</span></li><li><b>6</b><span>محافظات ورحلات إقليمية</span></li></ul>' +
+      '<div class="kp-vipg-side"><small>صور حقيقية من أسطول KPTC</small><h2>شاهد حافلتك قبل أن تحجز</h2><p>هذه هي الحافلة التي ستصل إلى باب ضيوفك: حافلة VIP تتسع حتى <b>45</b> راكباً، بمقصورة هادئة وسائق معتمد.</p>' +
+      '<ul><li><b>45</b><span>راكباً في حافلة VIP</span></li><li><b>1962</b><span>خبرة في النقل منذ</span></li><li><b>6</b><span>محافظات ورحلات إقليمية</span></li></ul>' +
       '<div class="kp-vipg-th">' + shots.map(function(s, i){ return '<button type="button" class="' + (i ? '' : 'on') + '" data-i="' + i + '" aria-label="' + s[1] + '"><img src="../assets/' + s[0] + '" alt=""><span>' + s[1] + '</span></button>'; }).join('') + '</div>' +
       '<div class="kp-vipg-cta"><button type="button" class="k2-btn k2-btn-sign" id="kpVipGo">احجز هذه الحافلة</button><span>أو اتصل <b dir="ltr">1880001</b></span></div></div></div>';
     hero.parentNode.insertBefore(sec, hero.nextSibling);
@@ -465,8 +507,21 @@
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) auto = setInterval(function(){ show((cur + 1) % shots.length); }, 4200);
   }
 
+
+  /* ---- the assistant is always one obvious tap away ---- */
+  function assistantEntry(){
+    var fab = document.querySelector('.kp-fab');
+    if (fab && !fab.querySelector('.kp-fab-t')){ var t = document.createElement('span'); t.className = 'kp-fab-t'; t.textContent = OWN === 'assistant' || OWN === 'reclient' ? 'المساعد الذكي' : 'المساعد'; fab.appendChild(t); }
+    if (OWN === 'assistant'){ try { if (sessionStorage.getItem('kptc.chat')){ sessionStorage.removeItem('kptc.chat'); setTimeout(function(){ if (typeof openChat === 'function') openChat(); }, 500); } } catch(x){} return; }
+    if (fab || !document.querySelector('.k2-head, body > header') || document.querySelector('.floating-call')) return;
+    var a = link('KPTC_AI_Assistant.html', '', 'kp-ask'); a.setAttribute('aria-label', 'اسأل المساعد الذكي');
+    a.innerHTML = '<i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + P.chat + '</svg></i><span>اسأل المساعد</span><i class="kp-on" aria-hidden="true"></i>';
+    a.addEventListener('click', function(){ try { sessionStorage.setItem('kptc.chat', '1'); } catch(x){} });
+    document.body.appendChild(a);
+  }
+
   function init(){
-    chrome(); capture(); routesMap(); adsStage(); vipGallery();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });

@@ -517,3 +517,30 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
   .kx-task{padding:16px}
   .kx-umrah .wrap{grid-template-columns:1fr}.kx-date{justify-self:start}
 }
+
+/* ── facts (v6): one sentence, then a line of five stops ── */
+.facts{background:#fff;color:var(--indigo-ink);border-block:1px solid var(--line)}
+.facts .wrap{display:block;padding-top:56px;padding-bottom:52px}
+.facts p{font-family:var(--f-display);font-size:clamp(24px,3vw,38px);font-weight:700;line-height:1.4;color:var(--indigo-ink);max-width:none;margin-bottom:38px}
+.fx-line{list-style:none;display:grid;grid-template-columns:repeat(5,1fr);position:relative;padding-top:34px}
+.fx-line::before{content:"";position:absolute;top:8px;inset-inline:0;height:4px;background:var(--indigo);transform-origin:right}
+.fx-line li{position:relative;padding-inline-end:18px}
+.fx-line li::before{content:"";position:absolute;top:-34px;right:0;width:20px;height:20px;border-radius:50%;background:#fff;border:5px solid var(--indigo);box-sizing:border-box;transition:background .2s,scale .25s var(--kp-ease)}
+.fx-line li:first-child::before{background:var(--sign);border-color:var(--indigo-ink)}
+.fx-line li:hover::before{background:var(--sign);scale:1.2}
+.fx-line b{display:block;font-family:var(--f-display);font-size:clamp(30px,3.6vw,46px);font-weight:800;line-height:1.15;color:var(--indigo);text-align:right}
+.fx-line span{display:block;font-size:14px;color:var(--muted);margin-top:4px;max-width:13em}
+@supports (animation-timeline:view()){
+  .fx-line::before{animation:growx linear both;animation-timeline:view();animation-range:entry 30% cover 40%}
+  .fx-line li::before{animation:stoppop linear both;animation-timeline:view();animation-range:entry 40% cover 38%}
+}
+@media (max-width:920px){.fx-line{grid-template-columns:1fr 1fr;row-gap:44px}.fx-line::before{display:none}.fx-line li::before{top:-26px}.fx-line{padding-top:26px}}
+/* brand lockup (v6) */
+.brand>span{display:flex;align-items:center;gap:12px}
+.brand b{margin:0;line-height:1;letter-spacing:.1em;margin-left:-.1em}
+.brand small{margin:0;max-width:6.6em;line-height:1.35;font-size:11.5px;padding-inline-start:12px;border-inline-start:1.5px solid var(--line-2);text-align:right}
+/* util bar is restyled by the core */
+.util{background:var(--paper);color:var(--indigo-ink);border-bottom:1px solid var(--line)}
+.util .wrap{height:40px}
+.lang{color:var(--indigo-ink);border-inline-start:1px solid var(--line-2)}
+.util-l>*{padding-inline:0;border:0}
