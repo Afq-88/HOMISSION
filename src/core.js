@@ -467,6 +467,9 @@
     q.onload = next; q.onerror = next; document.head.appendChild(q);
   }
 
+  /* ---- winch: tab bar + guided workshop booking (assets/winch.js) ---- */
+  function winchKit(){ if (OWN !== 'winch') return; var n = document.createElement('script'); n.src = '../assets/winch.js'; document.head.appendChild(n); }
+
   /* ---- ads: a 3D K-Bus the visitor can spin, with the campaign on the faces they picked ---- */
   function bus3d(fallback){
     var host = document.getElementById('lpBus'); if (!host) return;
@@ -553,7 +556,7 @@
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });
