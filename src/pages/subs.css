@@ -81,3 +81,9 @@ div:has(>#billingToggle){display:none!important}
   .tear-line::before{inset:-1px 14px auto 14px!important;left:14px!important;right:14px!important;top:-1px!important;width:auto!important;border-left:0;border-top:2px dashed var(--kp-line-2)!important}
   .trd-city{font-size:1.25rem!important}
 }
+
+/* header: the page's own tools only — cart beside the account, no staff link here */
+.k2-act a[href="KPTC_Portal.html"],.k2-act a[href="KPTC_Subscriptions.html"]{display:none!important}
+.k2-act button[aria-label="السلة"]{position:relative;background:var(--kp-sign)!important;border-color:var(--kp-sign)!important;color:var(--kp-ink)!important;font-weight:700!important;padding-inline:18px 14px!important;gap:10px}
+.k2-act button[aria-label="السلة"]::before{content:"";width:18px;height:18px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 7h12l-1 13H7L6 7z'/%3E%3Cpath d='M9 7a3 3 0 0 1 6 0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 7h12l-1 13H7L6 7z'/%3E%3Cpath d='M9 7a3 3 0 0 1 6 0'/%3E%3C/svg%3E") center/contain no-repeat}
+.k2-act .k2-cnt{position:static!important;background:var(--kp-ink)!important;color:var(--kp-sign)!important;min-width:22px;height:22px;border-radius:11px;display:inline-grid;place-items:center;font-size:12px;border:0!important;transform:none!important}

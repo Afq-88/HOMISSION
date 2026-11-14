@@ -421,28 +421,6 @@
   var GEO = {'المرقاب':[29.3698,47.9792],'الفحيحيل':[29.0825,48.1303],'دوار الأمم المتحدة':[29.3560,47.9270],'جليب الشيوخ':[29.2680,47.9130],'مطار الكويت':[29.2266,47.9689],'السليبية':[29.2990,47.7500],'أمغرة':[29.3250,47.7900],'صبحان':[29.2975,48.0600],'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
   function routesMap(){
     var box = document.getElementById('mapView'); if (!box || OWN !== 'routes') return;
-    var el = document.createElement('div'); el.id = 'kpMap'; box.insertBefore(el, box.firstChild);
-    var sc = document.createElement('script'); sc.src = '../assets/leaflet.min.js';
-    sc.onload = function(){
-      var L = window.L, map = L.map(el, {zoomControl:false, attributionControl:true}).setView([29.31, 47.98], 11);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18, attribution:'&copy; OpenStreetMap'}).addTo(map);
-      var layer = L.layerGroup().addTo(map), base = L.layerGroup().addTo(map), busTimer = null, list = [];
-      try { list = routes; } catch(x){}
-      function pts(r){ return (r.stops || []).map(function(n){ return GEO[n] ? {n:n, ll:GEO[n]} : null; }).filter(Boolean); }
-      function stop(p, end){ return L.marker(p.ll, {icon:L.divIcon({className:'', html:'<div class="kp-stop' + (end ? ' end' : '') + '"></div>', iconSize:[20,20], iconAnchor:[end?10:8, end?10:8]})}).bindTooltip(p.n, {className:'kp-tip', direction:'top', offset:[0,-8]}); }
-      list.forEach(function(r){ var p = pts(r); if (p.length > 1) L.polyline(p.map(function(x){ return x.ll; }), {color:'#2E2C78', weight:3, opacity:.22}).addTo(base); });
-      ['المالية','المرقاب','الشرق','دوار الأمم المتحدة','السالمية','جليب الشيوخ','صبحان','الفحيحيل','الجهراء','السليبية','أمغرة','خيطان','مطار الكويت'].forEach(function(n){ L.circleMarker(GEO[n], {radius:4, color:'#2E2C78', weight:2, fillColor:'#fff', fillOpacity:1}).bindTooltip(n, {className:'kp-tip', direction:'top'}).addTo(base); });
-      function draw(num){
-        var r = list.filter(function(x){ return x.num === num; })[0]; if (!r) return;
-        var p = pts(r); if (!p.length) return;
-        layer.clearLayers(); clearInterval(busTimer);
-        // the company publishes each route's main terminal; the full path is on the official network map
-        var big = L.circleMarker(p[0].ll, {radius:16, color:'#14133A', weight:4, fillColor:'#FFC93C', fillOpacity:1}).addTo(layer);
-        big.bindTooltip('محطة ' + p[0].n + ' — خط ' + r.num, {className:'kp-tip', direction:'top', permanent:true, offset:[0,-14]}).openTooltip();
-        var bus = L.marker(p[0].ll, {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,32]}), interactive:false}).addTo(layer);
-        map.flyTo(p[0].ll, 13, {duration:.8});
-      }
-      // the official network map as an explorer: pan, zoom, and fly to any terminal
       window.kpOfficialMap = function(){
         var lb = document.getElementById('kpNetMap');
         if (!lb){
@@ -473,17 +451,12 @@
         }
         lb.classList.add('on'); setTimeout(function(){ lb._fit(false); }, 30);
       };
-      var orig = window.selectRoute; if (typeof orig === 'function') window.selectRoute = function(n){ var r = orig.apply(this, arguments); try { draw(n); } catch(x){} return r; };
-      var z = box.querySelectorAll('.map-zoom .zoom-btn');
-      if (z[0]) z[0].addEventListener('click', function(){ map.zoomIn(); });
-      if (z[1]) z[1].addEventListener('click', function(){ map.zoomOut(); });
-      if (z[2]) z[2].addEventListener('click', function(){ if (navigator.geolocation) navigator.geolocation.getCurrentPosition(function(g){ map.flyTo([g.coords.latitude, g.coords.longitude], 14); L.circleMarker([g.coords.latitude, g.coords.longitude], {radius:8, color:'#C2352E', fillOpacity:.6}).addTo(layer); }, function(){ map.flyTo([29.31, 47.98], 11); }); });
-      setTimeout(function(){ map.invalidateSize(); }, 300); window.addEventListener('resize', function(){ map.invalidateSize(); });
-      document.addEventListener('click', function(){ setTimeout(function(){ map.invalidateSize(); }, 60); });
-    };
+    // the map, the 3D network and the timetable board live in assets/network.js
+    var sc = document.createElement('script'); sc.src = '../assets/leaflet.min.js';
+    var next = function(){ var n = document.createElement('script'); n.src = '../assets/network.js'; document.head.appendChild(n); };
+    sc.onload = next; sc.onerror = next;
     document.head.appendChild(sc);
   }
-
 
 
   /* ---- ads: a 3D K-Bus the visitor can spin, with the campaign on the faces they picked ---- */
