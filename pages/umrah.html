@@ -826,6 +826,20 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 .trip-card.selected{box-shadow:inset 0 0 0 2px var(--kp-sign)!important}
 .filter-btn{border-radius:3px!important}
 .hstat-num{font-family:var(--f-display)!important;font-weight:700}
+
+/* seat step: one deck, new coach map */
+.floor-tabs,.seat-legend,.bus-front,.bus-back{display:none!important}
+.bus-shell{background:none!important;border:0!important;padding:0!important;box-shadow:none!important;max-width:none!important}
+.seat-rows{display:block!important}
+.seat-layout-wrap{grid-template-columns:minmax(0,1fr) 250px!important}
+@media(max-width:900px){.seat-layout-wrap{grid-template-columns:1fr!important}}
+.seat-info-panel{border:2px solid var(--kp-ink)!important;border-radius:6px!important;box-shadow:5px 5px 0 rgba(20,19,58,.1)}
+.sip-header{background:var(--kp-ink)!important;color:var(--kp-sign)!important;font-family:var(--f-display)}
+.ssi-num{border-radius:8px 4px 4px 8px!important;font-family:var(--f-display)}
+/* success: the ticket is the hero */
+#successPage .booking-card{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);margin:0!important}
+#successPage .success-actions .sa-primary,#successPage .success-actions .sa-sec:nth-child(2){display:none}
+#successPage .success-actions{margin-top:14px}
 </style><!--/kptc:page-css-->
 </head>
 <body>
@@ -961,7 +975,6 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
         </div>
         <div class="floor-tabs" style="width:200px">
           <button class="floor-tab active" onclick="showFloor(1,this)">الطابق الأول</button>
-          <button class="floor-tab" onclick="showFloor(2,this)">الطابق الثاني</button>
         </div>
       </div>
       <div class="seat-layout-wrap">
@@ -1152,8 +1165,8 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
     </div>
   </div>
   <div class="success-actions">
-    <button class="sa-btn sa-primary" onclick="showToast('⬇️ جاري تحميل تذكرة العمرة PDF...')">⬇️ تحميل التذكرة</button>
-    <button class="sa-btn sa-sec" onclick="showToast('📱 تم الإرسال على واتساب')">📱 إرسال واتساب</button>
+    <button class="sa-btn sa-primary" onclick="KPTicket.act('pdf')">⬇️ تحميل التذكرة</button>
+    <button class="sa-btn sa-sec" onclick="KPTicket.act('share')">📱 إرسال واتساب</button>
     <button class="sa-btn sa-sec" onclick="location.reload()">📋 حجز جديد</button>
   </div>
 </div>
@@ -2016,6 +2029,14 @@ document.getElementById('cardFields').style.display='none';
   }
 
 
+  /* ---- umrah + vip: seat map and the PDF e-ticket (assets/booking.js) ---- */
+  function bookingKit(){
+    if (OWN !== 'umrah' && OWN !== 'vip') return;
+    var q = document.createElement('script'); q.src = '../assets/qrcode.min.js';
+    var next = function(){ var n = document.createElement('script'); n.src = '../assets/booking.js'; document.head.appendChild(n); };
+    q.onload = next; q.onerror = next; document.head.appendChild(q);
+  }
+
   /* ---- ads: a 3D K-Bus the visitor can spin, with the campaign on the faces they picked ---- */
   function bus3d(fallback){
     var host = document.getElementById('lpBus'); if (!host) return;
@@ -2102,7 +2123,7 @@ document.getElementById('cardFields').style.display='none';
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });

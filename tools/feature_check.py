@@ -58,6 +58,12 @@ def facts(s):
 ALLOWED = {
     # original called window.scrollTo('#payments') → TypeError; now uses the page's own helper
     ('pages/tenant.html', 'handlers', "onclick=scrollTo('#payments')"),
+    # the Umrah coach has one deck only (owner's request): the second-deck tab is gone
+    ('pages/umrah.html', 'handlers', "onclick=showFloor(2,this)"), ('pages/umrah.html', 'controls', 'button'),
+    # ticket buttons now produce a real PDF / share sheet instead of a toast
+    ('pages/umrah.html', 'handlers', "onclick=showToast('⬇️ جاري تحميل تذكرة العمرة PDF...')"),
+    ('pages/umrah.html', 'handlers', "onclick=showToast('📱 تم الإرسال على واتساب')"),
+    ('pages/vip.html', 'handlers', "onclick=showToast('📱 تم إرسال التأكيد على واتساب');closeSuccess()"),
 }
 
 def main(a, b):

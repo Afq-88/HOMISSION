@@ -830,6 +830,42 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 .kp-vipg-cta span{color:#C9C8E6;font-size:14px}.kp-vipg-cta b{color:#fff;font-size:17px}
 .hero.kp-hero{border-bottom:0!important}
 @media(max-width:920px){.kp-vipg-in{grid-template-columns:1fr;gap:24px;padding:0 16px}}
+
+/* seat map */
+.seat-map-wrap .seat-legend,.vip-bus-front,.vip-bus-rear{display:none!important}
+.vip-bus-shell{background:none!important;border:0!important;padding:0!important;max-width:none!important;box-shadow:none!important}
+.seat-map-wrap{border:2px solid var(--kp-ink)!important;border-radius:6px!important}
+.smap-header{background:var(--kp-ink)!important;color:#fff!important;font-family:var(--f-display)}
+/* booking summary as a boarding pass */
+.order-panel{border:2px solid var(--kp-ink)!important;border-radius:10px!important;overflow:visible!important;box-shadow:6px 6px 0 rgba(20,19,58,.12)!important;position:sticky}
+.op-head{background:var(--kp-ink)!important;border-radius:8px 8px 0 0!important;border-bottom:6px solid var(--kp-sign)}
+.op-head h3{font-family:var(--f-display)!important;color:#fff!important}
+.op-pass{margin:-4px 0 14px;padding-bottom:14px;border-bottom:2px dashed var(--kp-line-2,#cfcde6);position:relative}
+.op-pass::before,.op-pass::after{content:"";position:absolute;bottom:-12px;width:22px;height:22px;border-radius:50%;background:var(--kp-paper,#F6F3EA);border:2px solid var(--kp-ink)}
+.op-pass::before{right:-29px;clip-path:inset(0 50% 0 0)}.op-pass::after{left:-29px;clip-path:inset(0 0 0 50%)}
+.op-way{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:10px}
+.op-way small{display:block;font-size:11px;color:var(--kp-muted)}
+.op-way b{font:700 17px var(--f-display);color:#b5b3cc;display:block;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.op-way.on b{color:var(--kp-indigo)}
+.op-way>div:last-child{text-align:left}
+.op-way i{position:relative;height:22px;border-bottom:3px dotted var(--kp-ink);margin-bottom:8px}
+.op-way u{position:absolute;bottom:-3px;right:0;width:34px;height:18px;background:var(--kp-bus) center/contain no-repeat;text-decoration:none}
+.op-way.on u{animation:op-ride 3.2s cubic-bezier(.5,0,.5,1) infinite alternate}
+@keyframes op-ride{to{right:calc(100% - 34px)}}
+.op-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.op-chips span{font:600 11.5px var(--f-body);background:var(--kp-paper-2,#f1efe6);border-radius:12px;padding:3px 10px;color:var(--kp-ink)}
+.op-total{background:var(--kp-sign)!important;margin:12px -16px 14px!important;padding:12px 16px!important;border-radius:0!important;font-family:var(--f-display)!important;color:var(--kp-ink)!important;border-block:2px solid var(--kp-ink)}
+.op-total span{color:var(--kp-ink)!important}
+/* confirmation: the ticket */
+.success-modal{max-width:470px!important;max-height:94vh;overflow:auto!important;border-top:6px solid var(--kp-sign)}
+.sm-top{padding:16px 20px!important}.sm-icon{display:none!important}
+#smRows,.sm-ref{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.sm-body .tk{margin-top:0}
+.sm-actions .sm-primary{display:none!important}
+.sm-actions{margin-top:12px!important}
+.seat-panel{position:static!important;border:2px solid var(--kp-ink)!important;border-radius:6px!important}
+.seat-panel .sp-body{max-height:176px;overflow:auto}
+.sm-body .tk{max-width:350px}
 </style><!--/kptc:page-css-->
 </head>
 <body>
@@ -1313,7 +1349,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
       </div>
       <div class="sm-rows" id="smRows"></div>
       <div class="sm-actions">
-        <button class="sm-btn sm-primary" onclick="showToast('📱 تم إرسال التأكيد على واتساب');closeSuccess()">📱 واتساب</button>
+        <button class="sm-btn sm-primary" onclick="KPTicket.act('share')">📱 واتساب</button>
         <button class="sm-btn sm-sec" onclick="closeSuccess()">إغلاق</button>
       </div>
     </div>
@@ -1403,7 +1439,7 @@ function renderSeatPanel() {
   document.getElementById('sp-count').textContent = `${selectedSeats.length} مقعد`;
   if(!selectedSeats.length) { body.innerHTML='<div class="sp-empty">لم تختر أي مقعد — انقر على الخريطة</div>'; return; }
   body.innerHTML = selectedSeats.map(n=>{
-    const isGold = n<=8;
+    const isGold = goldRows.length>0 && n<=8;
     return `<div class="sp-seat-item">
       <div class="sp-num ${isGold?'gold':''}">${n}</div>
       <div class="sp-info"><div class="sp-sname">مقعد ${n}</div><div class="sp-stype">${isGold?'💛 VIP ذهبي +3 د.ك':'عادي'}</div></div>
@@ -2019,6 +2055,14 @@ updateOrderPanel();
   }
 
 
+  /* ---- umrah + vip: seat map and the PDF e-ticket (assets/booking.js) ---- */
+  function bookingKit(){
+    if (OWN !== 'umrah' && OWN !== 'vip') return;
+    var q = document.createElement('script'); q.src = '../assets/qrcode.min.js';
+    var next = function(){ var n = document.createElement('script'); n.src = '../assets/booking.js'; document.head.appendChild(n); };
+    q.onload = next; q.onerror = next; document.head.appendChild(q);
+  }
+
   /* ---- ads: a 3D K-Bus the visitor can spin, with the campaign on the faces they picked ---- */
   function bus3d(fallback){
     var host = document.getElementById('lpBus'); if (!host) return;
@@ -2105,7 +2149,7 @@ updateOrderPanel();
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });
