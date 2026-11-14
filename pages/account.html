@@ -45,22 +45,21 @@
       notice: {on:false, text:''},                 // site-wide announcement bar
       users: { 'u-demo': {id:'u-demo', name:'أحمد العلي', phone:'55501234', email:'demo@kptc.com.kw', pass:'123456', civil:'', joined:today(-190)} },
       session: null,
-      wallets: { 'u-demo': {balance:12.75, frozen:false, tx:[
-        {id:'TX-1003', d:today(-2),  t:'خصم',  a:-0.25, note:'تذكرة فردية — خط 15', by:'النظام'},
-        {id:'TX-1002', d:today(-9),  t:'خصم',  a:-15,   note:'تجديد الاشتراك الشهري', by:'النظام'},
-        {id:'TX-1001', d:today(-10), t:'تعبئة', a:28,    note:'تعبئة عبر كي نت', by:'العميل'}
+      wallets: { 'u-demo': {balance:20, frozen:false, tx:[
+        {id:'TX-1002', d:today(-9),  t:'خصم',  a:-10, note:'بطاقة التوفير — 31 يوماً', by:'النظام'},
+        {id:'TX-1001', d:today(-10), t:'تعبئة', a:30,  note:'تعبئة عبر كي نت', by:'العميل'}
       ]}},
       bookings: [
-        {id:'SUB-240611', uid:'u-demo', type:'اشتراك', page:'subs',  title:'الباقة الأساسية — شهري', d:today(-9),  status:'فعّال', amount:15,  until:today(21)},
-        {id:'UMR-58213',  uid:'u-demo', type:'عمرة',  page:'umrah', title:'مكة المكرمة + المدينة (11 يوماً) — مقعدان', d:today(-4), status:'مؤكد', amount:216},
+        {id:'SUB-240611', uid:'u-demo', type:'اشتراك', page:'subs',  title:'بطاقة التوفير — 31 يوماً', d:today(-9),  status:'فعّال', amount:10,  until:today(22)},
+        {id:'UMR-58213',  uid:'u-demo', type:'عمرة',  page:'umrah', title:'مكة المكرمة + المدينة (11 يوماً) — مقعدان', d:today(-4), status:'مؤكد', amount:170},
         {id:'LF-30418',   uid:'u-demo', type:'مفقودات', page:'lost', title:'محفظة جلد بنية — خط 21', d:today(-16), status:'وُجد الغرض', amount:0}
       ],
       news: [
-        {id:'N-5', d:today(-3),  cat:'أخبار الشركة', title:'تشغيل حافلات K-BUS الكهربائية الصديقة للبيئة', body:'انضمت حافلات K-eBus عديمة الانبعاثات إلى الأسطول ضمن خطة الشركة للنقل المستدام.', img:'kbus-ev.jpg', pub:true},
-        {id:'N-4', d:today(-12), cat:'بيانات صحفية', title:'تحديث شبكة خطوط K-Bus وإضافة مسارات سريعة', body:'تحديث يشمل المسارات السريعة X ويربط المناطق السكنية الجديدة بمراكز الأعمال.', img:'kbus-fleet.jpg', pub:true},
-        {id:'N-3', d:today(-25), cat:'المسؤولية الاجتماعية', title:'حملة «السلامة أولاً» لتوعية الركاب والسائقين', body:'حملة توعوية ميدانية وإلكترونية حول قواعد السلامة داخل الحافلات وفي المحطات.', img:'kbus-street.jpg', pub:true},
-        {id:'N-2', d:today(-40), cat:'أخبار الشركة', title:'انطلاق موسم رحلات العمرة بحافلات حديثة', body:'رحلات أسبوعية تشمل التأشيرة والسكن والمواصلات، مع حجز إلكتروني للمقاعد.', img:'umrah-art.jpg', pub:true},
-        {id:'N-1', d:today(-61), cat:'بيانات صحفية', title:'مركز الأوناش يعمل على مدار الساعة في المحافظات الست', body:'خدمة سحب ونقل المركبات متاحة 24 ساعة طوال أيام الأسبوع وخلال العطل الرسمية.', img:'tow-1.jpg', pub:true}
+        {id:'N-5', d:today(-3),  cat:'أخبار الشركة', title:'حافلات K-eBus الكهربائية عديمة الانبعاثات', body:'تضم صور الأسطول الرسمي حافلات K-eBus الكهربائية بشعار «Zero Emission»، ضمن توجه الشركة نحو بيئة صحية.', img:'kbus-ev.jpg', pub:true},
+        {id:'N-4', d:today(-12), cat:'أخبار الشركة', title:'بطاقة التوفير: 10 د.ك لـ 31 يوماً و25 د.ك لـ 91 يوماً', body:'بطاقة شخصية تتيح التنقل بلا حدود على جميع الخطوط. للاستفسار: 22328307.', img:'kbus-fleet.jpg', pub:true},
+        {id:'N-3', d:today(-25), cat:'المسؤولية الاجتماعية', title:'السلامة أولاً: معاً نعود بنقل آمن', body:'حملة توعوية تحمل شعار «السلامة أولاً» لتوعية الركاب والسائقين بقواعد السلامة.', img:'kbus-street.jpg', pub:true},
+        {id:'N-2', d:today(-40), cat:'أخبار الشركة', title:'رحلات العمرة بأسعار مميزة للمجموعات والشركات', body:'رحلة 6 أيام بـ 60 د.ك ورحلة 11 يوماً بـ 85 د.ك، والسعر يشمل السكن والمواصلات والتأشيرة.', img:'umrah-art.jpg', pub:true},
+        {id:'N-1', d:today(-61), cat:'بيانات صحفية', title:'مركز الأوناش يعمل على مدار الساعة', body:'خدمة سحب ونقل المركبات متاحة 24 ساعة، 7 أيام في الأسبوع، وخلال الإجازات الرسمية والعطلات.', img:'tow-1.jpg', pub:true}
       ],
       tenders: [
         {id:'T-2026-7', no:'2026/7', kind:'مناقصة',  title:'توريد وتركيب مظلات انتظار في محطات الحافلات', meet:today(6),  place:'مكتب مساعد المدير لشؤون المرافق والصيانة — صبحان الصناعية', close:today(21), box:'3', fee:75,  status:'مفتوحة'},
@@ -546,7 +545,7 @@ table.t tr:hover td{background:var(--kp-paper-2)}
 </style>
 </head>
 <body>
-<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22228800">خدمة العملاء <span dir="ltr">22228800</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — حولي</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
+<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22328866">خدمة العملاء <span dir="ltr">22328866</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — المرقاب</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
 <header class="k2-head"><div class="k2-w"><a class="k2-brand" href="KPTC_Home.html" aria-label="KPTC — الرئيسية"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b><small>شركة النقل العام الكويتية</small></span></a>
 <div class="k2-nav" role="navigation" aria-label="القائمة الرئيسية"><a href="KPTC_Routes.html">الخطوط</a><a href="KPTC_Subscriptions.html">الاشتراكات</a><a href="KPTC_Umrah.html">العمرة</a><a href="KPTC_VIP.html">VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_Advertising.html">أعلن معنا</a><a href="KPTC_RE_Client.html">العقارات</a></div>
 <div class="k2-act"><a class="k2-btn k2-btn-ghost" href="KPTC_Portal.html">بوابة الموظفين</a><a class="k2-btn k2-btn-sign k2-hide-m" href="KPTC_Subscriptions.html">اشترك الآن</a><button class="k2-menu" aria-label="فتح القائمة" aria-expanded="false" onclick="k2Drawer(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
@@ -636,7 +635,7 @@ table.t tr:hover td{background:var(--kp-paper-2)}
   <h3>شحن المحفظة</h3><p class="sd">اختر المبلغ وطريقة الدفع. الدفع هنا تجريبي ولا يُخصم أي مبلغ فعلي.</p>
   <div class="amts" id="amts"><button type="button" data-a="5">5</button><button type="button" data-a="10" class="on">10</button><button type="button" data-a="20">20</button><button type="button" data-a="50">50</button></div>
   <label class="f">أو مبلغ آخر (د.ك)<input id="topAmt" inputmode="decimal" dir="ltr" value="10"></label>
-  <div class="pay" style="margin:14px 0"><label><input type="radio" name="pm" value="كي نت" checked><span>كي نت</span></label><label><input type="radio" name="pm" value="بطاقة ائتمانية"><span>بطاقة ائتمانية</span></label><label><input type="radio" name="pm" value="Apple Pay"><span dir="ltr">Apple Pay</span></label></div>
+  <div class="pay" style="margin:14px 0"><label><input type="radio" name="pm" value="كي نت" checked><span>كي نت</span></label><label><input type="radio" name="pm" value="فيزا / ماستركارد"><span>فيزا / ماستركارد</span></label><label><input type="radio" name="pm" value="CashU"><span dir="ltr">CashU</span></label></div>
   <div class="err" id="topErr"></div>
   <button class="btn y" type="button" id="topGo" style="width:100%">ادفع واشحن</button>
 </div></div>
@@ -821,7 +820,7 @@ table.t tr:hover td{background:var(--kp-paper-2)}
 
   // emoji → icon name ; null = decorative, removed ; "dot:x" = coloured status dot
   var E = {
-    '✅':'check|ok','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
+    '✅':'check|ok','📠':'doc','☎':'phone','🗓':'cal','💱':'money','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
     '💳':'card','🔧':'wrench','🔩':'wrench','🛠':'wrench','📥':'download','📤':'upload','📞':'phone','🔍':'search','🔎':'search','📍':'pin','📌':'pin',
     '📧':'mail','📬':'mail','📭':'mail','📅':'cal','📆':'cal','🗺':'map','👤':'user','👥':'users','🧑':'user','👔':'user','👷':'user','👶':'user','📱':'mobile','🍎':'mobile',
     '✏':'edit','📝':'doc','📄':'doc','🏢':'building','🏙':'building','🏭':'building','🏨':'building','🏬':'store','👁':'eye','📢':'mega','👑':'crown',
@@ -860,14 +859,16 @@ table.t tr:hover td{background:var(--kp-paper-2)}
     RX.lastIndex = 0;
     if (!v || !RX.test(v)) return;
     var par = t.parentNode; if (!par || SKIP[par.nodeName] || (par.closest && par.closest('svg,textarea,[contenteditable],.ki'))) return;
-    var f = document.createDocumentFragment(), last = 0; RX.lastIndex = 0; var m;
+    var f = document.createDocumentFragment(), last = 0, changed = false; RX.lastIndex = 0; var m;
     while ((m = RX.exec(v))){
       if (m.index > last) f.appendChild(document.createTextNode(v.slice(last, m.index)));
       var n = icon(m[0]);
-      if (n) f.appendChild(n);
-      else if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++;   // eat the trailing space of a removed decoration
+      if (n && n.nodeType === 1){ f.appendChild(n); changed = true; }
+      else if (n) f.appendChild(n);                       // unmapped pictograph: left as it is
+      else { changed = true; if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++; }   // decoration removed, with its trailing space
       last = RX.lastIndex;
     }
+    if (!changed) return;   // nothing to swap: never re-insert identical text (it would re-trigger the observer forever)
     if (last < v.length) f.appendChild(document.createTextNode(v.slice(last)));
     par.replaceChild(f, t);
   }
@@ -1089,7 +1090,7 @@ table.t tr:hover td{background:var(--kp-paper-2)}
 
 
   /* ---- routes: a real map (Leaflet + OpenStreetMap, both free) ---- */
-  var GEO = {'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
+  var GEO = {'المرقاب':[29.3698,47.9792],'الفحيحيل':[29.0825,48.1303],'دوار الأمم المتحدة':[29.3560,47.9270],'جليب الشيوخ':[29.2680,47.9130],'مطار الكويت':[29.2266,47.9689],'السليبية':[29.2990,47.7500],'أمغرة':[29.3250,47.7900],'صبحان':[29.2975,48.0600],'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
   function routesMap(){
     var box = document.getElementById('mapView'); if (!box || OWN !== 'routes') return;
     var el = document.createElement('div'); el.id = 'kpMap'; box.insertBefore(el, box.firstChild);
@@ -1099,22 +1100,30 @@ table.t tr:hover td{background:var(--kp-paper-2)}
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18, attribution:'&copy; OpenStreetMap'}).addTo(map);
       var layer = L.layerGroup().addTo(map), base = L.layerGroup().addTo(map), busTimer = null, list = [];
       try { list = routes; } catch(x){}
-      function pts(r){ return r.path.replace(/\(.*?\)/g,'').split('—').map(function(n){ n = n.trim(); return GEO[n] ? {n:n, ll:GEO[n]} : null; }).filter(Boolean); }
+      function pts(r){ return (r.stops || []).map(function(n){ return GEO[n] ? {n:n, ll:GEO[n]} : null; }).filter(Boolean); }
       function stop(p, end){ return L.marker(p.ll, {icon:L.divIcon({className:'', html:'<div class="kp-stop' + (end ? ' end' : '') + '"></div>', iconSize:[20,20], iconAnchor:[end?10:8, end?10:8]})}).bindTooltip(p.n, {className:'kp-tip', direction:'top', offset:[0,-8]}); }
       list.forEach(function(r){ var p = pts(r); if (p.length > 1) L.polyline(p.map(function(x){ return x.ll; }), {color:'#2E2C78', weight:3, opacity:.22}).addTo(base); });
-      Object.keys(GEO).slice(0, 19).forEach(function(n){ L.circleMarker(GEO[n], {radius:4, color:'#2E2C78', weight:2, fillColor:'#fff', fillOpacity:1}).bindTooltip(n, {className:'kp-tip', direction:'top'}).addTo(base); });
+      ['المالية','المرقاب','الشرق','دوار الأمم المتحدة','السالمية','جليب الشيوخ','صبحان','الفحيحيل','الجهراء','السليبية','أمغرة','خيطان','مطار الكويت'].forEach(function(n){ L.circleMarker(GEO[n], {radius:4, color:'#2E2C78', weight:2, fillColor:'#fff', fillOpacity:1}).bindTooltip(n, {className:'kp-tip', direction:'top'}).addTo(base); });
       function draw(num){
         var r = list.filter(function(x){ return x.num === num; })[0]; if (!r) return;
-        var p = pts(r); if (p.length < 2) return;
-        layer.clearLayers(); clearInterval(busTimer); base.eachLayer(function(l){ if (l.setStyle) l.setStyle({opacity:.1}); });
-        var ll = p.map(function(x){ return x.ll; });
-        L.polyline(ll, {color:'#14133A', weight:9, opacity:.9, lineCap:'round'}).addTo(layer);
-        L.polyline(ll, {color:'#FFC93C', weight:4, opacity:1, lineCap:'round'}).addTo(layer);
-        p.forEach(function(x, i){ stop(x, i === 0 || i === p.length-1).addTo(layer); });
-        var bus = L.marker(ll[0], {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,22]}), interactive:false}).addTo(layer), t = 0;
-        busTimer = setInterval(function(){ t = (t + .004) % 1; var f = t * (ll.length-1), i = Math.floor(f), k = f - i, a = ll[i], b = ll[i+1] || a; bus.setLatLng([a[0] + (b[0]-a[0])*k, a[1] + (b[1]-a[1])*k]); }, 40);
-        map.flyToBounds(L.latLngBounds(ll).pad(.25), {duration:.8});
+        var p = pts(r); if (!p.length) return;
+        layer.clearLayers(); clearInterval(busTimer);
+        // the company publishes each route's main terminal; the full path is on the official network map
+        var big = L.circleMarker(p[0].ll, {radius:16, color:'#14133A', weight:4, fillColor:'#FFC93C', fillOpacity:1}).addTo(layer);
+        big.bindTooltip('محطة ' + p[0].n + ' — خط ' + r.num, {className:'kp-tip', direction:'top', permanent:true, offset:[0,-14]}).openTooltip();
+        var bus = L.marker(p[0].ll, {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,32]}), interactive:false}).addTo(layer);
+        map.flyTo(p[0].ll, 13, {duration:.8});
       }
+      window.kpOfficialMap = function(){
+        var lb = document.getElementById('kpNetMap');
+        if (!lb){
+          lb = document.createElement('div'); lb.id = 'kpNetMap'; lb.className = 'kp-netmap';
+          lb.innerHTML = '<div class="kp-netmap-in"><button type="button" aria-label="إغلاق">×</button><img src="../assets/kbus-network-map.jpg" alt="خريطة شبكة K-Bus الرسمية"><p>خريطة شبكة K-Bus الرسمية من موقع شركة النقل العام الكويتية · اسحب للتنقل وكبّر بالأصبع</p></div>';
+          lb.addEventListener('click', function(e){ if (e.target === lb || e.target.tagName === 'BUTTON') lb.classList.remove('on'); });
+          document.body.appendChild(lb);
+        }
+        lb.classList.add('on');
+      };
       var orig = window.selectRoute; if (typeof orig === 'function') window.selectRoute = function(n){ var r = orig.apply(this, arguments); try { draw(n); } catch(x){} return r; };
       var z = box.querySelectorAll('.map-zoom .zoom-btn');
       if (z[0]) z[0].addEventListener('click', function(){ map.zoomIn(); });

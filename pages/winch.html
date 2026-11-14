@@ -45,22 +45,21 @@
       notice: {on:false, text:''},                 // site-wide announcement bar
       users: { 'u-demo': {id:'u-demo', name:'أحمد العلي', phone:'55501234', email:'demo@kptc.com.kw', pass:'123456', civil:'', joined:today(-190)} },
       session: null,
-      wallets: { 'u-demo': {balance:12.75, frozen:false, tx:[
-        {id:'TX-1003', d:today(-2),  t:'خصم',  a:-0.25, note:'تذكرة فردية — خط 15', by:'النظام'},
-        {id:'TX-1002', d:today(-9),  t:'خصم',  a:-15,   note:'تجديد الاشتراك الشهري', by:'النظام'},
-        {id:'TX-1001', d:today(-10), t:'تعبئة', a:28,    note:'تعبئة عبر كي نت', by:'العميل'}
+      wallets: { 'u-demo': {balance:20, frozen:false, tx:[
+        {id:'TX-1002', d:today(-9),  t:'خصم',  a:-10, note:'بطاقة التوفير — 31 يوماً', by:'النظام'},
+        {id:'TX-1001', d:today(-10), t:'تعبئة', a:30,  note:'تعبئة عبر كي نت', by:'العميل'}
       ]}},
       bookings: [
-        {id:'SUB-240611', uid:'u-demo', type:'اشتراك', page:'subs',  title:'الباقة الأساسية — شهري', d:today(-9),  status:'فعّال', amount:15,  until:today(21)},
-        {id:'UMR-58213',  uid:'u-demo', type:'عمرة',  page:'umrah', title:'مكة المكرمة + المدينة (11 يوماً) — مقعدان', d:today(-4), status:'مؤكد', amount:216},
+        {id:'SUB-240611', uid:'u-demo', type:'اشتراك', page:'subs',  title:'بطاقة التوفير — 31 يوماً', d:today(-9),  status:'فعّال', amount:10,  until:today(22)},
+        {id:'UMR-58213',  uid:'u-demo', type:'عمرة',  page:'umrah', title:'مكة المكرمة + المدينة (11 يوماً) — مقعدان', d:today(-4), status:'مؤكد', amount:170},
         {id:'LF-30418',   uid:'u-demo', type:'مفقودات', page:'lost', title:'محفظة جلد بنية — خط 21', d:today(-16), status:'وُجد الغرض', amount:0}
       ],
       news: [
-        {id:'N-5', d:today(-3),  cat:'أخبار الشركة', title:'تشغيل حافلات K-BUS الكهربائية الصديقة للبيئة', body:'انضمت حافلات K-eBus عديمة الانبعاثات إلى الأسطول ضمن خطة الشركة للنقل المستدام.', img:'kbus-ev.jpg', pub:true},
-        {id:'N-4', d:today(-12), cat:'بيانات صحفية', title:'تحديث شبكة خطوط K-Bus وإضافة مسارات سريعة', body:'تحديث يشمل المسارات السريعة X ويربط المناطق السكنية الجديدة بمراكز الأعمال.', img:'kbus-fleet.jpg', pub:true},
-        {id:'N-3', d:today(-25), cat:'المسؤولية الاجتماعية', title:'حملة «السلامة أولاً» لتوعية الركاب والسائقين', body:'حملة توعوية ميدانية وإلكترونية حول قواعد السلامة داخل الحافلات وفي المحطات.', img:'kbus-street.jpg', pub:true},
-        {id:'N-2', d:today(-40), cat:'أخبار الشركة', title:'انطلاق موسم رحلات العمرة بحافلات حديثة', body:'رحلات أسبوعية تشمل التأشيرة والسكن والمواصلات، مع حجز إلكتروني للمقاعد.', img:'umrah-art.jpg', pub:true},
-        {id:'N-1', d:today(-61), cat:'بيانات صحفية', title:'مركز الأوناش يعمل على مدار الساعة في المحافظات الست', body:'خدمة سحب ونقل المركبات متاحة 24 ساعة طوال أيام الأسبوع وخلال العطل الرسمية.', img:'tow-1.jpg', pub:true}
+        {id:'N-5', d:today(-3),  cat:'أخبار الشركة', title:'حافلات K-eBus الكهربائية عديمة الانبعاثات', body:'تضم صور الأسطول الرسمي حافلات K-eBus الكهربائية بشعار «Zero Emission»، ضمن توجه الشركة نحو بيئة صحية.', img:'kbus-ev.jpg', pub:true},
+        {id:'N-4', d:today(-12), cat:'أخبار الشركة', title:'بطاقة التوفير: 10 د.ك لـ 31 يوماً و25 د.ك لـ 91 يوماً', body:'بطاقة شخصية تتيح التنقل بلا حدود على جميع الخطوط. للاستفسار: 22328307.', img:'kbus-fleet.jpg', pub:true},
+        {id:'N-3', d:today(-25), cat:'المسؤولية الاجتماعية', title:'السلامة أولاً: معاً نعود بنقل آمن', body:'حملة توعوية تحمل شعار «السلامة أولاً» لتوعية الركاب والسائقين بقواعد السلامة.', img:'kbus-street.jpg', pub:true},
+        {id:'N-2', d:today(-40), cat:'أخبار الشركة', title:'رحلات العمرة بأسعار مميزة للمجموعات والشركات', body:'رحلة 6 أيام بـ 60 د.ك ورحلة 11 يوماً بـ 85 د.ك، والسعر يشمل السكن والمواصلات والتأشيرة.', img:'umrah-art.jpg', pub:true},
+        {id:'N-1', d:today(-61), cat:'بيانات صحفية', title:'مركز الأوناش يعمل على مدار الساعة', body:'خدمة سحب ونقل المركبات متاحة 24 ساعة، 7 أيام في الأسبوع، وخلال الإجازات الرسمية والعطلات.', img:'tow-1.jpg', pub:true}
       ],
       tenders: [
         {id:'T-2026-7', no:'2026/7', kind:'مناقصة',  title:'توريد وتركيب مظلات انتظار في محطات الحافلات', meet:today(6),  place:'مكتب مساعد المدير لشؤون المرافق والصيانة — صبحان الصناعية', close:today(21), box:'3', fee:75,  status:'مفتوحة'},
@@ -751,7 +750,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 <body>
 
 <!-- NAV -->
-<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22228800">خدمة العملاء <span dir="ltr">22228800</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — حولي</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
+<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22328866">خدمة العملاء <span dir="ltr">22328866</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — المرقاب</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
 <header class="k2-head"><div class="k2-w"><a class="k2-brand" href="KPTC_Home.html" aria-label="KPTC — الرئيسية"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b><small>شركة النقل العام الكويتية</small></span></a>
 <div class="k2-nav" role="navigation" aria-label="القائمة الرئيسية"><a href="KPTC_Routes.html">الخطوط</a><a href="KPTC_Subscriptions.html">الاشتراكات</a><a href="KPTC_Umrah.html">العمرة</a><a href="KPTC_VIP.html">VIP</a><a href="KPTC_Winch.html" aria-current="page">الونش</a><a href="KPTC_Advertising.html">أعلن معنا</a><a href="KPTC_RE_Client.html">العقارات</a></div>
 <div class="k2-act"><a class="k2-btn k2-btn-ghost" href="KPTC_Portal.html">بوابة الموظفين</a><a class="k2-btn k2-btn-sign k2-hide-m" href="KPTC_Subscriptions.html">اشترك الآن</a><button class="k2-menu" aria-label="فتح القائمة" aria-expanded="false" onclick="k2Drawer(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
@@ -769,12 +768,12 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
     <div>
       <div class="hero-badge kp-tag"><div class="emergency-pulse kp-pulse"></div>خدمة طوارئ — تعمل 24/7/365</div>
       <h1>تعطّلت سيارتك؟<br><span class="red">نصلك</span> في أسرع<br>وقت <span class="yellow">ممكن</span></h1>
-      <p class="hero-sub">خدمة الونش والإنقاذ الفوري في جميع أنحاء الكويت — بالإضافة لورشة متكاملة لصيانة وتصليح جميع أنواع السيارات.</p>
+      <p class="hero-sub">مركز الأوناش يعمل على مدار 24 ساعة، 7 أيام في الأسبوع وخلال الإجازات الرسمية، في محافظات الكويت الست — بالإضافة إلى ورشة لإصلاح الشاحنات والحافلات للغير.</p>
 
       <div class="emergency-number" onclick="showToast('📞 جاري الاتصال بخدمة الطوارئ...')">
         <div class="en-left">
           <small>الخط المباشر — متوفر الآن</small>
-          <div class="en-num">22228800</div>
+          <div class="en-num">22328866</div>
         </div>
         <div class="en-right">
           <span class="en-badge">🚨 اتصل الآن</span>
@@ -788,16 +787,16 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
       </div>
 
       <div class="hero-stats">
-        <div class="hstat"><div class="hstat-num">25 دق</div><div class="hstat-label">متوسط وقت الوصول</div></div>
-        <div class="hstat"><div class="hstat-num">100%</div><div class="hstat-label">تغطية الكويت</div></div>
-        <div class="hstat"><div class="hstat-num">50+</div><div class="hstat-label">شاحنة ونش</div></div>
-        <div class="hstat"><div class="hstat-num">15,000</div><div class="hstat-label">عملية سنوياً</div></div>
+        <div class="hstat"><div class="hstat-num">24 ساعة</div><div class="hstat-label">طوال أيام الأسبوع</div></div>
+        <div class="hstat"><div class="hstat-num">6</div><div class="hstat-label">محافظات</div></div>
+        <div class="hstat"><div class="hstat-num">8</div><div class="hstat-label">مناطق تسعير</div></div>
+        <div class="hstat"><div class="hstat-num">5 د.ك</div><div class="hstat-label">يبدأ من</div></div>
       </div>
     </div>
 
     <!-- Live dispatch panel -->
     <div class="dispatch-panel">
-      <div class="dp-title"><div class="dp-live"></div>شاحنات الونش المتاحة الآن</div>
+      <div class="dp-title"><div class="dp-live"></div>شاحنات الونش — عرض توضيحي</div>
       <div class="truck-item">
         <div class="truck-icon">🚛</div>
         <div class="truck-info">
@@ -868,10 +867,10 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
           <div class="fcard-head">🚗 نوع سيارتك</div>
           <div class="fcard-body">
             <div class="car-types">
-              <div class="ctype sel" onclick="selCar(this,'سيارة عادية',8)"><div class="ct-icon">🚗</div><div class="ct-name">سيارة عادية</div></div>
-              <div class="ctype" onclick="selCar(this,'SUV / 4×4',12)"><div class="ct-icon">🚙</div><div class="ct-name">SUV / 4×4</div></div>
-              <div class="ctype" onclick="selCar(this,'بيكأب',15)"><div class="ct-icon">🛻</div><div class="ct-name">بيكأب</div></div>
-              <div class="ctype" onclick="selCar(this,'حافلة / شاحنة',25)"><div class="ct-icon">🚌</div><div class="ct-name">حافلة</div></div>
+              <div class="ctype sel" onclick="selCar(this,'سيارة عادية (صالون)',0)"><div class="ct-icon">🚗</div><div class="ct-name">سيارة عادية</div></div>
+              <div class="ctype" onclick="selCar(this,'SUV / 4×4 (مركبة كبيرة)',1)"><div class="ct-icon">🚙</div><div class="ct-name">SUV / 4×4</div></div>
+              <div class="ctype" onclick="selCar(this,'بيكأب (مركبة كبيرة)',1)"><div class="ct-icon">🛻</div><div class="ct-name">بيكأب</div></div>
+              <div class="ctype" onclick="selCar(this,'حافلة / شاحنة (مركبة كبيرة)',1)"><div class="ct-icon">🚌</div><div class="ct-name">حافلة</div></div>
             </div>
           </div>
         </div>
@@ -884,7 +883,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
               <div class="prob-card sel" onclick="selProb(this,'عطل مفاجئ',0)"><div class="prob-icon">⚡</div><div class="prob-name">عطل مفاجئ</div><div class="prob-price">السعر الأساسي</div></div>
               <div class="prob-card" onclick="selProb(this,'البطارية فارغة',0)"><div class="prob-icon">🔋</div><div class="prob-name">بطارية فارغة</div><div class="prob-price">+ خدمة شحن</div></div>
               <div class="prob-card" onclick="selProb(this,'إطار مثقوب',0)"><div class="prob-icon">🛞</div><div class="prob-name">إطار مثقوب</div><div class="prob-price">تبديل إطار</div></div>
-              <div class="prob-card" onclick="selProb(this,'حادث مروري',5)"><div class="prob-icon">💥</div><div class="prob-name">حادث مروري</div><div class="prob-price">+ 5 د.ك إضافية</div></div>
+              <div class="prob-card" onclick="selProb(this,'حادث مروري',0)"><div class="prob-icon">💥</div><div class="prob-name">حادث مروري</div><div class="prob-price">حسب الحالة</div></div>
               <div class="prob-card" onclick="selProb(this,'نقص وقود',0)"><div class="prob-icon">⛽</div><div class="prob-name">نقص وقود</div><div class="prob-price">توصيل وقود</div></div>
               <div class="prob-card" onclick="selProb(this,'أخرى',0)"><div class="prob-icon">🔧</div><div class="prob-name">مشكلة أخرى</div><div class="prob-price">حسب الحالة</div></div>
             </div>
@@ -940,12 +939,16 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
                   <option>أي مكان آخر</option>
                 </select>
               </div>
-              <div class="ff"><label>المسافة التقريبية</label>
+              <div class="ff"><label>منطقة السحب</label>
                 <select id="distSelect" onchange="updateWinchOrder()">
-                  <option value="8">داخل نفس المنطقة (8 د.ك)</option>
-                  <option value="12">مناطق مجاورة (12 د.ك)</option>
-                  <option value="18">منطقة بعيدة (18 د.ك)</option>
-                  <option value="25">خارج المحافظة (25 د.ك)</option>
+                  <option value="5,7">المناطق القريبة من الشويخ (الخالدية، اليرموك، الري، الشويخ 1، كيفان) (صالون 5 د.ك · كبيرة 7 د.ك)</option>
+                  <option value="6,11">خيطان — الفروانية (صالون 6 د.ك · كبيرة 11 د.ك)</option>
+                  <option value="6,11">حولي — السالمية (صالون 6 د.ك · كبيرة 11 د.ك)</option>
+                  <option value="7,14">الصليبية — أمغرة (صالون 7 د.ك · كبيرة 14 د.ك)</option>
+                  <option value="8,13">الأحمدي — الصباحية (صالون 8 د.ك · كبيرة 13 د.ك)</option>
+                  <option value="16,23">الشاليهات (صالون 16 د.ك · كبيرة 23 د.ك)</option>
+                  <option value="20,23">الوفرة — النويصيب (صالون 20 د.ك · كبيرة 23 د.ك)</option>
+                  <option value="20,25">السالمي — العبدلي (صالون 20 د.ك · كبيرة 25 د.ك)</option>
                 </select>
               </div>
             </div>
@@ -985,18 +988,18 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
             <div class="op-divider"></div>
             <div class="op-section">
               <div class="op-stitle">التكلفة</div>
-              <div class="op-row"><span>رسوم الخدمة الأساسية</span><span id="sum-base">8.000 د.ك</span></div>
-              <div class="op-row"><span>رسوم السحب</span><span id="sum-tow">8.000 د.ك</span></div>
+              <div class="op-row"><span>رسوم الخدمة الأساسية</span><span id="sum-base">مشمولة</span></div>
+              <div class="op-row"><span>رسوم السحب</span><span id="sum-tow">5.000 د.ك</span></div>
               <div class="op-row"><span>رسوم إضافية</span><span id="sum-extra">—</span></div>
             </div>
             <div class="op-divider"></div>
-            <div class="op-total"><span>الإجمالي التقريبي</span><span id="sum-total">16.000 د.ك</span></div>
-            <div class="eta-estimate">⏱️ وقت الوصول المتوقع: <span id="etaMin">15-25</span> دقيقة</div>
+            <div class="op-total"><span>الإجمالي التقريبي</span><span id="sum-total">5.000 د.ك</span></div>
+            <div class="eta-estimate">⏱️ وقت الوصول: <span id="etaMin">—</span> (يحدده مركز الأوناش عند التواصل)</div>
             <button class="btn-request" id="requestBtn" onclick="submitWinch()">
               🚨 إرسال طلب الونش الآن
             </button>
             <div style="font-size:.7rem;color:var(--gray);text-align:center;line-height:1.7">
-              📞 أو اتصل مباشرة: <strong style="color:var(--red)">22228800</strong><br>
+              📞 أو اتصل مباشرة: <strong style="color:var(--red)">22328866</strong><br>
               ✅ السعر نهائي بعد معاينة الموقع
             </div>
           </div>
@@ -1071,36 +1074,36 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
     <!-- Workshop Hero -->
     <div class="workshop-hero">
       <div>
-        <div class="wh-badge">🏭 ورشة KPTC المعتمدة</div>
-        <h2>ورشة متكاملة لكل<br>أنواع السيارات</h2>
-        <p>فنيون معتمدون، قطع غيار أصلية، معدات تشخيص حديثة. نصلح سيارتك بجودة لا تضاهى وبأسعار شفافة مسبقاً.</p>
+        <div class="wh-badge">🏭 خدمة الإصلاح للغير</div>
+        <h2>كراجات للشاحنات<br>والحافلات الثقيلة</h2>
+        <p>كراجات مصممة لاستيعاب جميع أنواع وأحجام الشاحنات والحافلات الثقيلة، وطاقم هندسي وفني عالي الكفاءة، لإصلاح مركبات الوزارات والشركات والهيئات.</p>
         <div class="ws-stats">
-          <div class="wss"><div class="wss-num">50+</div><div class="wss-label">فني معتمد</div></div>
-          <div class="wss"><div class="wss-num">98%</div><div class="wss-label">رضا العملاء</div></div>
-          <div class="wss"><div class="wss-num">24 ساعة</div><div class="wss-label">سرعة الإنجاز</div></div>
-          <div class="wss"><div class="wss-num">ضمان</div><div class="wss-label">3 أشهر</div></div>
+          <div class="wss"><div class="wss-num">5 د.ك</div><div class="wss-label">أجرة ساعة العمل</div></div>
+          <div class="wss"><div class="wss-num">7%</div><div class="wss-label">رسوم إدارية لموظفي الشركة</div></div>
+          <div class="wss"><div class="wss-num">10%</div><div class="wss-label">رسوم إدارية لغيرهم</div></div>
+          <div class="wss"><div class="wss-num">22</div><div class="wss-label">إصلاحاً سريعاً في اللائحة</div></div>
         </div>
       </div>
       <div class="ws-services-list">
-        <div class="ws-service-item" onclick="this.classList.toggle('sel')"><div class="ws-si-icon">🔧</div><div><div class="ws-si-name">صيانة دورية شاملة</div><div class="ws-si-price">يبدأ من 25 د.ك</div></div><div class="ws-si-check">✓</div></div>
-        <div class="ws-service-item" onclick="this.classList.toggle('sel')"><div class="ws-si-icon">⚡</div><div><div class="ws-si-name">إصلاح كهرباء ونظام</div><div class="ws-si-price">يبدأ من 15 د.ك</div></div><div class="ws-si-check">✓</div></div>
-        <div class="ws-service-item" onclick="this.classList.toggle('sel')"><div class="ws-si-icon">❄️</div><div><div class="ws-si-name">صيانة التكييف</div><div class="ws-si-price">يبدأ من 20 د.ك</div></div><div class="ws-si-check">✓</div></div>
-        <div class="ws-service-item" onclick="this.classList.toggle('sel')"><div class="ws-si-icon">🛞</div><div><div class="ws-si-name">إطارات وفرامل</div><div class="ws-si-price">يبدأ من 8 د.ك</div></div><div class="ws-si-check">✓</div></div>
+        <div class="ws-service-item" onclick="this.classList.toggle('sel')"><div class="ws-si-icon">🔧</div><div><div class="ws-si-name">عمرة محرك 4 أسطوانات (بنزين)</div><div class="ws-si-price">80 د.ك · 16 ساعة ✓</div></div></div>
+        <div class="ws-service-item" onclick="this.classList.toggle('sel')"><div class="ws-si-icon">⚡</div><div><div class="ws-si-name">تبديل مضخة وقود داخلية</div><div class="ws-si-price">20 د.ك · 4 ساعات ✓</div></div></div>
+        <div class="ws-service-item" onclick="this.classList.toggle('sel')"><div class="ws-si-icon">❄️</div><div><div class="ws-si-name">تبديل مبرد المحرك</div><div class="ws-si-price">15 د.ك · 3 ساعات ✓</div></div></div>
+        <div class="ws-service-item" onclick="this.classList.toggle('sel')"><div class="ws-si-icon">🛞</div><div><div class="ws-si-name">تبديل علبة المقود (السكان)</div><div class="ws-si-price">20 د.ك · 4 ساعات ✓</div></div></div>
       </div>
     </div>
 
     <!-- Services -->
     <div style="font-size:.92rem;font-weight:700;color:var(--navy);margin-bottom:14px">🔩 اختر الخدمة المطلوبة</div>
     <div class="services-grid">
-      <div class="service-card sel" onclick="this.classList.toggle('sel')"><div class="sc-icon">🔧</div><div class="sc-name">صيانة دورية</div><div class="sc-price">من 25 د.ك</div><div class="sc-time">⏱️ 2-4 ساعات</div></div>
-      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🛢️</div><div class="sc-name">تغيير زيت وفلتر</div><div class="sc-price">من 8 د.ك</div><div class="sc-time">⏱️ 30 دقيقة</div></div>
-      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🔋</div><div class="sc-name">استبدال بطارية</div><div class="sc-price">من 15 د.ك</div><div class="sc-time">⏱️ 20 دقيقة</div></div>
-      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🛞</div><div class="sc-name">تبديل إطارات</div><div class="sc-price">من 8 د.ك/إطار</div><div class="sc-time">⏱️ 45 دقيقة</div></div>
-      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">❄️</div><div class="sc-name">صيانة التكييف</div><div class="sc-price">من 20 د.ك</div><div class="sc-time">⏱️ 1-2 ساعة</div></div>
-      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">⚡</div><div class="sc-name">إصلاح كهرباء</div><div class="sc-price">من 15 د.ك</div><div class="sc-time">⏱️ حسب العطل</div></div>
-      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🔩</div><div class="sc-name">صيانة المحرك</div><div class="sc-price">من 40 د.ك</div><div class="sc-time">⏱️ 4-8 ساعات</div></div>
-      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🚿</div><div class="sc-name">غسيل وتلميع</div><div class="sc-price">من 5 د.ك</div><div class="sc-time">⏱️ 1 ساعة</div></div>
-      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">💨</div><div class="sc-name">فحص شامل</div><div class="sc-price">10 د.ك</div><div class="sc-time">⏱️ 1 ساعة</div></div>
+      <div class="service-card sel" onclick="this.classList.toggle('sel')"><div class="sc-icon">🔧</div><div class="sc-name">تبديل مضخة الماء</div><div class="sc-price">10 د.ك</div><div class="sc-time">⏱️ ساعتان</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🌡️</div><div class="sc-name">تبديل منظم الحرارة (ثرموستات)</div><div class="sc-price">5 د.ك</div><div class="sc-time">⏱️ ساعة</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🛢️</div><div class="sc-name">تبديل مضخة وقود داخلية</div><div class="sc-price">20 د.ك</div><div class="sc-time">⏱️ 4 ساعات</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🛞</div><div class="sc-name">تبديل علبة المقود (السكان)</div><div class="sc-price">20 د.ك</div><div class="sc-time">⏱️ 4 ساعات</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">❄️</div><div class="sc-name">تبديل مبرد المحرك</div><div class="sc-price">15 د.ك</div><div class="sc-time">⏱️ 3 ساعات</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">⚡</div><div class="sc-name">تبديل سير المحرك (بسيط)</div><div class="sc-price">10 د.ك</div><div class="sc-time">⏱️ ساعتان</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🔩</div><div class="sc-name">تبديل شجرة نقل الحركة (الجاردن)</div><div class="sc-price">10 د.ك</div><div class="sc-time">⏱️ ساعتان</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">⛽</div><div class="sc-name">تبديل خزان الوقود</div><div class="sc-price">20 د.ك</div><div class="sc-time">⏱️ 4 ساعات</div></div>
+      <div class="service-card" onclick="this.classList.toggle('sel')"><div class="sc-icon">🛠️</div><div class="sc-name">عمرة محرك 4 أسطوانات (بنزين)</div><div class="sc-price">80 د.ك</div><div class="sc-time">⏱️ 16 ساعة</div></div>
     </div>
 
     <!-- Booking Form -->
@@ -1177,44 +1180,45 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
   <div class="tab-pane" id="pane-prices">
     <div class="prices-section" style="background:white;padding:0 0 28px">
       <div style="text-align:center;margin-bottom:24px">
-        <div style="font-size:.72rem;font-weight:700;color:var(--gray);letter-spacing:1px;margin-bottom:6px">أسعار شفافة — بدون مفاجآت</div>
+        <div style="font-size:.72rem;font-weight:700;color:var(--gray);letter-spacing:1px;margin-bottom:6px">لوائح الأسعار المعلنة</div>
         <div style="font-size:1.1rem;font-weight:700;color:var(--navy)">💰 جدول أسعار خدمة الونش والورشة</div>
       </div>
       <div class="price-grid">
         <div class="price-card">
-          <div class="pc-head">🔧 خدمة الونش</div>
-          <div class="pc-row"><span>رسوم الخدمة الأساسية</span><strong>5 د.ك</strong></div>
-          <div class="pc-row"><span>سحب داخل نفس المنطقة</span><strong>8 د.ك</strong></div>
-          <div class="pc-row"><span>سحب مناطق مجاورة</span><strong>12 د.ك</strong></div>
-          <div class="pc-row"><span>سحب منطقة بعيدة</span><strong>18 د.ك</strong></div>
-          <div class="pc-row"><span>خارج المحافظة</span><strong>25 د.ك</strong></div>
-          <div class="pc-row"><span>SUV وشاحنات</span><strong>+5 د.ك إضافية</strong></div>
-          <div class="pc-row"><span>خدمة ليلية (12م-6ص)</span><strong>+3 د.ك</strong></div>
-        </div>
+          <div class="pc-head">🔧 الونش — مركبة صالون</div>
+          <div class="pc-row"><span>المناطق القريبة من الشويخ (الخالدية، اليرموك، الري، الشويخ 1، كيفان)</span><strong>5 د.ك</strong></div>
+          <div class="pc-row"><span>خيطان — الفروانية</span><strong>6 د.ك</strong></div>
+          <div class="pc-row"><span>حولي — السالمية</span><strong>6 د.ك</strong></div>
+          <div class="pc-row"><span>الصليبية — أمغرة</span><strong>7 د.ك</strong></div>
+          <div class="pc-row"><span>الأحمدي — الصباحية</span><strong>8 د.ك</strong></div>
+          <div class="pc-row"><span>الشاليهات</span><strong>16 د.ك</strong></div>
+          <div class="pc-row"><span>الوفرة — النويصيب</span><strong>20 د.ك</strong></div>
+          <div class="pc-row"><span>السالمي — العبدلي</span><strong>20 د.ك</strong></div>
+          </div>
         <div class="price-card">
-          <div class="pc-head">🔩 الورشة — صيانة عامة</div>
-          <div class="pc-row"><span>فحص شامل للسيارة</span><strong>10 د.ك</strong></div>
-          <div class="pc-row"><span>تغيير زيت + فلتر</span><strong>من 8 د.ك</strong></div>
-          <div class="pc-row"><span>استبدال بطارية</span><strong>من 15 د.ك</strong></div>
-          <div class="pc-row"><span>تبديل إطار واحد</span><strong>من 8 د.ك</strong></div>
-          <div class="pc-row"><span>ضبط كمبيوتر السيارة</span><strong>15 د.ك</strong></div>
-          <div class="pc-row"><span>صيانة دورية شاملة</span><strong>من 25 د.ك</strong></div>
-          <div class="pc-row"><span>ضمان الإصلاح</span><strong>3 أشهر</strong></div>
-        </div>
+          <div class="pc-head">🚛 الونش — مركبة كبيرة</div>
+          <div class="pc-row"><span>المناطق القريبة من الشويخ (الخالدية، اليرموك، الري، الشويخ 1، كيفان)</span><strong>7 د.ك</strong></div>
+          <div class="pc-row"><span>خيطان — الفروانية</span><strong>11 د.ك</strong></div>
+          <div class="pc-row"><span>حولي — السالمية</span><strong>11 د.ك</strong></div>
+          <div class="pc-row"><span>الصليبية — أمغرة</span><strong>14 د.ك</strong></div>
+          <div class="pc-row"><span>الأحمدي — الصباحية</span><strong>13 د.ك</strong></div>
+          <div class="pc-row"><span>الشاليهات</span><strong>23 د.ك</strong></div>
+          <div class="pc-row"><span>الوفرة — النويصيب</span><strong>23 د.ك</strong></div>
+          <div class="pc-row"><span>السالمي — العبدلي</span><strong>25 د.ك</strong></div>
+          </div>
         <div class="price-card">
-          <div class="pc-head">⚡ كهرباء وتكييف</div>
-          <div class="pc-row"><span>فحص وتشخيص</span><strong>10 د.ك</strong></div>
-          <div class="pc-row"><span>شحن بطارية</span><strong>5 د.ك</strong></div>
-          <div class="pc-row"><span>إصلاح كهرباء (بسيط)</span><strong>من 15 د.ك</strong></div>
-          <div class="pc-row"><span>إصلاح كهرباء (متقدم)</span><strong>من 35 د.ك</strong></div>
-          <div class="pc-row"><span>صيانة تكييف</span><strong>من 20 د.ك</strong></div>
-          <div class="pc-row"><span>تعبئة فريون</span><strong>12 د.ك</strong></div>
-          <div class="pc-row"><span>استبدال كمبروسر</span><strong>من 80 د.ك</strong></div>
+          <div class="pc-head">🔩 الورشة — أجور العمل</div>
+          <div class="pc-row"><span>أجرة ساعة العمل</span><strong>5 د.ك</strong></div>
+          <div class="pc-row"><span>تبديل مضخة الماء</span><strong>10 د.ك</strong></div>
+          <div class="pc-row"><span>تبديل مبرد المحرك</span><strong>15 د.ك</strong></div>
+          <div class="pc-row"><span>تبديل مضخة وقود داخلية</span><strong>20 د.ك</strong></div>
+          <div class="pc-row"><span>عمرة محرك 4 أسطوانات (بنزين)</span><strong>80 د.ك</strong></div>
+          <div class="pc-row"><span>عمرة محرك 8 أسطوانات (بنزين)</span><strong>170 د.ك</strong></div>
+          <div class="pc-row"><span>رسوم إدارية عند توفير القطع من الشركة</span><strong>7% / 10%</strong></div>
         </div>
       </div>
       <div style="background:rgba(46,44,120,.04);border:1px solid rgba(46,44,120,.08);border-radius:12px;padding:14px 18px;margin-top:18px;font-size:.78rem;color:var(--gray);line-height:1.9">
-        ⚠️ <strong style="color:var(--navy)">ملاحظة:</strong> الأسعار تقريبية — السعر النهائي بعد معاينة السيارة | جميع الأسعار شاملة ضريبة القيمة المضافة | يُعطى عرض سعر مفصل قبل بدء أي عمل | نقبل الدفع نقداً وبالبطاقة وعبر KNET
-      </div>
+        ⚠️ <strong style="color:var(--navy)">ملاحظة:</strong> الأسعار من لوائح الشركة المعلنة (بالدينار الكويتي). مركز الأوناش يعمل 24 ساعة، 7 أيام في الأسبوع، وخلال الإجازات الرسمية والعطلات. أجور الورشة بالساعة، وتُضاف 7% رسوماً إدارية لموظفي الشركة و10% لغيرهم عند توفير قطع الغيار عن طريق الشركة</div>
     </div>
   </div>
 
@@ -1223,7 +1227,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 <!-- FLOATING CALL -->
 <div class="floating-call">
   <div class="fc-label">طوارئ 24/7</div>
-  <button class="fc-btn" onclick="showToast('📞 جاري الاتصال: 22228800')">🚨 22228800</button>
+  <button class="fc-btn" onclick="showToast('📞 جاري الاتصال: 22328866')">🚨 22328866</button>
 </div>
 
 <!-- SUCCESS MODAL -->
@@ -1257,7 +1261,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 
 <script>
 // ── STATE ──
-let carType = 'سيارة عادية';
+let carType = 'سيارة عادية (صالون)';
 let carExtra = 0;
 let probExtra = 0;
 let towDist = 8;
@@ -1291,22 +1295,23 @@ function selProb(el, name, extra) {
 
 // ── ORDER UPDATE ──
 function updateWinchOrder() {
-  const dist = parseInt(document.getElementById('distSelect')?.value || 8);
+  // published tariff: value = "salon,large"; carExtra = 0 for a salon car, 1 for a large vehicle
+  const pr = (document.getElementById('distSelect')?.value || '5,7').split(',').map(Number);
+  const dist = carExtra ? pr[1] : pr[0];
   towDist = dist;
-  const base = 5;
-  const total = base + carExtra + dist + probExtra;
+  const base = 0;
+  const total = dist + probExtra;
   document.getElementById('sum-car').textContent = carType;
   const gov = document.getElementById('govSelect')?.value || '';
   const area = document.getElementById('areaInput')?.value || '';
   document.getElementById('sum-loc').textContent = (gov && gov!=='اختر') ? `${gov}${area?'، '+area:''}` : '—';
   document.getElementById('sum-dest').textContent = document.getElementById('destSelect')?.value?.split('(')[0].trim() || 'ورشة KPTC';
   document.getElementById('sum-plate').textContent = document.getElementById('winchPlate')?.value || '—';
-  document.getElementById('sum-base').textContent = base + '.000 د.ك';
-  document.getElementById('sum-tow').textContent = (dist + carExtra) + '.000 د.ك';
+  document.getElementById('sum-base').textContent = 'مشمولة';
+  document.getElementById('sum-tow').textContent = dist + '.000 د.ك';
   document.getElementById('sum-extra').textContent = probExtra ? probExtra+'.000 د.ك' : '—';
   document.getElementById('sum-total').textContent = total + '.000 د.ك';
-  const etaMin = dist<=8?'10-18':dist<=12?'15-25':dist<=18?'20-35':'30-50';
-  document.getElementById('etaMin').textContent = etaMin;
+  document.getElementById('etaMin').textContent = '—';
 }
 
 // ── LOCATION ──
@@ -1508,7 +1513,7 @@ updateWinchOrder();
 
   // emoji → icon name ; null = decorative, removed ; "dot:x" = coloured status dot
   var E = {
-    '✅':'check|ok','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
+    '✅':'check|ok','📠':'doc','☎':'phone','🗓':'cal','💱':'money','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
     '💳':'card','🔧':'wrench','🔩':'wrench','🛠':'wrench','📥':'download','📤':'upload','📞':'phone','🔍':'search','🔎':'search','📍':'pin','📌':'pin',
     '📧':'mail','📬':'mail','📭':'mail','📅':'cal','📆':'cal','🗺':'map','👤':'user','👥':'users','🧑':'user','👔':'user','👷':'user','👶':'user','📱':'mobile','🍎':'mobile',
     '✏':'edit','📝':'doc','📄':'doc','🏢':'building','🏙':'building','🏭':'building','🏨':'building','🏬':'store','👁':'eye','📢':'mega','👑':'crown',
@@ -1547,14 +1552,16 @@ updateWinchOrder();
     RX.lastIndex = 0;
     if (!v || !RX.test(v)) return;
     var par = t.parentNode; if (!par || SKIP[par.nodeName] || (par.closest && par.closest('svg,textarea,[contenteditable],.ki'))) return;
-    var f = document.createDocumentFragment(), last = 0; RX.lastIndex = 0; var m;
+    var f = document.createDocumentFragment(), last = 0, changed = false; RX.lastIndex = 0; var m;
     while ((m = RX.exec(v))){
       if (m.index > last) f.appendChild(document.createTextNode(v.slice(last, m.index)));
       var n = icon(m[0]);
-      if (n) f.appendChild(n);
-      else if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++;   // eat the trailing space of a removed decoration
+      if (n && n.nodeType === 1){ f.appendChild(n); changed = true; }
+      else if (n) f.appendChild(n);                       // unmapped pictograph: left as it is
+      else { changed = true; if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++; }   // decoration removed, with its trailing space
       last = RX.lastIndex;
     }
+    if (!changed) return;   // nothing to swap: never re-insert identical text (it would re-trigger the observer forever)
     if (last < v.length) f.appendChild(document.createTextNode(v.slice(last)));
     par.replaceChild(f, t);
   }
@@ -1776,7 +1783,7 @@ updateWinchOrder();
 
 
   /* ---- routes: a real map (Leaflet + OpenStreetMap, both free) ---- */
-  var GEO = {'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
+  var GEO = {'المرقاب':[29.3698,47.9792],'الفحيحيل':[29.0825,48.1303],'دوار الأمم المتحدة':[29.3560,47.9270],'جليب الشيوخ':[29.2680,47.9130],'مطار الكويت':[29.2266,47.9689],'السليبية':[29.2990,47.7500],'أمغرة':[29.3250,47.7900],'صبحان':[29.2975,48.0600],'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
   function routesMap(){
     var box = document.getElementById('mapView'); if (!box || OWN !== 'routes') return;
     var el = document.createElement('div'); el.id = 'kpMap'; box.insertBefore(el, box.firstChild);
@@ -1786,22 +1793,30 @@ updateWinchOrder();
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18, attribution:'&copy; OpenStreetMap'}).addTo(map);
       var layer = L.layerGroup().addTo(map), base = L.layerGroup().addTo(map), busTimer = null, list = [];
       try { list = routes; } catch(x){}
-      function pts(r){ return r.path.replace(/\(.*?\)/g,'').split('—').map(function(n){ n = n.trim(); return GEO[n] ? {n:n, ll:GEO[n]} : null; }).filter(Boolean); }
+      function pts(r){ return (r.stops || []).map(function(n){ return GEO[n] ? {n:n, ll:GEO[n]} : null; }).filter(Boolean); }
       function stop(p, end){ return L.marker(p.ll, {icon:L.divIcon({className:'', html:'<div class="kp-stop' + (end ? ' end' : '') + '"></div>', iconSize:[20,20], iconAnchor:[end?10:8, end?10:8]})}).bindTooltip(p.n, {className:'kp-tip', direction:'top', offset:[0,-8]}); }
       list.forEach(function(r){ var p = pts(r); if (p.length > 1) L.polyline(p.map(function(x){ return x.ll; }), {color:'#2E2C78', weight:3, opacity:.22}).addTo(base); });
-      Object.keys(GEO).slice(0, 19).forEach(function(n){ L.circleMarker(GEO[n], {radius:4, color:'#2E2C78', weight:2, fillColor:'#fff', fillOpacity:1}).bindTooltip(n, {className:'kp-tip', direction:'top'}).addTo(base); });
+      ['المالية','المرقاب','الشرق','دوار الأمم المتحدة','السالمية','جليب الشيوخ','صبحان','الفحيحيل','الجهراء','السليبية','أمغرة','خيطان','مطار الكويت'].forEach(function(n){ L.circleMarker(GEO[n], {radius:4, color:'#2E2C78', weight:2, fillColor:'#fff', fillOpacity:1}).bindTooltip(n, {className:'kp-tip', direction:'top'}).addTo(base); });
       function draw(num){
         var r = list.filter(function(x){ return x.num === num; })[0]; if (!r) return;
-        var p = pts(r); if (p.length < 2) return;
-        layer.clearLayers(); clearInterval(busTimer); base.eachLayer(function(l){ if (l.setStyle) l.setStyle({opacity:.1}); });
-        var ll = p.map(function(x){ return x.ll; });
-        L.polyline(ll, {color:'#14133A', weight:9, opacity:.9, lineCap:'round'}).addTo(layer);
-        L.polyline(ll, {color:'#FFC93C', weight:4, opacity:1, lineCap:'round'}).addTo(layer);
-        p.forEach(function(x, i){ stop(x, i === 0 || i === p.length-1).addTo(layer); });
-        var bus = L.marker(ll[0], {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,22]}), interactive:false}).addTo(layer), t = 0;
-        busTimer = setInterval(function(){ t = (t + .004) % 1; var f = t * (ll.length-1), i = Math.floor(f), k = f - i, a = ll[i], b = ll[i+1] || a; bus.setLatLng([a[0] + (b[0]-a[0])*k, a[1] + (b[1]-a[1])*k]); }, 40);
-        map.flyToBounds(L.latLngBounds(ll).pad(.25), {duration:.8});
+        var p = pts(r); if (!p.length) return;
+        layer.clearLayers(); clearInterval(busTimer);
+        // the company publishes each route's main terminal; the full path is on the official network map
+        var big = L.circleMarker(p[0].ll, {radius:16, color:'#14133A', weight:4, fillColor:'#FFC93C', fillOpacity:1}).addTo(layer);
+        big.bindTooltip('محطة ' + p[0].n + ' — خط ' + r.num, {className:'kp-tip', direction:'top', permanent:true, offset:[0,-14]}).openTooltip();
+        var bus = L.marker(p[0].ll, {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,32]}), interactive:false}).addTo(layer);
+        map.flyTo(p[0].ll, 13, {duration:.8});
       }
+      window.kpOfficialMap = function(){
+        var lb = document.getElementById('kpNetMap');
+        if (!lb){
+          lb = document.createElement('div'); lb.id = 'kpNetMap'; lb.className = 'kp-netmap';
+          lb.innerHTML = '<div class="kp-netmap-in"><button type="button" aria-label="إغلاق">×</button><img src="../assets/kbus-network-map.jpg" alt="خريطة شبكة K-Bus الرسمية"><p>خريطة شبكة K-Bus الرسمية من موقع شركة النقل العام الكويتية · اسحب للتنقل وكبّر بالأصبع</p></div>';
+          lb.addEventListener('click', function(e){ if (e.target === lb || e.target.tagName === 'BUTTON') lb.classList.remove('on'); });
+          document.body.appendChild(lb);
+        }
+        lb.classList.add('on');
+      };
       var orig = window.selectRoute; if (typeof orig === 'function') window.selectRoute = function(n){ var r = orig.apply(this, arguments); try { draw(n); } catch(x){} return r; };
       var z = box.querySelectorAll('.map-zoom .zoom-btn');
       if (z[0]) z[0].addEventListener('click', function(){ map.zoomIn(); });

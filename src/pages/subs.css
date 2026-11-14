@@ -19,3 +19,5 @@
 .faq-q:hover{background:transparent!important;color:var(--kp-indigo)}
 .hero-tab{font-weight:600}
 .hero-tab .tab-badge{border-radius:2px!important}
+/* the published Savings Card has fixed 31/91-day prices: no monthly/annual switch */
+div:has(>#billingToggle){display:none!important}

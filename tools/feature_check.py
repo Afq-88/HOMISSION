@@ -16,6 +16,16 @@ def load(p):
 # Content removals requested by the owner (applied to the baseline before comparing)
 REWRITES = [('للمهندس عبدالله', 'للإدارة العليا'), ('لـ المهندس عبدالله', 'للإدارة العليا'),
             ('المهندس عبدالله', 'الإدارة العليا'), ('إرسال للمهندس', 'إرسال للإدارة'),
+            ('22228800', '22328866'), ('22328800', '22328866'),
+            ("سيتواصل معك فريق الإعلانات خلال ساعة'", "اتصل بإدارة التسويق: 22328866'"),
+            ("quickSearch('حولي','الكويت سيتي')", "quickSearch('المالية','المرقاب')"), ("quickSearch('الفروانية','السالمية')", "quickSearch('الشرق','المالية')"),
+            ("quickSearch('خيطان','الشويخ')", "quickSearch('المرقاب','جليب الشيوخ')"), ("quickSearch('الجابرية','الفحاحيل')", "quickSearch('السالمية','المالية')"),
+            ("quickSearch('السالمية','الجهراء')", "quickSearch('دوار الأمم المتحدة','المرقاب')"),
+            ("filterRoutes('fast',this)", "filterRoutes('maliya',this)"), ("filterRoutes('direct',this)", "filterRoutes('mirqab',this)"), ("filterRoutes('24h',this)", "filterRoutes('jleeb',this)"),
+            ("selCar(this,'سيارة عادية',8)", "selCar(this,'سيارة عادية (صالون)',0)"), ("selCar(this,'SUV / 4×4',12)", "selCar(this,'SUV / 4×4 (مركبة كبيرة)',1)"),
+            ("selCar(this,'بيكأب',15)", "selCar(this,'بيكأب (مركبة كبيرة)',1)"), ("selCar(this,'حافلة / شاحنة',25)", "selCar(this,'حافلة / شاحنة (مركبة كبيرة)',1)"),
+            ("selProb(this,'حادث مروري',5)", "selProb(this,'حادث مروري',0)"),
+            ("selectPay(this,'Apple Pay')", "selectPay(this,'CashU')"), ("selectPay(this,'Google Pay')", "selectPay(this,'UAE Exchange')"),
             ('للمديرة', 'للمدير'), ('المديرة', 'المدير'), ('مشرفة التسويق', 'مشرف التسويق')]
 
 def strip_injected(s):

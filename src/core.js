@@ -111,7 +111,7 @@
 
   // emoji → icon name ; null = decorative, removed ; "dot:x" = coloured status dot
   var E = {
-    '✅':'check|ok','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
+    '✅':'check|ok','📠':'doc','☎':'phone','🗓':'cal','💱':'money','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
     '💳':'card','🔧':'wrench','🔩':'wrench','🛠':'wrench','📥':'download','📤':'upload','📞':'phone','🔍':'search','🔎':'search','📍':'pin','📌':'pin',
     '📧':'mail','📬':'mail','📭':'mail','📅':'cal','📆':'cal','🗺':'map','👤':'user','👥':'users','🧑':'user','👔':'user','👷':'user','👶':'user','📱':'mobile','🍎':'mobile',
     '✏':'edit','📝':'doc','📄':'doc','🏢':'building','🏙':'building','🏭':'building','🏨':'building','🏬':'store','👁':'eye','📢':'mega','👑':'crown',
@@ -150,14 +150,16 @@
     RX.lastIndex = 0;
     if (!v || !RX.test(v)) return;
     var par = t.parentNode; if (!par || SKIP[par.nodeName] || (par.closest && par.closest('svg,textarea,[contenteditable],.ki'))) return;
-    var f = document.createDocumentFragment(), last = 0; RX.lastIndex = 0; var m;
+    var f = document.createDocumentFragment(), last = 0, changed = false; RX.lastIndex = 0; var m;
     while ((m = RX.exec(v))){
       if (m.index > last) f.appendChild(document.createTextNode(v.slice(last, m.index)));
       var n = icon(m[0]);
-      if (n) f.appendChild(n);
-      else if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++;   // eat the trailing space of a removed decoration
+      if (n && n.nodeType === 1){ f.appendChild(n); changed = true; }
+      else if (n) f.appendChild(n);                       // unmapped pictograph: left as it is
+      else { changed = true; if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++; }   // decoration removed, with its trailing space
       last = RX.lastIndex;
     }
+    if (!changed) return;   // nothing to swap: never re-insert identical text (it would re-trigger the observer forever)
     if (last < v.length) f.appendChild(document.createTextNode(v.slice(last)));
     par.replaceChild(f, t);
   }
@@ -379,7 +381,7 @@
 
 
   /* ---- routes: a real map (Leaflet + OpenStreetMap, both free) ---- */
-  var GEO = {'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
+  var GEO = {'المرقاب':[29.3698,47.9792],'الفحيحيل':[29.0825,48.1303],'دوار الأمم المتحدة':[29.3560,47.9270],'جليب الشيوخ':[29.2680,47.9130],'مطار الكويت':[29.2266,47.9689],'السليبية':[29.2990,47.7500],'أمغرة':[29.3250,47.7900],'صبحان':[29.2975,48.0600],'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
   function routesMap(){
     var box = document.getElementById('mapView'); if (!box || OWN !== 'routes') return;
     var el = document.createElement('div'); el.id = 'kpMap'; box.insertBefore(el, box.firstChild);
@@ -389,22 +391,30 @@
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18, attribution:'&copy; OpenStreetMap'}).addTo(map);
       var layer = L.layerGroup().addTo(map), base = L.layerGroup().addTo(map), busTimer = null, list = [];
       try { list = routes; } catch(x){}
-      function pts(r){ return r.path.replace(/\(.*?\)/g,'').split('—').map(function(n){ n = n.trim(); return GEO[n] ? {n:n, ll:GEO[n]} : null; }).filter(Boolean); }
+      function pts(r){ return (r.stops || []).map(function(n){ return GEO[n] ? {n:n, ll:GEO[n]} : null; }).filter(Boolean); }
       function stop(p, end){ return L.marker(p.ll, {icon:L.divIcon({className:'', html:'<div class="kp-stop' + (end ? ' end' : '') + '"></div>', iconSize:[20,20], iconAnchor:[end?10:8, end?10:8]})}).bindTooltip(p.n, {className:'kp-tip', direction:'top', offset:[0,-8]}); }
       list.forEach(function(r){ var p = pts(r); if (p.length > 1) L.polyline(p.map(function(x){ return x.ll; }), {color:'#2E2C78', weight:3, opacity:.22}).addTo(base); });
-      Object.keys(GEO).slice(0, 19).forEach(function(n){ L.circleMarker(GEO[n], {radius:4, color:'#2E2C78', weight:2, fillColor:'#fff', fillOpacity:1}).bindTooltip(n, {className:'kp-tip', direction:'top'}).addTo(base); });
+      ['المالية','المرقاب','الشرق','دوار الأمم المتحدة','السالمية','جليب الشيوخ','صبحان','الفحيحيل','الجهراء','السليبية','أمغرة','خيطان','مطار الكويت'].forEach(function(n){ L.circleMarker(GEO[n], {radius:4, color:'#2E2C78', weight:2, fillColor:'#fff', fillOpacity:1}).bindTooltip(n, {className:'kp-tip', direction:'top'}).addTo(base); });
       function draw(num){
         var r = list.filter(function(x){ return x.num === num; })[0]; if (!r) return;
-        var p = pts(r); if (p.length < 2) return;
-        layer.clearLayers(); clearInterval(busTimer); base.eachLayer(function(l){ if (l.setStyle) l.setStyle({opacity:.1}); });
-        var ll = p.map(function(x){ return x.ll; });
-        L.polyline(ll, {color:'#14133A', weight:9, opacity:.9, lineCap:'round'}).addTo(layer);
-        L.polyline(ll, {color:'#FFC93C', weight:4, opacity:1, lineCap:'round'}).addTo(layer);
-        p.forEach(function(x, i){ stop(x, i === 0 || i === p.length-1).addTo(layer); });
-        var bus = L.marker(ll[0], {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,22]}), interactive:false}).addTo(layer), t = 0;
-        busTimer = setInterval(function(){ t = (t + .004) % 1; var f = t * (ll.length-1), i = Math.floor(f), k = f - i, a = ll[i], b = ll[i+1] || a; bus.setLatLng([a[0] + (b[0]-a[0])*k, a[1] + (b[1]-a[1])*k]); }, 40);
-        map.flyToBounds(L.latLngBounds(ll).pad(.25), {duration:.8});
+        var p = pts(r); if (!p.length) return;
+        layer.clearLayers(); clearInterval(busTimer);
+        // the company publishes each route's main terminal; the full path is on the official network map
+        var big = L.circleMarker(p[0].ll, {radius:16, color:'#14133A', weight:4, fillColor:'#FFC93C', fillOpacity:1}).addTo(layer);
+        big.bindTooltip('محطة ' + p[0].n + ' — خط ' + r.num, {className:'kp-tip', direction:'top', permanent:true, offset:[0,-14]}).openTooltip();
+        var bus = L.marker(p[0].ll, {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,32]}), interactive:false}).addTo(layer);
+        map.flyTo(p[0].ll, 13, {duration:.8});
       }
+      window.kpOfficialMap = function(){
+        var lb = document.getElementById('kpNetMap');
+        if (!lb){
+          lb = document.createElement('div'); lb.id = 'kpNetMap'; lb.className = 'kp-netmap';
+          lb.innerHTML = '<div class="kp-netmap-in"><button type="button" aria-label="إغلاق">×</button><img src="../assets/kbus-network-map.jpg" alt="خريطة شبكة K-Bus الرسمية"><p>خريطة شبكة K-Bus الرسمية من موقع شركة النقل العام الكويتية · اسحب للتنقل وكبّر بالأصبع</p></div>';
+          lb.addEventListener('click', function(e){ if (e.target === lb || e.target.tagName === 'BUTTON') lb.classList.remove('on'); });
+          document.body.appendChild(lb);
+        }
+        lb.classList.add('on');
+      };
       var orig = window.selectRoute; if (typeof orig === 'function') window.selectRoute = function(n){ var r = orig.apply(this, arguments); try { draw(n); } catch(x){} return r; };
       var z = box.querySelectorAll('.map-zoom .zoom-btn');
       if (z[0]) z[0].addEventListener('click', function(){ map.zoomIn(); });

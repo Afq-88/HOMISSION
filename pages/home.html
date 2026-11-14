@@ -46,22 +46,21 @@
       notice: {on:false, text:''},                 // site-wide announcement bar
       users: { 'u-demo': {id:'u-demo', name:'أحمد العلي', phone:'55501234', email:'demo@kptc.com.kw', pass:'123456', civil:'', joined:today(-190)} },
       session: null,
-      wallets: { 'u-demo': {balance:12.75, frozen:false, tx:[
-        {id:'TX-1003', d:today(-2),  t:'خصم',  a:-0.25, note:'تذكرة فردية — خط 15', by:'النظام'},
-        {id:'TX-1002', d:today(-9),  t:'خصم',  a:-15,   note:'تجديد الاشتراك الشهري', by:'النظام'},
-        {id:'TX-1001', d:today(-10), t:'تعبئة', a:28,    note:'تعبئة عبر كي نت', by:'العميل'}
+      wallets: { 'u-demo': {balance:20, frozen:false, tx:[
+        {id:'TX-1002', d:today(-9),  t:'خصم',  a:-10, note:'بطاقة التوفير — 31 يوماً', by:'النظام'},
+        {id:'TX-1001', d:today(-10), t:'تعبئة', a:30,  note:'تعبئة عبر كي نت', by:'العميل'}
       ]}},
       bookings: [
-        {id:'SUB-240611', uid:'u-demo', type:'اشتراك', page:'subs',  title:'الباقة الأساسية — شهري', d:today(-9),  status:'فعّال', amount:15,  until:today(21)},
-        {id:'UMR-58213',  uid:'u-demo', type:'عمرة',  page:'umrah', title:'مكة المكرمة + المدينة (11 يوماً) — مقعدان', d:today(-4), status:'مؤكد', amount:216},
+        {id:'SUB-240611', uid:'u-demo', type:'اشتراك', page:'subs',  title:'بطاقة التوفير — 31 يوماً', d:today(-9),  status:'فعّال', amount:10,  until:today(22)},
+        {id:'UMR-58213',  uid:'u-demo', type:'عمرة',  page:'umrah', title:'مكة المكرمة + المدينة (11 يوماً) — مقعدان', d:today(-4), status:'مؤكد', amount:170},
         {id:'LF-30418',   uid:'u-demo', type:'مفقودات', page:'lost', title:'محفظة جلد بنية — خط 21', d:today(-16), status:'وُجد الغرض', amount:0}
       ],
       news: [
-        {id:'N-5', d:today(-3),  cat:'أخبار الشركة', title:'تشغيل حافلات K-BUS الكهربائية الصديقة للبيئة', body:'انضمت حافلات K-eBus عديمة الانبعاثات إلى الأسطول ضمن خطة الشركة للنقل المستدام.', img:'kbus-ev.jpg', pub:true},
-        {id:'N-4', d:today(-12), cat:'بيانات صحفية', title:'تحديث شبكة خطوط K-Bus وإضافة مسارات سريعة', body:'تحديث يشمل المسارات السريعة X ويربط المناطق السكنية الجديدة بمراكز الأعمال.', img:'kbus-fleet.jpg', pub:true},
-        {id:'N-3', d:today(-25), cat:'المسؤولية الاجتماعية', title:'حملة «السلامة أولاً» لتوعية الركاب والسائقين', body:'حملة توعوية ميدانية وإلكترونية حول قواعد السلامة داخل الحافلات وفي المحطات.', img:'kbus-street.jpg', pub:true},
-        {id:'N-2', d:today(-40), cat:'أخبار الشركة', title:'انطلاق موسم رحلات العمرة بحافلات حديثة', body:'رحلات أسبوعية تشمل التأشيرة والسكن والمواصلات، مع حجز إلكتروني للمقاعد.', img:'umrah-art.jpg', pub:true},
-        {id:'N-1', d:today(-61), cat:'بيانات صحفية', title:'مركز الأوناش يعمل على مدار الساعة في المحافظات الست', body:'خدمة سحب ونقل المركبات متاحة 24 ساعة طوال أيام الأسبوع وخلال العطل الرسمية.', img:'tow-1.jpg', pub:true}
+        {id:'N-5', d:today(-3),  cat:'أخبار الشركة', title:'حافلات K-eBus الكهربائية عديمة الانبعاثات', body:'تضم صور الأسطول الرسمي حافلات K-eBus الكهربائية بشعار «Zero Emission»، ضمن توجه الشركة نحو بيئة صحية.', img:'kbus-ev.jpg', pub:true},
+        {id:'N-4', d:today(-12), cat:'أخبار الشركة', title:'بطاقة التوفير: 10 د.ك لـ 31 يوماً و25 د.ك لـ 91 يوماً', body:'بطاقة شخصية تتيح التنقل بلا حدود على جميع الخطوط. للاستفسار: 22328307.', img:'kbus-fleet.jpg', pub:true},
+        {id:'N-3', d:today(-25), cat:'المسؤولية الاجتماعية', title:'السلامة أولاً: معاً نعود بنقل آمن', body:'حملة توعوية تحمل شعار «السلامة أولاً» لتوعية الركاب والسائقين بقواعد السلامة.', img:'kbus-street.jpg', pub:true},
+        {id:'N-2', d:today(-40), cat:'أخبار الشركة', title:'رحلات العمرة بأسعار مميزة للمجموعات والشركات', body:'رحلة 6 أيام بـ 60 د.ك ورحلة 11 يوماً بـ 85 د.ك، والسعر يشمل السكن والمواصلات والتأشيرة.', img:'umrah-art.jpg', pub:true},
+        {id:'N-1', d:today(-61), cat:'بيانات صحفية', title:'مركز الأوناش يعمل على مدار الساعة', body:'خدمة سحب ونقل المركبات متاحة 24 ساعة، 7 أيام في الأسبوع، وخلال الإجازات الرسمية والعطلات.', img:'tow-1.jpg', pub:true}
       ],
       tenders: [
         {id:'T-2026-7', no:'2026/7', kind:'مناقصة',  title:'توريد وتركيب مظلات انتظار في محطات الحافلات', meet:today(6),  place:'مكتب مساعد المدير لشؤون المرافق والصيانة — صبحان الصناعية', close:today(21), box:'3', fee:75,  status:'مفتوحة'},
@@ -978,9 +977,9 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
 <div class="util">
   <div class="wrap">
     <div class="util-l">
-      <a href="tel:22228800">خدمة العملاء <span class="num">22228800</span></a>
+      <a href="tel:22328866">خدمة العملاء <span class="num">22328866</span></a>
       <a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a>
-      <span>المقر الرئيسي — حولي</span>
+      <span>المقر الرئيسي — المرقاب</span>
     </div>
     <label><span class="sr" hidden>اللغة</span>
       <select class="lang" aria-label="اللغة">
@@ -1032,13 +1031,13 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
 </div>
 
 <div class="kx-ticker" aria-label="آخر المستجدات">
-  <span class="kx-live"><i></i>الآن</span>
+  <span class="kx-live"><i></i>KPTC</span>
   <div class="kx-tape"><div class="kx-run" id="kxRun">
-    <a href="KPTC_Routes.html">خط <b class="num">15</b> إلى السالمية — الحافلة القادمة بعد <b class="num">3</b> دقائق</a>
-    <a href="KPTC_Subscriptions.html">اشتراك الثلاثة أشهر يوفّر عليك <b class="num">5</b> د.ك</a>
-    <a href="KPTC_Umrah.html">رحلة العمرة <b class="num">20</b> ديسمبر — بقيت <b class="num">3</b> مقاعد</a>
-    <a href="KPTC_RE_Client.html"><b class="num">12</b> مساحة تجارية متاحة للإيجار داخل محطاتنا</a>
-    <a href="KPTC_Winch.html">الونش يعمل على مدار الساعة — <b class="num">22228800</b></a>
+    <a href="KPTC_Subscriptions.html">بطاقة التوفير: <b class="num">10</b> د.ك لـ <b class="num">31</b> يوماً و<b class="num">25</b> د.ك لـ <b class="num">91</b> يوماً على جميع الخطوط</a>
+    <a href="KPTC_Umrah.html">رحلات العمرة: <b class="num">6</b> أيام بـ <b class="num">60</b> د.ك و<b class="num">11</b> يوماً بـ <b class="num">85</b> د.ك للشخص</a>
+    <a href="KPTC_Winch.html">مركز الأوناش يعمل <b class="num">24</b> ساعة طوال أيام الأسبوع في المحافظات الست</a>
+    <a href="KPTC_Routes.html">أكثر من <b class="num">400</b> حافلة و<b class="num">1,050</b> سائق في خدمتك</a>
+    <a href="#contact">الخط الساخن <b class="num">1880001</b> · الهاتف <b class="num">22328866</b></a>
   </div></div>
 </div>
 
@@ -1046,7 +1045,7 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
 <section class="hero">
   <div class="wrap">
     <div class="hero-main">
-      <p class="kx-eyebrow"><b class="num">40</b> مليون رحلة كل عام · نحرّك الكويت منذ <b class="num">1962</b></p>
+      <p class="kx-eyebrow">أكثر من <b class="num">400</b> حافلة · نحرّك الكويت منذ <b class="num">1962</b></p>
       <h1>إلى أين اليوم؟</h1>
       <p class="lead">ابحث عن خطك، اعرف متى تصل الحافلة القادمة، واشترك من مكانك.</p>
 
@@ -1055,7 +1054,7 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
           <div class="field">
             <label for="from">من</label>
             <select id="from" name="from">
-              <option>حولي</option><option>الفروانية</option><option>السالمية</option><option>مدينة الكويت</option><option>خيطان</option><option>الجابرية</option><option>الفحيحيل</option><option>الشويخ</option><option>الجهراء</option>
+              <option>المالية</option><option>المرقاب</option><option>الشرق</option><option>السالمية</option><option>جليب الشيوخ</option><option>صبحان</option><option>الفحيحيل</option><option>الجهراء</option><option>خيطان</option><option>السليبية</option><option>مطار الكويت</option>
             </select>
           </div>
           <button type="button" class="swap" id="swap" aria-label="تبديل الاتجاه">
@@ -1064,7 +1063,7 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
           <div class="field">
             <label for="to">إلى</label>
             <select id="to" name="to">
-              <option>السالمية</option><option>حولي</option><option>الفروانية</option><option>مدينة الكويت</option><option>خيطان</option><option>الجابرية</option><option>الفحيحيل</option><option>الشويخ</option><option>الجهراء</option>
+              <option>السالمية</option><option>جليب الشيوخ</option><option>صبحان</option><option>الفحيحيل</option><option>الجهراء</option><option>خيطان</option><option>السليبية</option><option>مطار الكويت</option><option>المالية</option><option>المرقاب</option><option>الشرق</option>
             </select>
           </div>
         </div>
@@ -1079,17 +1078,17 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
         <p class="quick">الأكثر بحثاً:
           <a href="KPTC_Routes.html">خط 15</a>
           <a href="KPTC_Routes.html">خط 21</a>
-          <a href="KPTC_Routes.html">الشويخ — المدينة</a>
+          <a href="KPTC_Routes.html">خط 77</a>
         </p>
-        <p class="kx-assure"><span>الدفع عبر كي نت</span><span><b class="num">150</b> خطاً</span><span><b class="num">6</b> محافظات</span></p>
+        <p class="kx-assure"><span>الدفع بكي نت وفيزا</span><span><b class="num">26</b> مساراً</span><span><b class="num">1,050</b> سائق</span></p>
       </form>
     </div>
 
     <aside class="hero-side" aria-label="الحافلات القادمة">
       <div class="sign-box">
         <div class="sign-head">
-          <span>محطة مجمع حولي</span>
-          <span class="live"><i></i>مباشر</span>
+          <span>لافتة المحطة — مثال</span>
+          <span class="live"><i></i>توضيحي</span>
         </div>
         <div class="led" id="led" aria-live="polite">
           <div class="led-route num" id="ledRoute">15</div>
@@ -1097,7 +1096,7 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
           <div class="led-min"><b class="num" id="ledMin">3</b><span>دقائق</span></div>
         </div>
         <div class="arrivals" id="arrivals"></div>
-        <p class="sign-note">الأوقات تقديرية وتتحدّث كل 30 ثانية.</p>
+        <p class="sign-note">أمثلة توضيحية لشكل اللافتة. للمواعيد الفعلية اتصل بالخط الساخن 1880001.</p>
       </div>
     </aside>
   </div>
@@ -1107,18 +1106,18 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
   <div class="wrap">
     <h2>ماذا تريد أن تنجز الآن؟</h2>
     <div class="kx-task-grid">
-      <a class="kx-task" href="KPTC_Subscriptions.html"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 10h19M6 15h4"/></svg></i><b>اشترك شهرياً</b><span>من <span class="num">15</span> د.ك، رحلات غير محدودة</span><em>الدفع بكي نت</em></a>
-      <a class="kx-task" href="KPTC_Umrah.html"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5v2M7.5 11.5C7.5 8 12 6.5 12 4.5c0 2 4.5 3.5 4.5 7M6 11.5h12M4 21V9.5M20 21V9.5M3 21h18M6 11.5V21M18 11.5V21M10 21v-3.5a2 2 0 0 1 4 0V21"/></svg></i><b>احجز رحلة عمرة</b><span>اختر مقعدك وادفع إلكترونياً</span><em>بقيت <span class="num">3</span> مقاعد</em></a>
+      <a class="kx-task" href="KPTC_Subscriptions.html"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 10h19M6 15h4"/></svg></i><b>بطاقة التوفير</b><span>من <span class="num">10</span> د.ك لـ <span class="num">31</span> يوماً</span><em>رحلات بلا حدود</em></a>
+      <a class="kx-task" href="KPTC_Umrah.html"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5v2M7.5 11.5C7.5 8 12 6.5 12 4.5c0 2 4.5 3.5 4.5 7M6 11.5h12M4 21V9.5M20 21V9.5M3 21h18M6 11.5V21M18 11.5V21M10 21v-3.5a2 2 0 0 1 4 0V21"/></svg></i><b>احجز رحلة عمرة</b><span>من <span class="num">60</span> د.ك شاملة التأشيرة</span><em>6 أو 11 يوماً</em></a>
       <a class="kx-task kx-hot" href="KPTC_Winch.html"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2.5 17V6h11v11M13.5 9.5h4L21 13v4h-2"/><circle cx="6.5" cy="17.5" r="2"/><circle cx="16.5" cy="17.5" r="2"/><path d="M8.5 17.5h6"/></svg></i><b>اطلب ونش</b><span>نصلك في أي مكان بالكويت</span><em>على مدار الساعة</em></a>
-      <a class="kx-task" href="KPTC_LostFound.html"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20.5 20.5-4.8-4.8"/></svg></i><b>أبلغ عن مفقود</b><span>نحتفظ بالأغراض <span class="num">30</span> يوماً</span><em>تابع بلاغك برقمه</em></a>
+      <a class="kx-task" href="KPTC_LostFound.html"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20.5 20.5-4.8-4.8"/></svg></i><b>أبلغ عن مفقود</b><span>أبلغ عن غرض نسيته في الحافلة</span><em>تابع بلاغك برقمه</em></a>
     </div>
   </div>
 </section>
 
 <div class="facts" id="about">
   <div class="wrap">
-    <p>نحرّك الكويت منذ أكثر من ستة عقود: <strong class="num">2,500</strong> حافلة مكيّفة، أكثر من <strong class="num">150</strong> خطاً في المحافظات الست، وأكثر من <strong>40 مليون</strong> رحلة كل عام.</p>
-    <div class="since"><b class="num">1962</b><span>أول مشغّل نقل عام<br>في الكويت</span></div>
+    <p>نحرّك الكويت منذ عام <strong class="num">1962</strong>: أكثر من <strong class="num">400</strong> حافلة و<strong class="num">1,050</strong> سائق يخدمون جميع مناطق الكويت، وقد نقلنا أكثر من <strong>70 مليون</strong> راكب في عام 2004 وحده.</p>
+    <div class="since"><b class="num">1962</b><span>تأسست بالمرسوم<br>الأميري رقم 60</span></div>
   </div>
 </div>
 
@@ -1136,30 +1135,30 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
         <h3><span class="tag"></span>التنقّل اليومي</h3>
         <ul class="stops">
           <li><a href="KPTC_Routes.html"><b>الخطوط والمسارات</b><span>ابحث عن خطك وتابع الحافلة على الخريطة.</span></a></li>
-          <li><a href="KPTC_Subscriptions.html"><b>الاشتراكات والتذاكر</b><span>اشتراك شهري بـ 15 د.ك لرحلات غير محدودة.</span></a></li>
-          <li><a href="KPTC_Subscriptions.html"><b>نقل المدارس</b><span>عقود سنوية بحافلات مخصّصة للطلاب.</span></a></li>
+          <li><a href="KPTC_Subscriptions.html"><b>الاشتراكات والتذاكر</b><span>بطاقة التوفير: 10 د.ك لـ 31 يوماً، رحلات بلا حدود.</span></a></li>
+          <li><a href="KPTC_VIP.html"><b>التأجير الداخلي</b><span>حافلات بجميع الأنواع والأحجام لكل الرحلات داخل الكويت.</span></a></li>
         </ul>
       </div>
       <div class="net-line l-trips">
         <h3><span class="tag"></span>الرحلات والمناسبات</h3>
         <ul class="stops">
-          <li><a href="KPTC_Umrah.html"><b>رحلات العمرة</b><span>اختر مقعدك وأضف التأمين، من 22 د.ك.</span></a></li>
-          <li><a href="KPTC_VIP.html"><b>باصات VIP</b><span>رحلات داخلية وخارجية بسائقين معتمدين.</span></a></li>
-          <li><a href="KPTC_VIP.html"><b>باص الديوانية</b><span>للأعراس والمناسبات والزيارات الجماعية.</span></a></li>
+          <li><a href="KPTC_Umrah.html"><b>رحلات العمرة</b><span>شاملة التأشيرة والسكن والمواصلات، من 60 د.ك.</span></a></li>
+          <li><a href="KPTC_VIP.html"><b>تأجير الحافلات السياحية</b><span>حافلات من 19 إلى 45 راكباً، بأسعار معلنة.</span></a></li>
+          <li><a href="KPTC_VIP.html"><b>التأجير الإقليمي</b><span>رحلات إلى الدول المجاورة بحافلات حديثة.</span></a></li>
         </ul>
       </div>
       <div class="net-line l-help">
         <h3><span class="tag"></span>عند الحاجة</h3>
         <ul class="stops">
-          <li><a href="KPTC_Winch.html"><b>الونش والورشة</b><span>نصلك في أي مكان بالكويت، على مدار الساعة.</span></a></li>
+          <li><a href="KPTC_Winch.html"><b>الونش والورشة</b><span>من الشويخ حتى العبدلي، 24 ساعة طوال أيام الأسبوع.</span></a></li>
           <li><a href="KPTC_LostFound.html"><b>المفقودات</b><span>أبلغ عن غرض نسيته في الحافلة وتابع بلاغك.</span></a></li>
-          <li><a href="#contact"><b>الشكاوى والاقتراحات</b><span>نرد عليك خلال يوم عمل واحد.</span></a></li>
+          <li><a href="#contact"><b>الخط الساخن</b><span>اتصل على 1880001 للاستفسار والملاحظات.</span></a></li>
         </ul>
       </div>
       <div class="net-line l-biz">
         <h3><span class="tag"></span>للأعمال</h3>
         <ul class="stops">
-          <li><a href="KPTC_Advertising.html"><b>الإعلان على الحافلات</b><span>إعلانك يتنقّل مع 2,500 حافلة في شوارع الكويت.</span></a></li>
+          <li><a href="KPTC_Advertising.html"><b>الإعلان على الحافلات</b><span>إعلانك يتنقّل مع أسطول يزيد على 400 حافلة.</span></a></li>
           <li><a href="KPTC_RE_Client.html"><b>مساحات للإيجار</b><span>محلات ومكاتب داخل محطات الشركة.</span></a></li>
           <li><a href="KPTC_Portal.html"><b>بوابة الموظفين</b><span>الإجازات والطلبات والكشوفات.</span></a></li>
         </ul>
@@ -1171,25 +1170,23 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
 <section class="block kx-calc-sec" id="calc">
   <div class="wrap kx-calc">
     <div class="kx-calc-in">
-      <h2>كم تدفع الآن في التذاكر؟</h2>
-      <p>حرّك المؤشرين حسب تنقّلك، ونحسب لك الفرق بصراحة — حتى لو كانت التذاكر الفردية أوفر لك.</p>
-      <label for="kxTrips">رحلاتك في اليوم <output id="kxTripsO" class="num">4</output></label>
-      <input type="range" id="kxTrips" min="1" max="8" value="4">
-      <label for="kxDays">أيام التنقّل في الأسبوع <output id="kxDaysO" class="num">6</output></label>
-      <input type="range" id="kxDays" min="1" max="7" value="6">
-      <small>التذكرة الفردية <span class="num">0.250</span> د.ك · الاشتراك الشهري <span class="num">15</span> د.ك لرحلات غير محدودة</small>
+      <h2>كم تصرف على تنقّلك كل شهر؟</h2>
+      <p>حرّك المؤشر حسب ما تدفعه الآن، ونحسب لك الفرق مع بطاقة التوفير بصراحة، حتى لو كانت بطاقتنا لا تناسبك.</p>
+      <label for="kxSpend">إنفاقك الشهري على التنقّل (د.ك) <output id="kxSpendO" class="num">20</output></label>
+      <input type="range" id="kxSpend" min="2" max="60" step="1" value="20">
+      <small>بطاقة التوفير: <span class="num">10</span> د.ك لـ <span class="num">31</span> يوماً، أو <span class="num">25</span> د.ك لـ <span class="num">91</span> يوماً، على جميع الخطوط.</small>
     </div>
     <div class="kx-calc-out" aria-live="polite">
       <div class="kx-bars">
-        <div class="kx-bar"><span>بالتذاكر الفردية</span><div class="kx-track"><i id="kxBarT"></i></div><b><span class="num" id="kxPay">26.0</span> د.ك</b></div>
-        <div class="kx-bar kx-sub"><span>بالاشتراك الشهري</span><div class="kx-track"><i id="kxBarS"></i></div><b><span class="num">15.0</span> د.ك</b></div>
+        <div class="kx-bar"><span>إنفاقك الحالي</span><div class="kx-track"><i id="kxBarT"></i></div><b><span class="num" id="kxPay">20.0</span> د.ك</b></div>
+        <div class="kx-bar kx-sub"><span>بطاقة 31 يوماً</span><div class="kx-track"><i id="kxBarS"></i></div><b><span class="num">10.0</span> د.ك</b></div>
       </div>
       <div class="kx-verdict" id="kxVerdict">
-        <small id="kxVLabel">تخسر كل شهر بدون اشتراك</small>
-        <strong><span class="num" id="kxSave">11.0</span> د.ك</strong>
-        <p id="kxVNote">أي <span class="num" id="kxYear">132</span> د.ك في السنة.</p>
+        <small id="kxVLabel">توفّر كل شهر مع بطاقة التوفير</small>
+        <strong><span class="num" id="kxSave">10.0</span> د.ك</strong>
+        <p id="kxVNote">وبالبطاقة 91 يوماً تصل إلى <span class="num" id="kxYear">0</span> د.ك في السنة.</p>
       </div>
-      <a class="btn kx-go" id="kxCta" href="KPTC_Subscriptions.html">اشترك ووفّر الفرق</a>
+      <a class="btn kx-go" id="kxCta" href="KPTC_Subscriptions.html">اشترك في بطاقة التوفير</a>
     </div>
   </div>
 </section>
@@ -1199,7 +1196,7 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
     <div class="sec-head">
       <div>
         <h2>اشتراكات تناسب طريقتك في التنقّل</h2>
-        <p>كل الاشتراكات تشمل جميع الخطوط، وتُدفع إلكترونياً عبر كي نت.</p>
+        <p>بطاقة التوفير تشمل جميع الخطوط، وتُدفع إلكترونياً بكي نت أو فيزا أو ماستركارد.</p>
       </div>
       <a class="text-link" href="KPTC_Subscriptions.html">قارن كل الباقات</a>
     </div>
@@ -1207,22 +1204,22 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
       <thead><tr><th>الباقة</th><th>السعر</th><th>تشمل</th><th></th></tr></thead>
       <tbody>
         <tr>
-          <td class="plan"><b>الأساسية</b><span>للتنقّل اليومي</span></td>
-          <td class="price"><b class="num">15</b><span>د.ك / شهر</span><small class="kx-perday">نصف دينار في اليوم</small></td>
-          <td class="inc">رحلات غير محدودة على كل الخطوط، وبطاقة ذكية قابلة لإعادة الشحن.</td>
-          <td class="go"><a class="btn btn-row" href="KPTC_Subscriptions.html">اشترك في الأساسية</a></td>
+          <td class="plan"><b>بطاقة التوفير</b><span>31 يوماً</span></td>
+          <td class="price"><b class="num">10</b><span>د.ك / 31 يوماً</span><small class="kx-perday">نحو 0.32 د.ك في اليوم</small></td>
+          <td class="inc">رحلات بلا حدود على جميع الخطوط.</td>
+          <td class="go"><a class="btn btn-row" href="KPTC_Subscriptions.html">اشترك لـ 31 يوماً</a></td>
         </tr>
         <tr class="pick">
-          <td class="plan"><b>المميزة<span class="pick-note">توفّر 5 د.ك</span></b><span>لثلاثة أشهر</span></td>
-          <td class="price"><b class="num">40</b><span>د.ك / 3 أشهر</span><small class="kx-perday">بدل <s class="num">45</s> د.ك شهرياً</small></td>
-          <td class="inc">كل مزايا الأساسية، مع أولوية في المقاعد وخصم على رحلات VIP.</td>
-          <td class="go"><a class="btn btn-row" href="KPTC_Subscriptions.html">اشترك في المميزة</a></td>
+          <td class="plan"><b>بطاقة التوفير<span class="pick-note">توفّر 5 د.ك</span></b><span>91 يوماً</span></td>
+          <td class="price"><b class="num">25</b><span>د.ك / 91 يوماً</span><small class="kx-perday">بدل <s class="num">30</s> د.ك لثلاث بطاقات شهرية</small></td>
+          <td class="inc">رحلات بلا حدود على جميع الخطوط، بسعر أقل في اليوم.</td>
+          <td class="go"><a class="btn btn-row" href="KPTC_Subscriptions.html">اشترك لـ 91 يوماً</a></td>
         </tr>
         <tr>
-          <td class="plan"><b>المدارس</b><span>للطلاب</span></td>
-          <td class="price"><b class="num">35</b><span>د.ك / فصل</span></td>
-          <td class="inc">توصيل يومي من باب المنزل إلى المدرسة، مع مشرف داخل الحافلة.</td>
-          <td class="go"><a class="btn btn-row" href="KPTC_Subscriptions.html">سجّل طالباً</a></td>
+          <td class="plan"><b>اشتراكات الجهات</b><span>الهيئات والوزارات والشركات</span></td>
+          <td class="price"><b class="num">50%</b><span>خصم يصل إلى</span></td>
+          <td class="inc">نظام اشتراكات مرن بخصومات تصل إلى 50%، بالتعاقد مع الشركة.</td>
+          <td class="go"><a class="btn btn-row" href="KPTC_Subscriptions.html">اطلب عرض سعر</a></td>
         </tr>
       </tbody>
     </table>
@@ -1242,14 +1239,14 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
 
 <section class="kx-umrah" aria-label="رحلة العمرة القادمة">
   <div class="wrap">
-    <div class="kx-date"><b class="num">20</b><span>ديسمبر</span></div>
+    <div class="kx-date"><b class="num">60</b><span>د.ك</span></div>
     <div class="kx-umrah-t">
-      <small>رحلة العمرة القادمة</small>
-      <h2>مكة المكرمة والمدينة المنورة، <span class="num">11</span> يوماً</h2>
-      <p>شاملة التأشيرة والسكن والمواصلات، من <span class="num">108</span> د.ك للشخص.</p>
+      <small>رحلات العمرة</small>
+      <h2>رحلة عمرة <span class="num">6</span> أيام أو <span class="num">11</span> يوماً</h2>
+      <p>السعر يشمل السكن والمواصلات والتأشيرة فقط، للشخص في غرفة جماعية.</p>
     </div>
-    <div class="kx-seats" aria-label="المقاعد المتبقية"><div class="kx-seat-row" id="kxSeats"></div><span>بقيت <b class="num">3</b> مقاعد فقط</span></div>
-    <a class="btn btn-sign" href="KPTC_Umrah.html">احجز مقعدك</a>
+    <div class="kx-seats"><span><b class="num">6</b> أيام (3 ليالٍ في مكة): <b class="num">60</b> د.ك</span><span><b class="num">11</b> يوماً (6 ليالٍ في مكة وليلتان في المدينة): <b class="num">85</b> د.ك</span></div><span>بقيت <b class="num">3</b> مقاعد فقط</span></div>
+    <a class="btn btn-sign" href="KPTC_Umrah.html">اطّلع على الرحلات</a>
   </div>
 </section>
 
@@ -1260,7 +1257,7 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
       <p>فريق الونش يصلك في أي مكان بالكويت، ليلاً ونهاراً.</p>
     </div>
     <div class="sos-actions">
-      <a class="tel num" href="tel:22228800">22228800</a>
+      <a class="tel num" href="tel:22328866">22328866</a>
       <a class="btn" href="KPTC_Winch.html">اطلب ونش</a>
     </div>
   </div>
@@ -1268,19 +1265,19 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
 
 <section class="block kx-biz" id="business">
   <div class="wrap">
-    <div class="sec-head"><div><h2><span class="num">128,000</span> راكب يمرّون من محطاتنا كل يوم</h2><p>ضع نشاطك أو إعلانك حيث يمرّ الناس فعلاً.</p></div></div>
+    <div class="sec-head"><div><h2>أسطول يزيد على <span class="num">400</span> حافلة في شوارع الكويت</h2><p>ضع نشاطك أو إعلانك حيث يمرّ الناس فعلاً.</p></div></div>
     <div class="kx-biz-grid">
       <a class="kx-biz-card" href="KPTC_RE_Client.html">
-        <div class="kx-biz-top"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10.5V21h16V10.5M2.8 10.5 4.5 4h15l1.7 6.5zM9.5 21v-5.5h5V21"/></svg></i><em><span class="num">12</span> متاحة الآن</em></div>
+        <div class="kx-biz-top"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10.5V21h16V10.5M2.8 10.5 4.5 4h15l1.7 6.5zM9.5 21v-5.5h5V21"/></svg></i><em>للإيجار</em></div>
         <h3>مساحات للإيجار</h3>
-        <p>محلات، مطاعم، مكاتب ولوحات داخل <span class="num">8</span> مواقع في المحافظات الست.</p>
+        <p>محلات ومطاعم ومكاتب ولوحات داخل مواقع الشركة ومحطاتها.</p>
         <div class="kx-shop" aria-hidden="true"><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></div>
         <span class="kx-more">استعرض المساحات <i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></i></span>
       </a>
       <a class="kx-biz-card" href="KPTC_Advertising.html">
-        <div class="kx-biz-top"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10v4a1 1 0 0 0 1 1H7l7 4.5v-15L7 9H4.5a1 1 0 0 0-1 1zM7 15l1 5h2.5M18 8.5a5 5 0 0 1 0 7"/></svg></i><em><span class="num">2,500</span> حافلة</em></div>
+        <div class="kx-biz-top"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10v4a1 1 0 0 0 1 1H7l7 4.5v-15L7 9H4.5a1 1 0 0 0-1 1zM7 15l1 5h2.5M18 8.5a5 5 0 0 1 0 7"/></svg></i><em><span class="num">400</span>+ حافلة</em></div>
         <h3>الإعلان على الحافلات</h3>
-        <p>إعلانك يتحرّك في شوارع الكويت كل يوم، بباقات تبدأ من حافلات قليلة.</p>
+        <p>إعلانك يتحرّك في شوارع الكويت كل يوم على حافلات الشركة.</p>
         <div class="kx-adbus" aria-hidden="true"><i>إعلانك هنا</i></div>
         <span class="kx-more">ابنِ حملتك <i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></i></span>
       </a>
@@ -1295,12 +1292,12 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
       <p>تطبيق KPTC يجمع خدماتنا في جيبك، بالعربية والإنجليزية ولغات الجاليات.</p>
       <ul>
         <li>موعد حافلتك القادمة لحظة بلحظة</li>
-        <li>تجديد الاشتراك والدفع بكي نت</li>
+        <li>تجديد بطاقة التوفير والدفع بكي نت</li>
         <li>بلاغ المفقودات ومتابعته</li>
       </ul>
       <div class="stores">
-        <a class="store" href="#"><small>حمّله من</small><b>App Store</b></a>
-        <a class="store" href="#"><small>احصل عليه من</small><b>Google Play</b></a>
+        <span class="store"><small>قريباً على</small><b>App Store</b></span>
+        <span class="store"><small>قريباً على</small><b>Google Play</b></span>
       </div>
     </div>
     <div class="phone" aria-hidden="true">
@@ -1321,7 +1318,7 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
 
 <section class="kx-close">
   <div class="wrap">
-    <h2>رحلتك القادمة تبدأ بـ <span class="num">15</span> د.ك</h2>
+    <h2>رحلتك القادمة تبدأ بـ <span class="num">10</span> د.ك</h2>
     <div class="kx-close-a"><a class="btn btn-sign" href="KPTC_Subscriptions.html">اشترك الآن</a><a class="btn kx-ghost" href="KPTC_Routes.html">ابحث عن خطّك أولاً</a></div>
   </div>
 </section>
@@ -1331,14 +1328,14 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
     <div class="sec-head">
       <div>
         <h2>تواصل معنا</h2>
-        <p>فريق خدمة العملاء يرد على استفساراتك وشكاواك يومياً.</p>
+        <p>صندوق بريد <span class="num">375</span> الصفاة، <span class="num">13004</span> الكويت · فاكس <span class="num">22328870</span></p>
       </div>
     </div>
     <div class="contact-grid">
-      <div class="c-item"><span>خدمة العملاء</span><a class="num" href="tel:22228800">22228800</a></div>
-      <div class="c-item"><span>حجز العمرة</span><a class="num" href="tel:22328800">22328800</a></div>
+      <div class="c-item"><span>خدمة العملاء</span><a class="num" href="tel:22328866">22328866</a></div>
+      <div class="c-item"><span>الخط الساخن</span><a class="num" href="tel:1880001">1880001</a></div>
       <div class="c-item"><span>البريد الإلكتروني</span><a href="mailto:info@kptc.com.kw" style="font-size:18px">info@kptc.com.kw</a></div>
-      <div class="c-item"><span>المقر الرئيسي</span><b>حولي</b></div>
+      <div class="c-item"><span>المقر الرئيسي</span><b>المرقاب</b></div>
     </div>
   </div>
 </section>
@@ -1371,24 +1368,22 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
 <nav class="kx-rail" id="kxRail" aria-label="أقسام الصفحة"></nav>
 <script id="kptc-home-x">
 (function(){
-  /* savings calculator — plain arithmetic on published fares */
-  var T=document.getElementById('kxTrips'),D=document.getElementById('kxDays');
+  /* savings calculator: spend vs the published Savings Card prices */
+  var SP=document.getElementById('kxSpend');
   function calc(){
-    var trips=+T.value,days=+D.value,pay=trips*days*52/12*0.25,sub=15,diff=pay-sub,mx=Math.max(pay,sub,1);
-    document.getElementById('kxTripsO').textContent=trips;document.getElementById('kxDaysO').textContent=days;
+    var pay=+SP.value,sub=10,card91=25/3,diff=pay-sub,mx=Math.max(pay,sub,1);
+    document.getElementById('kxSpendO').textContent=pay;
     document.getElementById('kxPay').textContent=pay.toFixed(1);
     document.getElementById('kxBarT').style.width=(pay/mx*100)+'%';document.getElementById('kxBarS').style.width=(sub/mx*100)+'%';
     var v=document.getElementById('kxVerdict'),win=diff>0.5;
     v.classList.toggle('kx-even',!win);
-    document.getElementById('kxVLabel').textContent=win?'تخسر كل شهر بدون اشتراك':'التذاكر الفردية أوفر لك حالياً بفارق';
+    document.getElementById('kxVLabel').textContent=win?'توفّر كل شهر مع بطاقة التوفير':'إنفاقك أقل من سعر البطاقة بمقدار';
     document.getElementById('kxSave').textContent=Math.abs(diff).toFixed(1);
-    document.getElementById('kxVNote').innerHTML=win?'أي <span class="num">'+Math.round(diff*12)+'</span> د.ك في السنة.':'يصبح الاشتراك أوفر عند <span class="num">60</span> رحلة في الشهر.';
-    var c=document.getElementById('kxCta');c.textContent=win?'اشترك ووفّر الفرق':'اشترِ تذاكر فردية';
+    document.getElementById('kxVNote').innerHTML=win?'وبالبطاقة 91 يوماً تصل إلى <span class="num">'+Math.round((pay-card91)*12)+'</span> د.ك في السنة.':'البطاقة تفيدك إذا زاد إنفاقك الشهري على <span class="num">10</span> د.ك.';
+    var c=document.getElementById('kxCta');c.textContent=win?'اشترك في بطاقة التوفير':'اعرف المزيد عن البطاقة';
     v.classList.remove('kx-bump');void v.offsetWidth;v.classList.add('kx-bump');
   }
-  T.addEventListener('input',calc);D.addEventListener('input',calc);calc();
-  /* umrah seat strip: 30 seats, 3 left */
-  var st='';for(var k=0;k<30;k++)st+='<i'+(k>=27?' class="free"':'')+' style="--k:'+k+'"></i>';document.getElementById('kxSeats').innerHTML=st;
+  SP.addEventListener('input',calc);calc();
   /* ticker: duplicate the tape so it loops seamlessly */
   var run=document.getElementById('kxRun');run.innerHTML+=run.innerHTML;
   /* page rail: every section is a stop */
@@ -1406,11 +1401,11 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
 <script>
 (function(){
   var data=[
-    {r:'15',d:'السالمية',v:'عبر شارع تونس',m:3},
-    {r:'21',d:'الفروانية',v:'عبر الدائري الرابع',m:7},
-    {r:'40',d:'مدينة الكويت',v:'عبر شارع الخليج',m:11},
-    {r:'66',d:'الجهراء',v:'عبر الدائري السادس',m:16},
-    {r:'99',d:'الفحيحيل',v:'عبر طريق الفحيحيل',m:22}
+    {r:'15',d:'المالية',v:'المحطة الرئيسية',m:3},
+    {r:'21',d:'المرقاب',v:'المحطة الرئيسية',m:7},
+    {r:'40',d:'جليب الشيوخ',v:'المحطة الرئيسية',m:11},
+    {r:'77',d:'السالمية',v:'المحطة الرئيسية',m:16},
+    {r:'11',d:'الشرق',v:'المحطة الرئيسية',m:22}
   ];
   var i=0,led=document.getElementById('led');
   function render(){
@@ -1559,7 +1554,7 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
 
   // emoji → icon name ; null = decorative, removed ; "dot:x" = coloured status dot
   var E = {
-    '✅':'check|ok','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
+    '✅':'check|ok','📠':'doc','☎':'phone','🗓':'cal','💱':'money','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
     '💳':'card','🔧':'wrench','🔩':'wrench','🛠':'wrench','📥':'download','📤':'upload','📞':'phone','🔍':'search','🔎':'search','📍':'pin','📌':'pin',
     '📧':'mail','📬':'mail','📭':'mail','📅':'cal','📆':'cal','🗺':'map','👤':'user','👥':'users','🧑':'user','👔':'user','👷':'user','👶':'user','📱':'mobile','🍎':'mobile',
     '✏':'edit','📝':'doc','📄':'doc','🏢':'building','🏙':'building','🏭':'building','🏨':'building','🏬':'store','👁':'eye','📢':'mega','👑':'crown',
@@ -1598,14 +1593,16 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
     RX.lastIndex = 0;
     if (!v || !RX.test(v)) return;
     var par = t.parentNode; if (!par || SKIP[par.nodeName] || (par.closest && par.closest('svg,textarea,[contenteditable],.ki'))) return;
-    var f = document.createDocumentFragment(), last = 0; RX.lastIndex = 0; var m;
+    var f = document.createDocumentFragment(), last = 0, changed = false; RX.lastIndex = 0; var m;
     while ((m = RX.exec(v))){
       if (m.index > last) f.appendChild(document.createTextNode(v.slice(last, m.index)));
       var n = icon(m[0]);
-      if (n) f.appendChild(n);
-      else if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++;   // eat the trailing space of a removed decoration
+      if (n && n.nodeType === 1){ f.appendChild(n); changed = true; }
+      else if (n) f.appendChild(n);                       // unmapped pictograph: left as it is
+      else { changed = true; if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++; }   // decoration removed, with its trailing space
       last = RX.lastIndex;
     }
+    if (!changed) return;   // nothing to swap: never re-insert identical text (it would re-trigger the observer forever)
     if (last < v.length) f.appendChild(document.createTextNode(v.slice(last)));
     par.replaceChild(f, t);
   }
@@ -1827,7 +1824,7 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
 
 
   /* ---- routes: a real map (Leaflet + OpenStreetMap, both free) ---- */
-  var GEO = {'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
+  var GEO = {'المرقاب':[29.3698,47.9792],'الفحيحيل':[29.0825,48.1303],'دوار الأمم المتحدة':[29.3560,47.9270],'جليب الشيوخ':[29.2680,47.9130],'مطار الكويت':[29.2266,47.9689],'السليبية':[29.2990,47.7500],'أمغرة':[29.3250,47.7900],'صبحان':[29.2975,48.0600],'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
   function routesMap(){
     var box = document.getElementById('mapView'); if (!box || OWN !== 'routes') return;
     var el = document.createElement('div'); el.id = 'kpMap'; box.insertBefore(el, box.firstChild);
@@ -1837,22 +1834,30 @@ footer{background:var(--indigo-ink);color:#A9A7C9;font-size:14px;padding:0 0 26p
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18, attribution:'&copy; OpenStreetMap'}).addTo(map);
       var layer = L.layerGroup().addTo(map), base = L.layerGroup().addTo(map), busTimer = null, list = [];
       try { list = routes; } catch(x){}
-      function pts(r){ return r.path.replace(/\(.*?\)/g,'').split('—').map(function(n){ n = n.trim(); return GEO[n] ? {n:n, ll:GEO[n]} : null; }).filter(Boolean); }
+      function pts(r){ return (r.stops || []).map(function(n){ return GEO[n] ? {n:n, ll:GEO[n]} : null; }).filter(Boolean); }
       function stop(p, end){ return L.marker(p.ll, {icon:L.divIcon({className:'', html:'<div class="kp-stop' + (end ? ' end' : '') + '"></div>', iconSize:[20,20], iconAnchor:[end?10:8, end?10:8]})}).bindTooltip(p.n, {className:'kp-tip', direction:'top', offset:[0,-8]}); }
       list.forEach(function(r){ var p = pts(r); if (p.length > 1) L.polyline(p.map(function(x){ return x.ll; }), {color:'#2E2C78', weight:3, opacity:.22}).addTo(base); });
-      Object.keys(GEO).slice(0, 19).forEach(function(n){ L.circleMarker(GEO[n], {radius:4, color:'#2E2C78', weight:2, fillColor:'#fff', fillOpacity:1}).bindTooltip(n, {className:'kp-tip', direction:'top'}).addTo(base); });
+      ['المالية','المرقاب','الشرق','دوار الأمم المتحدة','السالمية','جليب الشيوخ','صبحان','الفحيحيل','الجهراء','السليبية','أمغرة','خيطان','مطار الكويت'].forEach(function(n){ L.circleMarker(GEO[n], {radius:4, color:'#2E2C78', weight:2, fillColor:'#fff', fillOpacity:1}).bindTooltip(n, {className:'kp-tip', direction:'top'}).addTo(base); });
       function draw(num){
         var r = list.filter(function(x){ return x.num === num; })[0]; if (!r) return;
-        var p = pts(r); if (p.length < 2) return;
-        layer.clearLayers(); clearInterval(busTimer); base.eachLayer(function(l){ if (l.setStyle) l.setStyle({opacity:.1}); });
-        var ll = p.map(function(x){ return x.ll; });
-        L.polyline(ll, {color:'#14133A', weight:9, opacity:.9, lineCap:'round'}).addTo(layer);
-        L.polyline(ll, {color:'#FFC93C', weight:4, opacity:1, lineCap:'round'}).addTo(layer);
-        p.forEach(function(x, i){ stop(x, i === 0 || i === p.length-1).addTo(layer); });
-        var bus = L.marker(ll[0], {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,22]}), interactive:false}).addTo(layer), t = 0;
-        busTimer = setInterval(function(){ t = (t + .004) % 1; var f = t * (ll.length-1), i = Math.floor(f), k = f - i, a = ll[i], b = ll[i+1] || a; bus.setLatLng([a[0] + (b[0]-a[0])*k, a[1] + (b[1]-a[1])*k]); }, 40);
-        map.flyToBounds(L.latLngBounds(ll).pad(.25), {duration:.8});
+        var p = pts(r); if (!p.length) return;
+        layer.clearLayers(); clearInterval(busTimer);
+        // the company publishes each route's main terminal; the full path is on the official network map
+        var big = L.circleMarker(p[0].ll, {radius:16, color:'#14133A', weight:4, fillColor:'#FFC93C', fillOpacity:1}).addTo(layer);
+        big.bindTooltip('محطة ' + p[0].n + ' — خط ' + r.num, {className:'kp-tip', direction:'top', permanent:true, offset:[0,-14]}).openTooltip();
+        var bus = L.marker(p[0].ll, {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,32]}), interactive:false}).addTo(layer);
+        map.flyTo(p[0].ll, 13, {duration:.8});
       }
+      window.kpOfficialMap = function(){
+        var lb = document.getElementById('kpNetMap');
+        if (!lb){
+          lb = document.createElement('div'); lb.id = 'kpNetMap'; lb.className = 'kp-netmap';
+          lb.innerHTML = '<div class="kp-netmap-in"><button type="button" aria-label="إغلاق">×</button><img src="../assets/kbus-network-map.jpg" alt="خريطة شبكة K-Bus الرسمية"><p>خريطة شبكة K-Bus الرسمية من موقع شركة النقل العام الكويتية · اسحب للتنقل وكبّر بالأصبع</p></div>';
+          lb.addEventListener('click', function(e){ if (e.target === lb || e.target.tagName === 'BUTTON') lb.classList.remove('on'); });
+          document.body.appendChild(lb);
+        }
+        lb.classList.add('on');
+      };
       var orig = window.selectRoute; if (typeof orig === 'function') window.selectRoute = function(n){ var r = orig.apply(this, arguments); try { draw(n); } catch(x){} return r; };
       var z = box.querySelectorAll('.map-zoom .zoom-btn');
       if (z[0]) z[0].addEventListener('click', function(){ map.zoomIn(); });

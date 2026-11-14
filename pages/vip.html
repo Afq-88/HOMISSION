@@ -45,22 +45,21 @@
       notice: {on:false, text:''},                 // site-wide announcement bar
       users: { 'u-demo': {id:'u-demo', name:'أحمد العلي', phone:'55501234', email:'demo@kptc.com.kw', pass:'123456', civil:'', joined:today(-190)} },
       session: null,
-      wallets: { 'u-demo': {balance:12.75, frozen:false, tx:[
-        {id:'TX-1003', d:today(-2),  t:'خصم',  a:-0.25, note:'تذكرة فردية — خط 15', by:'النظام'},
-        {id:'TX-1002', d:today(-9),  t:'خصم',  a:-15,   note:'تجديد الاشتراك الشهري', by:'النظام'},
-        {id:'TX-1001', d:today(-10), t:'تعبئة', a:28,    note:'تعبئة عبر كي نت', by:'العميل'}
+      wallets: { 'u-demo': {balance:20, frozen:false, tx:[
+        {id:'TX-1002', d:today(-9),  t:'خصم',  a:-10, note:'بطاقة التوفير — 31 يوماً', by:'النظام'},
+        {id:'TX-1001', d:today(-10), t:'تعبئة', a:30,  note:'تعبئة عبر كي نت', by:'العميل'}
       ]}},
       bookings: [
-        {id:'SUB-240611', uid:'u-demo', type:'اشتراك', page:'subs',  title:'الباقة الأساسية — شهري', d:today(-9),  status:'فعّال', amount:15,  until:today(21)},
-        {id:'UMR-58213',  uid:'u-demo', type:'عمرة',  page:'umrah', title:'مكة المكرمة + المدينة (11 يوماً) — مقعدان', d:today(-4), status:'مؤكد', amount:216},
+        {id:'SUB-240611', uid:'u-demo', type:'اشتراك', page:'subs',  title:'بطاقة التوفير — 31 يوماً', d:today(-9),  status:'فعّال', amount:10,  until:today(22)},
+        {id:'UMR-58213',  uid:'u-demo', type:'عمرة',  page:'umrah', title:'مكة المكرمة + المدينة (11 يوماً) — مقعدان', d:today(-4), status:'مؤكد', amount:170},
         {id:'LF-30418',   uid:'u-demo', type:'مفقودات', page:'lost', title:'محفظة جلد بنية — خط 21', d:today(-16), status:'وُجد الغرض', amount:0}
       ],
       news: [
-        {id:'N-5', d:today(-3),  cat:'أخبار الشركة', title:'تشغيل حافلات K-BUS الكهربائية الصديقة للبيئة', body:'انضمت حافلات K-eBus عديمة الانبعاثات إلى الأسطول ضمن خطة الشركة للنقل المستدام.', img:'kbus-ev.jpg', pub:true},
-        {id:'N-4', d:today(-12), cat:'بيانات صحفية', title:'تحديث شبكة خطوط K-Bus وإضافة مسارات سريعة', body:'تحديث يشمل المسارات السريعة X ويربط المناطق السكنية الجديدة بمراكز الأعمال.', img:'kbus-fleet.jpg', pub:true},
-        {id:'N-3', d:today(-25), cat:'المسؤولية الاجتماعية', title:'حملة «السلامة أولاً» لتوعية الركاب والسائقين', body:'حملة توعوية ميدانية وإلكترونية حول قواعد السلامة داخل الحافلات وفي المحطات.', img:'kbus-street.jpg', pub:true},
-        {id:'N-2', d:today(-40), cat:'أخبار الشركة', title:'انطلاق موسم رحلات العمرة بحافلات حديثة', body:'رحلات أسبوعية تشمل التأشيرة والسكن والمواصلات، مع حجز إلكتروني للمقاعد.', img:'umrah-art.jpg', pub:true},
-        {id:'N-1', d:today(-61), cat:'بيانات صحفية', title:'مركز الأوناش يعمل على مدار الساعة في المحافظات الست', body:'خدمة سحب ونقل المركبات متاحة 24 ساعة طوال أيام الأسبوع وخلال العطل الرسمية.', img:'tow-1.jpg', pub:true}
+        {id:'N-5', d:today(-3),  cat:'أخبار الشركة', title:'حافلات K-eBus الكهربائية عديمة الانبعاثات', body:'تضم صور الأسطول الرسمي حافلات K-eBus الكهربائية بشعار «Zero Emission»، ضمن توجه الشركة نحو بيئة صحية.', img:'kbus-ev.jpg', pub:true},
+        {id:'N-4', d:today(-12), cat:'أخبار الشركة', title:'بطاقة التوفير: 10 د.ك لـ 31 يوماً و25 د.ك لـ 91 يوماً', body:'بطاقة شخصية تتيح التنقل بلا حدود على جميع الخطوط. للاستفسار: 22328307.', img:'kbus-fleet.jpg', pub:true},
+        {id:'N-3', d:today(-25), cat:'المسؤولية الاجتماعية', title:'السلامة أولاً: معاً نعود بنقل آمن', body:'حملة توعوية تحمل شعار «السلامة أولاً» لتوعية الركاب والسائقين بقواعد السلامة.', img:'kbus-street.jpg', pub:true},
+        {id:'N-2', d:today(-40), cat:'أخبار الشركة', title:'رحلات العمرة بأسعار مميزة للمجموعات والشركات', body:'رحلة 6 أيام بـ 60 د.ك ورحلة 11 يوماً بـ 85 د.ك، والسعر يشمل السكن والمواصلات والتأشيرة.', img:'umrah-art.jpg', pub:true},
+        {id:'N-1', d:today(-61), cat:'بيانات صحفية', title:'مركز الأوناش يعمل على مدار الساعة', body:'خدمة سحب ونقل المركبات متاحة 24 ساعة، 7 أيام في الأسبوع، وخلال الإجازات الرسمية والعطلات.', img:'tow-1.jpg', pub:true}
       ],
       tenders: [
         {id:'T-2026-7', no:'2026/7', kind:'مناقصة',  title:'توريد وتركيب مظلات انتظار في محطات الحافلات', meet:today(6),  place:'مكتب مساعد المدير لشؤون المرافق والصيانة — صبحان الصناعية', close:today(21), box:'3', fee:75,  status:'مفتوحة'},
@@ -754,7 +753,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 <body>
 
 <!-- NAV -->
-<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22228800">خدمة العملاء <span dir="ltr">22228800</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — حولي</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
+<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:22328866">خدمة العملاء <span dir="ltr">22328866</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — المرقاب</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
 <header class="k2-head"><div class="k2-w"><a class="k2-brand" href="KPTC_Home.html" aria-label="KPTC — الرئيسية"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b><small>شركة النقل العام الكويتية</small></span></a>
 <div class="k2-nav" role="navigation" aria-label="القائمة الرئيسية"><a href="KPTC_Routes.html">الخطوط</a><a href="KPTC_Subscriptions.html">الاشتراكات</a><a href="KPTC_Umrah.html">العمرة</a><a href="KPTC_VIP.html" aria-current="page">VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_Advertising.html">أعلن معنا</a><a href="KPTC_RE_Client.html">العقارات</a></div>
 <div class="k2-act"><a class="k2-btn k2-btn-ghost" href="KPTC_Portal.html">بوابة الموظفين</a><a class="k2-btn k2-btn-sign k2-hide-m" href="KPTC_Subscriptions.html">اشترك الآن</a><button class="k2-menu" aria-label="فتح القائمة" aria-expanded="false" onclick="k2Drawer(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
@@ -802,21 +801,21 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
             <div class="bus-types">
               <div class="bus-type selected" id="bt-mini" onclick="selectBus('mini',this)">
                 <div class="bus-type-icon">🚐</div>
-                <div class="bus-type-name">ميني باص VIP</div>
-                <div class="bus-type-cap">14 مقعد</div>
-                <div class="bus-type-price">من 45 د.ك</div>
+                <div class="bus-type-name">حافلة صغيرة</div>
+                <div class="bus-type-cap">19–25 راكباً</div>
+                <div class="bus-type-price">من 20 د.ك (8 ساعات)</div>
               </div>
               <div class="bus-type" id="bt-mid" onclick="selectBus('mid',this)">
                 <div class="bus-type-icon">🚌</div>
-                <div class="bus-type-name">حافلة VIP</div>
-                <div class="bus-type-cap">30 مقعد</div>
-                <div class="bus-type-price">من 85 د.ك</div>
+                <div class="bus-type-name">حافلة متوسطة</div>
+                <div class="bus-type-cap">35–40 راكباً</div>
+                <div class="bus-type-price">من 25 د.ك (8 ساعات)</div>
               </div>
               <div class="bus-type" id="bt-large" onclick="selectBus('large',this)">
                 <div class="bus-type-icon">🚍</div>
-                <div class="bus-type-name">حافلة Grand VIP</div>
-                <div class="bus-type-cap">50 مقعد</div>
-                <div class="bus-type-price">من 130 د.ك</div>
+                <div class="bus-type-name">حافلة سياحية كبيرة</div>
+                <div class="bus-type-cap">45 راكباً</div>
+                <div class="bus-type-price">من 85 د.ك (8 ساعات)</div>
               </div>
             </div>
           </div>
@@ -865,11 +864,18 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
                 <input type="number" class="f-input" id="d-pax" value="10" min="1" max="50" onchange="updateOrderPanel()">
               </div>
               <div class="field">
-                <label class="f-label">🔄 نوع الرحلة</label>
+                <label class="f-label">🕐 مدة التأجير</label>
                 <select class="f-select" id="d-triptype" onchange="updateOrderPanel()">
-                  <option value="oneway">ذهاب فقط</option>
-                  <option value="return">ذهاب وعودة</option>
-                  <option value="fullday">يوم كامل (مع انتظار)</option>
+                  <option value="oneway">8 ساعات</option>
+                  <option value="return">12 ساعة</option>
+                  <option value="fullday">24 ساعة</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="f-label">🗺️ منطقة التأجير</label>
+                <select class="f-select" id="d-zone" onchange="updateOrderPanel()">
+                  <option value="res">مناطق سكنية</option>
+                  <option value="border">مناطق حدودية</option>
                 </select>
               </div>
               <div class="field full">
@@ -882,7 +888,7 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
 
         <!-- Extras -->
         <div class="form-card">
-          <div class="form-card-header">✨ خدمات إضافية</div>
+          <div class="form-card-header">✨ خدمات إضافية اختيارية — تُؤكَّد أسعارها عند الحجز</div>
           <div class="form-card-body">
             <div class="extras-grid">
               <div class="extra-item" onclick="toggleExtra(this,'استقبال بالورد',5)">
@@ -923,11 +929,11 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
               <div class="sl-item"><div class="sl-box" style="background:white;border:2px solid var(--border)"></div>متاح</div>
               <div class="sl-item"><div class="sl-box" style="background:var(--navy)"></div>مختار</div>
               <div class="sl-item"><div class="sl-box" style="background:#f0f0f0;border:2px solid #ddd"></div>محجوز</div>
-              <div class="sl-item"><div class="sl-box" style="background:#fffbea;border:2px solid var(--gold)"></div>مقعد ذهبي VIP</div>
+              
             </div>
             <div class="vip-bus-shell">
               <div class="vip-bus-front">
-                <div style="font-size:.7rem;color:rgba(255,255,255,.7)">🚌 حافلة VIP — KPTC</div>
+                <div style="font-size:.7rem;color:rgba(255,255,255,.7)">🚌 حافلة KPTC</div>
                 <div class="vip-driver-seat">🧑‍✈️</div>
                 <div class="vip-bus-label">الامامة</div>
               </div>
@@ -984,13 +990,13 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
             <div class="op-divider"></div>
             <div class="op-section">
               <div class="op-sec-title">التكلفة</div>
-              <div class="op-row"><span>سعر الحافلة</span><span id="op-base">45 د.ك</span></div>
+              <div class="op-row"><span>سعر الحافلة</span><span id="op-base">20 د.ك</span></div>
               <div class="op-row"><span>المقاعد الذهبية</span><span id="op-gold">—</span></div>
               <div class="op-row"><span>الإضافات</span><span id="op-extras">—</span></div>
               <div class="op-row"><span>طريقة الدفع</span><span id="op-pay">KNET</span></div>
             </div>
             <div class="op-divider"></div>
-            <div class="op-total"><span>الإجمالي</span><span id="op-total">45.000 د.ك</span></div>
+            <div class="op-total"><span>الإجمالي</span><span id="op-total">20.000 د.ك</span></div>
             <button class="btn-book" id="bookBtn" onclick="confirmBooking()">
               👑 تأكيد حجز VIP
             </button>
@@ -1013,44 +1019,44 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
         <div class="intl-dest">المملكة العربية السعودية</div>
         <div class="intl-route">الكويت → الدمام / الرياض / جدة</div>
         <div class="intl-details">
-          <div class="intl-detail">🕐 8-12 ساعة</div>
-          <div class="intl-detail">🛂 تأشيرة مطلوبة</div>
-          <div class="intl-detail">⭐ سائق بروتوكولي</div>
+          <div class="intl-detail">🚌 حافلة سياحية 45 راكباً</div>
+          <div class="intl-detail">📅 4 أيام (96 ساعة): 605 د.ك</div>
+          <div class="intl-detail">➕ اليوم الإضافي بعد 4 أيام: 80 د.ك</div>
         </div>
-        <div class="intl-price">320 <span>د.ك / يوم</span></div>
+        <div class="intl-price">200 <span>د.ك / يوم</span></div>
       </div>
       <div class="intl-card" onclick="selectIntl(this,'البحرين')">
         <div class="intl-flag">🇧🇭</div>
         <div class="intl-dest">البحرين</div>
         <div class="intl-route">الكويت → المنامة عبر جسر الملك فهد</div>
         <div class="intl-details">
-          <div class="intl-detail">🕐 4-5 ساعات</div>
-          <div class="intl-detail">🛂 تأشيرة على الحدود</div>
-          <div class="intl-detail">💺 30 مقعد VIP</div>
+          <div class="intl-detail">🚌 حافلة سياحية 45 راكباً</div>
+          <div class="intl-detail">📅 4 أيام (96 ساعة): 605 د.ك</div>
+          <div class="intl-detail">➕ اليوم الإضافي بعد 4 أيام: 80 د.ك</div>
         </div>
-        <div class="intl-price">180 <span>د.ك / يوم</span></div>
+        <div class="intl-price">200 <span>د.ك / يوم</span></div>
       </div>
       <div class="intl-card" onclick="selectIntl(this,'الإمارات')">
         <div class="intl-flag">🇦🇪</div>
         <div class="intl-dest">الإمارات العربية المتحدة</div>
         <div class="intl-route">الكويت → دبي / أبوظبي / الشارقة</div>
         <div class="intl-details">
-          <div class="intl-detail">🕐 12-15 ساعة</div>
-          <div class="intl-detail">🛂 تأشيرة مسبقة</div>
-          <div class="intl-detail">🛏️ حافلة نوم VIP</div>
+          <div class="intl-detail">🚌 حافلة سياحية 45 راكباً</div>
+          <div class="intl-detail">📅 4 أيام (96 ساعة): 605 د.ك</div>
+          <div class="intl-detail">➕ اليوم الإضافي بعد 4 أيام: 80 د.ك</div>
         </div>
-        <div class="intl-price">450 <span>د.ك / يوم</span></div>
+        <div class="intl-price">200 <span>د.ك / يوم</span></div>
       </div>
       <div class="intl-card" onclick="selectIntl(this,'الأردن')">
         <div class="intl-flag">🇯🇴</div>
         <div class="intl-dest">الأردن</div>
-        <div class="intl-route">الكويت → عمّان (جوي + استقبال)</div>
+        <div class="intl-route">الكويت → الأردن (بالحافلة)</div>
         <div class="intl-details">
-          <div class="intl-detail">✈️ تنسيق طيران</div>
-          <div class="intl-detail">🏨 فندق 5 نجوم</div>
-          <div class="intl-detail">🧭 مرشد سياحي</div>
+          <div class="intl-detail">🚌 حافلة سياحية 45 راكباً</div>
+          <div class="intl-detail">📅 4 أيام (96 ساعة): 605 د.ك</div>
+          <div class="intl-detail">➕ اليوم الإضافي بعد 4 أيام: 80 د.ك</div>
         </div>
-        <div class="intl-price">280 <span>د.ك / شخص</span></div>
+        <div class="intl-price">200 <span>د.ك / يوم</span></div>
       </div>
     </div>
 
@@ -1089,22 +1095,22 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
         <div class="diw-check">✓</div>
         <div class="diw-icon">🚐</div>
         <div class="diw-name">الأساسية</div>
-        <div class="diw-desc">ميني باص 14 مقعد، سائق محترم، مناسبة للديوانيات الصغيرة</div>
-        <div class="diw-price">35 <span>د.ك / ليلة</span></div>
+        <div class="diw-desc">حافلة صغيرة 19–25 راكباً، مناسبة للمجموعات الصغيرة</div>
+        <div class="diw-price">20 <span>د.ك / 8 ساعات</span></div>
       </div>
       <div class="diw-card" onclick="selectDiw(this,'الباقة المميزة')">
         <div class="diw-check">✓</div>
         <div class="diw-icon">🚌</div>
         <div class="diw-name">المميزة</div>
-        <div class="diw-desc">حافلة 30 مقعد بمقاعد جلدية فاخرة، مناسبة للمجالس الكبيرة</div>
-        <div class="diw-price">65 <span>د.ك / ليلة</span></div>
+        <div class="diw-desc">حافلة متوسطة 35–40 راكباً، مناسبة للمجالس الكبيرة</div>
+        <div class="diw-price">25 <span>د.ك / 8 ساعات</span></div>
       </div>
       <div class="diw-card" onclick="selectDiw(this,'الباقة الملكية')">
         <div class="diw-check">✓</div>
         <div class="diw-icon">👑</div>
         <div class="diw-name">الملكية</div>
-        <div class="diw-desc">حافلة Grand VIP 50 مقعد، قهوة عربية، تمور، واستقبال رسمي</div>
-        <div class="diw-price">120 <span>د.ك / ليلة</span></div>
+        <div class="diw-desc">حافلة سياحية كبيرة 45 راكباً للمناسبات والمجموعات الكبيرة</div>
+        <div class="diw-price">85 <span>د.ك / 8 ساعات</span></div>
       </div>
     </div>
 
@@ -1183,23 +1189,23 @@ nav{background:var(--navy-d);position:sticky;top:0;z-index:300;border-bottom:1px
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;text-align:right">
         <div style="background:var(--light);border-radius:12px;padding:16px;border:1px solid var(--border)">
           <div style="font-size:1.5rem;margin-bottom:6px">📋</div>
-          <div style="font-weight:700;color:var(--navy);margin-bottom:4px">عقود مرنة</div>
-          <div style="font-size:.78rem;color:var(--gray)">شهري، ربع سنوي، أو سنوي</div>
+          <div style="font-weight:700;color:var(--navy);margin-bottom:4px">تعاقدات مباشرة</div>
+          <div style="font-size:.78rem;color:var(--gray)">عبر الإدارة المختصة بتنفيذ التعاقدات</div>
         </div>
         <div style="background:var(--light);border-radius:12px;padding:16px;border:1px solid var(--border)">
           <div style="font-size:1.5rem;margin-bottom:6px">📊</div>
-          <div style="font-weight:700;color:var(--navy);margin-bottom:4px">تقارير شهرية</div>
-          <div style="font-size:.78rem;color:var(--gray)">رحلات، مواعيد، تكاليف</div>
+          <div style="font-weight:700;color:var(--navy);margin-bottom:4px">حافلات بجميع الأنواع</div>
+          <div style="font-size:.78rem;color:var(--gray)">وجميع الأحجام لتلائم كل رحلة</div>
         </div>
         <div style="background:var(--light);border-radius:12px;padding:16px;border:1px solid var(--border)">
           <div style="font-size:1.5rem;margin-bottom:6px">🧑‍✈️</div>
-          <div style="font-weight:700;color:var(--navy);margin-bottom:4px">سائقون ثابتون</div>
-          <div style="font-size:.78rem;color:var(--gray)">نفس السائق لرحلاتك</div>
+          <div style="font-weight:700;color:var(--navy);margin-bottom:4px">متابعة ميدانية</div>
+          <div style="font-size:.78rem;color:var(--gray)">رقابة وتبادل زيارات مع العملاء</div>
         </div>
         <div style="background:var(--light);border-radius:12px;padding:16px;border:1px solid var(--border)">
           <div style="font-size:1.5rem;margin-bottom:6px">🛡️</div>
-          <div style="font-weight:700;color:var(--navy);margin-bottom:4px">تأمين شامل</div>
-          <div style="font-size:.78rem;color:var(--gray)">مشمول بجميع العقود</div>
+          <div style="font-weight:700;color:var(--navy);margin-bottom:4px">للتواصل</div>
+          <div style="font-size:.78rem;color:var(--gray)">22328866 · 1880001</div>
         </div>
       </div>
       <button class="btn-book" style="max-width:300px;margin:0 auto" onclick="showToast('📧 سيتواصل معك مدير الحسابات خلال 24 ساعة')">
@@ -1241,7 +1247,10 @@ let selectedBusType = 'mini';
 let selectedSeats = [];
 let extras = [];
 let extrasTotal = 0;
-let busBasePrices = {mini:45, mid:85, large:130};
+// Published rental tariff (KD): [8 hours, 12 hours, 24 hours] — residential areas / border areas
+let busBasePrices = {mini:20, mid:25, large:85};
+const RENT_RES = {mini:[20,30,50], mid:[25,35,60], large:[85,100,140]};
+const RENT_BORDER = {mini:[25,35,60], mid:[30,40,70], large:[100,120,185]};
 let selectedRoute = [];
 let diwPackage = null;
 
@@ -1259,12 +1268,12 @@ function selectBus(type, el) {
 
 // ── VIP SEAT MAP ──
 const takenMap = {mini:[3,7,10], mid:[4,8,12,18,22], large:[5,10,15,20,25,30,35]};
-const goldRows = [1,2];
+const goldRows = [];
 
 function buildVipSeats(busType) {
   const rows = document.getElementById('vipRows');
-  const caps = {mini:14, mid:30, large:50};
-  const numRows = {mini:4, mid:8, large:13}[busType];
+  const caps = {mini:25, mid:40, large:45};
+  const numRows = {mini:5, mid:9, large:11}[busType];
   const taken = takenMap[busType]||[];
   let seatNum = 1;
   let html = '';
@@ -1338,7 +1347,7 @@ function toggleExtra(el, name, price) {
 
 // ── ORDER PANEL ──
 function updateOrderPanel() {
-  const busName = {mini:'ميني باص VIP (14 مقعد)',mid:'حافلة VIP (30 مقعد)',large:'حافلة Grand VIP (50 مقعد)'}[selectedBusType];
+  const busName = {mini:'حافلة صغيرة (19–25 راكباً)',mid:'حافلة متوسطة (35–40 راكباً)',large:'حافلة سياحية كبيرة (45 راكباً)'}[selectedBusType];
   const date = document.getElementById('d-date')?.value || '—';
   const pax = document.getElementById('d-pax')?.value || '—';
   const from = document.getElementById('d-from')?.value;
@@ -1346,10 +1355,11 @@ function updateOrderPanel() {
   const route = (from&&to) ? `${from.split('(')[0].trim()} ← ${to.split('(')[0].trim()}` : '—';
   const payMethod = document.getElementById('payM')?.value || 'KNET';
   const tripType = document.getElementById('d-triptype')?.value||'oneway';
-  const tripMult = tripType==='return'?2:tripType==='fullday'?1.5:1;
-  const goldCount = selectedSeats.filter(n=>n<=8).length;
-  const goldExtra = goldCount*3;
-  const basePrice = busBasePrices[selectedBusType]*tripMult;
+  const durIdx = tripType==='return'?1:tripType==='fullday'?2:0;
+  const zone = document.getElementById('d-zone')?.value||'res';
+  const goldCount = 0;
+  const goldExtra = 0;
+  const basePrice = (zone==='border'?RENT_BORDER:RENT_RES)[selectedBusType][durIdx];
   const total = basePrice + goldExtra + extrasTotal;
 
   document.getElementById('op-bustype').textContent = busName;
@@ -1380,7 +1390,7 @@ function showSuccess(type) {
   document.getElementById('refNum').textContent = ref;
   const rows = {
     domestic:`<div class="sm-row"><span class="sm-row-label">الخدمة</span><span class="sm-row-val">رحلة داخلية VIP</span></div>
-      <div class="sm-row"><span class="sm-row-label">الحافلة</span><span class="sm-row-val">${{mini:'ميني باص VIP',mid:'حافلة VIP',large:'Grand VIP'}[selectedBusType]}</span></div>
+      <div class="sm-row"><span class="sm-row-label">الحافلة</span><span class="sm-row-val">${{mini:'حافلة صغيرة',mid:'حافلة متوسطة',large:'حافلة سياحية كبيرة'}[selectedBusType]}</span></div>
       <div class="sm-row"><span class="sm-row-label">المقاعد</span><span class="sm-row-val">${selectedSeats.length?selectedSeats.join('، '):'عشوائي'}</span></div>
       <div class="sm-row"><span class="sm-row-label">الإجمالي</span><span class="sm-row-val" style="color:var(--navy)">${document.getElementById('op-total').textContent}</span></div>`,
     international:`<div class="sm-row"><span class="sm-row-label">الخدمة</span><span class="sm-row-val">رحلة خارجية VIP</span></div>
@@ -1579,7 +1589,7 @@ updateOrderPanel();
 
   // emoji → icon name ; null = decorative, removed ; "dot:x" = coloured status dot
   var E = {
-    '✅':'check|ok','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
+    '✅':'check|ok','📠':'doc','☎':'phone','🗓':'cal','💱':'money','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
     '💳':'card','🔧':'wrench','🔩':'wrench','🛠':'wrench','📥':'download','📤':'upload','📞':'phone','🔍':'search','🔎':'search','📍':'pin','📌':'pin',
     '📧':'mail','📬':'mail','📭':'mail','📅':'cal','📆':'cal','🗺':'map','👤':'user','👥':'users','🧑':'user','👔':'user','👷':'user','👶':'user','📱':'mobile','🍎':'mobile',
     '✏':'edit','📝':'doc','📄':'doc','🏢':'building','🏙':'building','🏭':'building','🏨':'building','🏬':'store','👁':'eye','📢':'mega','👑':'crown',
@@ -1618,14 +1628,16 @@ updateOrderPanel();
     RX.lastIndex = 0;
     if (!v || !RX.test(v)) return;
     var par = t.parentNode; if (!par || SKIP[par.nodeName] || (par.closest && par.closest('svg,textarea,[contenteditable],.ki'))) return;
-    var f = document.createDocumentFragment(), last = 0; RX.lastIndex = 0; var m;
+    var f = document.createDocumentFragment(), last = 0, changed = false; RX.lastIndex = 0; var m;
     while ((m = RX.exec(v))){
       if (m.index > last) f.appendChild(document.createTextNode(v.slice(last, m.index)));
       var n = icon(m[0]);
-      if (n) f.appendChild(n);
-      else if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++;   // eat the trailing space of a removed decoration
+      if (n && n.nodeType === 1){ f.appendChild(n); changed = true; }
+      else if (n) f.appendChild(n);                       // unmapped pictograph: left as it is
+      else { changed = true; if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++; }   // decoration removed, with its trailing space
       last = RX.lastIndex;
     }
+    if (!changed) return;   // nothing to swap: never re-insert identical text (it would re-trigger the observer forever)
     if (last < v.length) f.appendChild(document.createTextNode(v.slice(last)));
     par.replaceChild(f, t);
   }
@@ -1847,7 +1859,7 @@ updateOrderPanel();
 
 
   /* ---- routes: a real map (Leaflet + OpenStreetMap, both free) ---- */
-  var GEO = {'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
+  var GEO = {'المرقاب':[29.3698,47.9792],'الفحيحيل':[29.0825,48.1303],'دوار الأمم المتحدة':[29.3560,47.9270],'جليب الشيوخ':[29.2680,47.9130],'مطار الكويت':[29.2266,47.9689],'السليبية':[29.2990,47.7500],'أمغرة':[29.3250,47.7900],'صبحان':[29.2975,48.0600],'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
   function routesMap(){
     var box = document.getElementById('mapView'); if (!box || OWN !== 'routes') return;
     var el = document.createElement('div'); el.id = 'kpMap'; box.insertBefore(el, box.firstChild);
@@ -1857,22 +1869,30 @@ updateOrderPanel();
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18, attribution:'&copy; OpenStreetMap'}).addTo(map);
       var layer = L.layerGroup().addTo(map), base = L.layerGroup().addTo(map), busTimer = null, list = [];
       try { list = routes; } catch(x){}
-      function pts(r){ return r.path.replace(/\(.*?\)/g,'').split('—').map(function(n){ n = n.trim(); return GEO[n] ? {n:n, ll:GEO[n]} : null; }).filter(Boolean); }
+      function pts(r){ return (r.stops || []).map(function(n){ return GEO[n] ? {n:n, ll:GEO[n]} : null; }).filter(Boolean); }
       function stop(p, end){ return L.marker(p.ll, {icon:L.divIcon({className:'', html:'<div class="kp-stop' + (end ? ' end' : '') + '"></div>', iconSize:[20,20], iconAnchor:[end?10:8, end?10:8]})}).bindTooltip(p.n, {className:'kp-tip', direction:'top', offset:[0,-8]}); }
       list.forEach(function(r){ var p = pts(r); if (p.length > 1) L.polyline(p.map(function(x){ return x.ll; }), {color:'#2E2C78', weight:3, opacity:.22}).addTo(base); });
-      Object.keys(GEO).slice(0, 19).forEach(function(n){ L.circleMarker(GEO[n], {radius:4, color:'#2E2C78', weight:2, fillColor:'#fff', fillOpacity:1}).bindTooltip(n, {className:'kp-tip', direction:'top'}).addTo(base); });
+      ['المالية','المرقاب','الشرق','دوار الأمم المتحدة','السالمية','جليب الشيوخ','صبحان','الفحيحيل','الجهراء','السليبية','أمغرة','خيطان','مطار الكويت'].forEach(function(n){ L.circleMarker(GEO[n], {radius:4, color:'#2E2C78', weight:2, fillColor:'#fff', fillOpacity:1}).bindTooltip(n, {className:'kp-tip', direction:'top'}).addTo(base); });
       function draw(num){
         var r = list.filter(function(x){ return x.num === num; })[0]; if (!r) return;
-        var p = pts(r); if (p.length < 2) return;
-        layer.clearLayers(); clearInterval(busTimer); base.eachLayer(function(l){ if (l.setStyle) l.setStyle({opacity:.1}); });
-        var ll = p.map(function(x){ return x.ll; });
-        L.polyline(ll, {color:'#14133A', weight:9, opacity:.9, lineCap:'round'}).addTo(layer);
-        L.polyline(ll, {color:'#FFC93C', weight:4, opacity:1, lineCap:'round'}).addTo(layer);
-        p.forEach(function(x, i){ stop(x, i === 0 || i === p.length-1).addTo(layer); });
-        var bus = L.marker(ll[0], {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,22]}), interactive:false}).addTo(layer), t = 0;
-        busTimer = setInterval(function(){ t = (t + .004) % 1; var f = t * (ll.length-1), i = Math.floor(f), k = f - i, a = ll[i], b = ll[i+1] || a; bus.setLatLng([a[0] + (b[0]-a[0])*k, a[1] + (b[1]-a[1])*k]); }, 40);
-        map.flyToBounds(L.latLngBounds(ll).pad(.25), {duration:.8});
+        var p = pts(r); if (!p.length) return;
+        layer.clearLayers(); clearInterval(busTimer);
+        // the company publishes each route's main terminal; the full path is on the official network map
+        var big = L.circleMarker(p[0].ll, {radius:16, color:'#14133A', weight:4, fillColor:'#FFC93C', fillOpacity:1}).addTo(layer);
+        big.bindTooltip('محطة ' + p[0].n + ' — خط ' + r.num, {className:'kp-tip', direction:'top', permanent:true, offset:[0,-14]}).openTooltip();
+        var bus = L.marker(p[0].ll, {icon:L.divIcon({className:'', html:'<div class="kp-mbus"></div>', iconSize:[38,20], iconAnchor:[19,32]}), interactive:false}).addTo(layer);
+        map.flyTo(p[0].ll, 13, {duration:.8});
       }
+      window.kpOfficialMap = function(){
+        var lb = document.getElementById('kpNetMap');
+        if (!lb){
+          lb = document.createElement('div'); lb.id = 'kpNetMap'; lb.className = 'kp-netmap';
+          lb.innerHTML = '<div class="kp-netmap-in"><button type="button" aria-label="إغلاق">×</button><img src="../assets/kbus-network-map.jpg" alt="خريطة شبكة K-Bus الرسمية"><p>خريطة شبكة K-Bus الرسمية من موقع شركة النقل العام الكويتية · اسحب للتنقل وكبّر بالأصبع</p></div>';
+          lb.addEventListener('click', function(e){ if (e.target === lb || e.target.tagName === 'BUTTON') lb.classList.remove('on'); });
+          document.body.appendChild(lb);
+        }
+        lb.classList.add('on');
+      };
       var orig = window.selectRoute; if (typeof orig === 'function') window.selectRoute = function(n){ var r = orig.apply(this, arguments); try { draw(n); } catch(x){} return r; };
       var z = box.querySelectorAll('.map-zoom .zoom-btn');
       if (z[0]) z[0].addEventListener('click', function(){ map.zoomIn(); });
