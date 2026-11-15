@@ -92,8 +92,8 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
     if (pvKeep && pvKeep.getAttribute('data-src') === want){ f.replaceWith(pvKeep); f = pvKeep; } else { f.src = want; pvKeep = f; }   // keep the frame alive across re-renders
     var w = dev === 'mob' ? 390 : 1280, sc = Math.min(1, b.clientWidth / w); f.style.left = Math.max(0, (b.clientWidth - w * sc) / 2) + 'px'; f.style.transform = 'scale(' + sc + ')'; f.style.height = (b.clientHeight / sc) + 'px';
   }
-  var GROUPS = [['عملي',['desk']],['التحكم بالموقع',['pages','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['العملاء',['wallets','bookings']],['الموظفون',['staff','roles','benefits','occasions']],['النظام',['log']]];
-  var NEED = {desk:[], pages:['site.pages'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
+  var GROUPS = [['عملي',['desk']],['التحكم بالموقع',['pages','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['العملاء',['wallets','bookings']],['الموظفون',['staff','roles','intranet','benefits','occasions']],['النظام',['log']]];
+  var NEED = {desk:[], intranet:['portal.admin'], pages:['site.pages'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
   function allow(k){ var u = K.staffUser(); if (!u || !TABS[k] || !V[k]) return false;
     if (k === 'desk') return K.can('admin.sections', u) || K.db().sections.some(function(x){ return x.owner === u.id || (x.team || []).indexOf(u.id) > -1; });
     if (k === 'editor' && (K.pagesFor(u) || []).length) return true;
@@ -554,6 +554,39 @@ body.gated .gate{display:grid}
     if (t.matches('[data-bk]')){ var b = d.bookings.filter(function(x){ return x.id === t.getAttribute('data-bk'); })[0]; b.status = t.value; K.log('حالة ' + b.id + ': ' + t.value, sc && sc.id); K.save(); flash('حُفظت الحالة.'); }
     if (t.matches('[data-pd]')){ var r = d.pdi.filter(function(x){ return x.id === t.getAttribute('data-id'); })[0]; r.status = t.value; var bk = d.bookings.filter(function(x){ return x.id === r.id; })[0]; if (bk) bk.status = t.value; K.log('حالة ' + r.id + ': ' + t.value, 'eng'); K.save(); flash('حُفظت الحالة.'); }
     if (t.matches('[data-sp]')){ var p = t.getAttribute('data-sp'), i = sc.perms.indexOf(p); if (t.checked && i < 0) sc.perms.push(p); if (!t.checked && i > -1) sc.perms.splice(i, 1); K.log('صلاحيات قسم ' + sc.name, sc.id); K.save(); flash('حُفظت صلاحيات القسم.'); }
+  });
+})();
+</script>
+
+<script>
+(function(){
+  var X = window.KPStudio, K = X.K, $ = X.$, E = X.E, T = X.TABS, V = X.V, flash = X.flash, tag = X.tag, kind = 'circulars';
+  var DEF = {
+    circulars:{n:'التعاميم والإعلانات', one:'تعميم', f:[['title','العنوان'],['body','النص','area'],['tone','اللون','sel',[['indigo','نيلي'],['yellow','أصفر'],['green','أخضر'],['red','أحمر (عاجل)']]]], mk:function(){ return {id:K.id('C'), tone:'indigo', on:true}; }, row:function(c){ return '<td><b>' + E(c.title) + '</b><br><small>' + E(c.body) + '</small></td><td>' + tag(c.on ? 'منشور' : 'موقوف') + '</td>'; }, head:'<th>التعميم</th><th>الحالة</th>'},
+    decisions:{n:'القرارات الرسمية', one:'قرار', f:[['id','رقم الوثيقة'],['title','الموضوع'],['cat','التصنيف'],['d','التاريخ','date'],['body','النص','area']], mk:function(){ return {id:'', d:K.today(), cat:'تعاميم'}; }, row:function(c){ return '<td class="num"><b>' + E(c.id) + '</b></td><td>' + E(c.title) + '</td><td>' + E(c.cat) + '</td><td class="num">' + K.date(c.d) + '</td>'; }, head:'<th>رقم الوثيقة</th><th>الموضوع</th><th>التصنيف</th><th>التاريخ</th>'},
+    events:{n:'فعاليات التقويم', one:'فعالية', f:[['title','الفعالية'],['d','التاريخ','date']], mk:function(){ return {id:K.id('E'), d:K.today(7)}; }, row:function(c){ return '<td><b>' + E(c.title) + '</b></td><td class="num">' + K.date(c.d) + '</td>'; }, head:'<th>الفعالية</th><th>التاريخ</th>'},
+    library:{n:'مركز المعلومات', one:'ملف', f:[['title','اسم الملف'],['cat','التصنيف'],['kind','النوع']], mk:function(){ return {id:K.id('L'), cat:'أدلة', kind:'PDF'}; }, row:function(c){ return '<td><b>' + E(c.title) + '</b></td><td>' + E(c.cat) + '</td><td>' + E(c.kind) + '</td>'; }, head:'<th>الملف</th><th>التصنيف</th><th>النوع</th>'}
+  };
+  T.intranet = ['محتوى البوابة الداخلية', 'ما يظهر للموظفين في بوابتهم: شريط التعاميم، جدول القرارات، فعاليات التقويم، وملفات مركز المعلومات.'];
+  V.intranet = function(d){
+    var D = DEF[kind], L = d[kind]; $('hA').innerHTML = '<button class="btn y" data-act="innew">' + D.one + ' جديد</button>';
+    return '<div class="chips">' + Object.keys(DEF).map(function(k){ return '<button data-act="inkind" data-id="' + k + '" class="' + (k === kind ? 'on' : '') + '">' + DEF[k].n + '<em class="num">' + d[k].length + '</em></button>'; }).join('') + '</div>' +
+      (L.length ? '<div class="tw"><table class="t"><thead><tr>' + D.head + '<th></th></tr></thead><tbody>' + L.map(function(c){ return '<tr>' + D.row(c) + '<td><button class="btn o" data-act="inedit" data-id="' + E(c.id) + '">تعديل</button>' + (kind === 'circulars' ? '<button class="btn o" data-act="inon" data-id="' + E(c.id) + '">' + (c.on ? 'إيقاف' : 'نشر') + '</button>' : '') + '<button class="btn o" data-act="indel" data-id="' + E(c.id) + '">حذف</button></td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">لا عناصر بعد.</div>');
+  };
+  function form(id){
+    var D = DEF[kind], L = K.db()[kind], it = id ? L.filter(function(x){ return x.id === id; })[0] : D.mk();
+    X.dlg((id ? 'تعديل ' : 'إضافة ') + D.one, D.f.map(function(f){ var v = it[f[0]] == null ? '' : it[f[0]];
+      return '<label class="f">' + f[1] + (f[2] === 'area' ? '<textarea name="' + f[0] + '" rows="3">' + E(v) + '</textarea>' : f[2] === 'sel' ? '<select name="' + f[0] + '">' + f[3].map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === v ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' : '<input name="' + f[0] + '"' + (f[2] === 'date' ? ' type="date"' : '') + (f[0] === 'id' ? ' dir="ltr"' + (id ? ' readonly' : '') : '') + ' value="' + E(v) + '">') + '</label>'; }).join(''), function(el){
+      var bad = false; D.f.forEach(function(f){ var v = el[f[0]].value.trim(); if (!v && f[0] !== 'body') bad = true; it[f[0]] = f[0] === 'id' ? K.latin(v) : v; }); if (bad) return 'أكمل الحقول.';
+      if (!id){ if (L.some(function(x){ return x.id === it.id; })) return 'رقم الوثيقة مستخدم.'; L.unshift(it); } K.log((id ? 'تعديل ' : 'إضافة ') + D.one + ' في البوابة الداخلية'); K.save(); flash('حُفظ ويظهر للموظفين الآن.'); });
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-act]'); if (!b) return; var a = b.getAttribute('data-act'), id = b.getAttribute('data-id'), d = K.db();
+    if (a === 'inkind'){ kind = id; X.render(); }
+    else if (a === 'innew') form();
+    else if (a === 'inedit') form(id);
+    else if (a === 'inon'){ var c = d.circulars.filter(function(x){ return x.id === id; })[0]; c.on = !c.on; K.save(); }
+    else if (a === 'indel'){ if (b.getAttribute('data-sure')){ d[kind] = d[kind].filter(function(x){ return x.id !== id; }); K.save(); flash('تم الحذف.'); } else { b.setAttribute('data-sure', '1'); b.textContent = 'تأكيد الحذف'; } }
   });
 })();
 </script>

@@ -59,7 +59,7 @@
         {id:'emp', name:'موظف', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions']},
         {id:'sup', name:'مدير إدارة', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','approve.supplies','approve.invoice','benefits.manage','occasions.post']},
         {id:'eng', name:'مهندس', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','ops.winch','ops.bookings']},
-        {id:'hr', name:'الموارد البشرية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','benefits.manage','benefits.claims','occasions.post','occasions.moderate','admin.staff']},
+        {id:'hr', name:'الموارد البشرية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','benefits.manage','benefits.claims','occasions.post','occasions.moderate','portal.admin','admin.staff']},
         {id:'content', name:'محرر الموقع', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','site.pages','site.texts','site.elements','site.home','site.news','site.tenders','site.jobs','site.sched']},
         {id:'fin', name:'الشؤون المالية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.invoice','ops.wallets','ops.bookings']},
         {id:'admin', name:'مدير النظام', perms:['*']}
@@ -87,13 +87,26 @@
         {id:'ads', name:'الإعلان على الحافلات', pages:['ads'], perms:['ops.bookings'], dept:'التسويق والعلاقات العامة'},
         {id:'media', name:'المركز الإعلامي والأخبار', pages:['media'], perms:['site.news'], dept:'التسويق والعلاقات العامة'},
         {id:'tenders', name:'المناقصات', pages:['tenders'], perms:['site.tenders'], dept:'الشؤون المالية'},
-        {id:'hr', name:'الوظائف والبوابة الداخلية', pages:['careers','portal'], perms:['site.jobs','benefits.manage','benefits.claims','occasions.post','occasions.moderate'], dept:'الموارد البشرية'},
+        {id:'hr', name:'الوظائف والبوابة الداخلية', pages:['careers','portal'], perms:['site.jobs','benefits.manage','benefits.claims','occasions.post','occasions.moderate','portal.admin'], dept:'الموارد البشرية'},
         {id:'estate', name:'الأصول العقارية', pages:['reclient'], perms:['ops.bookings'], dept:'المرافق والصيانة'},
         {id:'care', name:'خدمة العملاء والمفقودات', pages:['lost','assistant','account'], perms:['ops.bookings','ops.wallets'], dept:'التسويق والعلاقات العامة'}
       ].map(function(x){ x.owner = ''; x.team = []; x.status = 'لم يُسلَّم'; x.note = ''; return x; }),
       tickets: [],         // support requests from a section to the system admin: {id, sec, from, text, d, status, replies:[{from,text,d}]}
       pdi: [               // pre-delivery inspection requests (engineering)
         {id:'PDI-10412', d:today(-6), name:'شركة تجريبية للسيارات', phone:'55500000', org:'وكالة مركبات', kind:'حافلة متوسطة', make:'مثال — موديل 2026', count:3, vin:'', where:'ورشة KPTC', date:today(-3), note:'(طلب تجريبي للتوضيح)', status:'مكتمل', result:'مطابق بملاحظات', remarks:'ضبط ضغط الإطارات وتحديث برمجية شاشة السائق قبل التسليم.', inspector:'KPTC-ENG', checks:{}}
+      ],
+      /* internal portal content (from the structure of the company's existing intranet) */
+      circulars: [
+        {id:'C-3', title:'تعميم: مواعيد الدوام الرسمي', body:'يُرجى الالتزام بمواعيد الحضور والانصراف المعتمدة وتسجيل البصمة عند الدخول والخروج. (مثال توضيحي)', tone:'indigo', on:true},
+        {id:'C-2', title:'تنبيه أمن المعلومات', body:'لا تشارك كلمة مرورك مع أحد، وأبلغ الدعم الفني عن أي رسالة مشبوهة. (مثال توضيحي)', tone:'yellow', on:true},
+        {id:'C-1', title:'عرض للعاملين', body:'عروض جديدة وصلت إلى صفحة «المزايا والعروض». راجعها قبل انتهاء مدتها. (مثال توضيحي)', tone:'green', on:true}
+      ],
+      decisions: [['تثبيت موظف بوظيفة مساعد مدير إدارة','شؤون وظيفية'],['تشكيل لجنة جرد المخازن الفنية','لجان'],['تعديل مسمى قسم بإدارة شؤون النقل','تنظيم إداري'],['ندب موظف للعمل بإدارة أخرى','شؤون وظيفية'],['اعتماد جدول المناوبات للربع القادم','تشغيل'],['تكليف رئيس قسم بالإنابة','شؤون وظيفية'],['تعميم بشأن استخدام المركبات الرسمية','تعاميم'],['تعميم بشأن إجراءات السلامة في الورش','تعاميم'],['اعتماد خطة التدريب السنوية','تدريب'],['تشكيل فريق التحول الرقمي','لجان'],['تعميم بشأن الإجازات الدورية','تعاميم'],['تحديث دليل الصلاحيات المالية','تنظيم إداري']].map(function(x, i){ return {id:String(4072897 - i).padStart(9, '0'), title:'قرار بشأن ' + x[0].replace(/^تعميم بشأن /, ''), cat:x[1], d:today(-i * 3 - 1), body:'نص توضيحي لحين ربط البوابة بأرشيف القرارات. يظهر هنا نص القرار ومرفقاته.'}; }),
+      events: [{id:'E-2', d:today(6), title:'اجتماع مديري الإدارات'}, {id:'E-1', d:today(13), title:'دورة السلامة المهنية'}],
+      ittickets: [],       // {id, from, cat, pri, sub, text, d, status, replies:[{from,text,d}]}
+      library: [
+        {id:'L-4', title:'دليل استخدام البوابة الداخلية', cat:'أدلة', kind:'PDF'}, {id:'L-3', title:'لائحة شؤون الموظفين', cat:'لوائح', kind:'PDF'},
+        {id:'L-2', title:'دليل إجراءات الأمن والسلامة', cat:'أدلة', kind:'PDF'}, {id:'L-1', title:'الهيكل التنظيمي للشركة', cat:'مراجع', kind:'PDF'}
       ],
       claims: [],          // {id, bid, staff, d, status:'بانتظار الاعتماد'|'مقبول'|'مرفوض'|'مستخدم', code, msgs:[{from, text, d}]}
       /* colleagues' occasions (condolences and celebrations) */
@@ -208,7 +221,7 @@
     PERMS: [
       ['البوابة الداخلية', [['portal.leave','طلب الإجازات'],['portal.supplies','طلب المستلزمات'],['portal.invoice','صرف الفواتير'],['portal.payslip','كشف الراتب'],['portal.benefits','المزايا والعروض'],['portal.directory','دليل الموظفين'],['portal.news','أخبار الشركة'],['portal.policies','سياسات الموارد البشرية'],['portal.occasions','واجب الزملاء (المناسبات)']]],
       ['الاعتمادات', [['approve.leave','اعتماد الإجازات'],['approve.supplies','اعتماد المستلزمات'],['approve.invoice','اعتماد صرف الفواتير']]],
-      ['المزايا والمناسبات', [['benefits.manage','إنشاء العروض وتخصيصها'],['benefits.claims','اعتماد طلبات الاستفادة'],['occasions.post','نشر مناسبة مباشرة'],['occasions.moderate','مراجعة المناسبات المقترحة']]],
+      ['المزايا والمناسبات', [['benefits.manage','إنشاء العروض وتخصيصها'],['benefits.claims','اعتماد طلبات الاستفادة'],['occasions.post','نشر مناسبة مباشرة'],['occasions.moderate','مراجعة المناسبات المقترحة'],['portal.admin','التعاميم والقرارات والتقويم ومركز المعلومات'],['it.support','الرد على بلاغات الدعم الفني']]],
       ['محتوى الموقع', [['site.pages','إظهار الصفحات وإخفاؤها وترتيبها'],['site.texts','تحرير نصوص الصفحات'],['site.elements','إخفاء عناصر الصفحات وحقولها'],['site.home','أقسام الصفحة الرئيسية والتنبيهات'],['site.news','الأخبار والمركز الإعلامي'],['site.tenders','المناقصات'],['site.jobs','الوظائف وطلبات التوظيف'],['site.sched','مواعيد الخطوط']]],
       ['العمليات', [['ops.bookings','الحجوزات والطلبات'],['ops.wallets','محافظ العملاء'],['ops.winch','طلبات الونش والورشة'],['ops.pdi','طلبات فحص PDI']]],
       ['إدارة النظام', [['admin.staff','حسابات الموظفين'],['admin.roles','الأدوار والصلاحيات'],['admin.log','سجل النشاط'],['admin.backup','النسخ والاستعادة'],['admin.sections','تسليم الأقسام والإشراف عليها'],['admin.support','الرد على طلبات الدعم']]]
@@ -2131,7 +2144,7 @@ function showToast(msg) {
   }
 
   /* ---- staff portal: real sign-in, permissions, offers, colleagues' occasions (assets/portal.js) ---- */
-  function portalKit(){ if (OWN !== 'portal') return; var n = document.createElement('script'); n.src = '../assets/portal.js'; document.head.appendChild(n); }
+  function portalKit(){ if (OWN !== 'portal') return; var n = document.createElement('script'); n.src = '../assets/portal.js'; n.onload = function(){ var m = document.createElement('script'); m.src = '../assets/intranet.js'; document.head.appendChild(m); }; document.head.appendChild(n); }
 
   /* ---- languages: the whole page through the free Google website translator, with a built-in
           dictionary for the menus when the translator cannot be reached ---- */

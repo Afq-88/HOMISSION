@@ -59,7 +59,7 @@
         {id:'emp', name:'موظف', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions']},
         {id:'sup', name:'مدير إدارة', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','approve.supplies','approve.invoice','benefits.manage','occasions.post']},
         {id:'eng', name:'مهندس', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','ops.winch','ops.bookings']},
-        {id:'hr', name:'الموارد البشرية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','benefits.manage','benefits.claims','occasions.post','occasions.moderate','admin.staff']},
+        {id:'hr', name:'الموارد البشرية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','benefits.manage','benefits.claims','occasions.post','occasions.moderate','portal.admin','admin.staff']},
         {id:'content', name:'محرر الموقع', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','site.pages','site.texts','site.elements','site.home','site.news','site.tenders','site.jobs','site.sched']},
         {id:'fin', name:'الشؤون المالية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.invoice','ops.wallets','ops.bookings']},
         {id:'admin', name:'مدير النظام', perms:['*']}
@@ -87,13 +87,26 @@
         {id:'ads', name:'الإعلان على الحافلات', pages:['ads'], perms:['ops.bookings'], dept:'التسويق والعلاقات العامة'},
         {id:'media', name:'المركز الإعلامي والأخبار', pages:['media'], perms:['site.news'], dept:'التسويق والعلاقات العامة'},
         {id:'tenders', name:'المناقصات', pages:['tenders'], perms:['site.tenders'], dept:'الشؤون المالية'},
-        {id:'hr', name:'الوظائف والبوابة الداخلية', pages:['careers','portal'], perms:['site.jobs','benefits.manage','benefits.claims','occasions.post','occasions.moderate'], dept:'الموارد البشرية'},
+        {id:'hr', name:'الوظائف والبوابة الداخلية', pages:['careers','portal'], perms:['site.jobs','benefits.manage','benefits.claims','occasions.post','occasions.moderate','portal.admin'], dept:'الموارد البشرية'},
         {id:'estate', name:'الأصول العقارية', pages:['reclient'], perms:['ops.bookings'], dept:'المرافق والصيانة'},
         {id:'care', name:'خدمة العملاء والمفقودات', pages:['lost','assistant','account'], perms:['ops.bookings','ops.wallets'], dept:'التسويق والعلاقات العامة'}
       ].map(function(x){ x.owner = ''; x.team = []; x.status = 'لم يُسلَّم'; x.note = ''; return x; }),
       tickets: [],         // support requests from a section to the system admin: {id, sec, from, text, d, status, replies:[{from,text,d}]}
       pdi: [               // pre-delivery inspection requests (engineering)
         {id:'PDI-10412', d:today(-6), name:'شركة تجريبية للسيارات', phone:'55500000', org:'وكالة مركبات', kind:'حافلة متوسطة', make:'مثال — موديل 2026', count:3, vin:'', where:'ورشة KPTC', date:today(-3), note:'(طلب تجريبي للتوضيح)', status:'مكتمل', result:'مطابق بملاحظات', remarks:'ضبط ضغط الإطارات وتحديث برمجية شاشة السائق قبل التسليم.', inspector:'KPTC-ENG', checks:{}}
+      ],
+      /* internal portal content (from the structure of the company's existing intranet) */
+      circulars: [
+        {id:'C-3', title:'تعميم: مواعيد الدوام الرسمي', body:'يُرجى الالتزام بمواعيد الحضور والانصراف المعتمدة وتسجيل البصمة عند الدخول والخروج. (مثال توضيحي)', tone:'indigo', on:true},
+        {id:'C-2', title:'تنبيه أمن المعلومات', body:'لا تشارك كلمة مرورك مع أحد، وأبلغ الدعم الفني عن أي رسالة مشبوهة. (مثال توضيحي)', tone:'yellow', on:true},
+        {id:'C-1', title:'عرض للعاملين', body:'عروض جديدة وصلت إلى صفحة «المزايا والعروض». راجعها قبل انتهاء مدتها. (مثال توضيحي)', tone:'green', on:true}
+      ],
+      decisions: [['تثبيت موظف بوظيفة مساعد مدير إدارة','شؤون وظيفية'],['تشكيل لجنة جرد المخازن الفنية','لجان'],['تعديل مسمى قسم بإدارة شؤون النقل','تنظيم إداري'],['ندب موظف للعمل بإدارة أخرى','شؤون وظيفية'],['اعتماد جدول المناوبات للربع القادم','تشغيل'],['تكليف رئيس قسم بالإنابة','شؤون وظيفية'],['تعميم بشأن استخدام المركبات الرسمية','تعاميم'],['تعميم بشأن إجراءات السلامة في الورش','تعاميم'],['اعتماد خطة التدريب السنوية','تدريب'],['تشكيل فريق التحول الرقمي','لجان'],['تعميم بشأن الإجازات الدورية','تعاميم'],['تحديث دليل الصلاحيات المالية','تنظيم إداري']].map(function(x, i){ return {id:String(4072897 - i).padStart(9, '0'), title:'قرار بشأن ' + x[0].replace(/^تعميم بشأن /, ''), cat:x[1], d:today(-i * 3 - 1), body:'نص توضيحي لحين ربط البوابة بأرشيف القرارات. يظهر هنا نص القرار ومرفقاته.'}; }),
+      events: [{id:'E-2', d:today(6), title:'اجتماع مديري الإدارات'}, {id:'E-1', d:today(13), title:'دورة السلامة المهنية'}],
+      ittickets: [],       // {id, from, cat, pri, sub, text, d, status, replies:[{from,text,d}]}
+      library: [
+        {id:'L-4', title:'دليل استخدام البوابة الداخلية', cat:'أدلة', kind:'PDF'}, {id:'L-3', title:'لائحة شؤون الموظفين', cat:'لوائح', kind:'PDF'},
+        {id:'L-2', title:'دليل إجراءات الأمن والسلامة', cat:'أدلة', kind:'PDF'}, {id:'L-1', title:'الهيكل التنظيمي للشركة', cat:'مراجع', kind:'PDF'}
       ],
       claims: [],          // {id, bid, staff, d, status:'بانتظار الاعتماد'|'مقبول'|'مرفوض'|'مستخدم', code, msgs:[{from, text, d}]}
       /* colleagues' occasions (condolences and celebrations) */
@@ -208,7 +221,7 @@
     PERMS: [
       ['البوابة الداخلية', [['portal.leave','طلب الإجازات'],['portal.supplies','طلب المستلزمات'],['portal.invoice','صرف الفواتير'],['portal.payslip','كشف الراتب'],['portal.benefits','المزايا والعروض'],['portal.directory','دليل الموظفين'],['portal.news','أخبار الشركة'],['portal.policies','سياسات الموارد البشرية'],['portal.occasions','واجب الزملاء (المناسبات)']]],
       ['الاعتمادات', [['approve.leave','اعتماد الإجازات'],['approve.supplies','اعتماد المستلزمات'],['approve.invoice','اعتماد صرف الفواتير']]],
-      ['المزايا والمناسبات', [['benefits.manage','إنشاء العروض وتخصيصها'],['benefits.claims','اعتماد طلبات الاستفادة'],['occasions.post','نشر مناسبة مباشرة'],['occasions.moderate','مراجعة المناسبات المقترحة']]],
+      ['المزايا والمناسبات', [['benefits.manage','إنشاء العروض وتخصيصها'],['benefits.claims','اعتماد طلبات الاستفادة'],['occasions.post','نشر مناسبة مباشرة'],['occasions.moderate','مراجعة المناسبات المقترحة'],['portal.admin','التعاميم والقرارات والتقويم ومركز المعلومات'],['it.support','الرد على بلاغات الدعم الفني']]],
       ['محتوى الموقع', [['site.pages','إظهار الصفحات وإخفاؤها وترتيبها'],['site.texts','تحرير نصوص الصفحات'],['site.elements','إخفاء عناصر الصفحات وحقولها'],['site.home','أقسام الصفحة الرئيسية والتنبيهات'],['site.news','الأخبار والمركز الإعلامي'],['site.tenders','المناقصات'],['site.jobs','الوظائف وطلبات التوظيف'],['site.sched','مواعيد الخطوط']]],
       ['العمليات', [['ops.bookings','الحجوزات والطلبات'],['ops.wallets','محافظ العملاء'],['ops.winch','طلبات الونش والورشة'],['ops.pdi','طلبات فحص PDI']]],
       ['إدارة النظام', [['admin.staff','حسابات الموظفين'],['admin.roles','الأدوار والصلاحيات'],['admin.log','سجل النشاط'],['admin.backup','النسخ والاستعادة'],['admin.sections','تسليم الأقسام والإشراف عليها'],['admin.support','الرد على طلبات الدعم']]]
@@ -773,8 +786,8 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
     if (pvKeep && pvKeep.getAttribute('data-src') === want){ f.replaceWith(pvKeep); f = pvKeep; } else { f.src = want; pvKeep = f; }   // keep the frame alive across re-renders
     var w = dev === 'mob' ? 390 : 1280, sc = Math.min(1, b.clientWidth / w); f.style.left = Math.max(0, (b.clientWidth - w * sc) / 2) + 'px'; f.style.transform = 'scale(' + sc + ')'; f.style.height = (b.clientHeight / sc) + 'px';
   }
-  var GROUPS = [['عملي',['desk']],['التحكم بالموقع',['pages','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['العملاء',['wallets','bookings']],['الموظفون',['staff','roles','benefits','occasions']],['النظام',['log']]];
-  var NEED = {desk:[], pages:['site.pages'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
+  var GROUPS = [['عملي',['desk']],['التحكم بالموقع',['pages','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['العملاء',['wallets','bookings']],['الموظفون',['staff','roles','intranet','benefits','occasions']],['النظام',['log']]];
+  var NEED = {desk:[], intranet:['portal.admin'], pages:['site.pages'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
   function allow(k){ var u = K.staffUser(); if (!u || !TABS[k] || !V[k]) return false;
     if (k === 'desk') return K.can('admin.sections', u) || K.db().sections.some(function(x){ return x.owner === u.id || (x.team || []).indexOf(u.id) > -1; });
     if (k === 'editor' && (K.pagesFor(u) || []).length) return true;
@@ -1235,6 +1248,39 @@ body.gated .gate{display:grid}
     if (t.matches('[data-bk]')){ var b = d.bookings.filter(function(x){ return x.id === t.getAttribute('data-bk'); })[0]; b.status = t.value; K.log('حالة ' + b.id + ': ' + t.value, sc && sc.id); K.save(); flash('حُفظت الحالة.'); }
     if (t.matches('[data-pd]')){ var r = d.pdi.filter(function(x){ return x.id === t.getAttribute('data-id'); })[0]; r.status = t.value; var bk = d.bookings.filter(function(x){ return x.id === r.id; })[0]; if (bk) bk.status = t.value; K.log('حالة ' + r.id + ': ' + t.value, 'eng'); K.save(); flash('حُفظت الحالة.'); }
     if (t.matches('[data-sp]')){ var p = t.getAttribute('data-sp'), i = sc.perms.indexOf(p); if (t.checked && i < 0) sc.perms.push(p); if (!t.checked && i > -1) sc.perms.splice(i, 1); K.log('صلاحيات قسم ' + sc.name, sc.id); K.save(); flash('حُفظت صلاحيات القسم.'); }
+  });
+})();
+</script>
+
+<script>
+(function(){
+  var X = window.KPStudio, K = X.K, $ = X.$, E = X.E, T = X.TABS, V = X.V, flash = X.flash, tag = X.tag, kind = 'circulars';
+  var DEF = {
+    circulars:{n:'التعاميم والإعلانات', one:'تعميم', f:[['title','العنوان'],['body','النص','area'],['tone','اللون','sel',[['indigo','نيلي'],['yellow','أصفر'],['green','أخضر'],['red','أحمر (عاجل)']]]], mk:function(){ return {id:K.id('C'), tone:'indigo', on:true}; }, row:function(c){ return '<td><b>' + E(c.title) + '</b><br><small>' + E(c.body) + '</small></td><td>' + tag(c.on ? 'منشور' : 'موقوف') + '</td>'; }, head:'<th>التعميم</th><th>الحالة</th>'},
+    decisions:{n:'القرارات الرسمية', one:'قرار', f:[['id','رقم الوثيقة'],['title','الموضوع'],['cat','التصنيف'],['d','التاريخ','date'],['body','النص','area']], mk:function(){ return {id:'', d:K.today(), cat:'تعاميم'}; }, row:function(c){ return '<td class="num"><b>' + E(c.id) + '</b></td><td>' + E(c.title) + '</td><td>' + E(c.cat) + '</td><td class="num">' + K.date(c.d) + '</td>'; }, head:'<th>رقم الوثيقة</th><th>الموضوع</th><th>التصنيف</th><th>التاريخ</th>'},
+    events:{n:'فعاليات التقويم', one:'فعالية', f:[['title','الفعالية'],['d','التاريخ','date']], mk:function(){ return {id:K.id('E'), d:K.today(7)}; }, row:function(c){ return '<td><b>' + E(c.title) + '</b></td><td class="num">' + K.date(c.d) + '</td>'; }, head:'<th>الفعالية</th><th>التاريخ</th>'},
+    library:{n:'مركز المعلومات', one:'ملف', f:[['title','اسم الملف'],['cat','التصنيف'],['kind','النوع']], mk:function(){ return {id:K.id('L'), cat:'أدلة', kind:'PDF'}; }, row:function(c){ return '<td><b>' + E(c.title) + '</b></td><td>' + E(c.cat) + '</td><td>' + E(c.kind) + '</td>'; }, head:'<th>الملف</th><th>التصنيف</th><th>النوع</th>'}
+  };
+  T.intranet = ['محتوى البوابة الداخلية', 'ما يظهر للموظفين في بوابتهم: شريط التعاميم، جدول القرارات، فعاليات التقويم، وملفات مركز المعلومات.'];
+  V.intranet = function(d){
+    var D = DEF[kind], L = d[kind]; $('hA').innerHTML = '<button class="btn y" data-act="innew">' + D.one + ' جديد</button>';
+    return '<div class="chips">' + Object.keys(DEF).map(function(k){ return '<button data-act="inkind" data-id="' + k + '" class="' + (k === kind ? 'on' : '') + '">' + DEF[k].n + '<em class="num">' + d[k].length + '</em></button>'; }).join('') + '</div>' +
+      (L.length ? '<div class="tw"><table class="t"><thead><tr>' + D.head + '<th></th></tr></thead><tbody>' + L.map(function(c){ return '<tr>' + D.row(c) + '<td><button class="btn o" data-act="inedit" data-id="' + E(c.id) + '">تعديل</button>' + (kind === 'circulars' ? '<button class="btn o" data-act="inon" data-id="' + E(c.id) + '">' + (c.on ? 'إيقاف' : 'نشر') + '</button>' : '') + '<button class="btn o" data-act="indel" data-id="' + E(c.id) + '">حذف</button></td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">لا عناصر بعد.</div>');
+  };
+  function form(id){
+    var D = DEF[kind], L = K.db()[kind], it = id ? L.filter(function(x){ return x.id === id; })[0] : D.mk();
+    X.dlg((id ? 'تعديل ' : 'إضافة ') + D.one, D.f.map(function(f){ var v = it[f[0]] == null ? '' : it[f[0]];
+      return '<label class="f">' + f[1] + (f[2] === 'area' ? '<textarea name="' + f[0] + '" rows="3">' + E(v) + '</textarea>' : f[2] === 'sel' ? '<select name="' + f[0] + '">' + f[3].map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === v ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' : '<input name="' + f[0] + '"' + (f[2] === 'date' ? ' type="date"' : '') + (f[0] === 'id' ? ' dir="ltr"' + (id ? ' readonly' : '') : '') + ' value="' + E(v) + '">') + '</label>'; }).join(''), function(el){
+      var bad = false; D.f.forEach(function(f){ var v = el[f[0]].value.trim(); if (!v && f[0] !== 'body') bad = true; it[f[0]] = f[0] === 'id' ? K.latin(v) : v; }); if (bad) return 'أكمل الحقول.';
+      if (!id){ if (L.some(function(x){ return x.id === it.id; })) return 'رقم الوثيقة مستخدم.'; L.unshift(it); } K.log((id ? 'تعديل ' : 'إضافة ') + D.one + ' في البوابة الداخلية'); K.save(); flash('حُفظ ويظهر للموظفين الآن.'); });
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-act]'); if (!b) return; var a = b.getAttribute('data-act'), id = b.getAttribute('data-id'), d = K.db();
+    if (a === 'inkind'){ kind = id; X.render(); }
+    else if (a === 'innew') form();
+    else if (a === 'inedit') form(id);
+    else if (a === 'inon'){ var c = d.circulars.filter(function(x){ return x.id === id; })[0]; c.on = !c.on; K.save(); }
+    else if (a === 'indel'){ if (b.getAttribute('data-sure')){ d[kind] = d[kind].filter(function(x){ return x.id !== id; }); K.save(); flash('تم الحذف.'); } else { b.setAttribute('data-sure', '1'); b.textContent = 'تأكيد الحذف'; } }
   });
 })();
 </script>
@@ -1763,7 +1809,7 @@ body.gated .gate{display:grid}
   }
 
   /* ---- staff portal: real sign-in, permissions, offers, colleagues' occasions (assets/portal.js) ---- */
-  function portalKit(){ if (OWN !== 'portal') return; var n = document.createElement('script'); n.src = '../assets/portal.js'; document.head.appendChild(n); }
+  function portalKit(){ if (OWN !== 'portal') return; var n = document.createElement('script'); n.src = '../assets/portal.js'; n.onload = function(){ var m = document.createElement('script'); m.src = '../assets/intranet.js'; document.head.appendChild(m); }; document.head.appendChild(n); }
 
   /* ---- languages: the whole page through the free Google website translator, with a built-in
           dictionary for the menus when the translator cannot be reached ---- */
