@@ -689,6 +689,74 @@ table.t tr:hover td{background:var(--kp-paper-2)}
 .lb.on{display:grid}.lb img{max-width:min(1100px,96vw);max-height:84vh;border-radius:4px;animation:kp-pop .3s var(--kp-ease) both}
 .lb p{color:#fff;text-align:center;margin-top:10px;font-weight:600}
 section.sec{padding:8px 0 46px;scroll-margin-top:150px}
+/* ===== «المحطّة»: the media centre as a newspaper ===== */
+.mast{padding:26px 0 40px!important}
+.mast-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font:600 12.5px var(--f-body);color:#C9C7EA;border-block:1px solid rgba(255,255,255,.22);padding:8px 0;margin-bottom:26px}
+.mast-top span:nth-child(2){color:var(--kp-sign);font-family:var(--f-display);font-weight:700}
+.mast-g{display:grid;grid-template-columns:1fr minmax(320px,460px);gap:40px;align-items:center}
+.mast h1{font-size:clamp(64px,11vw,132px)!important;line-height:1!important;margin:10px 0 14px!important;letter-spacing:-1px;color:#fff;text-shadow:6px 6px 0 rgba(255,201,60,.9)}
+.mast p{max-width:520px;color:#DAD9F0}
+.mast-a{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.mast-a .btn.o{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
+.board{background:#0D0C27;border:3px solid #000;border-radius:8px;padding:12px;box-shadow:0 0 0 2px rgba(255,255,255,.12),10px 10px 0 rgba(0,0,0,.25)}
+.board-h{display:grid;grid-template-columns:1fr 0 92px 78px;gap:10px;font:700 11px var(--f-display);color:#8E8CB8;padding:0 10px 8px;letter-spacing:.3px}
+.board-r{display:grid;grid-template-columns:1fr 92px 78px;gap:10px;align-items:center;width:100%;text-align:start;background:#1B1A45;border:0;border-radius:4px;margin-bottom:5px;padding:10px;color:var(--kp-sign);cursor:pointer;font:500 12px var(--f-body);position:relative;overflow:hidden;animation:flap .7s calc(var(--i)*.13s) cubic-bezier(.3,1.4,.5,1) both;transform-origin:top;transition:background .2s,translate .2s}
+.board-r::after{content:"";position:absolute;inset:50% 0 auto 0;height:1px;background:rgba(0,0,0,.55)}
+.board-r b{font:700 13.5px var(--f-display);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.board-r span{color:#C9C7EA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.board-r span:last-child{color:var(--kp-sign);font-weight:700}
+.board-r:hover{background:var(--kp-sign);translate:-4px 0}.board-r:hover b,.board-r:hover span{color:var(--kp-ink)}
+@keyframes flap{from{transform:perspective(500px) rotateX(-88deg);opacity:0}}
+.prog{position:sticky;top:72px;z-index:40;height:4px;background:transparent}.prog i{display:block;height:100%;width:0;background:var(--kp-sign)}
+.news{grid-template-columns:1.5fr 1fr!important;gap:30px!important;align-items:start}
+.lead-n{border:0!important;background:none!important;border-radius:0!important;overflow:visible!important}
+.lead-i{position:relative;border-radius:8px;overflow:hidden;border:2px solid var(--kp-ink);box-shadow:8px 8px 0 var(--kp-sign)}
+.lead-i img{height:360px!important;transition:scale .8s var(--kp-ease)}.lead-n:hover .lead-i img{scale:1.04}
+.lead-i span{position:absolute;top:14px;right:0;background:var(--kp-ink);color:var(--kp-sign);font:700 12px var(--f-display);padding:5px 14px 5px 12px}
+.lead-n .lead-t{padding:22px 0 0!important}
+.lead-n h3{font-size:clamp(24px,3vw,34px)!important;line-height:1.4!important}
+.lead-n p{font-size:16.5px;line-height:2;color:#3d3c5c}
+.lead-n .more{display:inline-block;margin-top:12px;color:var(--kp-indigo);font-family:var(--f-display);border-bottom:3px solid var(--kp-sign)}
+.n-list{background:none!important;border:0!important;border-top:4px solid var(--kp-ink)!important;border-radius:0!important}
+.n-it{grid-template-columns:auto 1fr 84px!important;align-items:center;padding:16px 4px!important;border-bottom:1px solid var(--kp-line-2)!important}
+.n-it em{font:700 30px var(--f-display);font-style:normal;color:var(--kp-line-2);transition:color .2s}
+.n-it:hover{background:none!important}.n-it:hover em{color:var(--kp-sign)}.n-it:hover b{color:var(--kp-indigo)}
+.n-it img{width:84px!important;height:62px!important}
+.meta span+span::before{content:"·";margin-inline-end:10px;color:var(--kp-line-2)}
+/* story reader */
+.rd{position:fixed;inset:0;z-index:960;background:rgba(13,12,39,.94);display:none;place-items:center;padding:18px;overflow:auto}
+.rd.on{display:grid}
+.rd-in{position:relative;display:grid;grid-template-columns:1fr 1fr;width:min(1040px,100%);background:var(--kp-paper);border-radius:10px;overflow:hidden;animation:rd-in .45s var(--kp-ease) both;border-top:6px solid var(--kp-sign)}
+@keyframes rd-in{from{opacity:0;translate:0 26px;scale:.97}}
+.rd-bar{position:absolute;top:10px;right:16px;left:60px;display:flex;gap:4px;z-index:2}.rd-bar i{flex:1;height:4px;border-radius:2px;background:rgba(20,19,58,.18)}.rd-bar i.done{background:var(--kp-ink)}.rd-bar i.on{background:var(--kp-sign);box-shadow:0 0 0 1px var(--kp-ink)}
+.rd-x{position:absolute;top:8px;left:12px;z-index:3;width:36px;height:36px;border-radius:50%;border:2px solid var(--kp-ink);background:#fff;font-size:20px;cursor:pointer;color:var(--kp-ink)}
+.rd-img{min-height:420px;background:#ddd}.rd-img img{width:100%;height:100%;object-fit:cover;display:block}
+.rd-tx{padding:46px 30px 26px;display:grid;align-content:center;gap:12px}
+.rd-tx h2{font-size:clamp(22px,2.6vw,30px);line-height:1.5}.rd-tx p{font-size:16.5px;line-height:2.05;color:#3d3c5c}
+.rd-a{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.rd-a [disabled]{opacity:.35;pointer-events:none}
+/* photo reel */
+.gal{display:flex!important;gap:14px!important;overflow-x:auto;scroll-snap-type:x proximity;padding:6px 2px 18px;cursor:grab;scrollbar-width:thin;user-select:none}
+.gal.drag{cursor:grabbing;scroll-snap-type:none}.gal.drag button{pointer-events:none}
+.gal button{flex:0 0 clamp(240px,30vw,380px);aspect-ratio:4/3!important;scroll-snap-align:start;border:2px solid var(--kp-ink)!important;border-radius:8px!important;transition:translate .3s var(--kp-ease),box-shadow .3s}
+.gal button:nth-child(even){margin-top:26px}
+.gal button:hover{translate:0 -6px;box-shadow:6px 6px 0 var(--kp-sign)}
+.gal .wide{flex-basis:clamp(300px,42vw,520px)}
+.gal img{-webkit-user-drag:none;pointer-events:none}
+.lb{grid-template-columns:auto 1fr auto;gap:10px}.lb.on{display:grid}.lb>div{justify-self:center}
+.lb-n{width:46px;height:46px;border-radius:50%;border:2px solid #fff;background:transparent;color:#fff;font-size:20px;cursor:pointer}.lb-n:hover{background:var(--kp-sign);color:var(--kp-ink);border-color:var(--kp-sign)}
+/* history as a line of stations */
+.tl-line{border:0!important;padding:0!important;grid-template-columns:repeat(4,1fr);gap:0!important;position:relative;margin-top:10px}
+.tl-line::before{content:"";position:absolute;top:13px;right:8%;left:8%;height:5px;background:var(--kp-sign);border-radius:3px}
+.tl-line li{text-align:center;padding:38px 8px 0}
+.tl-line li::before{inset-inline-start:50%!important;translate:50% 0;top:2px!important;width:28px!important;height:28px!important;border-width:6px!important;border-color:var(--kp-ink)!important;background:#fff!important;transition:background .3s,scale .3s}
+.tl-line li:hover::before{background:var(--kp-sign)!important;scale:1.15}
+.tl-line li:last-child::before{background:var(--kp-sign)!important}
+.tl-line b{font-size:26px!important}.tl-line p{font-size:13.5px;color:var(--kp-muted);line-height:1.8}
+#about .grid.g2{grid-template-columns:1fr!important}#about .grid.g2 img{max-height:340px;object-fit:cover;border:2px solid var(--kp-ink);box-shadow:8px 8px 0 var(--kp-sign)}
+#csr .box,#video .box{border:2px solid var(--kp-ink);border-radius:8px;transition:translate .25s var(--kp-ease),box-shadow .25s}#csr .box:hover,#video .box:hover{translate:0 -5px;box-shadow:6px 6px 0 var(--kp-sign)}
+#csr .box h3::before{content:"";display:block;width:34px;height:6px;background:var(--kp-sign);margin-bottom:12px}
+section.sec .st{font-size:clamp(24px,3vw,34px)}
+section.sec{border-top:1px solid var(--kp-line-2);padding-top:34px!important}section.sec:first-child{border:0}
+@media(max-width:920px){.mast-g{grid-template-columns:1fr;gap:22px}.news{grid-template-columns:1fr!important}.rd-in{grid-template-columns:1fr}.rd-img{min-height:220px;max-height:260px}.rd-tx{padding:20px 18px}.tl-line{grid-template-columns:1fr 1fr;row-gap:20px}.tl-line::before{display:none}.lb{grid-template-columns:1fr}.lb-n{display:none}.lead-i img{height:230px!important}.board-h{display:none}.board-r{grid-template-columns:1fr auto}.board-r span:nth-child(2){display:none}}
 @media(max-width:920px){.news{grid-template-columns:1fr}.gal{grid-template-columns:1fr 1fr}.lead-n img{height:210px}}
 </style>
 </head>
@@ -699,7 +767,15 @@ section.sec{padding:8px 0 46px;scroll-margin-top:150px}
 <div class="k2-act"><a class="k2-btn k2-btn-ghost" href="KPTC_Portal.html">بوابة الموظفين</a><a class="k2-btn k2-btn-sign k2-hide-m" href="KPTC_Subscriptions.html">اشترك الآن</a><button class="k2-menu" aria-label="فتح القائمة" aria-expanded="false" onclick="k2Drawer(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
 <div class="k2-drawer" id="k2Drawer" aria-hidden="true"><div class="k2-scrim" onclick="k2Drawer(0)"></div><div class="k2-panel" role="dialog" aria-label="القائمة"><button class="k2-close" onclick="k2Drawer(0)" aria-label="إغلاق">×</button><a href="KPTC_Home.html">الرئيسية</a><a href="KPTC_Routes.html">الخطوط والمسارات</a><a href="KPTC_Subscriptions.html">الاشتراكات والتذاكر</a><a href="KPTC_Umrah.html">رحلات العمرة</a><a href="KPTC_VIP.html">باصات VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_LostFound.html">المفقودات</a><a href="KPTC_Advertising.html">أعلن معنا</a><a href="KPTC_RE_Client.html">مساحات للإيجار</a><a href="KPTC_Portal.html">بوابة الموظفين</a></div></div>
 <script>function k2Drawer(o){var d=document.getElementById('k2Drawer');d.classList.toggle('open',!!o);d.setAttribute('aria-hidden',o?'false':'true');var b=document.querySelector('.k2-menu');if(b)b.setAttribute('aria-expanded',o?'true':'false')}document.addEventListener('keydown',function(e){if(e.key==='Escape')k2Drawer(0)});</script>
-<div class="kp-hero"><div class="w ph"><div class="kp-tag">المركز الإعلامي</div><h1>أخبار الشركة وموادها الإعلامية</h1><p>الأخبار والبيانات الصحفية، ألبوم الصور، المطبوعات، المسؤولية الاجتماعية، الحوكمة وحق الاطلاع، وبيانات التواصل الإعلامي.</p></div></div>
+<div class="kp-hero mast"><div class="w">
+  <div class="mast-top"><span id="mEd"></span><span>صحيفة شركة النقل العام الكويتية</span><span id="mDate"></span></div>
+  <div class="mast-g">
+    <div><div class="kp-tag">المركز الإعلامي</div><h1>المحطّة</h1><p>كل ما تنشره KPTC في مكان واحد: الأخبار والبيانات، الصور، المطبوعات، تاريخ الشركة ومسؤوليتها تجاه المجتمع. اقرأها كما تقرأ صحيفتك.</p>
+      <div class="mast-a"><a class="btn y" href="#news">اقرأ عدد اليوم</a><a class="btn o" href="#press">للصحفيين</a></div></div>
+    <div class="board" aria-label="آخر العناوين"><div class="board-h"><span>آخر العناوين</span><i></i><span>القسم</span><span>النشر</span></div><div id="mBoard"></div></div>
+  </div>
+</div></div>
+<div class="prog"><i id="prog"></i></div>
 <nav class="sub"><div class="w">
   <a href="#news" class="on">الأخبار والبيانات</a><a href="#gallery">ألبوم الصور</a><a href="#video">الفيديو</a><a href="#pubs">المطبوعات والتقارير</a><a href="#about">عن الشركة</a><a href="#csr">المسؤولية الاجتماعية</a><a href="#gov">الحوكمة وحق الاطلاع</a><a href="#press">التواصل الإعلامي</a>
 </div></nav>
@@ -734,7 +810,7 @@ section.sec{padding:8px 0 46px;scroll-margin-top:150px}
   <section class="sec" id="about">
     <h2 class="st">عن الشركة</h2><p class="sd">محطات في تاريخ شركة النقل العام الكويتية.</p>
     <div class="grid g2">
-      <ul class="tl">
+      <ul class="tl tl-line">
         <li><b class="num">1962</b><p>تأسست بموجب المرسوم الأميري رقم (60) باسم «شركة المواصلات الكويتية»، وكانت أسهمها موزعة بين الحكومة والأفراد.</p></li>
         <li><b class="num">1980</b><p>أصبحت جميع أسهم الشركة مملوكة بالكامل للدولة بموجب المرسوم بالقانون رقم (34).</p></li>
         <li><b class="num">1985</b><p>تغيّر الاسم إلى «شركة النقل العام الكويتية».</p></li>
@@ -771,31 +847,54 @@ section.sec{padding:8px 0 46px;scroll-margin-top:150px}
   </section>
 </div></main>
 <div class="dlg" id="dNews"><div><button class="x" type="button" data-close>×</button><div id="dNewsB"></div></div></div>
-<div class="lb" id="lb"><div><img id="lbImg" alt=""><p id="lbCap"></p></div></div>
+<div class="lb" id="lb"><button type="button" class="lb-n" data-lb="-1" aria-label="السابق">→</button><div><img id="lbImg" alt=""><p id="lbCap"></p></div><button type="button" class="lb-n" data-lb="1" aria-label="التالي">←</button></div>
+<div class="rd" id="rd"></div>
 <div class="flash" id="flash"></div>
 <script>
 (function(){
   var K = KPTC, $ = function(i){ return document.getElementById(i); }, cat = 'الكل';
   function flash(t){ var f = $('flash'); f.textContent = t; f.classList.add('on'); setTimeout(function(){ f.classList.remove('on'); }, 2600); }
+  var shown = [], rdI = 0;
+  function mins(t){ return 'قراءة ' + Math.max(1, Math.round(String(t).split(/\s+/).length / 180)) + ' د'; }
+  function ago(d){ var n = Math.round((new Date(K.today()) - new Date(d)) / 864e5); return n <= 0 ? 'اليوم' : n === 1 ? 'أمس' : n < 11 ? 'منذ ' + n + ' أيام' : K.date(d); }
+  function board(all){ $('mBoard').innerHTML = all.slice(0, 5).map(function(n, i){ return '<button type="button" class="board-r" data-n="' + K.esc(n.id) + '" style="--i:' + i + '"><b>' + K.esc(n.title) + '</b><span>' + K.esc(n.cat) + '</span><span class="num">' + ago(n.d) + '</span></button>'; }).join(''); $('mEd').textContent = 'العدد ' + (all.length ? all.length * 7 + 100 : 100); }
+  function read(id){
+    var list = shown.length ? shown : K.db().news.filter(function(n){ return n.pub; }); rdI = Math.max(0, list.map(function(n){ return n.id; }).indexOf(id)); var x = list[rdI]; if (!x) return;
+    $('rd').innerHTML = '<div class="rd-in"><div class="rd-bar">' + list.map(function(_, i){ return '<i class="' + (i < rdI ? 'done' : i === rdI ? 'on' : '') + '"></i>'; }).join('') + '</div><button class="rd-x" type="button" data-rd="x" aria-label="إغلاق">×</button>' +
+      '<div class="rd-img"><img src="../assets/' + K.esc(x.img || 'kbus-fleet.jpg') + '" alt=""></div><div class="rd-tx"><div class="meta"><span class="tag in">' + K.esc(x.cat) + '</span><span class="num">' + K.date(x.d) + '</span><span>' + mins(x.body) + '</span></div><h2>' + K.esc(x.title) + '</h2><p>' + K.esc(x.body) + '</p>' +
+      '<div class="rd-a"><button class="btn o sm" type="button" data-rd="prev"' + (rdI ? '' : ' disabled') + '>→ السابق</button><button class="btn o sm" type="button" data-rd="share">شارك الخبر</button><button class="btn y sm" type="button" data-rd="next"' + (rdI < list.length - 1 ? '' : ' disabled') + '>التالي ←</button></div></div></div>';
+    $('rd').classList.add('on'); document.body.style.overflow = 'hidden';
+  }
+  function rdClose(){ $('rd').classList.remove('on'); document.body.style.overflow = ''; }
+  document.addEventListener('click', function(e){ var b = e.target.closest('[data-rd]'); if (!b){ if (e.target === $('rd')) rdClose(); return; } var a = b.getAttribute('data-rd'), x = shown[rdI];
+    if (a === 'x') rdClose(); else if (a === 'prev' && rdI > 0) read(shown[rdI - 1].id); else if (a === 'next' && rdI < shown.length - 1) read(shown[rdI + 1].id);
+    else if (a === 'share'){ var t = x.title + ' — KPTC\n' + x.body; if (navigator.share) navigator.share({title:x.title, text:t}).catch(function(){}); else { try { navigator.clipboard.writeText(t).then(function(){ flash('نُسخ الخبر. الصقه حيث تشاء.'); }); } catch(z){ flash('تعذّر النسخ.'); } } } });
+  document.addEventListener('keydown', function(e){ if ($('rd').classList.contains('on')){ if (e.key === 'Escape') rdClose(); if (e.key === 'ArrowLeft' && rdI < shown.length - 1) read(shown[rdI + 1].id); if (e.key === 'ArrowRight' && rdI > 0) read(shown[rdI - 1].id); }
+    if ($('lb').classList.contains('on')){ if (e.key === 'Escape') $('lb').classList.remove('on'); if (e.key === 'ArrowLeft') lbGo(1); if (e.key === 'ArrowRight') lbGo(-1); } });
+  var lbI = 0; function lbGo(d){ var b = $('gal').querySelectorAll('[data-img]'); lbI = (lbI + d + b.length) % b.length; $('lbImg').src = '../assets/' + b[lbI].getAttribute('data-img'); $('lbCap').textContent = b[lbI].getAttribute('data-cap') + ' · ' + (lbI + 1) + ' / ' + b.length; }
+  var D = new Date(); $('mDate').textContent = D.toLocaleDateString('ar-KW', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  window.addEventListener('scroll', function(){ var h = document.documentElement; $('prog').style.width = (h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight) * 100) + '%'; }, {passive:true});
   function render(){
     var all = K.db().news.filter(function(n){ return n.pub; }), cats = ['الكل'].concat(all.map(function(n){ return n.cat; }).filter(function(v,i,a){ return a.indexOf(v) === i; }));
     $('nCats').innerHTML = cats.map(function(c){ return '<button type="button" class="' + (c === cat ? 'on' : '') + '" data-c="' + K.esc(c) + '">' + K.esc(c) + '</button>'; }).join('');
     var list = all.filter(function(n){ return cat === 'الكل' || n.cat === cat; });
     if (!list.length){ $('nLead').innerHTML = '<div class="box empty">لا توجد أخبار في هذا القسم.</div>'; $('nList').innerHTML = ''; return; }
     var L = list[0];
-    $('nLead').innerHTML = '<article class="lead-n" data-n="' + K.esc(L.id) + '"><img src="../assets/' + K.esc(L.img || 'kbus-fleet.jpg') + '" alt=""><div><div class="meta"><span class="tag in">' + K.esc(L.cat) + '</span><span class="num">' + K.date(L.d) + '</span></div><h3>' + K.esc(L.title) + '</h3><p>' + K.esc(L.body) + '</p></div></article>';
-    $('nList').innerHTML = list.slice(1).map(function(n){ return '<div class="n-it" data-n="' + K.esc(n.id) + '"><img src="../assets/' + K.esc(n.img || 'kbus-fleet.jpg') + '" alt=""><div><b>' + K.esc(n.title) + '</b><div class="meta"><span>' + K.esc(n.cat) + '</span><span class="num">' + K.date(n.d) + '</span></div></div></div>'; }).join('') || '<div class="empty">لا توجد أخبار أخرى.</div>';
+    $('nLead').innerHTML = '<article class="lead-n" data-n="' + K.esc(L.id) + '"><div class="lead-i"><img src="../assets/' + K.esc(L.img || 'kbus-fleet.jpg') + '" alt=""><span>الخبر الرئيسي</span></div><div class="lead-t"><div class="meta"><span class="tag in">' + K.esc(L.cat) + '</span><span class="num">' + K.date(L.d) + '</span><span>' + mins(L.body) + '</span></div><h3>' + K.esc(L.title) + '</h3><p>' + K.esc(L.body) + '</p><b class="more">اقرأ القصة ←</b></div></article>';
+    $('nList').innerHTML = list.slice(1).map(function(n, k){ return '<div class="n-it" data-n="' + K.esc(n.id) + '"><em class="num">' + ('0' + (k + 2)).slice(-2) + '</em><div><b>' + K.esc(n.title) + '</b><div class="meta"><span>' + K.esc(n.cat) + '</span><span class="num">' + K.date(n.d) + '</span><span>' + mins(n.body) + '</span></div></div><img src="../assets/' + K.esc(n.img || 'kbus-fleet.jpg') + '" alt="" loading="lazy"></div>'; }).join('');
+    shown = list; board(all);
   }
   $('nCats').addEventListener('click', function(e){ var b = e.target.closest('[data-c]'); if (b){ cat = b.getAttribute('data-c'); render(); } });
   document.addEventListener('click', function(e){
-    var n = e.target.closest('[data-n]'); if (n){ var x = K.db().news.filter(function(v){ return v.id === n.getAttribute('data-n'); })[0]; $('dNewsB').innerHTML = '<span class="tag in">' + K.esc(x.cat) + '</span> <span class="num" style="color:var(--kp-muted);font-size:13px">' + K.date(x.d) + '</span><h3 style="margin:10px 0">' + K.esc(x.title) + '</h3><img src="../assets/' + K.esc(x.img || 'kbus-fleet.jpg') + '" alt="" style="width:100%;border-radius:4px;margin-bottom:12px"><p>' + K.esc(x.body) + '</p>'; $('dNews').classList.add('on'); }
+    var n = e.target.closest('[data-n]'); if (n){ read(n.getAttribute('data-n')); return; }
     if (e.target.closest('[data-close]')) e.target.closest('.dlg').classList.remove('on');
     if (e.target.closest('[data-soon]')) flash('سُجّل طلبك، وسيتواصل معك فريق الإعلام.');
   });
   var G = [['kbus-fleet.jpg','أسطول حافلات K-Bus','wide'],['kbus-ev.jpg','الحافلة الكهربائية K-eBus'],['kbus-street.jpg','K-Bus في شوارع الكويت'],['kbus-depot.jpg','الحافلات في المحطة'],['coach-1.jpg','حافلة سياحية للتأجير'],['coach-interior.jpg','مقصورة الحافلة السياحية'],['school-bus.jpg','حافلات نقل الطلبة'],['tow-1.jpg','مركز الأوناش'],['workshop-1.jpg','الورشة المركزية'],['hq.jpg','المبنى الرئيسي'],['kptc-classic.jpg','من أرشيف الشركة']];
   $('gal').innerHTML = G.map(function(g){ return '<button type="button" class="' + (g[2]||'') + '" data-img="' + g[0] + '" data-cap="' + g[1] + '"><img src="../assets/' + g[0] + '" alt="' + g[1] + '" loading="lazy"><span>' + g[1] + '</span></button>'; }).join('');
-  $('gal').addEventListener('click', function(e){ var b = e.target.closest('[data-img]'); if (!b) return; $('lbImg').src = '../assets/' + b.getAttribute('data-img'); $('lbCap').textContent = b.getAttribute('data-cap'); $('lb').classList.add('on'); });
-  $('lb').onclick = function(){ $('lb').classList.remove('on'); };
+  $('gal').addEventListener('click', function(e){ var b = e.target.closest('[data-img]'); if (!b) return; lbI = [].indexOf.call($('gal').querySelectorAll('[data-img]'), b); lbGo(0); $('lb').classList.add('on'); });
+  $('lb').onclick = function(e){ var a = e.target.closest('[data-lb]'); if (a){ lbGo(+a.getAttribute('data-lb')); return; } $('lb').classList.remove('on'); };
+  (function(){ var g = $('gal'), down = null; g.addEventListener('pointerdown', function(e){ down = {x:e.clientX, s:g.scrollLeft, m:0}; }); g.addEventListener('pointermove', function(e){ if (!down) return; down.m = Math.abs(e.clientX - down.x); if (down.m > 6){ g.scrollLeft = down.s - (e.clientX - down.x); g.classList.add('drag'); } }); ['pointerup','pointerleave'].forEach(function(v){ g.addEventListener(v, function(){ setTimeout(function(){ g.classList.remove('drag'); }, 0); down = null; }); }); g.addEventListener('click', function(e){ if (g.classList.contains('drag')){ e.stopPropagation(); e.preventDefault(); } }, true); })();
   $('fGov').addEventListener('submit', function(e){ e.preventDefault(); if (!$('gName').value.trim() || K.latin($('gPhone').value).replace(/\D/g,'').length < 8 || !$('gText').value.trim()){ $('gErr').textContent = 'أكمل الاسم ورقم الهاتف ونص الطلب.'; return; } $('gErr').textContent = ''; K.addBooking({id:K.id('INF'), type:'حق الاطلاع', page:'media', title:$('gText').value.trim().slice(0,80), amount:0}); e.target.reset(); flash('استُلم طلبك وسيُرد عليه خلال المدة القانونية.'); });
   var links = document.querySelectorAll('.sub a');
   window.addEventListener('scroll', function(){ var cur = links[0]; links.forEach(function(a){ var s = document.querySelector(a.getAttribute('href')); if (s && s.getBoundingClientRect().top < 200) cur = a; }); links.forEach(function(a){ a.classList.toggle('on', a === cur); }); }, {passive:true});
