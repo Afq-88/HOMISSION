@@ -66,7 +66,7 @@
       ],
       staff: {
         'KPTC-4821': {id:'KPTC-4821', name:'أحمد القطان', title:'مدير التسويق والعلاقات العامة', dept:'التسويق والعلاقات العامة', role:'emp', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-900)},
-        'KPTC-2891': {id:'KPTC-2891', name:'أوراد الياسين', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
+        'KPTC-2891': {id:'KPTC-2891', name:'مدير الإدارة', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
         'KPTC-ENG':  {id:'KPTC-ENG', name:'مهندس الصيانة', title:'مهندس أول', dept:'الإدارة الهندسية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
         'KPTC-3310': {id:'KPTC-3310', name:'موظف الموارد البشرية', title:'أخصائي شؤون الموظفين', dept:'الموارد البشرية', role:'hr', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-700)},
         'KPTC-5120': {id:'KPTC-5120', name:'محرر الموقع', title:'أخصائي محتوى رقمي', dept:'التسويق والعلاقات العامة', role:'content', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-300)},
@@ -157,6 +157,7 @@
     try { var raw = localStorage.getItem(KEY); if (raw) mem = JSON.parse(raw); } catch(x){}
     if (!mem) { mem = seed(); }
     var s = seed(); for (var k in s) if (!(k in mem)) mem[k] = s[k];   // forward-compatible
+    try { for (var sk in mem.staff) if (/\u0623\u0648\u0631\u0627\u062f/.test(mem.staff[sk].name)) mem.staff[sk].name = 'مدير الإدارة'; } catch(x){}   // a name removed at the owner's request
     return mem;
   }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch(x){} subs.forEach(function(f){ try { f(mem); } catch(x){} }); }
@@ -797,7 +798,7 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
     c.desk = d.sections.filter(function(x){ return u && x.owner === u.id && x.status === 'بانتظار الاستلام'; }).length + (u && K.can('admin.support', u) ? d.tickets.filter(function(t){ return t.status === 'مفتوح'; }).length : 0);
     c.benefits = d.claims.filter(function(x){ return x.status === 'بانتظار الاعتماد'; }).length; c.occasions = d.occasions.filter(function(x){ return x.status === 'بانتظار المراجعة'; }).length;
     $('nav').innerHTML = (u ? '<div class="who"><i>' + E(u.name.charAt(0)) + '</i><div><b>' + E(u.name) + '</b><small>' + E(K.role(u.role).name) + ' · ' + E(u.id) + '</small></div><button type="button" data-act="out" title="خروج">⎋</button></div>' : '') +
-      GROUPS.map(function(g){ var l = g[1].filter(allow); return l.length ? '<h4>' + g[0] + '</h4>' + l.map(btn).join('') : ''; }).join('');
+      GROUPS.map(function(g){ var l = g[1].filter(allow); return l.length ? '<h4>' + g[0] + '</h4>' + l.map(btn).join('') : ''; }).join('') + '<div class="backs"><a href="KPTC_Portal.html">→ بوابة الموظفين</a><a href="KPTC_Home.html">→ الموقع العام</a></div>';
     function btn(k){ return '<button type="button" class="' + (k === tab ? 'on' : '') + '" data-tab="' + k + '">' + TABS[k][0] + (c[k] ? '<em class="num">' + c[k] + '</em>' : '') + '</button>'; }
   }
   function tag(s){ var c = /منشور|مفتوح|فعّال|مؤكد|مدفوع|مكتمل|مقبول|مقابلة|نشطة/.test(s) ? 'ok' : /مغلق|ملغ|مرفوض|موقوف|مخفي/.test(s) ? 'bad' : 'warn'; return '<span class="tag ' + c + '">' + E(s) + '</span>'; }
@@ -940,6 +941,7 @@ body.gated .gate{display:grid}
 .gate .demo{display:grid;gap:6px;border-top:1px dashed var(--kp-line-2);padding-top:12px}
 .gate .demo button{display:flex;justify-content:space-between;border:1px solid var(--kp-line);background:var(--kp-paper-2);border-radius:4px;padding:7px 10px;font:600 12.5px var(--f-body);cursor:pointer;color:var(--kp-ink)}
 .gate .demo button:hover{border-color:var(--kp-ink)}
+.backs{display:grid;gap:6px;padding:16px;margin-top:10px;border-top:1px solid rgba(255,255,255,.1)}.backs a{color:#C9C8E6;text-decoration:none;font:600 13px var(--f-body);border:1px solid rgba(255,255,255,.2);border-radius:5px;padding:8px 12px}.backs a:hover{background:var(--kp-sign);color:var(--kp-ink);border-color:var(--kp-sign)}
 .who{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
 .who i{width:34px;height:34px;border-radius:50%;background:var(--kp-sign);color:var(--kp-ink);display:grid;place-items:center;font:700 15px var(--f-display);font-style:normal}
 .who b{display:block;font-size:13.5px;color:#fff}.who small{color:#A9A7C9;font-size:11px}

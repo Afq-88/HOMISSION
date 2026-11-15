@@ -66,7 +66,7 @@
       ],
       staff: {
         'KPTC-4821': {id:'KPTC-4821', name:'أحمد القطان', title:'مدير التسويق والعلاقات العامة', dept:'التسويق والعلاقات العامة', role:'emp', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-900)},
-        'KPTC-2891': {id:'KPTC-2891', name:'أوراد الياسين', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
+        'KPTC-2891': {id:'KPTC-2891', name:'مدير الإدارة', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
         'KPTC-ENG':  {id:'KPTC-ENG', name:'مهندس الصيانة', title:'مهندس أول', dept:'الإدارة الهندسية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
         'KPTC-3310': {id:'KPTC-3310', name:'موظف الموارد البشرية', title:'أخصائي شؤون الموظفين', dept:'الموارد البشرية', role:'hr', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-700)},
         'KPTC-5120': {id:'KPTC-5120', name:'محرر الموقع', title:'أخصائي محتوى رقمي', dept:'التسويق والعلاقات العامة', role:'content', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-300)},
@@ -157,6 +157,7 @@
     try { var raw = localStorage.getItem(KEY); if (raw) mem = JSON.parse(raw); } catch(x){}
     if (!mem) { mem = seed(); }
     var s = seed(); for (var k in s) if (!(k in mem)) mem[k] = s[k];   // forward-compatible
+    try { for (var sk in mem.staff) if (/\u0623\u0648\u0631\u0627\u062f/.test(mem.staff[sk].name)) mem.staff[sk].name = 'مدير الإدارة'; } catch(x){}   // a name removed at the owner's request
     return mem;
   }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch(x){} subs.forEach(function(f){ try { f(mem); } catch(x){} }); }
@@ -1112,7 +1113,7 @@ body{font-family:var(--f-body);background:var(--light);color:var(--dark);min-hei
                 <div class="f"><label>📅 من تاريخ</label><input type="date" id="leaveFrom" value="2026-04-20" oninput="calcDays()"></div>
                 <div class="f"><label>📅 إلى تاريخ</label><input type="date" id="leaveTo" value="2026-04-23" oninput="calcDays()"></div>
                 <div class="f"><label>عدد الأيام</label><input id="leaveDays" value="4 أيام" readonly style="background:var(--light);font-weight:700;color:var(--navy)"></div>
-                <div class="f"><label>مفوَّض عنك</label><select><option>اختر زميلاً</option><option>عبدالله الزبن</option><option>إبراهيم الضعيان</option><option>أوراد الياسين</option></select></div>
+                <div class="f"><label>مفوَّض عنك</label><select><option>اختر زميلاً</option><option>عبدالله الزبن</option><option>إبراهيم الضعيان</option><option>مدير الإدارة</option></select></div>
                 <div class="f span2"><label>سبب الإجازة</label><textarea placeholder="اكتب سبب الإجازة (اختياري)..."></textarea></div>
               </div>
             </div>
@@ -1313,7 +1314,7 @@ body{font-family:var(--f-body);background:var(--light);color:var(--dark);min-hei
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
         <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--navy);margin:0 auto 10px">أ</div><div style="font-weight:700;color:var(--navy)">أحمد القطان</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مدير التسويق والعلاقات العامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-4821</div></div>
         <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#a0c4ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">ط</div><div style="font-weight:700;color:var(--navy)">طلال الهاجري</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مكتب الدراسات الاستراتيجية</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-3142</div></div>
-        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#c4a0ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">أ</div><div style="font-weight:700;color:var(--navy)">أوراد الياسين</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مشرف التسويق والعلاقات العامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2891</div></div>
+        <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#c4a0ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">أ</div><div style="font-weight:700;color:var(--navy)">مدير الإدارة</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">مشرف التسويق والعلاقات العامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2891</div></div>
         
         <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#ffd6a0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:var(--dark);margin:0 auto 10px">إ</div><div style="font-weight:700;color:var(--navy)">إبراهيم الضعيان</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">موظف علاقات عامة</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2044</div></div>
         <div class="qa-card" style="text-align:center;padding:20px"><div style="width:54px;height:54px;background:#ffa0c4;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'SF Arabic','Geeza Pro','Segoe UI','Noto Sans Arabic',Tahoma,sans-serif;font-size:1.3rem;color:white;margin:0 auto 10px">ع</div><div style="font-weight:700;color:var(--navy)">عبدالله الزبن</div><div style="font-size:.72rem;color:var(--gray);margin-top:3px">موظف تسويق</div><div style="font-size:.68rem;color:var(--navy);margin-top:8px;font-weight:600">KPTC-2201</div></div>
@@ -1404,7 +1405,7 @@ setInterval(updateClock,1000); updateClock();
 let selectedRole = 'emp';
 const roleUsers = {
   emp:{name:'أحمد القطان',role:'مدير التسويق والعلاقات العامة',id:'KPTC-4821',avatar:'أ'},
-  mgr:{name:'أوراد الياسين',role:'مشرف التسويق',id:'KPTC-2891',avatar:'أ'},
+  mgr:{name:'مدير الإدارة',role:'مشرف التسويق',id:'KPTC-2891',avatar:'أ'},
   eng:{name:'مهندس الصيانة',role:'مهندس أول',id:'KPTC-ENG',avatar:'م'},
 };
 
