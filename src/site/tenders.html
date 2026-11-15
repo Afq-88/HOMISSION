@@ -1,5 +1,6 @@
 <!--title:المناقصات — KPTC-->
 <style>
+.kp4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.kp4 div{background:#fff;border:2px solid var(--kp-ink);border-radius:8px;padding:14px 16px}.kp4 b{display:block;font:700 26px/1.2 var(--f-display);color:var(--kp-indigo)}.kp4 span{font-size:12.5px;color:var(--kp-muted)}@media(max-width:800px){.kp4{grid-template-columns:1fr 1fr}}
 .left{font-family:var(--f-display);font-weight:700;font-size:20px;color:var(--kp-indigo)}
 .left small{display:block;font:500 12px var(--f-body);color:var(--kp-muted)}
 .left.soon{color:var(--kp-bad)}
@@ -23,6 +24,7 @@ dl.d dt{color:var(--kp-muted)}dl.d dd{font-weight:600}
     <li><b>احضر الاجتماع التمهيدي</b><span>في المكان والموعد المحددين.</span></li>
     <li><b>قدّم عطاءك</b><span>في الصندوق المخصص قبل الموعد النهائي.</span></li>
   </ol>
+  <div class="kp4" id="tS" style="margin-bottom:22px"></div>
   <div class="chips" id="tF"></div>
   <div class="tw"><table class="t"><thead><tr><th>الرقم / السنة</th><th>النوع</th><th>العنوان</th><th>الاجتماع التمهيدي</th><th>آخر موعد للعطاءات</th><th>الصندوق</th><th>قيمة الوثائق</th><th>المتبقي</th><th></th></tr></thead><tbody id="tR"></tbody></table></div>
   <p class="sd" style="margin-top:14px">بعض المناقصات محدودة للشركات المؤهلة لدى الشركة فقط. للاستفسار: <b class="num">1880001</b>.</p>
@@ -62,6 +64,9 @@ dl.d dt{color:var(--kp-muted)}dl.d dd{font-weight:600}
     if (!$('bCo').value.trim() || !$('bName').value.trim() || K.latin($('bPhone').value).replace(/\D/g,'').length < 8){ $('bErr').textContent = 'أكمل اسم الشركة والمسؤول ورقم الهاتف.'; return; }
     K.db().bids.unshift({id:K.id('BID'), tender:cur.id, co:$('bCo').value.trim(), name:$('bName').value.trim(), phone:K.latin($('bPhone').value), cr:$('bCr').value.trim(), d:K.today(), status:'جديد'}); K.log('اهتمام بمناقصة ' + cur.no + ' — ' + $('bCo').value.trim()); K.save();
     e.target.reset(); $('dT').classList.remove('on'); flash('سُجّل اهتمام شركتك. ستتواصل معكم إدارة المشتريات.'); });
+  function stats(){ var L = K.db().tenders, open = L.filter(function(t){ return t.status === 'مفتوحة'; }), days = function(t){ return Math.round((new Date(t.close) - new Date(K.today())) / 864e5); }, soon = open.filter(function(t){ return days(t) <= 14; }), next = open.slice().sort(function(a, b){ return a.close < b.close ? -1 : 1; })[0];
+    document.getElementById('tS').innerHTML = '<div><b class="num">' + open.length + '</b><span>فرص مفتوحة الآن</span></div><div><b class="num">' + soon.length + '</b><span>تُغلق خلال أسبوعين</span></div><div><b class="num">' + (next ? days(next) + ' يوماً' : '—') + '</b><span>أقرب موعد إغلاق' + (next ? ' — ' + K.esc(next.no) : '') + '</span></div><div><b class="num">' + L.length + '</b><span>إجمالي المطروح هذا العام</span></div>'; }
+  K.onChange(stats); stats();
   K.onChange(render); render();
 })();
 </script>

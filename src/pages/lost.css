@@ -1,0 +1,8 @@
+
+/* tab bar: same station bar as the winch page */
+.main-tabs{display:grid!important;grid-template-columns:repeat(3,1fr);gap:6px;width:auto!important;max-width:980px;margin:22px auto -30px!important;padding:6px;background:#fff!important;border:2px solid var(--kp-ink)!important;border-radius:10px!important;box-shadow:6px 6px 0 rgba(20,19,58,.14);position:relative;z-index:5;overflow:visible!important}
+.mtab{border-radius:6px!important;padding:12px 10px!important;color:var(--kp-ink)!important;font-family:var(--f-display)!important;font-weight:700!important;display:flex!important;align-items:center;justify-content:center;gap:8px;transition:background .2s,color .2s}
+.mtab:hover:not(.active){background:var(--kp-paper-2,#f1efe6)!important}
+.mtab.active{background:var(--kp-ink)!important;color:var(--kp-sign)!important}
+.content,.page-body{padding-top:44px}
+@media(max-width:700px){.main-tabs{margin-inline:10px!important}.mtab{font-size:.74rem!important;padding:10px 4px!important}}

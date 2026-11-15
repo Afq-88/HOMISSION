@@ -2129,6 +2129,18 @@ renderRequests('all');
     if (cur !== 'ar') set(cur, false);
   }
 
+  /* ---- small page fill-ins: Captain-K topics ---- */
+  function polish(){
+    if (OWN === 'assistant'){
+      var host = document.querySelector('.demo-content'); if (!host || host.querySelector('.ck-topics')) return;
+      var T = [['الخطوط والمحطات','من أي محطة ينطلق خط 15؟','route'],['بطاقة التوفير','كم سعر بطاقة التوفير؟','card'],['رحلات العمرة','ما أسعار رحلات العمرة؟','star'],['تأجير الحافلات','كم سعر تأجير حافلة VIP؟','bus'],['الونش والورشة','كم سعر الونش؟','wrench'],['المفقودات','أريد أن أبلّغ عن مفقودات','search'],['الإعلان على الحافلات','كيف أعلن على الحافلات؟','megaphone'],['التواصل','ما رقم الخط الساخن؟','phone']];
+      var box = document.createElement('div'); box.className = 'ck-topics';
+      box.innerHTML = '<div class="ck-h"><h2>بماذا يساعدك كابتن K؟</h2><p>اختر موضوعاً فيفتح المحادثة ويجيبك فوراً، أو اكتب سؤالك بكلماتك.</p></div><div class="ck-g">' + T.map(function(t, i){ return '<button type="button" data-q="' + t[1] + '" style="--i:' + i + '"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + (P[t[2]] || P.chat) + '</svg></i><b>' + t[0] + '</b><span>«' + t[1] + '»</span></button>'; }).join('') + '</div>';
+      host.insertBefore(box, host.firstChild);
+      box.addEventListener('click', function(e){ var b = e.target.closest('[data-q]'); if (!b) return; try { openChat(); setTimeout(function(){ quickAsk(b.getAttribute('data-q')); }, 350); } catch(x){} });
+    }
+  }
+
   /* ---- ads: a 3D K-Bus the visitor can spin, with the campaign on the faces they picked ---- */
   function bus3d(fallback){
     var host = document.getElementById('lpBus'); if (!host) return;
@@ -2152,6 +2164,7 @@ renderRequests('all');
       var api = window.KPBus3D && KPBus3D.mount(wrap.querySelector('.kp-3d-view'), state);
       if (!api){ wrap.remove(); return fallback(); }
       host.style.display = 'none';
+      if (window.__kpHero3d){ var hf = window.__kpHero3d; window.__kpHero3d = null; hf(true); }
       var note = wrap.querySelector('.kp-3d-note');
       function sync(){ api.refresh(); var s = state(); note.textContent = s.demo ? 'معاينة تجريبية على الجانبين. اختر مواضع الإعلان من البطاقات أعلاه لتراها على الحافلة.' : (s.inside ? 'المواضع الداخلية والشاشات الرقمية لا تظهر على هيكل الحافلة الخارجي.' : 'هذا شكل إعلانك على المواضع التي اخترتها.'); }
       wrap.querySelector('.kp-3d-views').addEventListener('click', function(e){ var b = e.target.closest('[data-v]'); if (!b) return; api.look(b.getAttribute('data-v')); wrap.querySelectorAll('[data-v]').forEach(function(x){ x.classList.toggle('on', x === b); }); });
@@ -2174,27 +2187,24 @@ renderRequests('all');
       return st;
     }
     bus3d(function(){   // no WebGL: fall back to the photo stage
+      if (window.__kpHero3d){ var hf = window.__kpHero3d; window.__kpHero3d = null; hf(false); }
       var st = stage(document.getElementById('lpBus'), document.getElementById('lpSideAd'), 'kp-live');
       var rear = document.getElementById('lpRearAd'); if (st && rear){ st.appendChild(rear); rear.classList.add('kp-rearflag'); }
     });
-    // hero: a drawn K-Bus as a moving billboard (replaces the photo)
+    // hero: the same 3D K-Bus, turning slowly and trying on sample campaigns
     var hero = document.querySelector('.bus-svg-wrap');
     if (hero){
-      var art = document.createElement('div'); art.className = 'kp-adbus'; art.setAttribute('role', 'img'); art.setAttribute('aria-label', 'حافلة تحمل إعلانك في شوارع الكويت');
-      var sky = ''; [[40,96,22],[70,70,16],[96,118,30],[150,84,18],[180,130,34],[236,60,14],[262,104,26],[330,90,20],[362,124,30],[420,76,18],[448,112,28],[506,94,22],[540,128,34],[590,82,18]].forEach(function(b){ sky += '<rect x="' + b[0] + '" y="' + (212 - b[1]) + '" width="' + b[2] + '" height="' + b[1] + '" rx="2"/>'; });
-      var win = ''; for (var i = 0; i < 6; i++) win += '<rect x="' + (150 + i * 66) + '" y="98" width="58" height="46" rx="6"/>';
-      function wheel(x){ return '<g transform="translate(' + x + ' 236)"><circle r="30" fill="#14133A"/><circle r="15" fill="#FFC93C"/><g class="spin" stroke="#14133A" stroke-width="4"><path d="M-15 0h30M0-15v30"/></g><circle r="4" fill="#14133A"/></g>'; }
-      art.innerHTML = '<svg viewBox="0 0 640 300" xmlns="http://www.w3.org/2000/svg">' +
-        '<g fill="rgba(255,255,255,.07)">' + sky + '<path d="M300 212V70l6-26 6 26v142z"/><circle cx="306" cy="92" r="13"/></g>' +
-        '<path d="M0 268h640" stroke="rgba(255,255,255,.22)" stroke-width="3"/><path class="road" d="M0 284h700" stroke="#FFC93C" stroke-width="4" stroke-dasharray="34 26"/>' +
-        '<g class="body"><path d="M58 96q0-30 30-30h470q34 0 34 34v112q0 18-18 18H76q-18 0-18-18z" fill="#fff" stroke="#14133A" stroke-width="5"/>' +
-        '<path d="M58 196h534v16q0 18-18 18H76q-18 0-18-18z" fill="#2E2C78"/><path d="M58 190h534" stroke="#FFC93C" stroke-width="7"/>' +
-        '<path d="M70 104q0-18 18-18h46v62H70z" fill="#BFD9F2" stroke="#14133A" stroke-width="4"/><g fill="#1F1E55">' + win + '</g>' +
-        '<rect x="548" y="96" width="30" height="92" rx="5" fill="#BFD9F2" stroke="#14133A" stroke-width="4"/><rect x="62" y="162" width="16" height="12" rx="3" fill="#FFC93C"/><rect x="574" y="160" width="14" height="18" rx="3" fill="#C2352E"/>' +
-        '<rect x="150" y="150" width="386" height="34" rx="6" fill="#FFC93C" stroke="#14133A" stroke-width="3"/>' +
-        '<text class="m m1" x="343" y="174">إعلانك هنا — يراه آلاف الركاب والمارة يومياً</text><text class="m m2" x="343" y="174">علامتك تجوب محافظات الكويت الست</text><text class="m m3" x="343" y="174">أكثر من 400 حافلة · 26 مساراً</text>' +
-        '<text x="104" y="124" class="kb">K</text></g>' + wheel(170) + wheel(480) + '</svg>';
-      hero.parentNode.insertBefore(art, hero); hero.style.display = 'none';
+      var SAMPLES = [{n:'أصفر جريء', color:'#FFC93C', brand:'علامتك التجارية', message:'إعلانك يجوب الكويت كل يوم'}, {n:'أخضر هادئ', color:'gradient #1E7F55 #0C4A32', brand:'افتتاح قريباً', message:'يراك الركاب والمارة في كل شارع'}, {n:'كحلي فاخر', color:'#14133A', brand:'عرض الموسم', message:'أكثر من 400 حافلة · 26 مساراً'}], si = 0, api = null, timer = null;
+      var h3 = document.createElement('div'); h3.className = 'kp-hero3d';
+      h3.innerHTML = '<div class="kp-hero3d-v"></div><div class="kp-hero3d-b"><span>اسحب الحافلة لتدويرها</span><div>' + SAMPLES.map(function(x, i){ return '<button type="button" data-s="' + i + '" class="' + (i ? '' : 'on') + '" title="' + x.n + '" aria-label="' + x.n + '" style="--c:' + (x.color.match(/#[0-9a-f]{6}/i) || ['#FFC93C'])[0] + '"></button>'; }).join('') + '</div><a href="#livePreview" class="kp-hero3d-go">جرّب تصميمك</a></div>';
+      hero.parentNode.insertBefore(h3, hero); hero.style.display = 'none';
+      var pick = function(i){ si = i; h3.querySelectorAll('[data-s]').forEach(function(x, k){ x.classList.toggle('on', k === i); }); if (api) api.refresh(); };
+      h3.addEventListener('click', function(e){ var b2 = e.target.closest('[data-s]'); if (b2){ clearInterval(timer); pick(+b2.getAttribute('data-s')); } var g = e.target.closest('.kp-hero3d-go'); if (g){ e.preventDefault(); var t = document.querySelector('.kp-3d, #lpBus, .live-preview'); if (t) t.scrollIntoView({behavior:'smooth', block:'center'}); } });
+      window.__kpHero3d = function(ok){
+        if (ok && window.KPBus3D) api = KPBus3D.mount(h3.querySelector('.kp-hero3d-v'), function(){ var x = SAMPLES[si]; return {color:x.color, brand:x.brand, message:x.message, contact:'1880001', faces:{right:true, left:true, rear:true}, mode:'full'}; });
+        if (api){ timer = setInterval(function(){ if (!document.hidden) pick((si + 1) % SAMPLES.length); }, 4500); h3.querySelector('.kp-hero3d-v').addEventListener('pointerdown', function(){ clearInterval(timer); }); }
+        else { h3.remove(); hero.style.display = ''; stage(hero, document.getElementById('heroBusAd'), 'kp-herobus'); }   // no WebGL: the official photo
+      };
     }
   }
 
@@ -2233,7 +2243,7 @@ renderRequests('all');
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); siteEdits(); i18n();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); siteEdits(); i18n();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });
