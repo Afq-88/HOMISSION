@@ -1,0 +1,115 @@
+<!--title:فحص ما قبل التسليم PDI — KPTC-->
+<style>
+.pd-h{display:grid;grid-template-columns:1fr minmax(280px,420px);gap:40px;align-items:center}
+.pd-h h1{font-size:clamp(34px,5vw,58px);line-height:1.25}
+.pd-h h1 em{font-style:normal;color:var(--kp-sign);direction:ltr;display:inline-block}
+.pd-a{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.pd-a .btn.o{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
+.sheet{background:#fff;color:var(--kp-ink);border-radius:8px;border:3px solid var(--kp-ink);box-shadow:10px 10px 0 var(--kp-sign);padding:18px 20px;rotate:-1.5deg;transition:rotate .4s var(--kp-ease)}
+.sheet:hover{rotate:0deg}
+.sheet h4{display:flex;justify-content:space-between;font:700 15px var(--f-display);border-bottom:2px solid var(--kp-ink);padding-bottom:8px;margin-bottom:8px}
+.sheet h4 span{font:600 11.5px var(--f-body);color:var(--kp-muted)}
+.sheet li{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px dashed var(--kp-line-2);font-size:13.5px;font-weight:600}
+.sheet li:last-child{border:0}
+.sheet i{width:22px;height:22px;border-radius:50%;border:2px solid var(--kp-ink);display:grid;place-items:center;font-style:normal;font-size:12px;background:#fff;animation:tick .5s calc(var(--i)*.35s + .6s) both}
+@keyframes tick{from{background:#fff;color:transparent;scale:.6}to{background:var(--kp-ok);border-color:var(--kp-ok);color:#fff}}
+.sheet .stamp{margin-top:10px;border:3px solid var(--kp-ok);color:var(--kp-ok);border-radius:6px;padding:4px 12px;font:700 14px var(--f-display);width:fit-content;rotate:-6deg;animation:kp-pop .5s 3s both}
+.g6{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ck{background:#fff;border:2px solid var(--kp-ink);border-radius:8px;padding:18px;transition:translate .25s var(--kp-ease),box-shadow .25s}
+.ck:hover{translate:0 -5px;box-shadow:6px 6px 0 var(--kp-sign)}
+.ck b{display:block;font:700 17px var(--f-display);margin-bottom:6px}.ck em{font:700 12px var(--f-display);font-style:normal;color:var(--kp-indigo)}
+.ck p{font-size:13.5px;color:var(--kp-muted);line-height:1.8}
+.how4{counter-reset:s;list-style:none;display:grid;grid-template-columns:repeat(4,1fr);position:relative;margin:8px 0 0}
+.how4::before{content:"";position:absolute;top:15px;right:12%;left:12%;height:5px;background:var(--kp-sign);border-radius:3px}
+.how4 li{counter-increment:s;text-align:center;padding:0 10px;position:relative}
+.how4 li::before{content:counter(s);display:grid;place-items:center;width:34px;height:34px;margin:0 auto 10px;border-radius:50%;background:var(--kp-ink);color:var(--kp-sign);font:700 15px var(--f-display);position:relative}
+.how4 b{display:block;font-family:var(--f-display)}.how4 span{font-size:13.5px;color:var(--kp-muted)}
+.two{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:22px;align-items:start}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.fg2 .full{grid-column:1/-1}
+.opt{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt label{border:2px solid var(--kp-line-2);border-radius:8px;padding:12px;cursor:pointer;display:grid;gap:2px;font-weight:700;transition:.15s}
+.opt label small{font-weight:500;color:var(--kp-muted)}.opt input{position:absolute;opacity:0}
+.opt label:has(input:checked){border-color:var(--kp-ink);background:#FFF8E1;box-shadow:4px 4px 0 var(--kp-sign)}
+.trk{display:flex;gap:8px}.trk input{flex:1}
+.st4{display:grid;grid-template-columns:repeat(4,1fr);position:relative;margin:18px 0 6px}
+.st4::before{content:"";position:absolute;top:9px;right:12%;left:12%;height:4px;background:var(--kp-line-2)}
+.st4 div{text-align:center;font-size:12.5px;font-weight:600;color:var(--kp-muted);position:relative}
+.st4 div::before{content:"";display:block;width:22px;height:22px;margin:0 auto 6px;border-radius:50%;background:#fff;border:4px solid var(--kp-line-2);box-sizing:border-box;position:relative}
+.st4 div.on{color:var(--kp-ink)}.st4 div.on::before{border-color:var(--kp-ink);background:var(--kp-sign)}
+.res{border-radius:6px;padding:10px 14px;font-weight:700;margin-top:10px;background:var(--kp-paper-2)}
+.res.ok{background:#E3F3EB;color:var(--kp-ok)}.res.warn{background:#FBEFD9;color:#8A5407}.res.bad{background:#F9E2E0;color:var(--kp-bad)}
+@media(max-width:920px){.pd-h,.two{grid-template-columns:1fr}.g6{grid-template-columns:1fr 1fr}.how4{grid-template-columns:1fr 1fr;row-gap:18px}.how4::before{display:none}.sheet{rotate:0deg}}
+@media(max-width:560px){.g6,.fg2,.opt{grid-template-columns:1fr}}
+</style>
+<div class="kp-hero"><div class="w ph pd-h">
+  <div><div class="kp-tag">الإدارة الهندسية</div><h1>فحص ما قبل التسليم <em>PDI</em></h1><p>فحص فني شامل للحافلات والمركبات الجديدة قبل أن تُسلَّم لمالكها. يجريه مهندسو وفنيو KPTC في الورشة أو في موقعك، وينتهي بتقرير موثّق تستلمه إلكترونياً.</p>
+    <div class="pd-a"><a class="btn y" href="#book">اطلب فحصاً</a><a class="btn o" href="#track">تابع طلبك</a></div></div>
+  <div class="sheet" aria-hidden="true"><h4>نموذج فحص PDI <span>مثال توضيحي</span></h4><ul>
+    <li style="--i:0">الهيكل والطلاء<i>✓</i></li><li style="--i:1">المحرك والسوائل<i>✓</i></li><li style="--i:2">الكهرباء والإلكترونيات<i>✓</i></li><li style="--i:3">الفرامل والإطارات<i>✓</i></li><li style="--i:4">المقصورة والتكييف<i>✓</i></li><li style="--i:5">اختبار الطريق<i>✓</i></li></ul>
+    <div class="stamp">مطابق — جاهز للتسليم</div></div>
+</div></div>
+<nav class="sub"><div class="w"><a href="#scope" class="on">ما يشمله الفحص</a><a href="#how">كيف يتم</a><a href="#book">اطلب فحصاً</a><a href="#track">تابع طلبك</a></div></nav>
+<main><div class="w">
+  <section class="sec" id="scope" style="padding:8px 0 40px;scroll-margin-top:150px">
+    <h2 class="st">ما يشمله الفحص</h2><p class="sd">ست مجموعات تُفحص بنداً بنداً، وتُوثَّق كل ملاحظة في التقرير.</p>
+    <div class="g6">
+      <div class="ck"><em>01</em><b>الهيكل والطلاء</b><p>سلامة البدن والزجاج والأبواب، مطابقة اللون، وخلوّ الطلاء من عيوب الشحن.</p></div>
+      <div class="ck"><em>02</em><b>المحرك والسوائل</b><p>مستويات الزيت والتبريد والوقود، التسريبات، السيور، وقراءة أعطال وحدة التحكم.</p></div>
+      <div class="ck"><em>03</em><b>الكهرباء والإلكترونيات</b><p>البطارية والشحن، الإضاءة الخارجية والداخلية، الشاشات، الحساسات والكاميرات.</p></div>
+      <div class="ck"><em>04</em><b>الفرامل والتعليق والإطارات</b><p>كفاءة الفرامل، ضغط الهواء، نظام التعليق والتوجيه، وضغط الإطارات وحالتها.</p></div>
+      <div class="ck"><em>05</em><b>المقصورة والتكييف</b><p>المقاعد وأحزمة الأمان، التكييف، الأبواب والمنحدرات، ومخارج الطوارئ.</p></div>
+      <div class="ck"><em>06</em><b>التجهيزات واختبار الطريق</b><p>معدات السلامة، العدة والإطار الاحتياطي، مطابقة الوثائق، ثم تجربة قيادة.</p></div>
+    </div>
+  </section>
+  <section class="sec" id="how" style="padding:8px 0 40px;scroll-margin-top:150px">
+    <h2 class="st">كيف يتم</h2><p class="sd">أربع محطات من الطلب إلى التقرير.</p>
+    <ol class="how4"><li><b>اطلب</b><span>من النموذج أدناه</span></li><li><b>نؤكد الموعد</b><span>ونرسل عرض السعر</span></li><li><b>الفحص</b><span>في الورشة أو موقعك</span></li><li><b>التقرير</b><span>تستلمه PDF برقم الطلب</span></li></ol>
+  </section>
+  <section class="sec" id="book" style="padding:8px 0 40px;scroll-margin-top:150px">
+    <h2 class="st">اطلب فحصاً</h2><p class="sd">للوكالات، الشركات، الجهات الحكومية والأفراد. التكلفة تُحدَّد بعرض سعر حسب نوع المركبة وعددها.</p>
+    <div class="two">
+      <form class="box form" id="fP" novalidate>
+        <div class="fg2">
+          <label class="f">الاسم<input name="name" autocomplete="name"></label><label class="f">رقم الهاتف<input name="phone" dir="ltr" inputmode="numeric" autocomplete="tel"></label>
+          <label class="f">الجهة (اختياري)<input name="org"></label><label class="f">نوع المركبة<select name="kind"><option>حافلة كبيرة</option><option>حافلة متوسطة</option><option>حافلة صغيرة</option><option>شاحنة</option><option>مركبة خفيفة</option></select></label>
+          <label class="f">الصنع والموديل<input name="make" placeholder="مثال: الشركة — الطراز — السنة"></label><label class="f">عدد المركبات<input name="count" inputmode="numeric" dir="ltr" value="1"></label>
+          <label class="f full">رقم الشاصي (اختياري)<input name="vin" dir="ltr"></label>
+          <div class="full"><div style="font-weight:700;font-size:14px;margin-bottom:6px">مكان الفحص</div><div class="opt"><label><input type="radio" name="where" value="ورشة KPTC" checked>في ورشة KPTC<small>تُحضر المركبات إلى الورشة</small></label><label><input type="radio" name="where" value="موقع العميل">في موقعك<small>يحضر الفريق الفني إليك</small></label></div></div>
+          <label class="f">التاريخ المفضل<input name="date" type="date"></label><label class="f">ملاحظات<input name="note"></label>
+        </div>
+        <div class="err" id="pErr"></div><button class="btn y" type="submit" style="justify-self:start">أرسل الطلب</button>
+      </form>
+      <div class="box"><h3>بعد الإرسال</h3><p class="sd" style="margin:6px 0 12px">يصلك رقم الطلب فوراً. تراجعه الإدارة الهندسية، تؤكد الموعد، ثم تتابع الحالة والنتيجة هنا برقم الطلب.</p><p>للاستفسار: الخط الساخن <b class="num">1880001</b></p><p class="sd" style="margin-top:12px">تحتاج نقل المركبة إلى الورشة؟ <a href="KPTC_Winch.html" style="color:var(--kp-indigo);font-weight:700">اطلب ونشاً</a></p></div>
+    </div>
+  </section>
+  <section class="sec" id="track" style="padding:8px 0 46px;scroll-margin-top:150px">
+    <h2 class="st">تابع طلبك</h2><p class="sd">اكتب رقم الطلب لترى حالته ونتيجة الفحص.</p>
+    <div class="box" style="max-width:640px"><form class="trk" id="fT" novalidate><input id="tRef" dir="ltr" placeholder="PDI-00000"><button class="btn" type="submit">تتبّع</button></form><div id="tOut"></div></div>
+  </section>
+</div></main>
+<div class="flash" id="flash"></div>
+<script>
+(function(){
+  var K = KPTC, $ = function(i){ return document.getElementById(i); }, E = K.esc, ST = ['جديد','مجدول','قيد الفحص','مكتمل'];
+  function flash(t){ var f = $('flash'); f.textContent = t; f.classList.add('on'); setTimeout(function(){ f.classList.remove('on'); }, 2800); }
+  var f = $('fP'); f.date.value = K.today(3); f.date.min = K.today(1);
+  f.addEventListener('submit', function(e){ e.preventDefault(); var ph = K.latin(f.phone.value).replace(/\D/g, ''), n = parseInt(K.latin(f.count.value), 10);
+    if (!f.name.value.trim() || ph.length < 8 || !f.make.value.trim() || !(n > 0)){ $('pErr').textContent = 'أكمل الاسم ورقم الهاتف (8 أرقام) والصنع والموديل وعدد المركبات.'; return; } $('pErr').textContent = '';
+    var id = 'PDI-' + Math.floor(Math.random() * 90000 + 10000), r = {id:id, d:K.today(), name:f.name.value.trim(), phone:ph, org:f.org.value.trim(), kind:f.kind.value, make:f.make.value.trim(), count:n, vin:f.vin.value.trim(), where:f.where.value, date:f.date.value, note:f.note.value.trim(), status:'جديد', result:'', remarks:'', inspector:'', checks:{}};
+    K.db().pdi.unshift(r); K.addBooking({id:id, type:'فحص PDI', page:'pdi', title:'فحص PDI — ' + r.kind + ' × ' + n, amount:0, status:'جديد'});
+    f.reset(); f.date.value = K.today(3); $('tRef').value = id; show(id); $('track').scrollIntoView({behavior:'smooth'}); flash('وصل طلبك. رقم الطلب ' + id);
+  });
+  function show(id){
+    var r = K.db().pdi.filter(function(x){ return x.id === id; })[0], o = $('tOut');
+    if (!r){ o.innerHTML = '<p class="sd" style="margin-top:12px">لا يوجد طلب بهذا الرقم. تأكد من الرقم أو اتصل بالخط الساخن.</p>'; return; }
+    var i = ST.indexOf(r.status), cls = /غير/.test(r.result) ? 'bad' : /ملاحظات/.test(r.result) ? 'warn' : 'ok';
+    o.innerHTML = (r.status === 'ملغى' ? '<div class="res bad" style="margin-top:14px">أُلغي هذا الطلب.</div>' : '<div class="st4">' + ST.map(function(s, k){ return '<div class="' + (k <= i ? 'on' : '') + '">' + s + '</div>'; }).join('') + '</div>') +
+      '<p style="margin-top:8px"><b>' + E(r.kind) + ' × <span class="num">' + r.count + '</span></b> — ' + E(r.make) + '<br><span class="sd">' + E(r.where) + ' · الموعد <span class="num">' + K.date(r.date) + '</span></span></p>' +
+      (r.result ? '<div class="res ' + cls + '">النتيجة: ' + E(r.result) + '</div>' + (r.remarks ? '<p style="margin-top:8px">' + E(r.remarks) + '</p>' : '') + '<div id="tRep"></div>' : '');
+    if (r.result && window.KPTicket) KPTicket.mount($('tRep'), {kind:'vip', ref:r.id, title:'تقرير فحص PDI', from:r.kind, to:r.result, sub:r.make + ' — ' + r.count + ' مركبة', fields:[['الجهة', r.org || r.name], ['تاريخ الفحص', K.date(r.date)], ['مكان الفحص', r.where], ['الفاحص', (K.db().staff[r.inspector] || {}).name || 'الإدارة الهندسية']], seats:[], seatLabel:'الملاحظات', seatText:r.remarks ? r.remarks.slice(0, 34) + (r.remarks.length > 34 ? '…' : '') : 'لا ملاحظات', total:r.result, totalLabel:'النتيجة', notes:['تقرير صادر عن الإدارة الهندسية — KPTC', 'تحقق من التقرير برمز QR'], qr:'KPTC|PDI|' + r.id + '|' + r.result});
+  }
+  $('fT').addEventListener('submit', function(e){ e.preventDefault(); show(K.latin($('tRef').value).trim().toUpperCase()); });
+  K.onChange(function(){ var v = K.latin($('tRef').value).trim().toUpperCase(); if (v && $('tOut').innerHTML && !$('tRep')) show(v); });
+  var links = document.querySelectorAll('.sub a'); links.forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'}); links.forEach(function(x){ x.classList.toggle('on', x === a); }); }); });
+  document.querySelectorAll('.pd-a a').forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'}); }); });
+})();
+</script>

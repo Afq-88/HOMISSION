@@ -67,7 +67,7 @@
       staff: {
         'KPTC-4821': {id:'KPTC-4821', name:'أحمد القطان', title:'مدير التسويق والعلاقات العامة', dept:'التسويق والعلاقات العامة', role:'emp', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-900)},
         'KPTC-2891': {id:'KPTC-2891', name:'أوراد الياسين', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
-        'KPTC-ENG':  {id:'KPTC-ENG', name:'مهندس الصيانة', title:'مهندس أول', dept:'الورشة المركزية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
+        'KPTC-ENG':  {id:'KPTC-ENG', name:'مهندس الصيانة', title:'مهندس أول', dept:'الإدارة الهندسية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
         'KPTC-3310': {id:'KPTC-3310', name:'موظف الموارد البشرية', title:'أخصائي شؤون الموظفين', dept:'الموارد البشرية', role:'hr', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-700)},
         'KPTC-5120': {id:'KPTC-5120', name:'محرر الموقع', title:'أخصائي محتوى رقمي', dept:'التسويق والعلاقات العامة', role:'content', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-300)},
         'KPTC-1001': {id:'KPTC-1001', name:'مدير النظام', title:'مدير تقنية المعلومات', dept:'تقنية المعلومات', role:'admin', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2600)}
@@ -78,6 +78,22 @@
         {id:'B-103', title:'اشتراك مخفّض في نادٍ صحي', desc:'خصم على الاشتراك السنوي عند إبراز رمز العرض. (عرض تجريبي للتوضيح)', type:'external', partner:'نادٍ صحي شريك', value:'خصم 40%', cat:'صحة ولياقة', aud:{mode:'all'}, approve:false, from:today(-5), until:today(60), limit:0, on:true, by:'KPTC-3310'},
         {id:'B-102', title:'بدل وجبة للمناوبين ليلاً', desc:'قسيمة وجبة لكل مناوبة ليلية خلال الشهر الحالي. (عرض تجريبي للتوضيح)', type:'internal', partner:'', value:'قسيمة وجبة', cat:'دعم المناوبين', aud:{mode:'depts', depts:['شؤون النقل','الورشة المركزية']}, approve:false, from:today(-2), until:today(28), limit:0, on:true, by:'KPTC-3310'},
         {id:'B-101', title:'دورة التسويق الرقمي المتقدم', desc:'مقعد تدريبي مدفوع من الشركة، خمسة أيام. يحتاج اعتماد مديرك. (عرض تجريبي للتوضيح)', type:'internal', partner:'مركز التدريب', value:'مقعد مدفوع', cat:'تدريب وتطوير', aud:{mode:'staff', staff:['KPTC-4821']}, approve:true, from:today(-1), until:today(14), limit:1, on:true, by:'KPTC-2891'}
+      ],
+      /* sections handed over by the system admin to the departments that run them */
+      sections: [
+        {id:'transport', name:'الخطوط والاشتراكات', pages:['routes','subs'], perms:['site.sched','ops.bookings','ops.wallets'], dept:'شؤون النقل'},
+        {id:'trips', name:'العمرة وتأجير VIP', pages:['umrah','vip'], perms:['ops.bookings'], dept:'التسويق والعلاقات العامة'},
+        {id:'eng', name:'الونش والورشة وفحص PDI', pages:['winch','pdi'], perms:['ops.winch','ops.pdi','ops.bookings'], dept:'الإدارة الهندسية'},
+        {id:'ads', name:'الإعلان على الحافلات', pages:['ads'], perms:['ops.bookings'], dept:'التسويق والعلاقات العامة'},
+        {id:'media', name:'المركز الإعلامي والأخبار', pages:['media'], perms:['site.news'], dept:'التسويق والعلاقات العامة'},
+        {id:'tenders', name:'المناقصات', pages:['tenders'], perms:['site.tenders'], dept:'الشؤون المالية'},
+        {id:'hr', name:'الوظائف والبوابة الداخلية', pages:['careers','portal'], perms:['site.jobs','benefits.manage','benefits.claims','occasions.post','occasions.moderate'], dept:'الموارد البشرية'},
+        {id:'estate', name:'الأصول العقارية', pages:['reclient'], perms:['ops.bookings'], dept:'المرافق والصيانة'},
+        {id:'care', name:'خدمة العملاء والمفقودات', pages:['lost','assistant','account'], perms:['ops.bookings','ops.wallets'], dept:'التسويق والعلاقات العامة'}
+      ].map(function(x){ x.owner = ''; x.team = []; x.status = 'لم يُسلَّم'; x.note = ''; return x; }),
+      tickets: [],         // support requests from a section to the system admin: {id, sec, from, text, d, status, replies:[{from,text,d}]}
+      pdi: [               // pre-delivery inspection requests (engineering)
+        {id:'PDI-10412', d:today(-6), name:'شركة تجريبية للسيارات', phone:'55500000', org:'وكالة مركبات', kind:'حافلة متوسطة', make:'مثال — موديل 2026', count:3, vin:'', where:'ورشة KPTC', date:today(-3), note:'(طلب تجريبي للتوضيح)', status:'مكتمل', result:'مطابق بملاحظات', remarks:'ضبط ضغط الإطارات وتحديث برمجية شاشة السائق قبل التسليم.', inspector:'KPTC-ENG', checks:{}}
       ],
       claims: [],          // {id, bid, staff, d, status:'بانتظار الاعتماد'|'مقبول'|'مرفوض'|'مستخدم', code, msgs:[{from, text, d}]}
       /* colleagues' occasions (condolences and celebrations) */
@@ -137,7 +153,7 @@
   function money(n){ return (Math.round(n*1000)/1000).toFixed(3) + ' د.ك'; }
   function fdate(s){ if (!s) return '—'; var p = String(s).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : s; }
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function log(msg){ var d = load(); d.log.unshift({d:new Date().toISOString(), msg:msg}); d.log = d.log.slice(0, 80); }
+  function log(msg, sec){ var d = load(), u = d.staffSession && d.staff && d.staff[d.staffSession]; d.log.unshift({d:new Date().toISOString(), msg:msg, sec:sec || '', by:u ? u.name : ''}); d.log = d.log.slice(0, 200); }
 
   var K = window.KPTC = {
     db: load, save: save, seed: seed, id: id, money: money, date: fdate, esc: esc, latin: latin, today: today,
@@ -188,14 +204,14 @@
     isHidden: function(pid){ return K.pageState(pid) === 'off'; },
 
     /* ---- staff, roles, permissions ---- */
-    DEPTS: ['التسويق والعلاقات العامة','شؤون النقل','الورشة المركزية','الموارد البشرية','الشؤون المالية','تقنية المعلومات','المرافق والصيانة','المكتب الاستراتيجي وتطوير الأعمال'],
+    DEPTS: ['التسويق والعلاقات العامة','شؤون النقل','الإدارة الهندسية','الورشة المركزية','الموارد البشرية','الشؤون المالية','تقنية المعلومات','المرافق والصيانة','المكتب الاستراتيجي وتطوير الأعمال'],
     PERMS: [
       ['البوابة الداخلية', [['portal.leave','طلب الإجازات'],['portal.supplies','طلب المستلزمات'],['portal.invoice','صرف الفواتير'],['portal.payslip','كشف الراتب'],['portal.benefits','المزايا والعروض'],['portal.directory','دليل الموظفين'],['portal.news','أخبار الشركة'],['portal.policies','سياسات الموارد البشرية'],['portal.occasions','واجب الزملاء (المناسبات)']]],
       ['الاعتمادات', [['approve.leave','اعتماد الإجازات'],['approve.supplies','اعتماد المستلزمات'],['approve.invoice','اعتماد صرف الفواتير']]],
       ['المزايا والمناسبات', [['benefits.manage','إنشاء العروض وتخصيصها'],['benefits.claims','اعتماد طلبات الاستفادة'],['occasions.post','نشر مناسبة مباشرة'],['occasions.moderate','مراجعة المناسبات المقترحة']]],
       ['محتوى الموقع', [['site.pages','إظهار الصفحات وإخفاؤها وترتيبها'],['site.texts','تحرير نصوص الصفحات'],['site.elements','إخفاء عناصر الصفحات وحقولها'],['site.home','أقسام الصفحة الرئيسية والتنبيهات'],['site.news','الأخبار والمركز الإعلامي'],['site.tenders','المناقصات'],['site.jobs','الوظائف وطلبات التوظيف'],['site.sched','مواعيد الخطوط']]],
-      ['العمليات', [['ops.bookings','الحجوزات والطلبات'],['ops.wallets','محافظ العملاء'],['ops.winch','طلبات الونش والورشة']]],
-      ['إدارة النظام', [['admin.staff','حسابات الموظفين'],['admin.roles','الأدوار والصلاحيات'],['admin.log','سجل النشاط'],['admin.backup','النسخ والاستعادة']]]
+      ['العمليات', [['ops.bookings','الحجوزات والطلبات'],['ops.wallets','محافظ العملاء'],['ops.winch','طلبات الونش والورشة'],['ops.pdi','طلبات فحص PDI']]],
+      ['إدارة النظام', [['admin.staff','حسابات الموظفين'],['admin.roles','الأدوار والصلاحيات'],['admin.log','سجل النشاط'],['admin.backup','النسخ والاستعادة'],['admin.sections','تسليم الأقسام والإشراف عليها'],['admin.support','الرد على طلبات الدعم']]]
     ],
     staffUser: function(){ var d = load(); return d.staffSession && d.staff[d.staffSession] || null; },
     role: function(rid){ return load().roles.filter(function(r){ return r.id === rid; })[0] || {id:rid, name:rid, perms:[]}; },
@@ -204,8 +220,13 @@
       var all = []; K.PERMS.forEach(function(g){ g[1].forEach(function(p){ all.push(p[0]); }); });
       var base = K.role(u.role).perms, set = base.indexOf('*') > -1 ? all.slice() : base.slice();
       (u.grant || []).forEach(function(p){ if (set.indexOf(p) < 0) set.push(p); });
+      K.sectionsOf(u).forEach(function(sc){ sc.perms.forEach(function(p){ if (set.indexOf(p) < 0) set.push(p); }); });
       return set.filter(function(p){ return (u.deny || []).indexOf(p) < 0; });
     },
+    /* sections this person runs (received owner, or a member of the owner's team) */
+    sectionsOf: function(u){ u = u || K.staffUser(); if (!u) return []; return (load().sections || []).filter(function(sc){ return sc.status === 'مُستلم' && (sc.owner === u.id || (sc.team || []).indexOf(u.id) > -1); }); },
+    /* pages this person may edit: everything with the role permission, otherwise the pages of their sections */
+    pagesFor: function(u){ u = u || K.staffUser(); if (!u) return []; var base = K.role(u.role).perms; if (base.indexOf('*') > -1 || base.indexOf('site.texts') > -1 || (u.grant || []).indexOf('site.texts') > -1) return null; var out = []; K.sectionsOf(u).forEach(function(sc){ sc.pages.forEach(function(p){ if (out.indexOf(p) < 0) out.push(p); }); }); return out; },
     can: function(perm, u){ return K.permsOf(u).indexOf(perm) > -1; },
     staffLogin: function(sid, pass){
       var d = load(), now = Date.now(); sid = latin(sid || '').trim().toUpperCase(); var u = d.staff[sid], f = d.staffFails[sid] || (d.staffFails[sid] = {n:0, until:0});
@@ -727,9 +748,9 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
 <div class="flash" id="flash"></div>
 <script>
 (function(){
-  var K = KPTC, $ = function(i){ return document.getElementById(i); }, E = K.esc, tab = 'pages';
+  var K = KPTC, $ = function(i){ return document.getElementById(i); }, E = K.esc, tab = 'desk';
   function flash(t){ var x = $('flash'); x.textContent = t; x.classList.add('on'); clearTimeout(flash.t); flash.t = setTimeout(function(){ x.classList.remove('on'); }, 2400); }
-  var PAGES = [['home','الصفحة الرئيسية','واجهة الزوار'],['routes','الخطوط والمسارات','البحث والخريطة'],['subs','الاشتراكات والتذاكر','الباقات والدفع'],['umrah','رحلات العمرة','الحجز والمقاعد'],['vip','باصات VIP والتأجير','الحجز والمعاينة'],['winch','الونش والورشة','الطلبات الطارئة'],['lost','المفقودات','البلاغات'],['ads','الإعلان على الحافلات','باقات المعلنين'],['reclient','مساحات للإيجار','العقارات للزوار'],['assistant','كابتن K','كابتن K'],['media','المركز الإعلامي','الأخبار والصور'],['tenders','المناقصات','الفرص المطروحة'],['careers','الوظائف','الشواغر والتقديم'],['account','حسابي والمحفظة','تسجيل العملاء'],['tenant','بوابة المستأجر','المستأجرون الحاليون'],['portal','بوابة الموظفين','الدخول الوظيفي']];
+  var PAGES = [['home','الصفحة الرئيسية','واجهة الزوار'],['routes','الخطوط والمسارات','البحث والخريطة'],['subs','الاشتراكات والتذاكر','الباقات والدفع'],['umrah','رحلات العمرة','الحجز والمقاعد'],['vip','باصات VIP والتأجير','الحجز والمعاينة'],['winch','الونش والورشة','الطلبات الطارئة'],['lost','المفقودات','البلاغات'],['ads','الإعلان على الحافلات','باقات المعلنين'],['reclient','مساحات للإيجار','العقارات للزوار'],['assistant','كابتن K','كابتن K'],['media','المركز الإعلامي','الأخبار والصور'],['tenders','المناقصات','الفرص المطروحة'],['careers','الوظائف','الشواغر والتقديم'],['account','حسابي والمحفظة','تسجيل العملاء'],['tenant','بوابة المستأجر','المستأجرون الحاليون'],['portal','بوابة الموظفين','الدخول الوظيفي'],['pdi','فحص PDI','الإدارة الهندسية']];
   var TABS = {
     pages:['استوديو الصفحات','لكل صفحة: الحالة (ظاهرة، صيانة، مخفية)، مكانها وترتيبها في القائمة، اسمها وشارتها، وجدولة ظهورها. المعاينة على اليسار تتحدث فوراً.'],
     home:['الصفحة الرئيسية','شغّل أو أوقف أي قسم من الصفحة الرئيسية، وحرّر الشريط المتحرك.'],
@@ -752,11 +773,15 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
     if (pvKeep && pvKeep.getAttribute('data-src') === want){ f.replaceWith(pvKeep); f = pvKeep; } else { f.src = want; pvKeep = f; }   // keep the frame alive across re-renders
     var w = dev === 'mob' ? 390 : 1280, sc = Math.min(1, b.clientWidth / w); f.style.left = Math.max(0, (b.clientWidth - w * sc) / 2) + 'px'; f.style.transform = 'scale(' + sc + ')'; f.style.height = (b.clientHeight / sc) + 'px';
   }
-  var GROUPS = [['التحكم بالموقع',['pages','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['العملاء',['wallets','bookings']],['الموظفون',['staff','roles','benefits','occasions']],['النظام',['log']]];
-  var NEED = {pages:['site.pages'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
-  function allow(k){ var u = K.staffUser(); return !!u && !!TABS[k] && !!V[k] && NEED[k].some(function(p){ return K.can(p, u); }); }
+  var GROUPS = [['عملي',['desk']],['التحكم بالموقع',['pages','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['العملاء',['wallets','bookings']],['الموظفون',['staff','roles','benefits','occasions']],['النظام',['log']]];
+  var NEED = {desk:[], pages:['site.pages'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
+  function allow(k){ var u = K.staffUser(); if (!u || !TABS[k] || !V[k]) return false;
+    if (k === 'desk') return K.can('admin.sections', u) || K.db().sections.some(function(x){ return x.owner === u.id || (x.team || []).indexOf(u.id) > -1; });
+    if (k === 'editor' && (K.pagesFor(u) || []).length) return true;
+    return NEED[k].some(function(p){ return K.can(p, u); }); }
   function nav(){
     var d = K.db(), c = {tenders:d.bids.filter(function(b){ return b.status === 'جديد'; }).length, jobs:d.applications.filter(function(a){ return a.status === 'قيد المراجعة'; }).length, bookings:d.bookings.filter(function(b){ return b.status === 'قيد المعالجة'; }).length}, u = K.staffUser();
+    c.desk = d.sections.filter(function(x){ return u && x.owner === u.id && x.status === 'بانتظار الاستلام'; }).length + (u && K.can('admin.support', u) ? d.tickets.filter(function(t){ return t.status === 'مفتوح'; }).length : 0);
     c.benefits = d.claims.filter(function(x){ return x.status === 'بانتظار الاعتماد'; }).length; c.occasions = d.occasions.filter(function(x){ return x.status === 'بانتظار المراجعة'; }).length;
     $('nav').innerHTML = (u ? '<div class="who"><i>' + E(u.name.charAt(0)) + '</i><div><b>' + E(u.name) + '</b><small>' + E(K.role(u.role).name) + ' · ' + E(u.id) + '</small></div><button type="button" data-act="out" title="خروج">⎋</button></div>' : '') +
       GROUPS.map(function(g){ var l = g[1].filter(allow); return l.length ? '<h4>' + g[0] + '</h4>' + l.map(btn).join('') : ''; }).join('');
@@ -888,7 +913,7 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
   document.addEventListener('click', function(e){ var h = e.target.closest('.pg-h'); if (!h || e.target.closest('button')) return; var id = h.parentNode.getAttribute('data-pg'); if (selPg !== id){ selPg = id; render(); } });
   document.addEventListener('change', function(e){ var f = e.target.closest('[data-f]'); if (!f) return; var c = K.page(f.getAttribute('data-id')); c[f.getAttribute('data-f')] = f.value.trim(); K.save(); flash('حُفظ.'); });
   document.addEventListener('change', function(e){ var s = e.target.closest('select[data-act]'); if (!s) return; var a = s.getAttribute('data-act'), id = s.getAttribute('data-id'), d = K.db(), L = {tst:d.tenders, bst:d.bids, ast:d.applications, kst:d.bookings}[a], it = L.filter(function(x){ return x.id === id; })[0]; it.status = s.value; K.log('تغيير حالة ' + id + ' إلى ' + s.value); K.save(); flash('حُدّثت الحالة.'); });
-  window.KPStudio = {K:K, $:$, E:E, TABS:TABS, V:V, flash:flash, tag:tag, render:function(){ render(); }, tab:function(){ return tab; }, dlg:function(title, html, onsubmit){ editing = null; $('dT').textContent = title; $('dF').innerHTML = html + '<div class="err" id="dE"></div><button class="btn y" type="submit">حفظ</button>'; $('dlg').classList.add('on'); $('dF').onsubmit = function(e){ e.preventDefault(); e.stopImmediatePropagation(); var r = onsubmit($('dF').elements); if (r){ $('dE').textContent = r; return; } $('dF').onsubmit = null; $('dlg').classList.remove('on'); }; }};
+  window.KPStudio = {K:K, $:$, E:E, TABS:TABS, V:V, flash:flash, tag:tag, render:function(){ render(); }, tab:function(){ return tab; }, go:function(t){ tab = t; render(); }, dlg:function(title, html, onsubmit){ editing = null; $('dT').textContent = title; $('dF').innerHTML = html + '<div class="err" id="dE"></div><button class="btn y" type="submit">حفظ</button>'; $('dlg').classList.add('on'); $('dF').onsubmit = function(e){ e.preventDefault(); e.stopImmediatePropagation(); var r = onsubmit($('dF').elements); if (r){ $('dE').textContent = r; return; } $('dF').onsubmit = null; $('dlg').classList.remove('on'); }; }};
   document.addEventListener('click', function(e){ if (e.target.closest('[data-act="out"]')){ K.staffLogout(); } });
   document.addEventListener('DOMContentLoaded', function(){ K.onChange(render); render(); });
 })();
@@ -958,15 +983,16 @@ body.gated .gate{display:grid}
   $('gF').addEventListener('submit', function(e){ e.preventDefault(); var r = K.staffLogin($('gF').elements.i.value, $('gF').elements.p.value); $('gE').textContent = r.error || ''; if (!r.error) flash('مرحباً ' + r.user.name); });
 
   /* ---- visual editor: texts and elements of any page ---- */
-  var ALL = [['home','الرئيسية'],['routes','الخطوط'],['subs','الاشتراكات'],['umrah','العمرة'],['vip','VIP'],['winch','الونش'],['ads','الإعلانات'],['reclient','العقارات'],['lost','المفقودات'],['assistant','كابتن K'],['account','حسابي'],['media','المركز الإعلامي'],['tenders','المناقصات'],['careers','الوظائف'],['portal','بوابة الموظفين']];
-  var edPg = 'home', edDev = 'desk', edKeep = null;
+  var ALL = [['home','الرئيسية'],['routes','الخطوط'],['subs','الاشتراكات'],['umrah','العمرة'],['vip','VIP'],['winch','الونش'],['ads','الإعلانات'],['reclient','العقارات'],['lost','المفقودات'],['assistant','كابتن K'],['account','حسابي'],['media','المركز الإعلامي'],['tenders','المناقصات'],['careers','الوظائف'],['pdi','فحص PDI'],['portal','بوابة الموظفين']];
+  var edPg = 'home', edDev = 'desk', edKeep = null; X.editPage = function(p){ edPg = p; };
   T.editor = ['المحرر المرئي', 'افتح أي صفحة واضغط على أي نص أو حقل أو عنصر: عدّل النص، غيّر النص الإرشادي للحقل، أو أخفِ العنصر عن الزوار. يعمل على كل الصفحات الحالية وأي صفحة تُضاف لاحقاً.'];
   V.editor = function(){
     var S = K.site(), tx = S.texts || {}, hd = S.hidden || {}, n = function(p){ return Object.keys(tx[p] || {}).length + (hd[p] || []).length; };
     $('hA').innerHTML = '<span class="st3"><button data-act="eddev" data-v="desk" class="' + (edDev === 'desk' ? 'on' : '') + '" style="' + (edDev === 'desk' ? 'background:var(--kp-ink);color:var(--kp-sign)' : '') + '">حاسوب</button><button data-act="eddev" data-v="mob" style="' + (edDev === 'mob' ? 'background:var(--kp-ink);color:var(--kp-sign)' : '') + '">جوال</button></span>';
     function texts(scope, title){ var m = tx[scope] || {}, ks = Object.keys(m); return '<div class="cl"><h4>' + title + '<span class="num">' + ks.length + '</span></h4>' + (ks.length ? ks.map(function(k){ return '<div class="it"><div><s>' + E(k.replace(/^ph:/, 'حقل: ')) + '</s><b>' + E(m[k]) + '</b></div><button class="btn o" data-act="txdel" data-id="' + scope + '" data-k="' + E(k) + '">استرجاع</button></div>'; }).join('') : '<div class="empty">لا نصوص معدّلة.</div>') + '</div>'; }
     var hl = hd[edPg] || [];
-    return '<div class="chips">' + ALL.map(function(p){ return '<button data-act="edpg" data-id="' + p[0] + '" class="' + (p[0] === edPg ? 'on' : '') + '">' + p[1] + (n(p[0]) ? '<em class="num">' + n(p[0]) + '</em>' : '') + '</button>'; }).join('') + '</div>' +
+    var okP = K.pagesFor(); var LIST = okP ? ALL.filter(function(p){ return okP.indexOf(p[0]) > -1; }) : ALL; if (LIST.length && !LIST.some(function(p){ return p[0] === edPg; })) edPg = LIST[0][0];
+    return '<div class="chips">' + LIST.map(function(p){ return '<button data-act="edpg" data-id="' + p[0] + '" class="' + (p[0] === edPg ? 'on' : '') + '">' + p[1] + (n(p[0]) ? '<em class="num">' + n(p[0]) + '</em>' : '') + '</button>'; }).join('') + '</div>' +
       '<div class="ed"><div class="ed-f" id="edB"><iframe id="edF" data-src="' + edPg + '.html#kpedit" title="تحرير الصفحة"></iframe></div><div>' + texts(edPg, 'نصوص هذه الصفحة') + texts('*', 'نصوص مشتركة بين كل الصفحات') +
       '<div class="cl"><h4>عناصر مخفية في هذه الصفحة<span class="num">' + hl.length + '</span></h4>' + (hl.length ? hl.map(function(s, i){ return '<div class="it"><code>' + E(s.split('>').slice(-3).join(' › ')) + '</code><button class="btn o" data-act="hddel" data-id="' + i + '">إظهار</button></div>'; }).join('') : '<div class="empty">لا عناصر مخفية.</div>') + '</div>' +
       '<button class="btn o" data-act="edclear">استرجاع الصفحة كما كانت</button></div></div>';
@@ -1103,6 +1129,112 @@ body.gated .gate{display:grid}
     var t = e.target, d = K.db();
     if (t.matches('[data-sf="role"]')){ var u = d.staff[t.getAttribute('data-id')]; u.role = t.value; u.grant = []; u.deny = []; K.log('تغيير دور ' + u.name + ' إلى ' + K.role(u.role).name); K.save(); flash('تغيّر الدور وصلاحياته.'); }
     if (t.matches('[data-rl]')){ var r = K.role(t.getAttribute('data-rl')), p = t.getAttribute('data-p'), i = r.perms.indexOf(p); if (t.checked && i < 0) r.perms.push(p); if (!t.checked && i > -1) r.perms.splice(i, 1); K.log('صلاحيات دور ' + r.name); K.save(); flash('حُفظ. يسري على كل من يحمل الدور.'); }
+  });
+})();
+</script>
+
+<style>
+.sx{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:18px}
+.sx button{all:unset;cursor:pointer;background:#fff;border:2px solid var(--kp-line-2);border-radius:8px;padding:12px 14px;display:grid;gap:5px;transition:.15s;box-sizing:border-box}
+.sx button:hover{border-color:var(--kp-ink)}.sx button.on{border-color:var(--kp-ink);box-shadow:5px 5px 0 var(--kp-sign)}
+.sx b{font:700 15px var(--f-display)}.sx small{color:var(--kp-muted);font-size:12px}.sx .m{display:flex;gap:5px;flex-wrap:wrap}
+.flow{display:flex;gap:0;margin:2px 0}.flow i{flex:1;height:5px;background:var(--kp-line-2);margin-inline-end:3px;border-radius:3px}.flow i.on{background:var(--kp-ok)}.flow i.half{background:var(--kp-warn)}
+.ws{background:#fff;border:2px solid var(--kp-ink);border-radius:10px;overflow:hidden}
+.ws-h{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:16px 18px;background:var(--kp-ink);color:#fff}
+.ws-h h2{font-size:20px;color:#fff}.ws-h small{color:#B7B5D6}
+.ws-t{display:flex;gap:0;border-bottom:2px solid var(--kp-ink);overflow-x:auto}
+.ws-t button{border:0;background:#fff;padding:11px 18px;font:700 13.5px var(--f-display);cursor:pointer;color:var(--kp-muted);white-space:nowrap;border-inline-end:1px solid var(--kp-line)}
+.ws-t button.on{background:var(--kp-sign);color:var(--kp-ink)}
+.ws-b{padding:18px}
+.take{background:#FFF8E1;border:2px dashed var(--kp-ink);border-radius:8px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.pgc{display:grid;grid-template-columns:1fr auto;gap:10px 14px;align-items:center;border:1px solid var(--kp-line);border-radius:8px;padding:14px;margin-bottom:10px}
+.pgc .a{display:flex;gap:6px;flex-wrap:wrap;grid-column:1/-1}
+.tk2{border:1px solid var(--kp-line);border-radius:8px;padding:12px 14px;margin-bottom:10px;display:grid;gap:6px}
+.tk2 .r{font-size:13px;border-inline-start:3px solid var(--kp-sign);padding-inline-start:10px}
+.tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.tools>div{border:1px solid var(--kp-line);border-radius:8px;padding:14px;display:grid;gap:8px;align-content:start}
+.tools h4{font-size:14.5px}.tools p{font-size:12.5px;color:var(--kp-muted)}
+</style>
+<script>
+(function(){
+  var X = window.KPStudio, K = X.K, $ = X.$, E = X.E, T = X.TABS, V = X.V, flash = X.flash, tag = X.tag;
+  var PN = {home:'الرئيسية', routes:'الخطوط والمسارات', subs:'الاشتراكات', umrah:'رحلات العمرة', vip:'باصات VIP', winch:'الونش والورشة', pdi:'فحص PDI', ads:'الإعلان على الحافلات', media:'المركز الإعلامي', tenders:'المناقصات', careers:'الوظائف', portal:'بوابة الموظفين', reclient:'مساحات للإيجار', lost:'المفقودات', assistant:'كابتن K', account:'حسابي والمحفظة'};
+  var FILE = {routes:'KPTC_Routes.html', subs:'KPTC_Subscriptions.html', umrah:'KPTC_Umrah.html', vip:'KPTC_VIP.html', winch:'KPTC_Winch.html', pdi:'KPTC_PDI.html', ads:'KPTC_Advertising.html', media:'KPTC_Media.html', tenders:'KPTC_Tenders.html', careers:'KPTC_Careers.html', portal:'KPTC_Portal.html', reclient:'KPTC_RE_Client.html', lost:'KPTC_LostFound.html', assistant:'KPTC_AI_Assistant.html', account:'KPTC_Account.html'};
+  var STAT = ['قيد المعالجة','مؤكد','مكتمل','ملغى'], PST = ['جديد','مجدول','قيد الفحص','مكتمل','ملغى'], RES = ['','مطابق','مطابق بملاحظات','غير مطابق'];
+  var cur = '', sub = 'req';
+  function nm(id){ var u = K.db().staff[id]; return u ? u.name : '—'; }
+  function opt(list, c){ return list.map(function(o){ var v = Array.isArray(o) ? o[0] : o, l = Array.isArray(o) ? o[1] : o; return '<option value="' + E(v) + '"' + (v === c ? ' selected' : '') + '>' + E(l || '—') + '</option>'; }).join(''); }
+  function mine(u){ var adm = K.can('admin.sections', u); return K.db().sections.filter(function(x){ return adm || x.owner === u.id || (x.team || []).indexOf(u.id) > -1; }); }
+  function reqs(sc){ return K.db().bookings.filter(function(b){ return sc.pages.indexOf(b.page) > -1; }); }
+  function step(sc){ return sc.status === 'مُستلم' ? 3 : sc.status === 'بانتظار الاستلام' ? 2 : sc.owner ? 1 : 0; }
+
+  T.desk = ['الأقسام', 'كل خدمة في الموقع قسم تديره إدارته: صفحة للإدارة (الطلبات)، صفحة المستخدم (ما يراه الزائر)، وأدوات مسؤول النظام. المسؤول يسلّم القسم، والإدارة تستلمه وتديره، ويبقى للمسؤول الإشراف والدعم.'];
+  V.desk = function(d){
+    var u = K.staffUser(), adm = K.can('admin.sections', u), L = mine(u); if (!L.some(function(x){ return x.id === cur; })) cur = L[0] ? L[0].id : '';
+    var sc = L.filter(function(x){ return x.id === cur; })[0]; $('hA').innerHTML = '';
+    if (!sc) return '<div class="empty">لم يُسلَّم لك أي قسم بعد.</div>';
+    var own = sc.owner === u.id, live = sc.status === 'مُستلم', can = adm || (live && (own || (sc.team || []).indexOf(u.id) > -1));
+    var top = adm ? '<div class="kp4"><div><b class="num">' + d.sections.filter(function(x){ return x.status === 'مُستلم'; }).length + ' / ' + d.sections.length + '</b><span>أقسام مُستلمة</span></div><div><b class="num">' + d.sections.filter(function(x){ return x.status === 'بانتظار الاستلام'; }).length + '</b><span>بانتظار استلام الإدارة</span></div><div><b class="num">' + d.tickets.filter(function(t){ return t.status === 'مفتوح'; }).length + '</b><span>طلبات دعم مفتوحة</span></div><div><b class="num">' + d.bookings.filter(function(b){ return b.status === 'قيد المعالجة' || b.status === 'جديد'; }).length + '</b><span>طلبات عملاء تنتظر</span></div></div>' : '';
+    var cards = '<div class="sx">' + L.map(function(x){ var s = step(x), open = reqs(x).filter(function(b){ return b.status === 'قيد المعالجة' || b.status === 'جديد'; }).length, tk = d.tickets.filter(function(t){ return t.sec === x.id && t.status === 'مفتوح'; }).length;
+      return '<button type="button" data-act="dsec" data-id="' + x.id + '" class="' + (x.id === cur ? 'on' : '') + '"><b>' + E(x.name) + '</b><small>' + E(x.dept) + ' · ' + (x.owner ? E(nm(x.owner)) : 'بلا مسؤول') + '</small><div class="flow"><i class="' + (s > 0 ? 'on' : '') + '"></i><i class="' + (s > 2 ? 'on' : s === 2 ? 'half' : '') + '"></i><i class="' + (s > 2 ? 'on' : '') + '"></i></div><div class="m">' + tag(x.status) + (open ? '<span class="tag warn num">' + open + ' طلب</span>' : '') + (tk ? '<span class="tag bad num">' + tk + ' دعم</span>' : '') + '</div></button>'; }).join('') + '</div>';
+    var tabs = [['req','صفحة الإدارة — الطلبات'],['page','صفحة المستخدم'],['team','الفريق'],['help','الدعم']].concat(adm ? [['tools','أدوات مسؤول النظام']] : []); if (!tabs.some(function(t){ return t[0] === sub; })) sub = 'req';
+    var body = '';
+    if (!can) body = '<div class="take"><div><b>القسم مُسلَّم لك وينتظر استلامك</b><br><small>بالاستلام تصبح مسؤولاً عن طلباته وصفحاته، وتستطيع إضافة فريقك.' + (sc.note ? ' ملاحظة المسؤول: ' + E(sc.note) : '') + '</small></div><button class="btn y" data-act="dtake" data-id="' + sc.id + '">استلم القسم</button></div>';
+    else if (sub === 'req'){
+      var R = reqs(sc), P = sc.pages.indexOf('pdi') > -1 ? d.pdi : [];
+      body = (P.length ? '<h3 style="margin-bottom:10px">طلبات فحص PDI</h3><div class="tw" style="margin-bottom:18px"><table class="t"><thead><tr><th>الطلب</th><th>العميل</th><th>المركبة</th><th>الموعد</th><th>الحالة</th><th>النتيجة</th><th></th></tr></thead><tbody>' + P.map(function(r){ return '<tr><td class="num"><b>' + E(r.id) + '</b></td><td>' + E(r.name) + '<br><small class="num">' + E(r.phone) + '</small></td><td>' + E(r.kind) + ' × <span class="num">' + r.count + '</span><br><small>' + E(r.make) + ' · ' + E(r.where) + '</small></td><td class="num">' + K.date(r.date) + '</td><td><select class="s" data-pd="status" data-id="' + r.id + '">' + opt(PST, r.status) + '</select></td><td>' + (r.result ? tag(r.result) : '—') + '</td><td><button class="btn o" data-act="pdres" data-id="' + r.id + '">سجّل النتيجة</button></td></tr>'; }).join('') + '</tbody></table></div>' : '') +
+        '<h3 style="margin-bottom:10px">طلبات العملاء في هذا القسم</h3>' + (R.length ? '<div class="tw"><table class="t"><thead><tr><th>الرقم</th><th>النوع</th><th>الطلب</th><th>التاريخ</th><th>المبلغ</th><th>الحالة</th></tr></thead><tbody>' + R.map(function(b){ return '<tr><td class="num"><b>' + E(b.id) + '</b></td><td>' + E(b.type) + '</td><td>' + E(b.title) + '</td><td class="num">' + K.date(b.d) + '</td><td class="num">' + (b.amount ? K.money(b.amount) : '—') + '</td><td><select class="s" data-bk="' + E(b.id) + '">' + opt(STAT.indexOf(b.status) < 0 ? [b.status].concat(STAT) : STAT, b.status) + '</select></td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">لا طلبات بعد. ما يحجزه العملاء من صفحات القسم يظهر هنا.</div>') +
+        (sc.perms.indexOf('site.news') > -1 ? '<p style="margin-top:14px"><button class="btn o" data-act="dgo" data-id="news">إدارة الأخبار</button></p>' : '') + (sc.perms.indexOf('site.tenders') > -1 ? '<p style="margin-top:14px"><button class="btn o" data-act="dgo" data-id="tenders">إدارة المناقصات</button></p>' : '') + (sc.perms.indexOf('site.jobs') > -1 ? '<p style="margin-top:14px"><button class="btn o" data-act="dgo" data-id="jobs">الوظائف وطلبات التوظيف</button> <button class="btn o" data-act="dgo" data-id="benefits">المزايا والعروض</button> <button class="btn o" data-act="dgo" data-id="occasions">مناسبات الموظفين</button></p>' : '') + (sc.perms.indexOf('site.sched') > -1 ? '<p style="margin-top:14px"><button class="btn o" data-act="dgo" data-id="sched">مواعيد الخطوط</button> <button class="btn o" data-act="dgo" data-id="wallets">محافظ العملاء</button></p>' : '');
+    } else if (sub === 'page'){
+      var S = K.site();
+      body = sc.pages.map(function(p){ var st = K.pageState(p), n = Object.keys((S.texts || {})[p] || {}).length, h = ((S.hidden || {})[p] || []).length;
+        return '<div class="pgc"><div><b>' + E(PN[p] || p) + '</b><br><small>' + n + ' نص معدّل · ' + h + ' عنصر مخفي</small></div><span class="st3">' + [['on','ظاهرة'],['maint','صيانة'],['off','مخفية']].map(function(o){ return '<button data-act="st" data-id="' + p + '" data-v="' + o[0] + '" class="' + (st === o[0] ? 'on' : '') + '">' + o[1] + '</button>'; }).join('') + '</span><div class="a"><a class="btn o" href="' + (FILE[p] || '#') + '">افتح صفحة المستخدم</a><button class="btn y" data-act="dedit" data-id="' + p + '">حرّر نصوصها وعناصرها</button></div></div>'; }).join('');
+    } else if (sub === 'team'){
+      var pool = Object.keys(d.staff).map(function(k){ return d.staff[k]; }).filter(function(s){ return s.id !== sc.owner && (sc.team || []).indexOf(s.id) < 0 && s.status === 'active' && (adm || s.dept === sc.dept); });
+      body = '<p class="sd" style="margin:0 0 12px">مسؤول القسم: <b>' + E(nm(sc.owner)) + '</b>. أعضاء الفريق يحصلون على صلاحيات هذا القسم فقط' + (adm ? '' : '، وتختارهم من إدارتك') + '.</p>' +
+        ((sc.team || []).length ? '<div class="tw" style="margin-bottom:12px"><table class="t"><tbody>' + sc.team.map(function(i){ var s = d.staff[i] || {name:i}; return '<tr><td><b>' + E(s.name) + '</b><br><small class="num">' + E(i) + ' · ' + E(s.title || '') + '</small></td><td style="text-align:left">' + (own || adm ? '<button class="btn o" data-act="dtrm" data-id="' + i + '">إزالة</button>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty" style="margin-bottom:12px">لا أعضاء بعد.</div>') +
+        (own || adm ? (pool.length ? '<div style="display:flex;gap:8px;flex-wrap:wrap"><select class="s" id="dTm">' + opt(pool.map(function(s){ return [s.id, s.name + ' — ' + s.id]; })) + '</select><button class="btn y" data-act="dtadd">أضف للفريق</button></div>' : '<small class="sd">لا موظفين آخرين متاحين في ' + E(sc.dept) + '. يضيفهم مسؤول النظام من «حسابات الموظفين».</small>') : '');
+    } else if (sub === 'help'){
+      var TK = d.tickets.filter(function(t){ return t.sec === sc.id; });
+      body = '<p class="sd" style="margin:0 0 12px">تحتاج صلاحية، تعديلاً لا تملكه، أو واجهت مشكلة؟ اكتب لمسؤول النظام وسيرد هنا.</p><div style="display:flex;gap:8px;margin-bottom:14px"><input id="dTk" placeholder="اكتب طلب الدعم…" style="flex:1;border:1.5px solid var(--kp-line-2);border-radius:5px;padding:9px 12px;font:500 14px var(--f-body)"><button class="btn y" data-act="dtk">أرسل</button></div>' +
+        (TK.length ? TK.map(function(t){ return '<div class="tk2"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>' + E(t.text) + '</b>' + tag(t.status) + '</div><small class="sd">' + E(nm(t.from)) + ' · <span class="num">' + K.date(t.d) + '</span></small>' + t.replies.map(function(r){ return '<div class="r"><b>' + E(nm(r.from)) + ':</b> ' + E(r.text) + '</div>'; }).join('') + '<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn o" data-act="dtkr" data-id="' + t.id + '">رد</button>' + (t.status === 'مفتوح' && (adm || K.can('admin.support')) ? '<button class="btn o" data-act="dtkc" data-id="' + t.id + '">أغلق الطلب</button>' : '') + '</div></div>'; }).join('') : '<div class="empty">لا طلبات دعم.</div>');
+    } else if (sub === 'tools'){
+      var people = Object.keys(d.staff).map(function(k){ return d.staff[k]; }).filter(function(s){ return s.status === 'active'; }), lg = d.log.filter(function(l){ return l.sec === sc.id; }).slice(0, 8);
+      body = '<div class="tools"><div><h4>التسليم</h4><p>اختر الإدارة ومسؤول القسم ثم سلّمه. يصله إشعار في مركز الإدارة ليستلم.</p><select class="s" id="dDept">' + opt(K.DEPTS, sc.dept) + '</select><select class="s" id="dOwn">' + opt([['', 'اختر المسؤول']].concat(people.map(function(s){ return [s.id, s.name + ' — ' + s.dept]; })), sc.owner) + '</select><input id="dNote" placeholder="ملاحظة للمستلم (اختياري)" value="' + E(sc.note || '') + '" style="border:1.5px solid var(--kp-line-2);border-radius:4px;padding:6px 8px;font:500 13px var(--f-body)"><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn y" data-act="dhand">' + (sc.status === 'لم يُسلَّم' ? 'سلّم القسم' : 'أعد التسليم') + '</button>' + (sc.status !== 'لم يُسلَّم' ? '<button class="btn o" data-act="dback">اسحب القسم</button>' : '') + '</div></div>' +
+        '<div><h4>صلاحيات القسم</h4><p>ما يحصل عليه مسؤول القسم وفريقه عند الاستلام.</p><div class="pm" style="grid-template-columns:1fr;max-height:210px">' + K.PERMS.map(function(g){ return g[1].filter(function(p){ return !/^(portal|admin)\./.test(p[0]); }).map(function(p){ return '<label><input type="checkbox" data-sp="' + p[0] + '"' + (sc.perms.indexOf(p[0]) > -1 ? ' checked' : '') + '>' + p[1] + '</label>'; }).join(''); }).join('') + '</div></div>' +
+        '<div><h4>البيانات</h4><p>نزّل طلبات القسم ملف CSV يفتح في Excel، أو امسح الطلبات التجريبية.</p><button class="btn o" data-act="dcsv">تنزيل الطلبات CSV</button><button class="btn o" data-act="dclr">مسح طلبات القسم</button><button class="btn o" data-act="drst">استرجاع صفحات القسم كما كانت</button></div>' +
+        '<div><h4>الدخول للدعم</h4><p>افتح صفحة الإدارة الخاصة بالقسم كما يراها مسؤوله، لمساعدته دون تغيير ملكيته.</p><button class="btn o" data-act="dsub" data-id="req">افتح صفحة الإدارة</button><button class="btn o" data-act="dsub" data-id="help">طلبات الدعم</button></div>' +
+        '<div style="grid-column:1/-1"><h4>آخر نشاط في القسم</h4>' + (lg.length ? lg.map(function(l){ return '<div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;border-bottom:1px solid var(--kp-line);padding:5px 0"><span>' + E(l.msg) + (l.by ? ' — <b>' + E(l.by) + '</b>' : '') + '</span><small class="num">' + E(l.d.replace('T', ' ').slice(0, 16)) + '</small></div>'; }).join('') : '<p>لا نشاط مسجّل بعد.</p>') + '</div></div>';
+    }
+    return top + cards + '<div class="ws"><div class="ws-h"><div><h2>' + E(sc.name) + '</h2><small>' + E(sc.dept) + ' · المسؤول: ' + E(sc.owner ? nm(sc.owner) : 'لم يُحدَّد') + (sc.at ? ' · سُلّم ' + K.date(sc.at) : '') + '</small></div>' + tag(sc.status) + '</div>' + (can ? '<div class="ws-t">' + tabs.map(function(t){ return '<button data-act="dsub" data-id="' + t[0] + '" class="' + (t[0] === sub ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>' : '') + '<div class="ws-b">' + body + '</div></div>';
+  };
+  function S(){ return K.db().sections.filter(function(x){ return x.id === cur; })[0]; }
+  function sure(b, l){ if (b.getAttribute('data-sure')) return true; b.setAttribute('data-sure', '1'); b.textContent = l; return false; }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-act]'); if (!b) return; var a = b.getAttribute('data-act'), id = b.getAttribute('data-id'), d = K.db(), u = K.staffUser(), sc = S();
+    if (a === 'dsec'){ cur = id; X.render(); }
+    else if (a === 'dsub'){ sub = id; X.render(); }
+    else if (a === 'dgo') X.go(id);
+    else if (a === 'dedit'){ X.editPage(id); X.go('editor'); }
+    else if (a === 'dtake'){ sc.status = 'مُستلم'; sc.got = K.today(); K.log('استلام قسم ' + sc.name, sc.id); K.save(); flash('استلمت القسم. صلاحياته فعّالة الآن.'); }
+    else if (a === 'dhand'){ var o = $('dOwn').value; if (!o) return flash('اختر مسؤول القسم أولاً.'); sc.dept = $('dDept').value; sc.owner = o; sc.note = $('dNote').value.trim(); sc.status = 'بانتظار الاستلام'; sc.at = K.today(); sc.team = (sc.team || []).filter(function(i){ return i !== o; }); K.log('تسليم قسم ' + sc.name + ' إلى ' + nm(o), sc.id); K.save(); flash('سُلّم القسم وينتظر استلام ' + nm(o) + '.'); }
+    else if (a === 'dback'){ if (sure(b, 'تأكيد السحب')){ sc.status = 'لم يُسلَّم'; sc.owner = ''; sc.team = []; K.log('سحب قسم ' + sc.name, sc.id); K.save(); flash('عاد القسم لمسؤول النظام.'); } }
+    else if (a === 'dtadd'){ var v = $('dTm').value; if (v){ (sc.team = sc.team || []).push(v); K.log('إضافة ' + nm(v) + ' لفريق ' + sc.name, sc.id); K.save(); flash('أضيف للفريق.'); } }
+    else if (a === 'dtrm'){ sc.team = sc.team.filter(function(i){ return i !== id; }); K.log('إزالة ' + nm(id) + ' من فريق ' + sc.name, sc.id); K.save(); }
+    else if (a === 'dtk'){ var t = $('dTk').value.trim(); if (!t) return flash('اكتب طلبك أولاً.'); d.tickets.unshift({id:K.id('SUP'), sec:sc.id, from:u.id, text:t, d:K.today(), status:'مفتوح', replies:[]}); K.log('طلب دعم من قسم ' + sc.name, sc.id); K.save(); flash('وصل طلبك لمسؤول النظام.'); }
+    else if (a === 'dtkr') X.dlg('رد', '<label class="f">الرد<textarea name="t" rows="3"></textarea></label>', function(f){ if (!f.t.value.trim()) return 'اكتب الرد.'; d.tickets.filter(function(x){ return x.id === id; })[0].replies.push({from:u.id, text:f.t.value.trim(), d:K.today()}); K.save(); flash('أُرسل الرد.'); });
+    else if (a === 'dtkc'){ d.tickets.filter(function(x){ return x.id === id; })[0].status = 'مغلق'; K.save(); }
+    else if (a === 'dcsv'){ var rows = [['الرقم','النوع','الطلب','التاريخ','المبلغ','الحالة']].concat(reqs(sc).map(function(x){ return [x.id, x.type, x.title, x.d, x.amount || 0, x.status]; })), csv = '﻿' + rows.map(function(r){ return r.map(function(c){ return '"' + String(c).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n'), l = document.createElement('a'); l.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); l.download = 'KPTC-' + sc.id + '.csv'; document.body.appendChild(l); l.click(); l.remove(); flash('نزل الملف.'); }
+    else if (a === 'dclr'){ if (sure(b, 'تأكيد مسح الطلبات')){ d.bookings = d.bookings.filter(function(x){ return sc.pages.indexOf(x.page) < 0; }); K.log('مسح طلبات قسم ' + sc.name, sc.id); K.save(); flash('مُسحت طلبات القسم.'); } }
+    else if (a === 'drst'){ if (sure(b, 'تأكيد الاسترجاع')){ var st = K.site(); sc.pages.forEach(function(p){ if (st.texts) delete st.texts[p]; if (st.hidden) delete st.hidden[p]; }); K.log('استرجاع صفحات قسم ' + sc.name, sc.id); K.save(); flash('عادت صفحات القسم كما كانت.'); } }
+    else if (a === 'pdres'){ var r = d.pdi.filter(function(x){ return x.id === id; })[0]; X.dlg('نتيجة فحص ' + r.id, '<label class="f">النتيجة<select name="res">' + opt(RES.slice(1), r.result) + '</select></label><label class="f">الملاحظات<textarea name="rm" rows="3">' + E(r.remarks || '') + '</textarea></label>', function(f){ r.result = f.res.value; r.remarks = f.rm.value.trim(); r.status = 'مكتمل'; r.inspector = u.id; var bk = d.bookings.filter(function(x){ return x.id === r.id; })[0]; if (bk) bk.status = 'مكتمل'; K.log('نتيجة فحص ' + r.id + ': ' + r.result, 'eng'); K.save(); flash('حُفظت النتيجة. يراها العميل برقم الطلب ويحمّل التقرير.'); }); }
+  });
+  function reqs(sc){ return K.db().bookings.filter(function(b){ return sc.pages.indexOf(b.page) > -1; }); }
+  document.addEventListener('change', function(e){
+    var t = e.target, d = K.db(), sc = S();
+    if (t.matches('[data-bk]')){ var b = d.bookings.filter(function(x){ return x.id === t.getAttribute('data-bk'); })[0]; b.status = t.value; K.log('حالة ' + b.id + ': ' + t.value, sc && sc.id); K.save(); flash('حُفظت الحالة.'); }
+    if (t.matches('[data-pd]')){ var r = d.pdi.filter(function(x){ return x.id === t.getAttribute('data-id'); })[0]; r.status = t.value; var bk = d.bookings.filter(function(x){ return x.id === r.id; })[0]; if (bk) bk.status = t.value; K.log('حالة ' + r.id + ': ' + t.value, 'eng'); K.save(); flash('حُفظت الحالة.'); }
+    if (t.matches('[data-sp]')){ var p = t.getAttribute('data-sp'), i = sc.perms.indexOf(p); if (t.checked && i < 0) sc.perms.push(p); if (!t.checked && i > -1) sc.perms.splice(i, 1); K.log('صلاحيات قسم ' + sc.name, sc.id); K.save(); flash('حُفظت صلاحيات القسم.'); }
   });
 })();
 </script>
@@ -1293,7 +1425,7 @@ body.gated .gate{display:grid}
     f.insertBefore(s, f.firstChild);
   }
 
-  var MAP = {"KPTC_Executive_Landing.html":"exec","KPTC_Home.html":"home","KPTC_Routes.html":"routes","KPTC_Subscriptions.html":"subs","KPTC_Umrah.html":"umrah","KPTC_VIP.html":"vip","KPTC_Winch.html":"winch","KPTC_LostFound.html":"lost","KPTC_Advertising.html":"ads","KPTC_AI_Assistant.html":"assistant","KPTC_Admin_Dashboard_v3.html":"dashboard","KPTC_Admin_AI.html":"adminai","KPTC_Portal.html":"portal","KPTC_RealEstate.html":"realestate","KPTC_RE_AI.html":"reai","KPTC_RE_Client.html":"reclient","KPTC_Client_Portal.html":"tenant","KPTC_Website_Prototype.html":"home","KPTC_Subscriptions_v2.html":"subs","KPTC_Account.html":"account","KPTC_Media.html":"media","KPTC_Tenders.html":"tenders","KPTC_Careers.html":"careers","KPTC_SiteAdmin.html":"siteadmin"};
+  var MAP = {"KPTC_Executive_Landing.html":"exec","KPTC_Home.html":"home","KPTC_Routes.html":"routes","KPTC_Subscriptions.html":"subs","KPTC_Umrah.html":"umrah","KPTC_VIP.html":"vip","KPTC_Winch.html":"winch","KPTC_LostFound.html":"lost","KPTC_Advertising.html":"ads","KPTC_AI_Assistant.html":"assistant","KPTC_Admin_Dashboard_v3.html":"dashboard","KPTC_Admin_AI.html":"adminai","KPTC_Portal.html":"portal","KPTC_RealEstate.html":"realestate","KPTC_RE_AI.html":"reai","KPTC_RE_Client.html":"reclient","KPTC_Client_Portal.html":"tenant","KPTC_Website_Prototype.html":"home","KPTC_Subscriptions_v2.html":"subs","KPTC_Account.html":"account","KPTC_Media.html":"media","KPTC_Tenders.html":"tenders","KPTC_Careers.html":"careers","KPTC_SiteAdmin.html":"siteadmin","KPTC_PDI.html":"pdi"};
   function standalone(){
     if (window.parent !== window){
       document.addEventListener('click', function(e){
@@ -1414,13 +1546,13 @@ body.gated .gate{display:grid}
     }
     var panel = document.querySelector('.k2-panel, .drawer .panel');
     if (panel && !panel.querySelector('.kp-xl')){
-      [['KPTC_Account.html','حسابي ومحفظتي'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ panel.appendChild(link(x[0], x[1], 'kp-xl')); });
+      [['KPTC_Account.html','حسابي ومحفظتي'],['KPTC_PDI.html','فحص PDI'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ panel.appendChild(link(x[0], x[1], 'kp-xl')); });
       panel.querySelectorAll('a[href="KPTC_Portal.html"]').forEach(function(x){ x.remove(); });
       var st2 = link('KPTC_Portal.html', 'بوابة الموظفين', 'kp-staff'); panel.appendChild(st2);
     }
     var cols = document.querySelectorAll('.k2-fg > div ul, .f-grid > div ul'), last = cols[cols.length-1];
     if (last && !last.querySelector('.kp-xl')){
-      [['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ var li = document.createElement('li'); li.appendChild(link(x[0], x[1], 'kp-xl')); last.appendChild(li); });
+      [['KPTC_PDI.html','فحص ما قبل التسليم PDI'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ var li = document.createElement('li'); li.appendChild(link(x[0], x[1], 'kp-xl')); last.appendChild(li); });
     }
     visibility();
   }
@@ -1570,7 +1702,7 @@ body.gated .gate{display:grid}
 
   /* ---- umrah + vip: seat map and the PDF e-ticket (assets/booking.js) ---- */
   function bookingKit(){
-    if (OWN !== 'umrah' && OWN !== 'vip') return;
+    if (OWN !== 'umrah' && OWN !== 'vip' && OWN !== 'pdi') return;
     var q = document.createElement('script'); q.src = '../assets/qrcode.min.js';
     var next = function(){ var n = document.createElement('script'); n.src = '../assets/booking.js'; document.head.appendChild(n); };
     q.onload = next; q.onerror = next; document.head.appendChild(q);

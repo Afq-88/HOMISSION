@@ -67,7 +67,7 @@
       staff: {
         'KPTC-4821': {id:'KPTC-4821', name:'أحمد القطان', title:'مدير التسويق والعلاقات العامة', dept:'التسويق والعلاقات العامة', role:'emp', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-900)},
         'KPTC-2891': {id:'KPTC-2891', name:'أوراد الياسين', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
-        'KPTC-ENG':  {id:'KPTC-ENG', name:'مهندس الصيانة', title:'مهندس أول', dept:'الورشة المركزية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
+        'KPTC-ENG':  {id:'KPTC-ENG', name:'مهندس الصيانة', title:'مهندس أول', dept:'الإدارة الهندسية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
         'KPTC-3310': {id:'KPTC-3310', name:'موظف الموارد البشرية', title:'أخصائي شؤون الموظفين', dept:'الموارد البشرية', role:'hr', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-700)},
         'KPTC-5120': {id:'KPTC-5120', name:'محرر الموقع', title:'أخصائي محتوى رقمي', dept:'التسويق والعلاقات العامة', role:'content', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-300)},
         'KPTC-1001': {id:'KPTC-1001', name:'مدير النظام', title:'مدير تقنية المعلومات', dept:'تقنية المعلومات', role:'admin', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2600)}
@@ -78,6 +78,22 @@
         {id:'B-103', title:'اشتراك مخفّض في نادٍ صحي', desc:'خصم على الاشتراك السنوي عند إبراز رمز العرض. (عرض تجريبي للتوضيح)', type:'external', partner:'نادٍ صحي شريك', value:'خصم 40%', cat:'صحة ولياقة', aud:{mode:'all'}, approve:false, from:today(-5), until:today(60), limit:0, on:true, by:'KPTC-3310'},
         {id:'B-102', title:'بدل وجبة للمناوبين ليلاً', desc:'قسيمة وجبة لكل مناوبة ليلية خلال الشهر الحالي. (عرض تجريبي للتوضيح)', type:'internal', partner:'', value:'قسيمة وجبة', cat:'دعم المناوبين', aud:{mode:'depts', depts:['شؤون النقل','الورشة المركزية']}, approve:false, from:today(-2), until:today(28), limit:0, on:true, by:'KPTC-3310'},
         {id:'B-101', title:'دورة التسويق الرقمي المتقدم', desc:'مقعد تدريبي مدفوع من الشركة، خمسة أيام. يحتاج اعتماد مديرك. (عرض تجريبي للتوضيح)', type:'internal', partner:'مركز التدريب', value:'مقعد مدفوع', cat:'تدريب وتطوير', aud:{mode:'staff', staff:['KPTC-4821']}, approve:true, from:today(-1), until:today(14), limit:1, on:true, by:'KPTC-2891'}
+      ],
+      /* sections handed over by the system admin to the departments that run them */
+      sections: [
+        {id:'transport', name:'الخطوط والاشتراكات', pages:['routes','subs'], perms:['site.sched','ops.bookings','ops.wallets'], dept:'شؤون النقل'},
+        {id:'trips', name:'العمرة وتأجير VIP', pages:['umrah','vip'], perms:['ops.bookings'], dept:'التسويق والعلاقات العامة'},
+        {id:'eng', name:'الونش والورشة وفحص PDI', pages:['winch','pdi'], perms:['ops.winch','ops.pdi','ops.bookings'], dept:'الإدارة الهندسية'},
+        {id:'ads', name:'الإعلان على الحافلات', pages:['ads'], perms:['ops.bookings'], dept:'التسويق والعلاقات العامة'},
+        {id:'media', name:'المركز الإعلامي والأخبار', pages:['media'], perms:['site.news'], dept:'التسويق والعلاقات العامة'},
+        {id:'tenders', name:'المناقصات', pages:['tenders'], perms:['site.tenders'], dept:'الشؤون المالية'},
+        {id:'hr', name:'الوظائف والبوابة الداخلية', pages:['careers','portal'], perms:['site.jobs','benefits.manage','benefits.claims','occasions.post','occasions.moderate'], dept:'الموارد البشرية'},
+        {id:'estate', name:'الأصول العقارية', pages:['reclient'], perms:['ops.bookings'], dept:'المرافق والصيانة'},
+        {id:'care', name:'خدمة العملاء والمفقودات', pages:['lost','assistant','account'], perms:['ops.bookings','ops.wallets'], dept:'التسويق والعلاقات العامة'}
+      ].map(function(x){ x.owner = ''; x.team = []; x.status = 'لم يُسلَّم'; x.note = ''; return x; }),
+      tickets: [],         // support requests from a section to the system admin: {id, sec, from, text, d, status, replies:[{from,text,d}]}
+      pdi: [               // pre-delivery inspection requests (engineering)
+        {id:'PDI-10412', d:today(-6), name:'شركة تجريبية للسيارات', phone:'55500000', org:'وكالة مركبات', kind:'حافلة متوسطة', make:'مثال — موديل 2026', count:3, vin:'', where:'ورشة KPTC', date:today(-3), note:'(طلب تجريبي للتوضيح)', status:'مكتمل', result:'مطابق بملاحظات', remarks:'ضبط ضغط الإطارات وتحديث برمجية شاشة السائق قبل التسليم.', inspector:'KPTC-ENG', checks:{}}
       ],
       claims: [],          // {id, bid, staff, d, status:'بانتظار الاعتماد'|'مقبول'|'مرفوض'|'مستخدم', code, msgs:[{from, text, d}]}
       /* colleagues' occasions (condolences and celebrations) */
@@ -137,7 +153,7 @@
   function money(n){ return (Math.round(n*1000)/1000).toFixed(3) + ' د.ك'; }
   function fdate(s){ if (!s) return '—'; var p = String(s).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : s; }
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function log(msg){ var d = load(); d.log.unshift({d:new Date().toISOString(), msg:msg}); d.log = d.log.slice(0, 80); }
+  function log(msg, sec){ var d = load(), u = d.staffSession && d.staff && d.staff[d.staffSession]; d.log.unshift({d:new Date().toISOString(), msg:msg, sec:sec || '', by:u ? u.name : ''}); d.log = d.log.slice(0, 200); }
 
   var K = window.KPTC = {
     db: load, save: save, seed: seed, id: id, money: money, date: fdate, esc: esc, latin: latin, today: today,
@@ -188,14 +204,14 @@
     isHidden: function(pid){ return K.pageState(pid) === 'off'; },
 
     /* ---- staff, roles, permissions ---- */
-    DEPTS: ['التسويق والعلاقات العامة','شؤون النقل','الورشة المركزية','الموارد البشرية','الشؤون المالية','تقنية المعلومات','المرافق والصيانة','المكتب الاستراتيجي وتطوير الأعمال'],
+    DEPTS: ['التسويق والعلاقات العامة','شؤون النقل','الإدارة الهندسية','الورشة المركزية','الموارد البشرية','الشؤون المالية','تقنية المعلومات','المرافق والصيانة','المكتب الاستراتيجي وتطوير الأعمال'],
     PERMS: [
       ['البوابة الداخلية', [['portal.leave','طلب الإجازات'],['portal.supplies','طلب المستلزمات'],['portal.invoice','صرف الفواتير'],['portal.payslip','كشف الراتب'],['portal.benefits','المزايا والعروض'],['portal.directory','دليل الموظفين'],['portal.news','أخبار الشركة'],['portal.policies','سياسات الموارد البشرية'],['portal.occasions','واجب الزملاء (المناسبات)']]],
       ['الاعتمادات', [['approve.leave','اعتماد الإجازات'],['approve.supplies','اعتماد المستلزمات'],['approve.invoice','اعتماد صرف الفواتير']]],
       ['المزايا والمناسبات', [['benefits.manage','إنشاء العروض وتخصيصها'],['benefits.claims','اعتماد طلبات الاستفادة'],['occasions.post','نشر مناسبة مباشرة'],['occasions.moderate','مراجعة المناسبات المقترحة']]],
       ['محتوى الموقع', [['site.pages','إظهار الصفحات وإخفاؤها وترتيبها'],['site.texts','تحرير نصوص الصفحات'],['site.elements','إخفاء عناصر الصفحات وحقولها'],['site.home','أقسام الصفحة الرئيسية والتنبيهات'],['site.news','الأخبار والمركز الإعلامي'],['site.tenders','المناقصات'],['site.jobs','الوظائف وطلبات التوظيف'],['site.sched','مواعيد الخطوط']]],
-      ['العمليات', [['ops.bookings','الحجوزات والطلبات'],['ops.wallets','محافظ العملاء'],['ops.winch','طلبات الونش والورشة']]],
-      ['إدارة النظام', [['admin.staff','حسابات الموظفين'],['admin.roles','الأدوار والصلاحيات'],['admin.log','سجل النشاط'],['admin.backup','النسخ والاستعادة']]]
+      ['العمليات', [['ops.bookings','الحجوزات والطلبات'],['ops.wallets','محافظ العملاء'],['ops.winch','طلبات الونش والورشة'],['ops.pdi','طلبات فحص PDI']]],
+      ['إدارة النظام', [['admin.staff','حسابات الموظفين'],['admin.roles','الأدوار والصلاحيات'],['admin.log','سجل النشاط'],['admin.backup','النسخ والاستعادة'],['admin.sections','تسليم الأقسام والإشراف عليها'],['admin.support','الرد على طلبات الدعم']]]
     ],
     staffUser: function(){ var d = load(); return d.staffSession && d.staff[d.staffSession] || null; },
     role: function(rid){ return load().roles.filter(function(r){ return r.id === rid; })[0] || {id:rid, name:rid, perms:[]}; },
@@ -204,8 +220,13 @@
       var all = []; K.PERMS.forEach(function(g){ g[1].forEach(function(p){ all.push(p[0]); }); });
       var base = K.role(u.role).perms, set = base.indexOf('*') > -1 ? all.slice() : base.slice();
       (u.grant || []).forEach(function(p){ if (set.indexOf(p) < 0) set.push(p); });
+      K.sectionsOf(u).forEach(function(sc){ sc.perms.forEach(function(p){ if (set.indexOf(p) < 0) set.push(p); }); });
       return set.filter(function(p){ return (u.deny || []).indexOf(p) < 0; });
     },
+    /* sections this person runs (received owner, or a member of the owner's team) */
+    sectionsOf: function(u){ u = u || K.staffUser(); if (!u) return []; return (load().sections || []).filter(function(sc){ return sc.status === 'مُستلم' && (sc.owner === u.id || (sc.team || []).indexOf(u.id) > -1); }); },
+    /* pages this person may edit: everything with the role permission, otherwise the pages of their sections */
+    pagesFor: function(u){ u = u || K.staffUser(); if (!u) return []; var base = K.role(u.role).perms; if (base.indexOf('*') > -1 || base.indexOf('site.texts') > -1 || (u.grant || []).indexOf('site.texts') > -1) return null; var out = []; K.sectionsOf(u).forEach(function(sc){ sc.pages.forEach(function(p){ if (out.indexOf(p) < 0) out.push(p); }); }); return out; },
     can: function(perm, u){ return K.permsOf(u).indexOf(perm) > -1; },
     staffLogin: function(sid, pass){
       var d = load(), now = Date.now(); sid = latin(sid || '').trim().toUpperCase(); var u = d.staff[sid], f = d.staffFails[sid] || (d.staffFails[sid] = {n:0, until:0});
@@ -1684,7 +1705,7 @@ setTimeout(function(){
     f.insertBefore(s, f.firstChild);
   }
 
-  var MAP = {"KPTC_Executive_Landing.html":"exec","KPTC_Home.html":"home","KPTC_Routes.html":"routes","KPTC_Subscriptions.html":"subs","KPTC_Umrah.html":"umrah","KPTC_VIP.html":"vip","KPTC_Winch.html":"winch","KPTC_LostFound.html":"lost","KPTC_Advertising.html":"ads","KPTC_AI_Assistant.html":"assistant","KPTC_Admin_Dashboard_v3.html":"dashboard","KPTC_Admin_AI.html":"adminai","KPTC_Portal.html":"portal","KPTC_RealEstate.html":"realestate","KPTC_RE_AI.html":"reai","KPTC_RE_Client.html":"reclient","KPTC_Client_Portal.html":"tenant","KPTC_Website_Prototype.html":"home","KPTC_Subscriptions_v2.html":"subs","KPTC_Account.html":"account","KPTC_Media.html":"media","KPTC_Tenders.html":"tenders","KPTC_Careers.html":"careers","KPTC_SiteAdmin.html":"siteadmin"};
+  var MAP = {"KPTC_Executive_Landing.html":"exec","KPTC_Home.html":"home","KPTC_Routes.html":"routes","KPTC_Subscriptions.html":"subs","KPTC_Umrah.html":"umrah","KPTC_VIP.html":"vip","KPTC_Winch.html":"winch","KPTC_LostFound.html":"lost","KPTC_Advertising.html":"ads","KPTC_AI_Assistant.html":"assistant","KPTC_Admin_Dashboard_v3.html":"dashboard","KPTC_Admin_AI.html":"adminai","KPTC_Portal.html":"portal","KPTC_RealEstate.html":"realestate","KPTC_RE_AI.html":"reai","KPTC_RE_Client.html":"reclient","KPTC_Client_Portal.html":"tenant","KPTC_Website_Prototype.html":"home","KPTC_Subscriptions_v2.html":"subs","KPTC_Account.html":"account","KPTC_Media.html":"media","KPTC_Tenders.html":"tenders","KPTC_Careers.html":"careers","KPTC_SiteAdmin.html":"siteadmin","KPTC_PDI.html":"pdi"};
   function standalone(){
     if (window.parent !== window){
       document.addEventListener('click', function(e){
@@ -1805,13 +1826,13 @@ setTimeout(function(){
     }
     var panel = document.querySelector('.k2-panel, .drawer .panel');
     if (panel && !panel.querySelector('.kp-xl')){
-      [['KPTC_Account.html','حسابي ومحفظتي'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ panel.appendChild(link(x[0], x[1], 'kp-xl')); });
+      [['KPTC_Account.html','حسابي ومحفظتي'],['KPTC_PDI.html','فحص PDI'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ panel.appendChild(link(x[0], x[1], 'kp-xl')); });
       panel.querySelectorAll('a[href="KPTC_Portal.html"]').forEach(function(x){ x.remove(); });
       var st2 = link('KPTC_Portal.html', 'بوابة الموظفين', 'kp-staff'); panel.appendChild(st2);
     }
     var cols = document.querySelectorAll('.k2-fg > div ul, .f-grid > div ul'), last = cols[cols.length-1];
     if (last && !last.querySelector('.kp-xl')){
-      [['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ var li = document.createElement('li'); li.appendChild(link(x[0], x[1], 'kp-xl')); last.appendChild(li); });
+      [['KPTC_PDI.html','فحص ما قبل التسليم PDI'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ var li = document.createElement('li'); li.appendChild(link(x[0], x[1], 'kp-xl')); last.appendChild(li); });
     }
     visibility();
   }
@@ -1961,7 +1982,7 @@ setTimeout(function(){
 
   /* ---- umrah + vip: seat map and the PDF e-ticket (assets/booking.js) ---- */
   function bookingKit(){
-    if (OWN !== 'umrah' && OWN !== 'vip') return;
+    if (OWN !== 'umrah' && OWN !== 'vip' && OWN !== 'pdi') return;
     var q = document.createElement('script'); q.src = '../assets/qrcode.min.js';
     var next = function(){ var n = document.createElement('script'); n.src = '../assets/booking.js'; document.head.appendChild(n); };
     q.onload = next; q.onerror = next; document.head.appendChild(q);
