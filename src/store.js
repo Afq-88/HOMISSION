@@ -42,8 +42,43 @@
         home: {},                                  // section key -> false when switched off
         ticker: [],                                // custom ticker lines (empty = the built-in ones)
         maintenance: {on:false, text:''},
-        assistant: true
+        assistant: true,
+        texts: {},                                 // page id (or '*') -> {original text: replacement}
+        hidden: {},                                // page id -> [css selectors hidden from visitors]
+        sched: {}                                  // line number (or '*') -> {work:{first,last,peak,off,bands}, rest:{...}}
       },
+      /* staff directory, roles and permissions (internal portal + studio) */
+      roles: [
+        {id:'emp', name:'موظف', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions']},
+        {id:'sup', name:'مدير إدارة', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','approve.supplies','approve.invoice','benefits.manage','occasions.post']},
+        {id:'eng', name:'مهندس', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','ops.winch','ops.bookings']},
+        {id:'hr', name:'الموارد البشرية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','benefits.manage','benefits.claims','occasions.post','occasions.moderate','admin.staff']},
+        {id:'content', name:'محرر الموقع', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','site.pages','site.texts','site.elements','site.home','site.news','site.tenders','site.jobs','site.sched']},
+        {id:'fin', name:'الشؤون المالية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.invoice','ops.wallets','ops.bookings']},
+        {id:'admin', name:'مدير النظام', perms:['*']}
+      ],
+      staff: {
+        'KPTC-4821': {id:'KPTC-4821', name:'أحمد القطان', title:'مدير التسويق والعلاقات العامة', dept:'التسويق والعلاقات العامة', role:'emp', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-900)},
+        'KPTC-2891': {id:'KPTC-2891', name:'أوراد الياسين', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
+        'KPTC-ENG':  {id:'KPTC-ENG', name:'مهندس الصيانة', title:'مهندس أول', dept:'الورشة المركزية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
+        'KPTC-3310': {id:'KPTC-3310', name:'موظف الموارد البشرية', title:'أخصائي شؤون الموظفين', dept:'الموارد البشرية', role:'hr', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-700)},
+        'KPTC-5120': {id:'KPTC-5120', name:'محرر الموقع', title:'أخصائي محتوى رقمي', dept:'التسويق والعلاقات العامة', role:'content', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-300)},
+        'KPTC-1001': {id:'KPTC-1001', name:'مدير النظام', title:'مدير تقنية المعلومات', dept:'تقنية المعلومات', role:'admin', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2600)}
+      },
+      staffSession: null, staffFails: {},
+      /* benefits and offers: internal or external, for everyone, departments, or named people */
+      benefits: [
+        {id:'B-103', title:'اشتراك مخفّض في نادٍ صحي', desc:'خصم على الاشتراك السنوي عند إبراز رمز العرض. (عرض تجريبي للتوضيح)', type:'external', partner:'نادٍ صحي شريك', value:'خصم 40%', cat:'صحة ولياقة', aud:{mode:'all'}, approve:false, from:today(-5), until:today(60), limit:0, on:true, by:'KPTC-3310'},
+        {id:'B-102', title:'بدل وجبة للمناوبين ليلاً', desc:'قسيمة وجبة لكل مناوبة ليلية خلال الشهر الحالي. (عرض تجريبي للتوضيح)', type:'internal', partner:'', value:'قسيمة وجبة', cat:'دعم المناوبين', aud:{mode:'depts', depts:['شؤون النقل','الورشة المركزية']}, approve:false, from:today(-2), until:today(28), limit:0, on:true, by:'KPTC-3310'},
+        {id:'B-101', title:'دورة التسويق الرقمي المتقدم', desc:'مقعد تدريبي مدفوع من الشركة، خمسة أيام. يحتاج اعتماد مديرك. (عرض تجريبي للتوضيح)', type:'internal', partner:'مركز التدريب', value:'مقعد مدفوع', cat:'تدريب وتطوير', aud:{mode:'staff', staff:['KPTC-4821']}, approve:true, from:today(-1), until:today(14), limit:1, on:true, by:'KPTC-2891'}
+      ],
+      claims: [],          // {id, bid, staff, d, status:'بانتظار الاعتماد'|'مقبول'|'مرفوض'|'مستخدم', code, msgs:[{from, text, d}]}
+      /* colleagues' occasions (condolences and celebrations) */
+      occasions: [
+        {id:'O-3', kind:'عزاء', name:'زميل من شؤون النقل', dept:'شؤون النقل', text:'انتقل إلى رحمة الله تعالى والد زميلنا. إنا لله وإنا إليه راجعون. (مثال تجريبي)', date:today(0), time:'بعد صلاة العصر', place:'ديوان العائلة — يُحدَّث العنوان', status:'منشور', by:'KPTC-3310', marks:{}, book:[]},
+        {id:'O-2', kind:'مولود', name:'زميلة من الشؤون المالية', dept:'الشؤون المالية', text:'رُزقت زميلتنا بمولود جديد، جعله الله من الصالحين. (مثال تجريبي)', date:today(-1), time:'', place:'', status:'منشور', by:'KPTC-3310', marks:{}, book:[]},
+        {id:'O-1', kind:'ترقية', name:'زميل من الورشة المركزية', dept:'الورشة المركزية', text:'ترقية مستحقة إلى رئيس قسم. بالتوفيق في المهمة الجديدة. (مثال تجريبي)', date:today(-3), time:'', place:'', status:'منشور', by:'KPTC-2891', marks:{}, book:[]}
+      ],
       users: { 'u-demo': {id:'u-demo', name:'أحمد العلي', phone:'55501234', email:'demo@kptc.com.kw', pass:'123456', civil:'', joined:today(-190)} },
       session: null,
       wallets: { 'u-demo': {balance:20, frozen:false, tx:[
@@ -144,6 +179,45 @@
       return st;
     },
     isHidden: function(pid){ return K.pageState(pid) === 'off'; },
+
+    /* ---- staff, roles, permissions ---- */
+    DEPTS: ['التسويق والعلاقات العامة','شؤون النقل','الورشة المركزية','الموارد البشرية','الشؤون المالية','تقنية المعلومات','المرافق والصيانة','المكتب الاستراتيجي وتطوير الأعمال'],
+    PERMS: [
+      ['البوابة الداخلية', [['portal.leave','طلب الإجازات'],['portal.supplies','طلب المستلزمات'],['portal.invoice','صرف الفواتير'],['portal.payslip','كشف الراتب'],['portal.benefits','المزايا والعروض'],['portal.directory','دليل الموظفين'],['portal.news','أخبار الشركة'],['portal.policies','سياسات الموارد البشرية'],['portal.occasions','واجب الزملاء (المناسبات)']]],
+      ['الاعتمادات', [['approve.leave','اعتماد الإجازات'],['approve.supplies','اعتماد المستلزمات'],['approve.invoice','اعتماد صرف الفواتير']]],
+      ['المزايا والمناسبات', [['benefits.manage','إنشاء العروض وتخصيصها'],['benefits.claims','اعتماد طلبات الاستفادة'],['occasions.post','نشر مناسبة مباشرة'],['occasions.moderate','مراجعة المناسبات المقترحة']]],
+      ['محتوى الموقع', [['site.pages','إظهار الصفحات وإخفاؤها وترتيبها'],['site.texts','تحرير نصوص الصفحات'],['site.elements','إخفاء عناصر الصفحات وحقولها'],['site.home','أقسام الصفحة الرئيسية والتنبيهات'],['site.news','الأخبار والمركز الإعلامي'],['site.tenders','المناقصات'],['site.jobs','الوظائف وطلبات التوظيف'],['site.sched','مواعيد الخطوط']]],
+      ['العمليات', [['ops.bookings','الحجوزات والطلبات'],['ops.wallets','محافظ العملاء'],['ops.winch','طلبات الونش والورشة']]],
+      ['إدارة النظام', [['admin.staff','حسابات الموظفين'],['admin.roles','الأدوار والصلاحيات'],['admin.log','سجل النشاط'],['admin.backup','النسخ والاستعادة']]]
+    ],
+    staffUser: function(){ var d = load(); return d.staffSession && d.staff[d.staffSession] || null; },
+    role: function(rid){ return load().roles.filter(function(r){ return r.id === rid; })[0] || {id:rid, name:rid, perms:[]}; },
+    permsOf: function(u){
+      u = u || K.staffUser(); if (!u) return [];
+      var all = []; K.PERMS.forEach(function(g){ g[1].forEach(function(p){ all.push(p[0]); }); });
+      var base = K.role(u.role).perms, set = base.indexOf('*') > -1 ? all.slice() : base.slice();
+      (u.grant || []).forEach(function(p){ if (set.indexOf(p) < 0) set.push(p); });
+      return set.filter(function(p){ return (u.deny || []).indexOf(p) < 0; });
+    },
+    can: function(perm, u){ return K.permsOf(u).indexOf(perm) > -1; },
+    staffLogin: function(sid, pass){
+      var d = load(), now = Date.now(); sid = latin(sid || '').trim().toUpperCase(); var u = d.staff[sid], f = d.staffFails[sid] || (d.staffFails[sid] = {n:0, until:0});
+      if (f.until > now) return {error:'الحساب مقفل مؤقتاً بعد محاولات خاطئة. حاول بعد ' + Math.ceil((f.until - now) / 1000) + ' ثانية.', locked:true};
+      if (!u || u.pass !== pass){ f.n++; if (f.n >= 5){ f.until = now + 30000; f.n = 0; log('قفل مؤقت لحساب ' + sid); } save(); return {error:'الرقم الوظيفي أو كلمة المرور غير صحيحة.' + (u && f.n >= 3 ? ' بقيت ' + (5 - f.n) + ' محاولة قبل القفل المؤقت.' : '')}; }
+      if (u.status !== 'active') return {error:'هذا الحساب موقوف. راجع الموارد البشرية.'};
+      f.n = 0; u.prev = u.last || null; u.last = new Date().toISOString(); d.staffSession = sid; log('دخول موظف: ' + u.name); save(); return {user:u};
+    },
+    staffLogout: function(){ load().staffSession = null; save(); },
+    /* ---- benefits ---- */
+    benefitFor: function(b, u){ if (!b.on || !u) return false; var t = today(); if ((b.from && t < b.from) || (b.until && t > b.until)) return false; var a = b.aud || {mode:'all'}; return a.mode === 'all' || (a.mode === 'depts' && (a.depts || []).indexOf(u.dept) > -1) || (a.mode === 'staff' && (a.staff || []).indexOf(u.id) > -1); },
+    benefitsFor: function(u){ u = u || K.staffUser(); return load().benefits.filter(function(b){ return K.benefitFor(b, u); }); },
+    claim: function(bid, note){
+      var d = load(), u = K.staffUser(), b = d.benefits.filter(function(x){ return x.id === bid; })[0]; if (!u || !b) return {error:'سجّل الدخول أولاً.'};
+      if (d.claims.some(function(c){ return c.bid === bid && c.staff === u.id && c.status !== 'مرفوض'; })) return {error:'سبق أن طلبت هذا العرض.'};
+      if (b.limit && d.claims.filter(function(c){ return c.bid === bid && c.status !== 'مرفوض'; }).length >= b.limit) return {error:'اكتمل العدد المتاح لهذا العرض.'};
+      var c = {id:id('CL'), bid:bid, staff:u.id, d:today(), status:b.approve ? 'بانتظار الاعتماد' : 'مقبول', code:b.approve ? '' : 'KP-' + Math.random().toString(36).slice(2, 8).toUpperCase(), msgs:note ? [{from:u.id, text:note, d:new Date().toISOString()}] : []};
+      d.claims.unshift(c); log('طلب استفادة من عرض: ' + b.title + ' — ' + u.name); save(); return {claim:c};
+    },
     log: log
   };
 })();

@@ -470,6 +470,60 @@
   /* ---- winch: tab bar + guided workshop booking (assets/winch.js) ---- */
   function winchKit(){ if (OWN !== 'winch') return; var n = document.createElement('script'); n.src = '../assets/winch.js'; document.head.appendChild(n); }
 
+  /* ---- studio edits: any text, placeholder or element on any page (existing or future) ---- */
+  function siteEdits(){
+    var K = window.KPTC; if (!K || !K.site) return;
+    var pid = OWN || 'home', EDIT = /kpedit/.test(location.hash), busy = false, st = document.createElement('style'); document.head.appendChild(st);
+    function maps(){ var S = K.site(), T = S.texts || {}, H = S.hidden || {}, m = {}, k; for (k in (T['*'] || {})) m[k] = T['*'][k]; for (k in (T[pid] || {})) m[k] = T[pid][k]; return {t:m, h:(H['*'] || []).concat(H[pid] || [])}; }
+    function skip(n){ var p = n.parentNode; return !p || /^(SCRIPT|STYLE|NOSCRIPT|TEXTAREA|OPTION)$/.test(p.nodeName) || (p.closest && p.closest('.kp-ed,[contenteditable],.leaflet-container')); }
+    function apply(root){
+      var M = maps(); busy = true;
+      try {
+        st.textContent = M.h.length ? M.h.join(',') + (EDIT ? '{opacity:.35!important;outline:2px dashed #C2352E!important;outline-offset:-2px}' : '{display:none!important}') : '';
+        var w = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT, null), n, list = [];
+        while ((n = w.nextNode())) list.push(n);
+        list.forEach(function(n){ if (skip(n)) return; if (n.__kpo != null && n.nodeValue !== n.__kpr) n.__kpo = null; var raw = n.__kpo != null ? n.__kpo : n.nodeValue, key = raw.replace(/\s+/g, ' ').trim(); if (!key) return;
+          if (M.t[key] != null){ var v = raw.replace(raw.trim(), M.t[key]); if (n.nodeValue !== v){ if (n.__kpo == null) n.__kpo = raw; n.nodeValue = v; n.__kpr = v; } }
+          else if (n.__kpo != null){ n.nodeValue = n.__kpo; n.__kpo = null; } });
+        (root && root.querySelectorAll ? root : document).querySelectorAll('[placeholder]').forEach(function(e){ var o = e.getAttribute('data-kpo') || e.getAttribute('placeholder'), v = M.t['ph:' + o]; if (v != null){ e.setAttribute('data-kpo', o); if (e.placeholder !== v) e.placeholder = v; } else if (e.hasAttribute('data-kpo')){ e.placeholder = o; e.removeAttribute('data-kpo'); } });
+      } catch(x){}
+      busy = false;
+    }
+    apply(); var q = 0;
+    new MutationObserver(function(ms){ if (busy || q) return; q = requestAnimationFrame(function(){ q = 0; apply(); }); }).observe(document.body, {childList:true, subtree:true, characterData:true});
+    K.onChange(function(){ apply(); });
+    if (!EDIT) return;
+    /* edit mode (opened from the studio): click anything to rewrite or hide it */
+    var css = document.createElement('style');
+    css.textContent = '.kp-edh{outline:2px solid #FFC93C!important;outline-offset:2px;cursor:pointer!important}.kp-ed{position:fixed;z-index:99999;width:min(340px,92vw);background:#fff;border:2px solid #14133A;border-radius:8px;box-shadow:6px 6px 0 rgba(20,19,58,.25);padding:12px;display:grid;gap:8px;font:500 13px var(--f-body);direction:rtl;text-align:right}.kp-ed b{font:700 14px var(--f-display);color:#14133A}.kp-ed textarea{width:100%;min-height:64px;border:1.5px solid #cfcde6;border-radius:5px;padding:8px;font:500 14px var(--f-body);resize:vertical;box-sizing:border-box}.kp-ed .r{display:flex;flex-wrap:wrap;gap:6px}.kp-ed button{border:2px solid #14133A;background:#fff;border-radius:4px;padding:5px 10px;font:700 12px var(--f-display);cursor:pointer;color:#14133A}.kp-ed button.y{background:#FFC93C}.kp-ed button.d{border-color:#C2352E;color:#C2352E}.kp-ed label{display:flex;gap:6px;align-items:center;font-size:12px;color:#55537a}.kp-ed small{color:#77759A}.kp-edbar{position:fixed;z-index:99998;bottom:10px;left:50%;transform:translateX(-50%);background:#14133A;color:#fff;border-radius:20px;padding:6px 16px;font:600 12.5px var(--f-body);white-space:nowrap;pointer-events:none}';
+    document.head.appendChild(css);
+    var bar = document.createElement('div'); bar.className = 'kp-edbar'; bar.textContent = 'وضع التحرير: اضغط أي نص أو عنصر لتعديله أو إخفائه'; document.body.appendChild(bar);
+    var box = null, hov = null;
+    function sel(e){ var parts = []; while (e && e !== document.body && e.nodeType === 1){ if (e.id && !/^\d/.test(e.id)){ parts.unshift('#' + (window.CSS && CSS.escape ? CSS.escape(e.id) : e.id)); break; } var i = 1, sib = e; while ((sib = sib.previousElementSibling)) if (sib.nodeName === e.nodeName) i++; parts.unshift(e.nodeName.toLowerCase() + ':nth-of-type(' + i + ')'); e = e.parentElement; } if (parts[0] && parts[0].charAt(0) !== '#') parts.unshift('body'); return parts.join('>'); }
+    function tnode(e){ var w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT, null), n; while ((n = w.nextNode())) if (!skip(n) && n.nodeValue.trim()) return n; return null; }
+    function close(){ if (box){ box.remove(); box = null; } }
+    document.addEventListener('mouseover', function(e){ if (e.target.closest('.kp-ed')) return; if (hov) hov.classList.remove('kp-edh'); hov = e.target; hov.classList.add('kp-edh'); }, true);
+    ['click','mousedown','mouseup','submit','pointerdown'].forEach(function(ev){ document.addEventListener(ev, function(e){
+      if (e.target.closest && e.target.closest('.kp-ed')) return; e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (ev !== 'click') return;
+      var t = e.target, S = K.site(), isPh = t.hasAttribute && t.hasAttribute('placeholder'), n = isPh ? null : tnode(t), orig = isPh ? (t.getAttribute('data-kpo') || t.placeholder) : n ? (n.__kpo != null ? n.__kpo : n.nodeValue).replace(/\s+/g, ' ').trim() : '', key = (isPh ? 'ph:' : '') + orig, curv = isPh ? t.placeholder : n ? n.nodeValue.trim() : '', path = sel(t), hid = ((S.hidden || {})[pid] || []).indexOf(path) > -1;
+      close(); box = document.createElement('div'); box.className = 'kp-ed';
+      box.innerHTML = '<b>' + (isPh ? 'نص الحقل الإرشادي' : orig ? 'تعديل النص' : 'عنصر بلا نص') + '</b>' + (orig ? '<textarea></textarea><small>الأصل: ' + K.esc(orig.slice(0, 90)) + '</small><label><input type="checkbox" data-all> طبّق على كل الصفحات (للنصوص المشتركة كالرأس والتذييل)</label>' : '') +
+        '<div class="r">' + (orig ? '<button class="y" data-a="save">حفظ النص</button><button data-a="orig">استرجاع الأصل</button>' : '') + '<button class="d" data-a="hide">' + (hid ? 'إظهار العنصر' : 'إخفاء العنصر') + '</button><button data-a="up">تحديد العنصر الأب</button><button data-a="x">إغلاق</button></div>';
+      document.body.appendChild(box); var ta = box.querySelector('textarea'); if (ta){ ta.value = curv; ta.focus(); }
+      var r = t.getBoundingClientRect(); box.style.top = Math.max(8, Math.min(window.innerHeight - box.offsetHeight - 8, r.bottom + 8)) + 'px'; box.style.left = Math.max(8, Math.min(window.innerWidth - box.offsetWidth - 8, r.left)) + 'px';
+      box.addEventListener('click', function(ev2){ var b = ev2.target.closest('[data-a]'); if (!b) return; var a = b.getAttribute('data-a'), S2 = K.site(); S2.texts = S2.texts || {}; S2.hidden = S2.hidden || {};
+        if (a === 'x') return close();
+        if (a === 'up'){ close(); if (t.parentElement && t.parentElement !== document.body) t.parentElement.click(); return; }
+        if (a === 'save' || a === 'orig'){ var scope = box.querySelector('[data-all]').checked ? '*' : pid; ['*', pid].forEach(function(sc){ if (S2.texts[sc]) delete S2.texts[sc][key]; });
+          if (a === 'save' && ta.value.trim() && ta.value.trim() !== orig){ (S2.texts[scope] = S2.texts[scope] || {})[key] = ta.value.trim(); K.log('تعديل نص في ' + pid); } }
+        if (a === 'hide'){ var L = S2.hidden[pid] = S2.hidden[pid] || [], i = L.indexOf(path); if (i > -1) L.splice(i, 1); else { L.push(path); K.log('إخفاء عنصر في ' + pid); } }
+        K.save(); close(); });
+    }, true); });
+  }
+
+  /* ---- staff portal: real sign-in, permissions, offers, colleagues' occasions (assets/portal.js) ---- */
+  function portalKit(){ if (OWN !== 'portal') return; var n = document.createElement('script'); n.src = '../assets/portal.js'; document.head.appendChild(n); }
+
   /* ---- ads: a 3D K-Bus the visitor can spin, with the campaign on the faces they picked ---- */
   function bus3d(fallback){
     var host = document.getElementById('lpBus'); if (!host) return;
@@ -556,7 +610,7 @@
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); siteEdits();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });

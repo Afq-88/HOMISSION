@@ -49,8 +49,43 @@
         home: {},                                  // section key -> false when switched off
         ticker: [],                                // custom ticker lines (empty = the built-in ones)
         maintenance: {on:false, text:''},
-        assistant: true
+        assistant: true,
+        texts: {},                                 // page id (or '*') -> {original text: replacement}
+        hidden: {},                                // page id -> [css selectors hidden from visitors]
+        sched: {}                                  // line number (or '*') -> {work:{first,last,peak,off,bands}, rest:{...}}
       },
+      /* staff directory, roles and permissions (internal portal + studio) */
+      roles: [
+        {id:'emp', name:'موظف', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions']},
+        {id:'sup', name:'مدير إدارة', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','approve.supplies','approve.invoice','benefits.manage','occasions.post']},
+        {id:'eng', name:'مهندس', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','ops.winch','ops.bookings']},
+        {id:'hr', name:'الموارد البشرية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','benefits.manage','benefits.claims','occasions.post','occasions.moderate','admin.staff']},
+        {id:'content', name:'محرر الموقع', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','site.pages','site.texts','site.elements','site.home','site.news','site.tenders','site.jobs','site.sched']},
+        {id:'fin', name:'الشؤون المالية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.invoice','ops.wallets','ops.bookings']},
+        {id:'admin', name:'مدير النظام', perms:['*']}
+      ],
+      staff: {
+        'KPTC-4821': {id:'KPTC-4821', name:'أحمد القطان', title:'مدير التسويق والعلاقات العامة', dept:'التسويق والعلاقات العامة', role:'emp', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-900)},
+        'KPTC-2891': {id:'KPTC-2891', name:'أوراد الياسين', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
+        'KPTC-ENG':  {id:'KPTC-ENG', name:'مهندس الصيانة', title:'مهندس أول', dept:'الورشة المركزية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
+        'KPTC-3310': {id:'KPTC-3310', name:'موظف الموارد البشرية', title:'أخصائي شؤون الموظفين', dept:'الموارد البشرية', role:'hr', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-700)},
+        'KPTC-5120': {id:'KPTC-5120', name:'محرر الموقع', title:'أخصائي محتوى رقمي', dept:'التسويق والعلاقات العامة', role:'content', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-300)},
+        'KPTC-1001': {id:'KPTC-1001', name:'مدير النظام', title:'مدير تقنية المعلومات', dept:'تقنية المعلومات', role:'admin', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2600)}
+      },
+      staffSession: null, staffFails: {},
+      /* benefits and offers: internal or external, for everyone, departments, or named people */
+      benefits: [
+        {id:'B-103', title:'اشتراك مخفّض في نادٍ صحي', desc:'خصم على الاشتراك السنوي عند إبراز رمز العرض. (عرض تجريبي للتوضيح)', type:'external', partner:'نادٍ صحي شريك', value:'خصم 40%', cat:'صحة ولياقة', aud:{mode:'all'}, approve:false, from:today(-5), until:today(60), limit:0, on:true, by:'KPTC-3310'},
+        {id:'B-102', title:'بدل وجبة للمناوبين ليلاً', desc:'قسيمة وجبة لكل مناوبة ليلية خلال الشهر الحالي. (عرض تجريبي للتوضيح)', type:'internal', partner:'', value:'قسيمة وجبة', cat:'دعم المناوبين', aud:{mode:'depts', depts:['شؤون النقل','الورشة المركزية']}, approve:false, from:today(-2), until:today(28), limit:0, on:true, by:'KPTC-3310'},
+        {id:'B-101', title:'دورة التسويق الرقمي المتقدم', desc:'مقعد تدريبي مدفوع من الشركة، خمسة أيام. يحتاج اعتماد مديرك. (عرض تجريبي للتوضيح)', type:'internal', partner:'مركز التدريب', value:'مقعد مدفوع', cat:'تدريب وتطوير', aud:{mode:'staff', staff:['KPTC-4821']}, approve:true, from:today(-1), until:today(14), limit:1, on:true, by:'KPTC-2891'}
+      ],
+      claims: [],          // {id, bid, staff, d, status:'بانتظار الاعتماد'|'مقبول'|'مرفوض'|'مستخدم', code, msgs:[{from, text, d}]}
+      /* colleagues' occasions (condolences and celebrations) */
+      occasions: [
+        {id:'O-3', kind:'عزاء', name:'زميل من شؤون النقل', dept:'شؤون النقل', text:'انتقل إلى رحمة الله تعالى والد زميلنا. إنا لله وإنا إليه راجعون. (مثال تجريبي)', date:today(0), time:'بعد صلاة العصر', place:'ديوان العائلة — يُحدَّث العنوان', status:'منشور', by:'KPTC-3310', marks:{}, book:[]},
+        {id:'O-2', kind:'مولود', name:'زميلة من الشؤون المالية', dept:'الشؤون المالية', text:'رُزقت زميلتنا بمولود جديد، جعله الله من الصالحين. (مثال تجريبي)', date:today(-1), time:'', place:'', status:'منشور', by:'KPTC-3310', marks:{}, book:[]},
+        {id:'O-1', kind:'ترقية', name:'زميل من الورشة المركزية', dept:'الورشة المركزية', text:'ترقية مستحقة إلى رئيس قسم. بالتوفيق في المهمة الجديدة. (مثال تجريبي)', date:today(-3), time:'', place:'', status:'منشور', by:'KPTC-2891', marks:{}, book:[]}
+      ],
       users: { 'u-demo': {id:'u-demo', name:'أحمد العلي', phone:'55501234', email:'demo@kptc.com.kw', pass:'123456', civil:'', joined:today(-190)} },
       session: null,
       wallets: { 'u-demo': {balance:20, frozen:false, tx:[
@@ -151,6 +186,45 @@
       return st;
     },
     isHidden: function(pid){ return K.pageState(pid) === 'off'; },
+
+    /* ---- staff, roles, permissions ---- */
+    DEPTS: ['التسويق والعلاقات العامة','شؤون النقل','الورشة المركزية','الموارد البشرية','الشؤون المالية','تقنية المعلومات','المرافق والصيانة','المكتب الاستراتيجي وتطوير الأعمال'],
+    PERMS: [
+      ['البوابة الداخلية', [['portal.leave','طلب الإجازات'],['portal.supplies','طلب المستلزمات'],['portal.invoice','صرف الفواتير'],['portal.payslip','كشف الراتب'],['portal.benefits','المزايا والعروض'],['portal.directory','دليل الموظفين'],['portal.news','أخبار الشركة'],['portal.policies','سياسات الموارد البشرية'],['portal.occasions','واجب الزملاء (المناسبات)']]],
+      ['الاعتمادات', [['approve.leave','اعتماد الإجازات'],['approve.supplies','اعتماد المستلزمات'],['approve.invoice','اعتماد صرف الفواتير']]],
+      ['المزايا والمناسبات', [['benefits.manage','إنشاء العروض وتخصيصها'],['benefits.claims','اعتماد طلبات الاستفادة'],['occasions.post','نشر مناسبة مباشرة'],['occasions.moderate','مراجعة المناسبات المقترحة']]],
+      ['محتوى الموقع', [['site.pages','إظهار الصفحات وإخفاؤها وترتيبها'],['site.texts','تحرير نصوص الصفحات'],['site.elements','إخفاء عناصر الصفحات وحقولها'],['site.home','أقسام الصفحة الرئيسية والتنبيهات'],['site.news','الأخبار والمركز الإعلامي'],['site.tenders','المناقصات'],['site.jobs','الوظائف وطلبات التوظيف'],['site.sched','مواعيد الخطوط']]],
+      ['العمليات', [['ops.bookings','الحجوزات والطلبات'],['ops.wallets','محافظ العملاء'],['ops.winch','طلبات الونش والورشة']]],
+      ['إدارة النظام', [['admin.staff','حسابات الموظفين'],['admin.roles','الأدوار والصلاحيات'],['admin.log','سجل النشاط'],['admin.backup','النسخ والاستعادة']]]
+    ],
+    staffUser: function(){ var d = load(); return d.staffSession && d.staff[d.staffSession] || null; },
+    role: function(rid){ return load().roles.filter(function(r){ return r.id === rid; })[0] || {id:rid, name:rid, perms:[]}; },
+    permsOf: function(u){
+      u = u || K.staffUser(); if (!u) return [];
+      var all = []; K.PERMS.forEach(function(g){ g[1].forEach(function(p){ all.push(p[0]); }); });
+      var base = K.role(u.role).perms, set = base.indexOf('*') > -1 ? all.slice() : base.slice();
+      (u.grant || []).forEach(function(p){ if (set.indexOf(p) < 0) set.push(p); });
+      return set.filter(function(p){ return (u.deny || []).indexOf(p) < 0; });
+    },
+    can: function(perm, u){ return K.permsOf(u).indexOf(perm) > -1; },
+    staffLogin: function(sid, pass){
+      var d = load(), now = Date.now(); sid = latin(sid || '').trim().toUpperCase(); var u = d.staff[sid], f = d.staffFails[sid] || (d.staffFails[sid] = {n:0, until:0});
+      if (f.until > now) return {error:'الحساب مقفل مؤقتاً بعد محاولات خاطئة. حاول بعد ' + Math.ceil((f.until - now) / 1000) + ' ثانية.', locked:true};
+      if (!u || u.pass !== pass){ f.n++; if (f.n >= 5){ f.until = now + 30000; f.n = 0; log('قفل مؤقت لحساب ' + sid); } save(); return {error:'الرقم الوظيفي أو كلمة المرور غير صحيحة.' + (u && f.n >= 3 ? ' بقيت ' + (5 - f.n) + ' محاولة قبل القفل المؤقت.' : '')}; }
+      if (u.status !== 'active') return {error:'هذا الحساب موقوف. راجع الموارد البشرية.'};
+      f.n = 0; u.prev = u.last || null; u.last = new Date().toISOString(); d.staffSession = sid; log('دخول موظف: ' + u.name); save(); return {user:u};
+    },
+    staffLogout: function(){ load().staffSession = null; save(); },
+    /* ---- benefits ---- */
+    benefitFor: function(b, u){ if (!b.on || !u) return false; var t = today(); if ((b.from && t < b.from) || (b.until && t > b.until)) return false; var a = b.aud || {mode:'all'}; return a.mode === 'all' || (a.mode === 'depts' && (a.depts || []).indexOf(u.dept) > -1) || (a.mode === 'staff' && (a.staff || []).indexOf(u.id) > -1); },
+    benefitsFor: function(u){ u = u || K.staffUser(); return load().benefits.filter(function(b){ return K.benefitFor(b, u); }); },
+    claim: function(bid, note){
+      var d = load(), u = K.staffUser(), b = d.benefits.filter(function(x){ return x.id === bid; })[0]; if (!u || !b) return {error:'سجّل الدخول أولاً.'};
+      if (d.claims.some(function(c){ return c.bid === bid && c.staff === u.id && c.status !== 'مرفوض'; })) return {error:'سبق أن طلبت هذا العرض.'};
+      if (b.limit && d.claims.filter(function(c){ return c.bid === bid && c.status !== 'مرفوض'; }).length >= b.limit) return {error:'اكتمل العدد المتاح لهذا العرض.'};
+      var c = {id:id('CL'), bid:bid, staff:u.id, d:today(), status:b.approve ? 'بانتظار الاعتماد' : 'مقبول', code:b.approve ? '' : 'KP-' + Math.random().toString(36).slice(2, 8).toUpperCase(), msgs:note ? [{from:u.id, text:note, d:new Date().toISOString()}] : []};
+      d.claims.unshift(c); log('طلب استفادة من عرض: ' + b.title + ' — ' + u.name); save(); return {claim:c};
+    },
     log: log
   };
 })();
@@ -1605,6 +1679,60 @@ setTimeout(function(){
   /* ---- winch: tab bar + guided workshop booking (assets/winch.js) ---- */
   function winchKit(){ if (OWN !== 'winch') return; var n = document.createElement('script'); n.src = '../assets/winch.js'; document.head.appendChild(n); }
 
+  /* ---- studio edits: any text, placeholder or element on any page (existing or future) ---- */
+  function siteEdits(){
+    var K = window.KPTC; if (!K || !K.site) return;
+    var pid = OWN || 'home', EDIT = /kpedit/.test(location.hash), busy = false, st = document.createElement('style'); document.head.appendChild(st);
+    function maps(){ var S = K.site(), T = S.texts || {}, H = S.hidden || {}, m = {}, k; for (k in (T['*'] || {})) m[k] = T['*'][k]; for (k in (T[pid] || {})) m[k] = T[pid][k]; return {t:m, h:(H['*'] || []).concat(H[pid] || [])}; }
+    function skip(n){ var p = n.parentNode; return !p || /^(SCRIPT|STYLE|NOSCRIPT|TEXTAREA|OPTION)$/.test(p.nodeName) || (p.closest && p.closest('.kp-ed,[contenteditable],.leaflet-container')); }
+    function apply(root){
+      var M = maps(); busy = true;
+      try {
+        st.textContent = M.h.length ? M.h.join(',') + (EDIT ? '{opacity:.35!important;outline:2px dashed #C2352E!important;outline-offset:-2px}' : '{display:none!important}') : '';
+        var w = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT, null), n, list = [];
+        while ((n = w.nextNode())) list.push(n);
+        list.forEach(function(n){ if (skip(n)) return; if (n.__kpo != null && n.nodeValue !== n.__kpr) n.__kpo = null; var raw = n.__kpo != null ? n.__kpo : n.nodeValue, key = raw.replace(/\s+/g, ' ').trim(); if (!key) return;
+          if (M.t[key] != null){ var v = raw.replace(raw.trim(), M.t[key]); if (n.nodeValue !== v){ if (n.__kpo == null) n.__kpo = raw; n.nodeValue = v; n.__kpr = v; } }
+          else if (n.__kpo != null){ n.nodeValue = n.__kpo; n.__kpo = null; } });
+        (root && root.querySelectorAll ? root : document).querySelectorAll('[placeholder]').forEach(function(e){ var o = e.getAttribute('data-kpo') || e.getAttribute('placeholder'), v = M.t['ph:' + o]; if (v != null){ e.setAttribute('data-kpo', o); if (e.placeholder !== v) e.placeholder = v; } else if (e.hasAttribute('data-kpo')){ e.placeholder = o; e.removeAttribute('data-kpo'); } });
+      } catch(x){}
+      busy = false;
+    }
+    apply(); var q = 0;
+    new MutationObserver(function(ms){ if (busy || q) return; q = requestAnimationFrame(function(){ q = 0; apply(); }); }).observe(document.body, {childList:true, subtree:true, characterData:true});
+    K.onChange(function(){ apply(); });
+    if (!EDIT) return;
+    /* edit mode (opened from the studio): click anything to rewrite or hide it */
+    var css = document.createElement('style');
+    css.textContent = '.kp-edh{outline:2px solid #FFC93C!important;outline-offset:2px;cursor:pointer!important}.kp-ed{position:fixed;z-index:99999;width:min(340px,92vw);background:#fff;border:2px solid #14133A;border-radius:8px;box-shadow:6px 6px 0 rgba(20,19,58,.25);padding:12px;display:grid;gap:8px;font:500 13px var(--f-body);direction:rtl;text-align:right}.kp-ed b{font:700 14px var(--f-display);color:#14133A}.kp-ed textarea{width:100%;min-height:64px;border:1.5px solid #cfcde6;border-radius:5px;padding:8px;font:500 14px var(--f-body);resize:vertical;box-sizing:border-box}.kp-ed .r{display:flex;flex-wrap:wrap;gap:6px}.kp-ed button{border:2px solid #14133A;background:#fff;border-radius:4px;padding:5px 10px;font:700 12px var(--f-display);cursor:pointer;color:#14133A}.kp-ed button.y{background:#FFC93C}.kp-ed button.d{border-color:#C2352E;color:#C2352E}.kp-ed label{display:flex;gap:6px;align-items:center;font-size:12px;color:#55537a}.kp-ed small{color:#77759A}.kp-edbar{position:fixed;z-index:99998;bottom:10px;left:50%;transform:translateX(-50%);background:#14133A;color:#fff;border-radius:20px;padding:6px 16px;font:600 12.5px var(--f-body);white-space:nowrap;pointer-events:none}';
+    document.head.appendChild(css);
+    var bar = document.createElement('div'); bar.className = 'kp-edbar'; bar.textContent = 'وضع التحرير: اضغط أي نص أو عنصر لتعديله أو إخفائه'; document.body.appendChild(bar);
+    var box = null, hov = null;
+    function sel(e){ var parts = []; while (e && e !== document.body && e.nodeType === 1){ if (e.id && !/^\d/.test(e.id)){ parts.unshift('#' + (window.CSS && CSS.escape ? CSS.escape(e.id) : e.id)); break; } var i = 1, sib = e; while ((sib = sib.previousElementSibling)) if (sib.nodeName === e.nodeName) i++; parts.unshift(e.nodeName.toLowerCase() + ':nth-of-type(' + i + ')'); e = e.parentElement; } if (parts[0] && parts[0].charAt(0) !== '#') parts.unshift('body'); return parts.join('>'); }
+    function tnode(e){ var w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT, null), n; while ((n = w.nextNode())) if (!skip(n) && n.nodeValue.trim()) return n; return null; }
+    function close(){ if (box){ box.remove(); box = null; } }
+    document.addEventListener('mouseover', function(e){ if (e.target.closest('.kp-ed')) return; if (hov) hov.classList.remove('kp-edh'); hov = e.target; hov.classList.add('kp-edh'); }, true);
+    ['click','mousedown','mouseup','submit','pointerdown'].forEach(function(ev){ document.addEventListener(ev, function(e){
+      if (e.target.closest && e.target.closest('.kp-ed')) return; e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (ev !== 'click') return;
+      var t = e.target, S = K.site(), isPh = t.hasAttribute && t.hasAttribute('placeholder'), n = isPh ? null : tnode(t), orig = isPh ? (t.getAttribute('data-kpo') || t.placeholder) : n ? (n.__kpo != null ? n.__kpo : n.nodeValue).replace(/\s+/g, ' ').trim() : '', key = (isPh ? 'ph:' : '') + orig, curv = isPh ? t.placeholder : n ? n.nodeValue.trim() : '', path = sel(t), hid = ((S.hidden || {})[pid] || []).indexOf(path) > -1;
+      close(); box = document.createElement('div'); box.className = 'kp-ed';
+      box.innerHTML = '<b>' + (isPh ? 'نص الحقل الإرشادي' : orig ? 'تعديل النص' : 'عنصر بلا نص') + '</b>' + (orig ? '<textarea></textarea><small>الأصل: ' + K.esc(orig.slice(0, 90)) + '</small><label><input type="checkbox" data-all> طبّق على كل الصفحات (للنصوص المشتركة كالرأس والتذييل)</label>' : '') +
+        '<div class="r">' + (orig ? '<button class="y" data-a="save">حفظ النص</button><button data-a="orig">استرجاع الأصل</button>' : '') + '<button class="d" data-a="hide">' + (hid ? 'إظهار العنصر' : 'إخفاء العنصر') + '</button><button data-a="up">تحديد العنصر الأب</button><button data-a="x">إغلاق</button></div>';
+      document.body.appendChild(box); var ta = box.querySelector('textarea'); if (ta){ ta.value = curv; ta.focus(); }
+      var r = t.getBoundingClientRect(); box.style.top = Math.max(8, Math.min(window.innerHeight - box.offsetHeight - 8, r.bottom + 8)) + 'px'; box.style.left = Math.max(8, Math.min(window.innerWidth - box.offsetWidth - 8, r.left)) + 'px';
+      box.addEventListener('click', function(ev2){ var b = ev2.target.closest('[data-a]'); if (!b) return; var a = b.getAttribute('data-a'), S2 = K.site(); S2.texts = S2.texts || {}; S2.hidden = S2.hidden || {};
+        if (a === 'x') return close();
+        if (a === 'up'){ close(); if (t.parentElement && t.parentElement !== document.body) t.parentElement.click(); return; }
+        if (a === 'save' || a === 'orig'){ var scope = box.querySelector('[data-all]').checked ? '*' : pid; ['*', pid].forEach(function(sc){ if (S2.texts[sc]) delete S2.texts[sc][key]; });
+          if (a === 'save' && ta.value.trim() && ta.value.trim() !== orig){ (S2.texts[scope] = S2.texts[scope] || {})[key] = ta.value.trim(); K.log('تعديل نص في ' + pid); } }
+        if (a === 'hide'){ var L = S2.hidden[pid] = S2.hidden[pid] || [], i = L.indexOf(path); if (i > -1) L.splice(i, 1); else { L.push(path); K.log('إخفاء عنصر في ' + pid); } }
+        K.save(); close(); });
+    }, true); });
+  }
+
+  /* ---- staff portal: real sign-in, permissions, offers, colleagues' occasions (assets/portal.js) ---- */
+  function portalKit(){ if (OWN !== 'portal') return; var n = document.createElement('script'); n.src = '../assets/portal.js'; document.head.appendChild(n); }
+
   /* ---- ads: a 3D K-Bus the visitor can spin, with the campaign on the faces they picked ---- */
   function bus3d(fallback){
     var host = document.getElementById('lpBus'); if (!host) return;
@@ -1691,7 +1819,7 @@ setTimeout(function(){
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); siteEdits();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });

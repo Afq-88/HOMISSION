@@ -92,9 +92,14 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
     if (pvKeep && pvKeep.getAttribute('data-src') === want){ f.replaceWith(pvKeep); f = pvKeep; } else { f.src = want; pvKeep = f; }   // keep the frame alive across re-renders
     var w = dev === 'mob' ? 390 : 1280, sc = Math.min(1, b.clientWidth / w); f.style.left = Math.max(0, (b.clientWidth - w * sc) / 2) + 'px'; f.style.transform = 'scale(' + sc + ')'; f.style.height = (b.clientHeight / sc) + 'px';
   }
+  var GROUPS = [['التحكم بالموقع',['pages','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['العملاء',['wallets','bookings']],['الموظفون',['staff','roles','benefits','occasions']],['النظام',['log']]];
+  var NEED = {pages:['site.pages'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
+  function allow(k){ var u = K.staffUser(); return !!u && !!TABS[k] && !!V[k] && NEED[k].some(function(p){ return K.can(p, u); }); }
   function nav(){
-    var d = K.db(), c = {tenders:d.bids.filter(function(b){ return b.status === 'جديد'; }).length, jobs:d.applications.filter(function(a){ return a.status === 'قيد المراجعة'; }).length, bookings:d.bookings.filter(function(b){ return b.status === 'قيد المعالجة'; }).length};
-    $('nav').innerHTML = '<h4>التحكم بالموقع</h4>' + ['pages','home','general'].map(btn).join('') + '<h4>المحتوى</h4>' + ['news','tenders','jobs'].map(btn).join('') + '<h4>العملاء</h4>' + ['wallets','bookings'].map(btn).join('') + '<h4>النظام</h4>' + btn('log');
+    var d = K.db(), c = {tenders:d.bids.filter(function(b){ return b.status === 'جديد'; }).length, jobs:d.applications.filter(function(a){ return a.status === 'قيد المراجعة'; }).length, bookings:d.bookings.filter(function(b){ return b.status === 'قيد المعالجة'; }).length}, u = K.staffUser();
+    c.benefits = d.claims.filter(function(x){ return x.status === 'بانتظار الاعتماد'; }).length; c.occasions = d.occasions.filter(function(x){ return x.status === 'بانتظار المراجعة'; }).length;
+    $('nav').innerHTML = (u ? '<div class="who"><i>' + E(u.name.charAt(0)) + '</i><div><b>' + E(u.name) + '</b><small>' + E(K.role(u.role).name) + ' · ' + E(u.id) + '</small></div><button type="button" data-act="out" title="خروج">⎋</button></div>' : '') +
+      GROUPS.map(function(g){ var l = g[1].filter(allow); return l.length ? '<h4>' + g[0] + '</h4>' + l.map(btn).join('') : ''; }).join('');
     function btn(k){ return '<button type="button" class="' + (k === tab ? 'on' : '') + '" data-tab="' + k + '">' + TABS[k][0] + (c[k] ? '<em class="num">' + c[k] + '</em>' : '') + '</button>'; }
   }
   function tag(s){ var c = /منشور|مفتوح|فعّال|مؤكد|مدفوع|مكتمل|مقبول|مقابلة|نشطة/.test(s) ? 'ok' : /مغلق|ملغ|مرفوض|موقوف|مخفي/.test(s) ? 'bad' : 'warn'; return '<span class="tag ' + c + '">' + E(s) + '</span>'; }
@@ -160,7 +165,11 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
       return '<div class="tw">' + (d.log.length ? d.log.map(function(l){ return '<div class="row" style="grid-template-columns:1fr auto"><div>' + E(l.msg) + '</div><small class="num">' + E(l.d.replace('T',' ').slice(0,16)) + '</small></div>'; }).join('') : '<div class="empty">لا يوجد نشاط مسجل بعد.</div>') + '</div>';
     }
   };
-  function render(){ nav(); $('hT').textContent = TABS[tab][0]; $('hD').textContent = TABS[tab][1]; var foc = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-f') ? [document.activeElement.getAttribute('data-f'), document.activeElement.getAttribute('data-id')] : null; $('view').innerHTML = V[tab](K.db()); mountPreview(); if (foc){ var e2 = document.querySelector('[data-f="' + foc[0] + '"][data-id="' + foc[1] + '"]'); if (e2 && e2.focus){ e2.focus(); try { e2.setSelectionRange(e2.value.length, e2.value.length); } catch(x){} } } }
+  function render(){
+    if (!K.staffUser()){ document.body.classList.add('gated'); if (window.KPStudioGate) window.KPStudioGate(); return; } document.body.classList.remove('gated');
+    if (!allow(tab)){ var first = null; GROUPS.forEach(function(g){ g[1].forEach(function(k){ if (!first && allow(k)) first = k; }); }); if (!first){ nav(); $('hT').textContent = 'لا صلاحية'; $('hD').textContent = 'حسابك لا يملك صلاحيات على مركز الإدارة. اطلبها من مدير النظام.'; $('hA').innerHTML = '<a class="btn o" href="KPTC_Portal.html">بوابة الموظفين</a>'; $('view').innerHTML = ''; return; } tab = first; }
+    $('hA').innerHTML = '';
+    nav(); $('hT').textContent = TABS[tab][0]; $('hD').textContent = TABS[tab][1]; var foc = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-f') ? [document.activeElement.getAttribute('data-f'), document.activeElement.getAttribute('data-id')] : null; $('view').innerHTML = V[tab](K.db()); mountPreview(); if (foc){ var e2 = document.querySelector('[data-f="' + foc[0] + '"][data-id="' + foc[1] + '"]'); if (e2 && e2.focus){ e2.focus(); try { e2.setSelectionRange(e2.value.length, e2.value.length); } catch(x){} } } }
   window.addEventListener('resize', mountPreview);
   var FORMS = {
     news:{t:'خبر', f:[['title','العنوان'],['cat','القسم','select',['أخبار الشركة','بيانات صحفية','المسؤولية الاجتماعية']],['d','التاريخ','date'],['img','الصورة','select',['kbus-fleet.jpg','kbus-ev.jpg','kbus-street.jpg','kbus-depot.jpg','coach-1.jpg','tow-1.jpg','workshop-1.jpg','hq.jpg','umrah-art.jpg']],['body','النص','textarea']], d:function(){ return {id:K.id('N'), pub:true, d:K.today(), cat:'أخبار الشركة', img:'kbus-fleet.jpg'}; }},
@@ -219,6 +228,221 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
   document.addEventListener('click', function(e){ var h = e.target.closest('.pg-h'); if (!h || e.target.closest('button')) return; var id = h.parentNode.getAttribute('data-pg'); if (selPg !== id){ selPg = id; render(); } });
   document.addEventListener('change', function(e){ var f = e.target.closest('[data-f]'); if (!f) return; var c = K.page(f.getAttribute('data-id')); c[f.getAttribute('data-f')] = f.value.trim(); K.save(); flash('حُفظ.'); });
   document.addEventListener('change', function(e){ var s = e.target.closest('select[data-act]'); if (!s) return; var a = s.getAttribute('data-act'), id = s.getAttribute('data-id'), d = K.db(), L = {tst:d.tenders, bst:d.bids, ast:d.applications, kst:d.bookings}[a], it = L.filter(function(x){ return x.id === id; })[0]; it.status = s.value; K.log('تغيير حالة ' + id + ' إلى ' + s.value); K.save(); flash('حُدّثت الحالة.'); });
-  K.onChange(render); render();
+  window.KPStudio = {K:K, $:$, E:E, TABS:TABS, V:V, flash:flash, tag:tag, render:function(){ render(); }, tab:function(){ return tab; }, dlg:function(title, html, onsubmit){ editing = null; $('dT').textContent = title; $('dF').innerHTML = html + '<div class="err" id="dE"></div><button class="btn y" type="submit">حفظ</button>'; $('dlg').classList.add('on'); $('dF').onsubmit = function(e){ e.preventDefault(); e.stopImmediatePropagation(); var r = onsubmit($('dF').elements); if (r){ $('dE').textContent = r; return; } $('dF').onsubmit = null; $('dlg').classList.remove('on'); }; }};
+  document.addEventListener('click', function(e){ if (e.target.closest('[data-act="out"]')){ K.staffLogout(); } });
+  document.addEventListener('DOMContentLoaded', function(){ K.onChange(render); render(); });
+})();
+</script>
+<style>
+body.gated>aside,body.gated>.mn{display:none}
+.gate{position:fixed;inset:0;z-index:800;background:var(--kp-ink);display:none;place-items:center;padding:20px;overflow:auto}
+body.gated .gate{display:grid}
+.gate>div{background:#fff;border-radius:8px;border-top:6px solid var(--kp-sign);width:min(420px,100%);padding:26px;display:grid;gap:12px}
+.gate h2{font-size:22px}.gate p{color:var(--kp-muted);font-size:13.5px}
+.gate .demo{display:grid;gap:6px;border-top:1px dashed var(--kp-line-2);padding-top:12px}
+.gate .demo button{display:flex;justify-content:space-between;border:1px solid var(--kp-line);background:var(--kp-paper-2);border-radius:4px;padding:7px 10px;font:600 12.5px var(--f-body);cursor:pointer;color:var(--kp-ink)}
+.gate .demo button:hover{border-color:var(--kp-ink)}
+.who{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.who i{width:34px;height:34px;border-radius:50%;background:var(--kp-sign);color:var(--kp-ink);display:grid;place-items:center;font:700 15px var(--f-display);font-style:normal}
+.who b{display:block;font-size:13.5px;color:#fff}.who small{color:#A9A7C9;font-size:11px}
+.who button{width:auto!important;border:1px solid rgba(255,255,255,.25)!important;border-radius:4px;padding:4px 8px!important;color:#fff!important}
+.ed{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.ed-f{background:var(--kp-paper);border:2px solid var(--kp-ink);border-radius:8px;overflow:hidden;height:74vh;position:relative;direction:ltr}
+.ed-f iframe{position:absolute;top:0;left:0;border:0;background:#fff;transform-origin:0 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chips button{border:1.5px solid var(--kp-line-2);background:#fff;border-radius:16px;padding:5px 12px;font:600 12.5px var(--f-body);cursor:pointer;color:var(--kp-ink)}
+.chips button.on{background:var(--kp-ink);color:var(--kp-sign);border-color:var(--kp-ink)}
+.chips button em{font-style:normal;background:var(--kp-sign);color:var(--kp-ink);border-radius:8px;padding:0 6px;margin-inline-start:5px;font-size:11px}
+.cl{background:#fff;border:1px solid var(--kp-line);border-radius:6px;margin-bottom:12px;overflow:hidden}
+.cl h4{padding:10px 12px;border-bottom:1px solid var(--kp-line);font-size:13.5px;display:flex;justify-content:space-between}
+.cl .it{padding:9px 12px;border-bottom:1px solid var(--kp-line);font-size:12.5px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.cl .it:last-child{border:0}.cl .it s{color:var(--kp-muted);display:block}.cl .it b{display:block;color:var(--kp-indigo)}.cl .it code{font-size:10.5px;direction:ltr;display:block;color:var(--kp-muted);overflow-wrap:anywhere}
+.cl .empty{padding:14px;font-size:12.5px;color:var(--kp-muted)}
+.mx{width:100%;border-collapse:collapse;background:#fff;font-size:12.5px}
+.mx th,.mx td{border:1px solid var(--kp-line);padding:6px 8px;text-align:center}
+.mx th:first-child,.mx td:first-child{text-align:right;position:sticky;right:0;background:#fff;min-width:210px}
+.mx thead th{background:var(--kp-ink);color:#fff;position:sticky;top:0;font-size:12px}
+.mx thead th:first-child{background:var(--kp-ink)}
+.mx tr.g td{background:var(--kp-paper-2)!important;font-weight:700;color:var(--kp-indigo);text-align:right}
+.mx input{width:17px;height:17px;accent-color:#2E2C78}
+.pm{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;max-height:46vh;overflow:auto;border:1px solid var(--kp-line);border-radius:6px;padding:10px}
+.pm h5{grid-column:1/-1;font-size:12.5px;color:var(--kp-indigo);margin-top:6px}
+.pm label{display:flex;gap:7px;align-items:center;font-size:12.5px}
+.pm label.base{color:var(--kp-ok);font-weight:600}.pm label.den{color:var(--kp-bad);text-decoration:line-through}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.cd{background:#fff;border:1px solid var(--kp-line);border-radius:8px;padding:14px;display:grid;gap:8px;align-content:start;border-top:4px solid var(--kp-indigo)}
+.cd.ext{border-top-color:var(--kp-sign)}.cd.dark{border-top-color:#3b3b4f;background:#fafafb}
+.cd h3{font-size:16px}.cd p{font-size:13px;color:var(--kp-muted)}
+.cd .m{display:flex;flex-wrap:wrap;gap:5px}
+.cd .a{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.th{border:1px solid var(--kp-line);border-radius:6px;padding:8px 10px;background:var(--kp-paper-2);font-size:12.5px;display:grid;gap:4px}
+.th div b{color:var(--kp-indigo)}
+@media(max-width:1000px){.ed{grid-template-columns:1fr}}
+</style>
+<div class="gate" id="gate"><div>
+  <div><h2>مركز إدارة الموقع</h2><p>الدخول بحساب الموظف. ما تراه بعد الدخول يتبع صلاحيات حسابك.</p></div>
+  <form class="form" id="gF" novalidate><label class="f">الرقم الوظيفي<input name="i" dir="ltr" placeholder="KPTC-0000" autocomplete="username"></label><label class="f">كلمة المرور<input name="p" type="password" autocomplete="current-password"></label><div class="err" id="gE"></div><button class="btn y" type="submit">دخول</button></form>
+  <div class="demo" id="gD"></div>
+</div></div>
+<script>
+(function(){
+  var X = window.KPStudio, K = X.K, $ = X.$, E = X.E, T = X.TABS, V = X.V, flash = X.flash, tag = X.tag;
+  function opt(list, cur){ return list.map(function(o){ var v = Array.isArray(o) ? o[0] : o, l = Array.isArray(o) ? o[1] : o; return '<option value="' + E(v) + '"' + (v === cur ? ' selected' : '') + '>' + E(l) + '</option>'; }).join(''); }
+  function staffName(id){ var u = K.db().staff[id]; return u ? u.name : id; }
+
+  /* ---- gate ---- */
+  window.KPStudioGate = function(){
+    var d = K.db(); $('gD').innerHTML = '<small style="color:var(--kp-muted)">حسابات تجريبية (كلمة المرور 12345678) — اضغط للتعبئة:</small>' + ['KPTC-1001','KPTC-5120','KPTC-3310','KPTC-2891'].filter(function(i){ return d.staff[i]; }).map(function(i){ return '<button type="button" data-fill="' + i + '"><span>' + E(K.role(d.staff[i].role).name) + '</span><span class="num">' + i + '</span></button>'; }).join('');
+  };
+  $('gD').addEventListener('click', function(e){ var b = e.target.closest('[data-fill]'); if (!b) return; $('gF').elements.i.value = b.getAttribute('data-fill'); $('gF').elements.p.value = '12345678'; });
+  $('gF').addEventListener('submit', function(e){ e.preventDefault(); var r = K.staffLogin($('gF').elements.i.value, $('gF').elements.p.value); $('gE').textContent = r.error || ''; if (!r.error) flash('مرحباً ' + r.user.name); });
+
+  /* ---- visual editor: texts and elements of any page ---- */
+  var ALL = [['home','الرئيسية'],['routes','الخطوط'],['subs','الاشتراكات'],['umrah','العمرة'],['vip','VIP'],['winch','الونش'],['ads','الإعلانات'],['reclient','العقارات'],['lost','المفقودات'],['assistant','المساعد'],['account','حسابي'],['media','المركز الإعلامي'],['tenders','المناقصات'],['careers','الوظائف'],['portal','بوابة الموظفين']];
+  var edPg = 'home', edDev = 'desk', edKeep = null;
+  T.editor = ['المحرر المرئي', 'افتح أي صفحة واضغط على أي نص أو حقل أو عنصر: عدّل النص، غيّر النص الإرشادي للحقل، أو أخفِ العنصر عن الزوار. يعمل على كل الصفحات الحالية وأي صفحة تُضاف لاحقاً.'];
+  V.editor = function(){
+    var S = K.site(), tx = S.texts || {}, hd = S.hidden || {}, n = function(p){ return Object.keys(tx[p] || {}).length + (hd[p] || []).length; };
+    $('hA').innerHTML = '<span class="st3"><button data-act="eddev" data-v="desk" class="' + (edDev === 'desk' ? 'on' : '') + '" style="' + (edDev === 'desk' ? 'background:var(--kp-ink);color:var(--kp-sign)' : '') + '">حاسوب</button><button data-act="eddev" data-v="mob" style="' + (edDev === 'mob' ? 'background:var(--kp-ink);color:var(--kp-sign)' : '') + '">جوال</button></span>';
+    function texts(scope, title){ var m = tx[scope] || {}, ks = Object.keys(m); return '<div class="cl"><h4>' + title + '<span class="num">' + ks.length + '</span></h4>' + (ks.length ? ks.map(function(k){ return '<div class="it"><div><s>' + E(k.replace(/^ph:/, 'حقل: ')) + '</s><b>' + E(m[k]) + '</b></div><button class="btn o" data-act="txdel" data-id="' + scope + '" data-k="' + E(k) + '">استرجاع</button></div>'; }).join('') : '<div class="empty">لا نصوص معدّلة.</div>') + '</div>'; }
+    var hl = hd[edPg] || [];
+    return '<div class="chips">' + ALL.map(function(p){ return '<button data-act="edpg" data-id="' + p[0] + '" class="' + (p[0] === edPg ? 'on' : '') + '">' + p[1] + (n(p[0]) ? '<em class="num">' + n(p[0]) + '</em>' : '') + '</button>'; }).join('') + '</div>' +
+      '<div class="ed"><div class="ed-f" id="edB"><iframe id="edF" data-src="' + edPg + '.html#kpedit" title="تحرير الصفحة"></iframe></div><div>' + texts(edPg, 'نصوص هذه الصفحة') + texts('*', 'نصوص مشتركة بين كل الصفحات') +
+      '<div class="cl"><h4>عناصر مخفية في هذه الصفحة<span class="num">' + hl.length + '</span></h4>' + (hl.length ? hl.map(function(s, i){ return '<div class="it"><code>' + E(s.split('>').slice(-3).join(' › ')) + '</code><button class="btn o" data-act="hddel" data-id="' + i + '">إظهار</button></div>'; }).join('') : '<div class="empty">لا عناصر مخفية.</div>') + '</div>' +
+      '<button class="btn o" data-act="edclear">استرجاع الصفحة كما كانت</button></div></div>';
+  };
+  function mountEd(){ var b = $('edB'), f = $('edF'); if (!b || !f) return; var want = f.getAttribute('data-src'); if (edKeep && edKeep.getAttribute('data-src') === want){ f.replaceWith(edKeep); f = edKeep; } else { f.src = want; edKeep = f; } var w = edDev === 'mob' ? 390 : 1280, sc = Math.min(1, b.clientWidth / w); f.style.width = w + 'px'; f.style.left = Math.max(0, (b.clientWidth - w * sc) / 2) + 'px'; f.style.transform = 'scale(' + sc + ')'; f.style.height = (b.clientHeight / sc) + 'px'; }
+  new MutationObserver(mountEd).observe($('view'), {childList:true}); window.addEventListener('resize', mountEd);
+
+  /* ---- line timetables ---- */
+  T.sched = ['مواعيد الخطوط', 'أوقات التشغيل التي تظهر في خانة «الجدول» بصفحة الخطوط. القيم العامة تسري على كل خط لم تُخصَّص له مواعيد.'];
+  var DEFS = {work:{first:'05:00', last:'23:00', peak:15, off:20, bands:[[6,9],[13,16]]}, rest:{first:'06:00', last:'23:00', peak:25, off:25, bands:[]}};
+  V.sched = function(){
+    var sc = K.site().sched || {}, lines = Object.keys(sc);
+    $('hA').innerHTML = '<button class="btn y" data-act="scnew">مواعيد لخط محدد</button>';
+    function row(k){ var v = sc[k] || DEFS; return ['work','rest'].map(function(dy){ var x = v[dy] || DEFS[dy]; return '<tr><td><b>' + (k === '*' ? 'كل الخطوط' : 'خط ' + E(k)) + '</b></td><td>' + (dy === 'work' ? 'أيام العمل' : 'الجمعة والسبت') + '</td><td class="num">' + E(x.first) + '</td><td class="num">' + E(x.last) + '</td><td class="num">' + x.peak + ' د</td><td class="num">' + x.off + ' د</td><td class="num">' + (x.bands || []).map(function(b){ return b[0] + '–' + b[1]; }).join('، ') + '</td><td><button class="btn o" data-act="scedit" data-id="' + E(k) + '" data-k="' + dy + '">تعديل</button>' + (k !== '*' && dy === 'work' ? '<button class="btn o" data-act="scdel" data-id="' + E(k) + '">حذف</button>' : '') + '</td></tr>'; }).join(''); }
+    return '<div class="tw"><table class="t"><thead><tr><th>الخط</th><th>الأيام</th><th>أول رحلة</th><th>آخر رحلة</th><th>التكرار في الذروة</th><th>باقي اليوم</th><th>ساعات الذروة</th><th></th></tr></thead><tbody>' + row('*') + lines.filter(function(k){ return k !== '*'; }).map(row).join('') + '</tbody></table></div>';
+  };
+  function schedForm(k, dy){
+    var S = K.site(); S.sched = S.sched || {}; var cur = (S.sched[k] && S.sched[k][dy]) || DEFS[dy];
+    X.dlg((k === '*' ? 'مواعيد كل الخطوط' : 'مواعيد خط ' + k) + ' — ' + (dy === 'work' ? 'أيام العمل' : 'الجمعة والسبت'), '<label class="f">أول رحلة<input name="first" type="time" value="' + cur.first + '"></label><label class="f">آخر رحلة<input name="last" type="time" value="' + cur.last + '"></label><label class="f">التكرار وقت الذروة (دقيقة)<input name="peak" inputmode="numeric" dir="ltr" value="' + cur.peak + '"></label><label class="f">التكرار باقي اليوم (دقيقة)<input name="off" inputmode="numeric" dir="ltr" value="' + cur.off + '"></label><label class="f">ساعات الذروة (مثال: 6-9, 13-16)<input name="bands" dir="ltr" value="' + (cur.bands || []).map(function(b){ return b[0] + '-' + b[1]; }).join(', ') + '"></label>', function(f){
+      var pk = parseInt(K.latin(f.peak.value), 10), of = parseInt(K.latin(f.off.value), 10); if (!f.first.value || !f.last.value || !(pk > 0) || !(of > 0)) return 'أكمل الأوقات والتكرار.';
+      var bands = K.latin(f.bands.value).split(',').map(function(x){ var p = x.split('-').map(Number); return p.length === 2 && p[1] > p[0] ? p : null; }).filter(Boolean);
+      S.sched[k] = S.sched[k] || {work:JSON.parse(JSON.stringify(DEFS.work)), rest:JSON.parse(JSON.stringify(DEFS.rest))}; S.sched[k][dy] = {first:f.first.value, last:f.last.value, peak:pk, off:of, bands:bands}; K.log('تعديل مواعيد ' + k); K.save(); flash('حُفظت المواعيد وتظهر في صفحة الخطوط.'); });
+  }
+
+  /* ---- staff accounts ---- */
+  T.staff = ['حسابات الموظفين', 'أضف موظفاً، غيّر دوره أو إدارته، امنحه صلاحية إضافية أو اسحب منه صلاحية، أوقف حسابه أو أعد تعيين كلمة مروره.'];
+  V.staff = function(d){
+    $('hA').innerHTML = '<button class="btn y" data-act="sfnew">موظف جديد</button>';
+    var L = Object.keys(d.staff).map(function(k){ return d.staff[k]; });
+    return '<div class="kp4"><div><b class="num">' + L.length + '</b><span>حساباً</span></div><div><b class="num">' + L.filter(function(u){ return u.status === 'active'; }).length + '</b><span>فعّالاً</span></div><div><b class="num">' + d.roles.length + '</b><span>أدوار</span></div><div><b class="num">' + L.filter(function(u){ return (u.grant || []).length || (u.deny || []).length; }).length + '</b><span>بصلاحيات مخصصة</span></div></div>' +
+      '<div class="tw"><table class="t"><thead><tr><th>الموظف</th><th>الإدارة</th><th>الدور</th><th>الصلاحيات</th><th>آخر دخول</th><th>الحالة</th><th></th></tr></thead><tbody>' + L.map(function(u){ var me = K.staffUser().id === u.id;
+        return '<tr><td><b>' + E(u.name) + '</b><br><small class="num">' + E(u.id) + ' · ' + E(u.title || '') + '</small></td><td>' + E(u.dept) + '</td><td><select class="s" data-sf="role" data-id="' + E(u.id) + '"' + (me ? ' disabled' : '') + '>' + opt(d.roles.map(function(r){ return [r.id, r.name]; }), u.role) + '</select></td><td><span class="num">' + K.permsOf(u).length + '</span>' + ((u.grant || []).length ? ' <span class="tag ok">+' + u.grant.length + '</span>' : '') + ((u.deny || []).length ? ' <span class="tag bad">−' + u.deny.length + '</span>' : '') + '</td><td><small class="num">' + (u.last ? E(u.last.replace('T', ' ').slice(0, 16)) : 'لم يدخل بعد') + '</small></td><td>' + tag(u.status === 'active' ? 'فعّال' : 'موقوف') + '</td><td><button class="btn o" data-act="sfperm" data-id="' + E(u.id) + '">الصلاحيات</button><button class="btn o" data-act="sfedit" data-id="' + E(u.id) + '">تعديل</button>' + (me ? '' : '<button class="btn o" data-act="sfstop" data-id="' + E(u.id) + '">' + (u.status === 'active' ? 'إيقاف' : 'تفعيل') + '</button><button class="btn o" data-act="sfdel" data-id="' + E(u.id) + '">حذف</button>') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+  };
+  function staffForm(id){
+    var d = K.db(), u = id ? d.staff[id] : {id:'', name:'', title:'', dept:K.DEPTS[0], role:'emp', pass:'', phone:''};
+    X.dlg(id ? 'تعديل موظف' : 'موظف جديد', '<label class="f">الرقم الوظيفي<input name="id" dir="ltr" value="' + E(u.id) + '"' + (id ? ' readonly' : ' placeholder="KPTC-0000"') + '></label><label class="f">الاسم<input name="name" value="' + E(u.name) + '"></label><label class="f">المسمى الوظيفي<input name="title" value="' + E(u.title || '') + '"></label><label class="f">الإدارة<select name="dept">' + opt(K.DEPTS, u.dept) + '</select></label><label class="f">الدور<select name="role">' + opt(d.roles.map(function(r){ return [r.id, r.name]; }), u.role) + '</select></label><label class="f">رقم الهاتف<input name="phone" dir="ltr" inputmode="tel" value="' + E(u.phone || '') + '"></label><label class="f">' + (id ? 'كلمة مرور جديدة (اتركها فارغة لتبقى)' : 'كلمة المرور') + '<input name="pass" dir="ltr" value=""></label>', function(f){
+      var sid = K.latin(f.id.value).trim().toUpperCase(); if (!sid || !f.name.value.trim()) return 'اكتب الرقم الوظيفي والاسم.'; if (!id && d.staff[sid]) return 'هذا الرقم الوظيفي مسجّل.'; if (!id && f.pass.value.length < 8) return 'كلمة المرور 8 أحرف على الأقل.'; if (id && f.pass.value && f.pass.value.length < 8) return 'كلمة المرور 8 أحرف على الأقل.';
+      var o = id ? u : (d.staff[sid] = {id:sid, status:'active', grant:[], deny:[], joined:K.today()}); o.name = f.name.value.trim(); o.title = f.title.value.trim(); o.dept = f.dept.value; o.role = f.role.value; o.phone = K.latin(f.phone.value).trim(); if (f.pass.value) o.pass = f.pass.value;
+      K.log((id ? 'تعديل حساب ' : 'حساب موظف جديد: ') + o.name); K.save(); flash('حُفظ الحساب.'); });
+  }
+  function permForm(id){
+    var u = K.db().staff[id], base = K.role(u.role).perms, all = base.indexOf('*') > -1;
+    X.dlg('صلاحيات ' + u.name, '<p style="font-size:12.5px;color:var(--kp-muted);margin:0">الدور: <b>' + E(K.role(u.role).name) + '</b>. المؤشّر يعني أن الصلاحية فعّالة لهذا الموظف. الأخضر من الدور، وما تضيفه أو تسحبه هنا يخصّه وحده.</p><div class="pm">' + K.PERMS.map(function(g){ return '<h5>' + g[0] + '</h5>' + g[1].map(function(p){ var inB = all || base.indexOf(p[0]) > -1, on = K.can(p[0], u); return '<label class="' + (inB ? 'base' : '') + '"><input type="checkbox" name="p" value="' + p[0] + '"' + (on ? ' checked' : '') + '>' + p[1] + '</label>'; }).join(''); }).join('') + '</div>', function(f){
+      var g = [], dn = []; [].forEach.call(f.p, function(c){ var inB = all || base.indexOf(c.value) > -1; if (c.checked && !inB) g.push(c.value); if (!c.checked && inB) dn.push(c.value); });
+      u.grant = g; u.deny = dn; K.log('تعديل صلاحيات ' + u.name + ' (+' + g.length + ' / −' + dn.length + ')'); K.save(); flash('حُفظت الصلاحيات.'); });
+  }
+
+  /* ---- roles matrix ---- */
+  T.roles = ['الأدوار والصلاحيات', 'كل دور مجموعة صلاحيات. أشّر أو أزل التأشير ليتغيّر ما يراه ويفعله كل من يحمل الدور، في البوابة وفي مركز الإدارة.'];
+  V.roles = function(d){
+    $('hA').innerHTML = '<button class="btn y" data-act="rlnew">دور جديد</button>';
+    var R = d.roles, cnt = function(r){ return Object.keys(d.staff).filter(function(k){ return d.staff[k].role === r.id; }).length; };
+    return '<div class="tw" style="max-height:72vh;overflow:auto"><table class="mx"><thead><tr><th>الصلاحية</th>' + R.map(function(r){ return '<th>' + E(r.name) + '<br><small class="num">' + cnt(r) + ' موظف</small>' + (['emp','admin'].indexOf(r.id) < 0 && !cnt(r) ? '<br><button class="more" style="color:#FFC93C" data-act="rldel" data-id="' + r.id + '">حذف</button>' : '') + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      K.PERMS.map(function(g){ return '<tr class="g"><td colspan="' + (R.length + 1) + '">' + g[0] + '</td></tr>' + g[1].map(function(p){ return '<tr><td>' + p[1] + '</td>' + R.map(function(r){ var star = r.perms.indexOf('*') > -1; return '<td><input type="checkbox" data-rl="' + r.id + '" data-p="' + p[0] + '"' + (star || r.perms.indexOf(p[0]) > -1 ? ' checked' : '') + (star ? ' disabled title="مدير النظام يملك كل الصلاحيات"' : '') + '></td>'; }).join('') + '</tr>'; }).join(''); }).join('') + '</tbody></table></div>';
+  };
+
+  /* ---- benefits and offers ---- */
+  T.benefits = ['المزايا والعروض', 'أنشئ عرضاً داخلياً أو خارجياً ووجّهه للجميع، لإدارات محددة، أو لأشخاص بأسمائهم. يصل العرض للموظف في بوابته، وطلبات الاستفادة والمراسلات تظهر هنا.'];
+  function audText(b){ var a = b.aud || {mode:'all'}; return a.mode === 'all' ? 'كل الموظفين' : a.mode === 'depts' ? (a.depts || []).join('، ') : (a.staff || []).map(staffName).join('، '); }
+  function reach(b){ var d = K.db(); return Object.keys(d.staff).filter(function(k){ var u = d.staff[k], a = b.aud || {mode:'all'}; return a.mode === 'all' || (a.mode === 'depts' && (a.depts || []).indexOf(u.dept) > -1) || (a.mode === 'staff' && (a.staff || []).indexOf(u.id) > -1); }).length; }
+  V.benefits = function(d){
+    var me = K.staffUser(), mine = K.can('benefits.claims') ? d.claims : d.claims.filter(function(c){ var b = d.benefits.filter(function(x){ return x.id === c.bid; })[0]; return b && b.by === me.id; });
+    $('hA').innerHTML = K.can('benefits.manage') ? '<button class="btn y" data-act="bnnew">عرض جديد</button>' : '';
+    var pend = mine.filter(function(c){ return c.status === 'بانتظار الاعتماد'; });
+    return '<div class="kp4"><div><b class="num">' + d.benefits.filter(function(b){ return b.on; }).length + '</b><span>عروض فعّالة</span></div><div><b class="num">' + d.benefits.filter(function(b){ return (b.aud || {}).mode && b.aud.mode !== 'all'; }).length + '</b><span>عروض موجّهة</span></div><div><b class="num">' + d.claims.length + '</b><span>طلبات استفادة</span></div><div><b class="num">' + pend.length + '</b><span>بانتظار اعتمادك</span></div></div>' +
+      (mine.length ? '<h3 style="margin:6px 0 10px">طلبات الاستفادة والمراسلات</h3><div class="cards" style="margin-bottom:22px">' + mine.map(function(c){ var b = d.benefits.filter(function(x){ return x.id === c.bid; })[0] || {title:'عرض محذوف'};
+        return '<div class="cd"><div class="m">' + tag(c.status) + '<span class="tag in num">' + E(c.id) + '</span></div><h3>' + E(staffName(c.staff)) + '</h3><p>' + E(b.title) + ' · <span class="num">' + K.date(c.d) + '</span>' + (c.code ? ' · الرمز <b class="num">' + E(c.code) + '</b>' : '') + '</p>' + (c.msgs.length ? '<div class="th">' + c.msgs.map(function(m){ return '<div><b>' + E(staffName(m.from)) + ':</b> ' + E(m.text) + '</div>'; }).join('') + '</div>' : '') +
+          '<div class="a">' + (c.status === 'بانتظار الاعتماد' ? '<button class="btn y" data-act="clok" data-id="' + c.id + '">اعتماد</button><button class="btn o" data-act="clno" data-id="' + c.id + '">رفض</button>' : c.status === 'مقبول' ? '<button class="btn o" data-act="cluse" data-id="' + c.id + '">تأكيد الاستخدام</button>' : '') + '<button class="btn o" data-act="clmsg" data-id="' + c.id + '">رد على الموظف</button></div></div>'; }).join('') + '</div>' : '') +
+      '<h3 style="margin:6px 0 10px">العروض</h3><div class="cards">' + d.benefits.map(function(b){ var cl = d.claims.filter(function(c){ return c.bid === b.id; }).length, can = K.can('benefits.manage');
+        return '<div class="cd' + (b.type === 'external' ? ' ext' : '') + '"><div class="m"><span class="tag in">' + (b.type === 'external' ? 'خارجي' : 'داخلي') + '</span>' + tag(b.on ? 'فعّال' : 'موقوف') + (b.approve ? '<span class="tag warn">يحتاج اعتماداً</span>' : '') + '</div><h3>' + E(b.title) + '</h3><p>' + E(b.desc) + '</p><p><b>' + E(b.value) + '</b>' + (b.partner ? ' · ' + E(b.partner) : '') + '</p><p>لمن: <b>' + E(audText(b)) + '</b> — يصل إلى <span class="num">' + reach(b) + '</span> موظف، استفاد <span class="num">' + cl + '</span>' + (b.limit ? ' من <span class="num">' + b.limit + '</span>' : '') + '</p><p class="num">' + K.date(b.from) + ' ← ' + K.date(b.until) + '</p>' +
+          (can ? '<div class="a"><button class="btn o" data-act="bnedit" data-id="' + b.id + '">تعديل</button><button class="btn o" data-act="bnon" data-id="' + b.id + '">' + (b.on ? 'إيقاف' : 'تفعيل') + '</button><button class="btn o" data-act="bndel" data-id="' + b.id + '">حذف</button></div>' : '') + '</div>'; }).join('') + '</div>';
+  };
+  function benefitForm(id){
+    var d = K.db(), b = id ? d.benefits.filter(function(x){ return x.id === id; })[0] : {title:'', desc:'', type:'internal', partner:'', value:'', cat:'', aud:{mode:'all'}, approve:false, from:K.today(), until:K.today(30), limit:0, on:true}, a = b.aud || {mode:'all'};
+    X.dlg(id ? 'تعديل عرض' : 'عرض جديد', '<label class="f">العنوان<input name="title" value="' + E(b.title) + '"></label><label class="f">الوصف<textarea name="desc" rows="2">' + E(b.desc) + '</textarea></label><label class="f">النوع<select name="type">' + opt([['internal','داخلي (من الشركة)'],['external','خارجي (جهة شريكة)']], b.type) + '</select></label><label class="f">الجهة الشريكة<input name="partner" value="' + E(b.partner || '') + '"></label><label class="f">قيمة العرض (مثال: خصم 20%)<input name="value" value="' + E(b.value) + '"></label>' +
+      '<label class="f">يُوجَّه إلى<select name="mode">' + opt([['all','كل الموظفين'],['depts','إدارات محددة'],['staff','أشخاص محددين']], a.mode) + '</select></label><label class="f">الإدارات (عند اختيار إدارات)<select name="depts" multiple size="4">' + K.DEPTS.map(function(x){ return '<option' + ((a.depts || []).indexOf(x) > -1 ? ' selected' : '') + '>' + E(x) + '</option>'; }).join('') + '</select></label><label class="f">الأشخاص (عند اختيار أشخاص)<select name="staff" multiple size="4">' + Object.keys(d.staff).map(function(k){ return '<option value="' + k + '"' + ((a.staff || []).indexOf(k) > -1 ? ' selected' : '') + '>' + E(d.staff[k].name) + ' — ' + k + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f">من<input name="from" type="date" value="' + b.from + '"></label><label class="f">إلى<input name="until" type="date" value="' + b.until + '"></label><label class="f">العدد المتاح (0 = بلا حد)<input name="limit" inputmode="numeric" dir="ltr" value="' + (b.limit || 0) + '"></label><label class="f">الاستفادة<select name="approve">' + opt([['0','فورية برمز'],['1','تحتاج اعتماد المدير']], b.approve ? '1' : '0') + '</select></label>', function(f){
+      if (!f.title.value.trim() || !f.value.value.trim()) return 'اكتب العنوان وقيمة العرض.';
+      var pick = function(s){ return [].filter.call(s.options, function(o){ return o.selected; }).map(function(o){ return o.value; }); }, mode = f.mode.value, aud = {mode:mode};
+      if (mode === 'depts'){ aud.depts = pick(f.depts); if (!aud.depts.length) return 'اختر إدارة واحدة على الأقل.'; } if (mode === 'staff'){ aud.staff = pick(f.staff); if (!aud.staff.length) return 'اختر موظفاً واحداً على الأقل.'; }
+      b.title = f.title.value.trim(); b.desc = f.desc.value.trim(); b.type = f.type.value; b.partner = f.partner.value.trim(); b.value = f.value.value.trim(); b.aud = aud; b.from = f.from.value; b.until = f.until.value; b.limit = parseInt(K.latin(f.limit.value), 10) || 0; b.approve = f.approve.value === '1';
+      if (!id){ b.id = K.id('B'); b.by = K.staffUser().id; d.benefits.unshift(b); } K.log((id ? 'تعديل عرض: ' : 'عرض جديد: ') + b.title); K.save(); flash('حُفظ العرض ووصل إلى ' + reach(b) + ' موظف.'); });
+  }
+
+  /* ---- colleagues' occasions ---- */
+  var KINDS = ['عزاء','زواج','مولود','ترقية','تخرج','شفاء','تقاعد','عودة من الحج أو العمرة'];
+  T.occasions = ['مناسبات الموظفين', 'ما يقترحه الموظفون يصل هنا للمراجعة قبل النشر في «واجب الزملاء» بالبوابة. يمكنك النشر مباشرة، التعديل، أو الأرشفة.'];
+  V.occasions = function(d){
+    $('hA').innerHTML = '<button class="btn y" data-act="ocnew">مناسبة جديدة</button>';
+    return d.occasions.length ? '<div class="cards">' + d.occasions.map(function(o){ var n = Object.keys(o.marks || {}).length;
+      return '<div class="cd' + (o.kind === 'عزاء' ? ' dark' : ' ext') + '"><div class="m"><span class="tag in">' + E(o.kind) + '</span>' + tag(o.status) + '</div><h3>' + E(o.name) + '</h3><p>' + E(o.dept || '') + ' · <span class="num">' + K.date(o.date) + '</span>' + (o.time ? ' · ' + E(o.time) : '') + '</p><p>' + E(o.text) + '</p>' + (o.place ? '<p>المكان: ' + E(o.place) + '</p>' : '') + '<p>شارك <span class="num">' + n + '</span> زميل · <span class="num">' + (o.book || []).length + '</span> كلمة في الدفتر · أضافها ' + E(staffName(o.by)) + '</p>' +
+        '<div class="a">' + (o.status === 'بانتظار المراجعة' && K.can('occasions.moderate') ? '<button class="btn y" data-act="ocpub" data-id="' + o.id + '">نشر</button>' : '') + '<button class="btn o" data-act="ocedit" data-id="' + o.id + '">تعديل</button>' + (o.status === 'منشور' ? '<button class="btn o" data-act="ocarc" data-id="' + o.id + '">أرشفة</button>' : '') + '<button class="btn o" data-act="ocdel" data-id="' + o.id + '">حذف</button></div></div>'; }).join('') + '</div>' : '<div class="empty">لا مناسبات بعد.</div>';
+  };
+  function occForm(id){
+    var d = K.db(), o = id ? d.occasions.filter(function(x){ return x.id === id; })[0] : {kind:'عزاء', name:'', dept:K.DEPTS[0], text:'', date:K.today(), time:'', place:''};
+    X.dlg(id ? 'تعديل مناسبة' : 'مناسبة جديدة', '<label class="f">النوع<select name="kind">' + opt(KINDS, o.kind) + '</select></label><label class="f">صاحب المناسبة<input name="name" value="' + E(o.name) + '"></label><label class="f">الإدارة<select name="dept">' + opt(K.DEPTS, o.dept) + '</select></label><label class="f">النص<textarea name="text" rows="3">' + E(o.text) + '</textarea></label><label class="f">التاريخ<input name="date" type="date" value="' + o.date + '"></label><label class="f">الوقت (اختياري)<input name="time" value="' + E(o.time || '') + '"></label><label class="f">المكان (اختياري)<input name="place" value="' + E(o.place || '') + '"></label>', function(f){
+      if (!f.name.value.trim() || !f.text.value.trim()) return 'اكتب صاحب المناسبة والنص.';
+      o.kind = f.kind.value; o.name = f.name.value.trim(); o.dept = f.dept.value; o.text = f.text.value.trim(); o.date = f.date.value; o.time = f.time.value.trim(); o.place = f.place.value.trim();
+      if (!id){ o.id = K.id('O'); o.by = K.staffUser().id; o.marks = {}; o.book = []; o.status = 'منشور'; d.occasions.unshift(o); } K.log((id ? 'تعديل مناسبة: ' : 'مناسبة جديدة: ') + o.kind + ' — ' + o.name); K.save(); flash('حُفظت المناسبة.'); });
+  }
+
+  /* ---- actions ---- */
+  function sure(b, label){ if (b.getAttribute('data-sure')) return true; b.setAttribute('data-sure', '1'); b.textContent = label || 'تأكيد'; return false; }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-act]'); if (!b) return; var a = b.getAttribute('data-act'), id = b.getAttribute('data-id'), d = K.db(), S = K.site(), find = function(L){ return L.filter(function(x){ return x.id === id; })[0]; };
+    if (a === 'edpg'){ edPg = id; X.render(); }
+    else if (a === 'eddev'){ edDev = b.getAttribute('data-v'); X.render(); }
+    else if (a === 'txdel'){ delete S.texts[id][b.getAttribute('data-k')]; K.save(); flash('عاد النص الأصلي.'); }
+    else if (a === 'hddel'){ S.hidden[edPg].splice(+id, 1); K.save(); flash('ظهر العنصر من جديد.'); }
+    else if (a === 'edclear'){ if (sure(b, 'تأكيد: استرجاع كل تعديلات الصفحة')){ if (S.texts) delete S.texts[edPg]; if (S.hidden) delete S.hidden[edPg]; K.log('استرجاع صفحة ' + edPg); K.save(); flash('عادت الصفحة كما كانت.'); } }
+    else if (a === 'scedit') schedForm(id, b.getAttribute('data-k'));
+    else if (a === 'scnew') X.dlg('مواعيد لخط محدد', '<label class="f">رقم الخط (مثال: 102A)<input name="n" dir="ltr"></label>', function(f){ var n = K.latin(f.n.value).trim().toUpperCase(); if (!n) return 'اكتب رقم الخط.'; S.sched = S.sched || {}; S.sched[n] = S.sched[n] || JSON.parse(JSON.stringify(DEFS)); K.save(); flash('أضيف الخط. عدّل مواعيده من الجدول.'); });
+    else if (a === 'scdel'){ delete S.sched[id]; K.save(); flash('عاد الخط للمواعيد العامة.'); }
+    else if (a === 'sfnew') staffForm();
+    else if (a === 'sfedit') staffForm(id);
+    else if (a === 'sfperm') permForm(id);
+    else if (a === 'sfstop'){ var u = d.staff[id]; u.status = u.status === 'active' ? 'suspended' : 'active'; if (u.status !== 'active' && d.staffSession === id) d.staffSession = null; K.log((u.status === 'active' ? 'تفعيل' : 'إيقاف') + ' حساب ' + u.name); K.save(); flash(u.status === 'active' ? 'فُعّل الحساب.' : 'أُوقف الحساب ولن يستطيع الدخول.'); }
+    else if (a === 'sfdel'){ if (sure(b, 'تأكيد الحذف')){ K.log('حذف حساب ' + d.staff[id].name); delete d.staff[id]; K.save(); flash('حُذف الحساب.'); } }
+    else if (a === 'rlnew') X.dlg('دور جديد', '<label class="f">اسم الدور<input name="n"></label><label class="f">ينسخ صلاحيات<select name="c">' + opt(d.roles.filter(function(r){ return r.id !== 'admin'; }).map(function(r){ return [r.id, r.name]; }), 'emp') + '</select></label>', function(f){ if (!f.n.value.trim()) return 'اكتب اسم الدور.'; d.roles.splice(d.roles.length - 1, 0, {id:'r' + Date.now().toString(36), name:f.n.value.trim(), perms:K.role(f.c.value).perms.slice()}); K.log('دور جديد: ' + f.n.value.trim()); K.save(); flash('أضيف الدور. أشّر صلاحياته من الجدول.'); });
+    else if (a === 'rldel'){ d.roles = d.roles.filter(function(r){ return r.id !== id; }); K.save(); flash('حُذف الدور.'); }
+    else if (a === 'bnnew') benefitForm();
+    else if (a === 'bnedit') benefitForm(id);
+    else if (a === 'bnon'){ var bn = find(d.benefits); bn.on = !bn.on; K.save(); }
+    else if (a === 'bndel'){ if (sure(b, 'تأكيد الحذف')){ d.benefits = d.benefits.filter(function(x){ return x.id !== id; }); K.save(); flash('حُذف العرض.'); } }
+    else if (a === 'clok' || a === 'clno' || a === 'cluse'){ var c = find(d.claims); c.status = a === 'clok' ? 'مقبول' : a === 'clno' ? 'مرفوض' : 'مستخدم'; if (a === 'clok' && !c.code) c.code = 'KP-' + Math.random().toString(36).slice(2, 8).toUpperCase(); K.log('طلب استفادة ' + c.id + ': ' + c.status); K.save(); flash('تم: ' + c.status + '. يرى الموظف ذلك في بوابته.'); }
+    else if (a === 'clmsg') X.dlg('رد على الموظف', '<label class="f">الرسالة<textarea name="t" rows="3"></textarea></label>', function(f){ if (!f.t.value.trim()) return 'اكتب الرسالة.'; find(d.claims).msgs.push({from:K.staffUser().id, text:f.t.value.trim(), d:new Date().toISOString()}); K.save(); flash('وصلت الرسالة للموظف.'); });
+    else if (a === 'ocnew') occForm();
+    else if (a === 'ocedit') occForm(id);
+    else if (a === 'ocpub'){ find(d.occasions).status = 'منشور'; K.save(); flash('نُشرت المناسبة في البوابة.'); }
+    else if (a === 'ocarc'){ find(d.occasions).status = 'مؤرشف'; K.save(); }
+    else if (a === 'ocdel'){ if (sure(b, 'تأكيد الحذف')){ d.occasions = d.occasions.filter(function(x){ return x.id !== id; }); K.save(); flash('حُذفت المناسبة.'); } }
+  });
+  document.addEventListener('change', function(e){
+    var t = e.target, d = K.db();
+    if (t.matches('[data-sf="role"]')){ var u = d.staff[t.getAttribute('data-id')]; u.role = t.value; u.grant = []; u.deny = []; K.log('تغيير دور ' + u.name + ' إلى ' + K.role(u.role).name); K.save(); flash('تغيّر الدور وصلاحياته.'); }
+    if (t.matches('[data-rl]')){ var r = K.role(t.getAttribute('data-rl')), p = t.getAttribute('data-p'), i = r.perms.indexOf(p); if (t.checked && i < 0) r.perms.push(p); if (!t.checked && i > -1) r.perms.splice(i, 1); K.log('صلاحيات دور ' + r.name); K.save(); flash('حُفظ. يسري على كل من يحمل الدور.'); }
+  });
 })();
 </script>
