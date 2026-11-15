@@ -1939,6 +1939,55 @@ setTimeout(function(){
   /* ---- staff portal: real sign-in, permissions, offers, colleagues' occasions (assets/portal.js) ---- */
   function portalKit(){ if (OWN !== 'portal') return; var n = document.createElement('script'); n.src = '../assets/portal.js'; document.head.appendChild(n); }
 
+  /* ---- languages: the whole page through the free Google website translator, with a built-in
+          dictionary for the menus when the translator cannot be reached ---- */
+  function i18n(){
+    var LANGS = [['ar','العربية'],['en','English'],['hi','हिन्दी'],['bn','বাংলা'],['ur','اردو'],['tl','Filipino']], RTL = {ar:1, ur:1}, KEY = 'kptc.lang';
+    var cur = 'ar'; try { cur = localStorage.getItem(KEY) || 'ar'; } catch(x){}
+    var D = {
+      'الخطوط':['Routes','रूट','রুট','روٹس','Mga Ruta'], 'الاشتراكات':['Passes','पास','পাস','پاس','Mga Pass'], 'العمرة':['Umrah','उमरा','উমরাহ','عمرہ','Umrah'], 'الونش':['Towing','टोइंग','টোয়িং','ٹوئنگ','Towing'],
+      'أعلن معنا':['Advertise','विज्ञापन दें','বিজ্ঞাপন দিন','اشتہار دیں','Mag-advertise'], 'العقارات':['Properties','संपत्तियाँ','সম্পত্তি','جائیدادیں','Mga Ari-arian'], 'حسابي':['My account','मेरा खाता','আমার অ্যাকাউন্ট','میرا اکاؤنٹ','Aking account'],
+      'اشترك الآن':['Subscribe now','अभी सदस्यता लें','এখনই সাবস্ক্রাইব করুন','ابھی سبسکرائب کریں','Mag-subscribe'], 'الخط الساخن':['Hotline','हॉटलाइन','হটলাইন','ہاٹ لائن','Hotline'], 'المركز الإعلامي':['Media centre','मीडिया केंद्र','মিডিয়া সেন্টার','میڈیا سینٹر','Media center'],
+      'المناقصات':['Tenders','निविदाएँ','টেন্ডার','ٹینڈرز','Mga Tender'], 'الوظائف':['Careers','नौकरियाँ','চাকরি','ملازمتیں','Trabaho'], 'بوابة الموظفين':['Staff portal','कर्मचारी पोर्टल','কর্মী পোর্টাল','اسٹاف پورٹل','Staff portal'],
+      'اسأل كابتن K':['Ask Captain-K','कैप्टन-K से पूछें','ক্যাপ্টেন-K কে জিজ্ঞাসা করুন','کیپٹن-K سے پوچھیں','Tanungin si Captain-K'], 'كابتن K':['Captain-K','कैप्टन-K','ক্যাপ্টেন-K','کیپٹن-K','Captain-K'],
+      'خدماتنا':['Our services','हमारी सेवाएँ','আমাদের সেবা','ہماری خدمات','Mga serbisyo'], 'خدمة العملاء':['Customer care','ग्राहक सेवा','গ্রাহক সেবা','کسٹمر کیئر','Customer care'], 'الشركة':['Company','कंपनी','কোম্পানি','کمپنی','Kumpanya'],
+      'الخطوط والمسارات':['Routes and lines','रूट और लाइनें','রুট ও লাইন','روٹس اور لائنیں','Mga ruta at linya'], 'رحلات العمرة':['Umrah trips','उमरा यात्राएँ','উমরাহ সফর','عمرہ کے سفر','Biyaheng Umrah'], 'باصات VIP':['VIP coaches','VIP बसें','VIP বাস','VIP بسیں','Mga VIP bus'],
+      'المفقودات':['Lost and found','खोया-पाया','হারানো ও প্রাপ্তি','گمشدہ اشیاء','Lost and found'], 'الشكاوى':['Complaints','शिकायतें','অভিযোগ','شکایات','Mga reklamo'], 'تواصل معنا':['Contact us','संपर्क करें','যোগাযোগ করুন','رابطہ کریں','Makipag-ugnayan'],
+      'عن KPTC':['About KPTC','KPTC के बारे में','KPTC সম্পর্কে','KPTC کے بارے میں','Tungkol sa KPTC'], 'مساحات للإيجار':['Spaces for rent','किराये की जगहें','ভাড়ার জায়গা','کرائے کی جگہیں','Mga paupahan'], 'فحص ما قبل التسليم PDI':['Pre-delivery inspection (PDI)','डिलीवरी-पूर्व जाँच (PDI)','ডেলিভারি-পূর্ব পরিদর্শন (PDI)','ڈیلیوری سے پہلے معائنہ (PDI)','Pre-delivery inspection (PDI)'],
+      'فحص PDI':['PDI inspection','PDI जाँच','PDI পরিদর্শন','PDI معائنہ','PDI inspection'], 'حسابي ومحفظتي':['My account and wallet','मेरा खाता और वॉलेट','আমার অ্যাকাউন্ট ও ওয়ালেট','میرا اکاؤنٹ اور والیٹ','Account at wallet'],
+      'شركة النقل':['Kuwait Public','कुवैत पब्लिक','কুয়েত পাবলিক','کویت پبلک','Kuwait Public'], 'العام الكويتية':['Transport Company','ट्रांसपोर्ट कंपनी','ট্রান্সপোর্ট কোম্পানি','ٹرانسپورٹ کمپنی','Transport Company'],
+      'العاصمة':['Capital','कैपिटल','ক্যাপিটাল','دارالحکومت','Capital'], 'حولي':['Hawalli','हवल्ली','হাওয়াল্লি','حولی','Hawalli'], 'الفروانية':['Farwaniya','फरवानिया','ফারওয়ানিয়া','فروانیہ','Farwaniya'], 'مبارك الكبير':['Mubarak Al-Kabeer','मुबारक अल-कबीर','মুবারক আল-কাবীর','مبارک الکبیر','Mubarak Al-Kabeer'], 'الأحمدي':['Ahmadi','अहमदी','আহমাদি','احمدی','Ahmadi'], 'الجهراء':['Jahra','जहरा','জাহরা','جہراء','Jahra'],
+      'السلة':['Cart','कार्ट','কার্ট','ٹوکری','Cart'], 'ابحث':['Search','खोजें','খুঁজুন','تلاش','Maghanap'], 'إغلاق':['Close','बंद करें','বন্ধ করুন','بند کریں','Isara'], 'التالي':['Next','आगे','পরবর্তী','اگلا','Susunod']
+    };
+    var sels = [].slice.call(document.querySelectorAll('select.lang, select.k2-lang'));
+    sels.forEach(function(s){ s.innerHTML = LANGS.map(function(l){ return '<option value="' + l[0] + '">' + l[1] + '</option>'; }).join(''); s.value = cur; s.classList.add('notranslate'); s.setAttribute('translate', 'no');
+      s.addEventListener('change', function(){ try { localStorage.setItem(KEY, s.value); } catch(x){} set(s.value, true); }); });
+    document.querySelectorAll('.num, .rc-num, .nw-chip, .cs-s, .kp-hot b, [dir="ltr"]').forEach(function(e){ e.classList.add('notranslate'); });
+    var css = document.createElement('style'); css.textContent = '.goog-te-banner-frame,.skiptranslate>iframe,#goog-gt-tt,.goog-te-balloon-frame,.VIpgJd-ZVi9od-ORHb-OEVmcd,.VIpgJd-ZVi9od-aZ2wEe-wOHMyf{display:none!important}body{top:0!important;position:static!important}#kpGT{position:absolute;left:-9999px;top:-9999px}.goog-text-highlight{background:none!important;box-shadow:none!important}html[data-kplang] body{font-family:"IBM Plex Sans Arabic","Noto Sans",system-ui,sans-serif}'; document.head.appendChild(css);
+    function cookie(v){ var h = location.hostname, exp = v ? '' : ';expires=Thu, 01 Jan 1970 00:00:00 GMT'; ['', ';domain=' + h, ';domain=.' + h.split('.').slice(-2).join('.')].forEach(function(dm){ try { document.cookie = 'googtrans=' + (v || '') + exp + ';path=/' + dm; } catch(x){} }); }
+    function local(code){ // menus only, from the built-in dictionary
+      var i = ['en','hi','bn','ur','tl'].indexOf(code); if (i < 0) return;
+      var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), n, list = []; while ((n = w.nextNode())) list.push(n);
+      list.forEach(function(n){ var p = n.parentNode; if (!p || /^(SCRIPT|STYLE|OPTION|TEXTAREA)$/.test(p.nodeName)) return; var k = n.nodeValue.replace(/\s+/g, ' ').trim(); if (D[k]){ n.__kpar = n.__kpar || n.nodeValue; n.nodeValue = n.nodeValue.replace(n.nodeValue.trim(), D[k][i]); } });
+    }
+    function combo(code, tries){ var c = document.querySelector('select.goog-te-combo'); if (c && c.options.length > 1){ document.documentElement.dir = RTL[code] ? 'rtl' : 'ltr'; c.value = code; c.dispatchEvent(new Event('change')); return; } if (tries > 0) setTimeout(function(){ combo(code, tries - 1); }, 250); else fallback(code); }
+    var failed = false;
+    function fallback(code){ if (failed) return; failed = true; local(code); document.documentElement.dir = 'rtl'; if (window.self === window.top || OWN === 'home'){ var t = document.getElementById('toast'); try { showToast('تُرجمت القوائم. الترجمة الكاملة للصفحة تعمل عند الاتصال بخدمة الترجمة.'); } catch(x){} } }
+    function set(code, user){
+      var h = document.documentElement;
+      if (code === 'ar'){ cookie(''); h.lang = 'ar'; h.dir = 'rtl'; h.removeAttribute('data-kplang'); if (user) location.reload(); return; }
+      h.setAttribute('data-kplang', code); cookie('/ar/' + code); local(code);
+      if (window.google && google.translate && document.querySelector('select.goog-te-combo')) return combo(code, 20);
+      if (document.getElementById('kpGTs')){ if (failed) { location.reload(); } return; }
+      var box = document.createElement('div'); box.id = 'kpGT'; document.body.appendChild(box);
+      window.kpGTinit = function(){ try { new google.translate.TranslateElement({pageLanguage:'ar', includedLanguages:'en,hi,bn,ur,tl', autoDisplay:false}, 'kpGT'); combo(code, 40); } catch(x){ fallback(code); } };
+      var sc = document.createElement('script'); sc.id = 'kpGTs'; sc.src = 'https://translate.google.com/translate_a/element.js?cb=kpGTinit'; sc.onerror = function(){ fallback(code); }; document.head.appendChild(sc);
+      setTimeout(function(){ if (!document.querySelector('select.goog-te-combo')) fallback(code); }, 6000);
+    }
+    window.addEventListener('storage', function(e){ if (e.key === KEY && e.newValue !== cur) location.reload(); });
+    if (cur !== 'ar') set(cur, false);
+  }
+
   /* ---- ads: a 3D K-Bus the visitor can spin, with the campaign on the faces they picked ---- */
   function bus3d(fallback){
     var host = document.getElementById('lpBus'); if (!host) return;
@@ -2043,7 +2092,7 @@ setTimeout(function(){
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); siteEdits();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); siteEdits(); i18n();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });
