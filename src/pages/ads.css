@@ -35,3 +35,18 @@
 .kp-3d-views button:hover{border-color:var(--kp-indigo)}
 .kp-3d-views button.on{background:var(--kp-ink);color:var(--kp-sign);border-color:var(--kp-ink)}
 .kp-3d-note{font-size:12.5px;color:var(--kp-muted);padding:8px 14px 12px;background:var(--kp-paper-2)}
+
+/* hero: the drawn billboard bus */
+.kp-adbus{width:min(560px,100%);animation:kp-in .8s .2s var(--kp-ease) both}
+.kp-adbus svg{display:block;width:100%;height:auto;overflow:visible}
+.kp-adbus .body{animation:ab-bob 1.6s ease-in-out infinite}
+@keyframes ab-bob{50%{translate:0 -2px}}
+.kp-adbus .spin{animation:ab-spin 1.1s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes ab-spin{to{rotate:-360deg}}
+.kp-adbus .road{animation:ab-road .7s linear infinite}
+@keyframes ab-road{to{translate:60px 0}}
+.kp-adbus .m{font:700 17px var(--f-display);fill:#14133A;text-anchor:middle;opacity:0;animation:ab-msg 9s infinite}
+.kp-adbus .m2{animation-delay:3s}.kp-adbus .m3{animation-delay:6s}
+@keyframes ab-msg{0%,36%,100%{opacity:0;translate:0 6px}4%,30%{opacity:1;translate:0 0}}
+.kp-adbus .kb{font:800 26px var(--f-display);fill:#2E2C78;text-anchor:middle}
+@media(prefers-reduced-motion:reduce){.kp-adbus *{animation:none!important}.kp-adbus .m1{opacity:1}}

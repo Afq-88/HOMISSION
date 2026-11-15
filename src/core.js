@@ -572,7 +572,25 @@
       var st = stage(document.getElementById('lpBus'), document.getElementById('lpSideAd'), 'kp-live');
       var rear = document.getElementById('lpRearAd'); if (st && rear){ st.appendChild(rear); rear.classList.add('kp-rearflag'); }
     });
-    var hero = document.querySelector('.bus-svg-wrap'); stage(hero, document.getElementById('heroBusAd'), 'kp-herobus');
+    // hero: a drawn K-Bus as a moving billboard (replaces the photo)
+    var hero = document.querySelector('.bus-svg-wrap');
+    if (hero){
+      var art = document.createElement('div'); art.className = 'kp-adbus'; art.setAttribute('role', 'img'); art.setAttribute('aria-label', 'حافلة تحمل إعلانك في شوارع الكويت');
+      var sky = ''; [[40,96,22],[70,70,16],[96,118,30],[150,84,18],[180,130,34],[236,60,14],[262,104,26],[330,90,20],[362,124,30],[420,76,18],[448,112,28],[506,94,22],[540,128,34],[590,82,18]].forEach(function(b){ sky += '<rect x="' + b[0] + '" y="' + (212 - b[1]) + '" width="' + b[2] + '" height="' + b[1] + '" rx="2"/>'; });
+      var win = ''; for (var i = 0; i < 6; i++) win += '<rect x="' + (150 + i * 66) + '" y="98" width="58" height="46" rx="6"/>';
+      function wheel(x){ return '<g transform="translate(' + x + ' 236)"><circle r="30" fill="#14133A"/><circle r="15" fill="#FFC93C"/><g class="spin" stroke="#14133A" stroke-width="4"><path d="M-15 0h30M0-15v30"/></g><circle r="4" fill="#14133A"/></g>'; }
+      art.innerHTML = '<svg viewBox="0 0 640 300" xmlns="http://www.w3.org/2000/svg">' +
+        '<g fill="rgba(255,255,255,.07)">' + sky + '<path d="M300 212V70l6-26 6 26v142z"/><circle cx="306" cy="92" r="13"/></g>' +
+        '<path d="M0 268h640" stroke="rgba(255,255,255,.22)" stroke-width="3"/><path class="road" d="M0 284h700" stroke="#FFC93C" stroke-width="4" stroke-dasharray="34 26"/>' +
+        '<g class="body"><path d="M58 96q0-30 30-30h470q34 0 34 34v112q0 18-18 18H76q-18 0-18-18z" fill="#fff" stroke="#14133A" stroke-width="5"/>' +
+        '<path d="M58 196h534v16q0 18-18 18H76q-18 0-18-18z" fill="#2E2C78"/><path d="M58 190h534" stroke="#FFC93C" stroke-width="7"/>' +
+        '<path d="M70 104q0-18 18-18h46v62H70z" fill="#BFD9F2" stroke="#14133A" stroke-width="4"/><g fill="#1F1E55">' + win + '</g>' +
+        '<rect x="548" y="96" width="30" height="92" rx="5" fill="#BFD9F2" stroke="#14133A" stroke-width="4"/><rect x="62" y="162" width="16" height="12" rx="3" fill="#FFC93C"/><rect x="574" y="160" width="14" height="18" rx="3" fill="#C2352E"/>' +
+        '<rect x="150" y="150" width="386" height="34" rx="6" fill="#FFC93C" stroke="#14133A" stroke-width="3"/>' +
+        '<text class="m m1" x="343" y="174">إعلانك هنا — يراه آلاف الركاب والمارة يومياً</text><text class="m m2" x="343" y="174">علامتك تجوب محافظات الكويت الست</text><text class="m m3" x="343" y="174">أكثر من 400 حافلة · 26 مساراً</text>' +
+        '<text x="104" y="124" class="kb">K</text></g>' + wheel(170) + wheel(480) + '</svg>';
+      hero.parentNode.insertBefore(art, hero); hero.style.display = 'none';
+    }
   }
 
   /* ---- VIP: see the coach before you book ---- */
@@ -600,11 +618,11 @@
   /* ---- the assistant is always one obvious tap away ---- */
   function assistantEntry(){
     var fab = document.querySelector('.kp-fab');
-    if (fab && !fab.querySelector('.kp-fab-t')){ var t = document.createElement('span'); t.className = 'kp-fab-t'; t.textContent = OWN === 'assistant' || OWN === 'reclient' ? 'المساعد الذكي' : 'المساعد'; fab.appendChild(t); }
+    if (fab && !fab.querySelector('.kp-fab-t')){ var t = document.createElement('span'); t.className = 'kp-fab-t'; t.textContent = OWN === 'assistant' || OWN === 'reclient' ? 'كابتن K' : 'كابتن K'; fab.appendChild(t); }
     if (OWN === 'assistant'){ try { if (sessionStorage.getItem('kptc.chat')){ sessionStorage.removeItem('kptc.chat'); setTimeout(function(){ if (typeof openChat === 'function') openChat(); }, 500); } } catch(x){} return; }
     if (fab || !document.querySelector('.k2-head, body > header') || document.querySelector('.floating-call')) return;
-    var a = link('KPTC_AI_Assistant.html', '', 'kp-ask'); a.setAttribute('aria-label', 'اسأل المساعد الذكي');
-    a.innerHTML = '<i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + P.chat + '</svg></i><span>اسأل المساعد</span><i class="kp-on" aria-hidden="true"></i>';
+    var a = link('KPTC_AI_Assistant.html', '', 'kp-ask'); a.setAttribute('aria-label', 'اسأل كابتن K');
+    a.innerHTML = '<i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + P.chat + '</svg></i><span>اسأل كابتن K</span><i class="kp-on" aria-hidden="true"></i>';
     a.addEventListener('click', function(){ try { sessionStorage.setItem('kptc.chat', '1'); } catch(x){} });
     document.body.appendChild(a);
   }
