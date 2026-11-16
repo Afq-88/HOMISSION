@@ -522,7 +522,7 @@
   }
 
   /* ---- staff portal: real sign-in, permissions, offers, colleagues' occasions (assets/portal.js) ---- */
-  function portalKit(){ if (OWN !== 'portal') return; var n = document.createElement('script'); n.src = '../assets/portal.js'; n.onload = function(){ var m = document.createElement('script'); m.src = '../assets/intranet.js'; document.head.appendChild(m); }; document.head.appendChild(n); }
+  function portalKit(){ if (OWN !== 'portal') return; var n = document.createElement('script'); n.src = '../assets/portal.js'; n.onload = function(){ var m = document.createElement('script'); m.src = '../assets/intranet.js'; m.onload = function(){ var f = document.createElement('script'); f.src = '../assets/forms.js'; document.head.appendChild(f); }; document.head.appendChild(m); }; document.head.appendChild(n); }
 
   /* ---- languages: the whole page through the free Google website translator, with a built-in
           dictionary for the menus when the translator cannot be reached ---- */

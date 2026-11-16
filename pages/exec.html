@@ -104,10 +104,8 @@
       decisions: [['تثبيت موظف بوظيفة مساعد مدير إدارة','شؤون وظيفية'],['تشكيل لجنة جرد المخازن الفنية','لجان'],['تعديل مسمى قسم بإدارة شؤون النقل','تنظيم إداري'],['ندب موظف للعمل بإدارة أخرى','شؤون وظيفية'],['اعتماد جدول المناوبات للربع القادم','تشغيل'],['تكليف رئيس قسم بالإنابة','شؤون وظيفية'],['تعميم بشأن استخدام المركبات الرسمية','تعاميم'],['تعميم بشأن إجراءات السلامة في الورش','تعاميم'],['اعتماد خطة التدريب السنوية','تدريب'],['تشكيل فريق التحول الرقمي','لجان'],['تعميم بشأن الإجازات الدورية','تعاميم'],['تحديث دليل الصلاحيات المالية','تنظيم إداري']].map(function(x, i){ return {id:String(4072897 - i).padStart(9, '0'), title:'قرار بشأن ' + x[0].replace(/^تعميم بشأن /, ''), cat:x[1], d:today(-i * 3 - 1), body:'نص توضيحي لحين ربط البوابة بأرشيف القرارات. يظهر هنا نص القرار ومرفقاته.'}; }),
       events: [{id:'E-2', d:today(6), title:'اجتماع مديري الإدارات'}, {id:'E-1', d:today(13), title:'دورة السلامة المهنية'}],
       ittickets: [],       // {id, from, cat, pri, sub, text, d, status, replies:[{from,text,d}]}
-      library: [
-        {id:'L-4', title:'دليل استخدام البوابة الداخلية', cat:'أدلة', kind:'PDF'}, {id:'L-3', title:'لائحة شؤون الموظفين', cat:'لوائح', kind:'PDF'},
-        {id:'L-2', title:'دليل إجراءات الأمن والسلامة', cat:'أدلة', kind:'PDF'}, {id:'L-1', title:'الهيكل التنظيمي للشركة', cat:'مراجع', kind:'PDF'}
-      ],
+      library: [['دليل قواعد الحوكمة (الإصدار السادس)','الحوكمة'],['قواعد الحوكمة بالشركة','الحوكمة'],['سياسات الحوكمة','الحوكمة'],['وثيقة قواعد ممارسات العمل','الحوكمة'],['لوائح شركة النقل العام','لوائح'],['نماذج المراسلات المعتمدة 2025','لوائح'],['أرشيف الإعلانات','مراجع'],['الإجراءات الأولية لمواجهة الكوارث الطبيعية','السلامة'],['إرشادات استخدام الهاتف الرقمي','إرشادات'],['دليل السياسات والإجراءات — إدارة التسويق والعلاقات العامة وخدمة العملاء','السياسات والإجراءات'],['دليل الصلاحيات المالية','السياسات والإجراءات']].map(function(x, i){ return {id:'L-' + (i + 1), title:x[0], cat:x[1], kind:'PDF'}; }),
+      requests: [],        // e-forms submitted by staff: {id, form, staff, d, data, steps:[{who, perm, status, by, at, note}], status}
       claims: [],          // {id, bid, staff, d, status:'بانتظار الاعتماد'|'مقبول'|'مرفوض'|'مستخدم', code, msgs:[{from, text, d}]}
       /* colleagues' occasions (condolences and celebrations) */
       occasions: [
@@ -157,6 +155,7 @@
     try { var raw = localStorage.getItem(KEY); if (raw) mem = JSON.parse(raw); } catch(x){}
     if (!mem) { mem = seed(); }
     var s = seed(); for (var k in s) if (!(k in mem)) mem[k] = s[k];   // forward-compatible
+    try { if (!mem.mig3){ mem.mig3 = 1; var add = {sup:['approve.forms'], hr:['approve.hr'], fin:['approve.fin']}; (mem.roles || []).forEach(function(r){ (add[r.id] || []).forEach(function(p){ if (r.perms.indexOf(p) < 0) r.perms.push(p); }); }); if (mem.library && mem.library.length <= 4) mem.library = s.library; } } catch(x){}
     try { for (var sk in mem.staff) if (/\u0623\u0648\u0631\u0627\u062f/.test(mem.staff[sk].name)) mem.staff[sk].name = 'مدير الإدارة'; } catch(x){}   // a name removed at the owner's request
     return mem;
   }
@@ -221,7 +220,7 @@
     DEPTS: ['التسويق والعلاقات العامة','شؤون النقل','الإدارة الهندسية','الورشة المركزية','الموارد البشرية','الشؤون المالية','تقنية المعلومات','المرافق والصيانة','المكتب الاستراتيجي وتطوير الأعمال'],
     PERMS: [
       ['البوابة الداخلية', [['portal.leave','طلب الإجازات'],['portal.supplies','طلب المستلزمات'],['portal.invoice','صرف الفواتير'],['portal.payslip','كشف الراتب'],['portal.benefits','المزايا والعروض'],['portal.directory','دليل الموظفين'],['portal.news','أخبار الشركة'],['portal.policies','سياسات الموارد البشرية'],['portal.occasions','واجب الزملاء (المناسبات)']]],
-      ['الاعتمادات', [['approve.leave','اعتماد الإجازات'],['approve.supplies','اعتماد المستلزمات'],['approve.invoice','اعتماد صرف الفواتير']]],
+      ['الاعتمادات', [['approve.leave','اعتماد الإجازات'],['approve.supplies','اعتماد المستلزمات'],['approve.invoice','اعتماد صرف الفواتير'],['approve.forms','اعتماد نماذج موظفي الإدارة (المسؤول المباشر)'],['approve.hr','اعتماد الشؤون الإدارية والموارد البشرية'],['approve.fin','اعتماد الشؤون المالية والمراجعة'],['approve.exec','اعتماد الإدارة التنفيذية']]],
       ['المزايا والمناسبات', [['benefits.manage','إنشاء العروض وتخصيصها'],['benefits.claims','اعتماد طلبات الاستفادة'],['occasions.post','نشر مناسبة مباشرة'],['occasions.moderate','مراجعة المناسبات المقترحة'],['portal.admin','التعاميم والقرارات والتقويم ومركز المعلومات'],['it.support','الرد على بلاغات الدعم الفني']]],
       ['محتوى الموقع', [['site.pages','إظهار الصفحات وإخفاؤها وترتيبها'],['site.texts','تحرير نصوص الصفحات'],['site.elements','إخفاء عناصر الصفحات وحقولها'],['site.home','أقسام الصفحة الرئيسية والتنبيهات'],['site.news','الأخبار والمركز الإعلامي'],['site.tenders','المناقصات'],['site.jobs','الوظائف وطلبات التوظيف'],['site.sched','مواعيد الخطوط']]],
       ['العمليات', [['ops.bookings','الحجوزات والطلبات'],['ops.wallets','محافظ العملاء'],['ops.winch','طلبات الونش والورشة'],['ops.pdi','طلبات فحص PDI']]],
@@ -1916,7 +1915,7 @@ document.querySelectorAll('.projects').forEach(function(el){observer.observe(el)
   }
 
   /* ---- staff portal: real sign-in, permissions, offers, colleagues' occasions (assets/portal.js) ---- */
-  function portalKit(){ if (OWN !== 'portal') return; var n = document.createElement('script'); n.src = '../assets/portal.js'; n.onload = function(){ var m = document.createElement('script'); m.src = '../assets/intranet.js'; document.head.appendChild(m); }; document.head.appendChild(n); }
+  function portalKit(){ if (OWN !== 'portal') return; var n = document.createElement('script'); n.src = '../assets/portal.js'; n.onload = function(){ var m = document.createElement('script'); m.src = '../assets/intranet.js'; m.onload = function(){ var f = document.createElement('script'); f.src = '../assets/forms.js'; document.head.appendChild(f); }; document.head.appendChild(m); }; document.head.appendChild(n); }
 
   /* ---- languages: the whole page through the free Google website translator, with a built-in
           dictionary for the menus when the translator cannot be reached ---- */

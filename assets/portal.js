@@ -90,9 +90,9 @@
   var nav = document.querySelector('.sb-nav');
   if (nav){
     var after = [].filter.call(nav.querySelectorAll('.sb-item'), function(i){ return viewOf(i) === 'directory'; })[0];
-    var occ = el('div', 'sb-item', '<span class="si-icon">🤝</span> واجب الزملاء <span class="sb-badge" id="ocBadge" style="display:none"></span>'); occ.setAttribute('onclick', "goTo('occasions',this)");
+    var occ = el('div', 'sb-item', '<span class="si-icon">💬</span> واجب الزملاء <span class="sb-badge" id="ocBadge" style="display:none"></span>'); occ.setAttribute('onclick', "goTo('occasions',this)");
     if (after) after.parentNode.insertBefore(occ, after.nextSibling);
-    var adm = el('a', 'sb-item', '<span class="si-icon">🛠️</span> مركز الإدارة'); adm.id = 'sbAdmin'; adm.href = 'KPTC_SiteAdmin.html'; adm.style.textDecoration = 'none';   // a real link, so the site's own navigation carries it (inside the gateway or alone)
+    var adm = el('a', 'sb-item', '<span class="si-icon">📊</span> مركز الإدارة'); adm.id = 'sbAdmin'; adm.href = 'KPTC_SiteAdmin.html'; adm.style.textDecoration = 'none';   // a real link, so the site's own navigation carries it (inside the gateway or alone)
     var prof = [].filter.call(nav.querySelectorAll('.sb-item'), function(i){ return viewOf(i) === 'settings'; })[0]; if (prof) prof.parentNode.insertBefore(adm, prof.nextSibling);
     var v = el('div', 'page-view'); v.id = 'view-occasions'; var anchor = $('view-news-content'); if (anchor) anchor.parentNode.insertBefore(v, anchor);
     try { pageNames.occasions = 'واجب الزملاء'; } catch(e){}

@@ -130,7 +130,7 @@
   try { pageNames.decisions = 'القرارات والتعاميم'; pageNames.support = 'الدعم الفني'; pageNames.library = 'مركز المعلومات'; } catch(e){}
   if (nav){
     var first = [].filter.call(nav.querySelectorAll('.sb-item'), function(i){ return /goTo\('news'/.test(i.getAttribute('onclick') || ''); })[0];
-    [['decisions','📜','القرارات والتعاميم'],['library','📚','مركز المعلومات'],['support','🛟','الدعم الفني']].forEach(function(x){ var it = el('div', 'sb-item', '<span class="si-icon">' + x[1] + '</span> ' + x[2] + (x[0] === 'support' ? ' <span class="sb-badge" id="inSupB" style="display:none"></span>' : '')); it.setAttribute('onclick', "goTo('" + x[0] + "',this)"); if (first) first.parentNode.insertBefore(it, first); });
+    [['decisions','📝','القرارات والتعاميم'],['library','📚','مركز المعلومات'],['support','🔧','الدعم الفني']].forEach(function(x){ var it = el('div', 'sb-item', '<span class="si-icon">' + x[1] + '</span> ' + x[2] + (x[0] === 'support' ? ' <span class="sb-badge" id="inSupB" style="display:none"></span>' : '')); it.setAttribute('onclick', "goTo('" + x[0] + "',this)"); if (first) first.parentNode.insertBefore(it, first); });
   }
   // the dashboard shell: one hero (greeting + the day's arc), a slim circular bar, then two tabbed cards instead of a long stack
   var wb = dash.querySelector('.welcome-banner'), hero = el('div', 'in-hero'), bar = el('div'), tabsA = el('div', 'in-card in-tabs'), row = el('div', 'in-2');
@@ -213,10 +213,10 @@
   function links(title, L){ return '<div class="in-card"><div class="in-h"><b>' + title + '</b></div><div class="in-l">' + L.map(function(l){ return '<a href="' + l[1] + '" target="_blank" rel="noopener">' + E(l[0]) + '</a>'; }).join('') + '</div></div>'; }
 
   /* ---- technical support ---- */
-  var CATS = ['برمجيات','أجهزة','الشبكة والإنترنت','البريد الإلكتروني','الطابعات','الصلاحيات وكلمات المرور','أخرى'];
+  var CATS = ['جهاز الكمبيوتر','برامج شركة النقل العام','أجهزة ملحقة بالكمبيوتر','أجهزة اتصال','الشبكة والبريد الإلكتروني','آلات التصوير'];
   function support(){
     var u = K.staffUser(), d = K.db(), all = K.can('it.support', u), L = d.ittickets.filter(function(t){ return all || t.from === u.id; });
-    return '<div class="in-card"><div class="in-h"><b>بلاغ دعم فني جديد</b></div><form class="in-form" id="inSup"><label>نوع المشكلة<select name="cat"><option value="">— حدد أحد الخيارات —</option>' + CATS.map(function(c){ return '<option>' + c + '</option>'; }).join('') + '</select></label><label>الأولوية<select name="pri"><option>عادية</option><option>عاجلة</option></select></label><label class="full">عنوان البلاغ<input name="sub"></label><label class="full">وصف المشكلة<textarea name="text" rows="3" placeholder="ماذا حدث؟ وعلى أي جهاز أو نظام؟"></textarea></label><div class="full"><button class="pt-btn k" type="submit">أرسل البلاغ</button></div></form></div>' +
+    return '<div class="in-card"><div class="in-h"><b>بلاغ دعم فني جديد</b></div><form class="in-form" id="inSup"><label>نوع المشكلة<select name="cat"><option value="">— حدد أحد الخيارات —</option>' + CATS.map(function(c){ return '<option>' + c + '</option>'; }).join('') + '</select></label><label>الأولوية<select name="pri"><option>عادية</option><option>عاجلة</option></select></label><label>الموقع<input name="loc" placeholder="مثال: المرقاب — الطابق 3"></label><label>الرقم الداخلي أو النقال<input name="ext" dir="ltr" inputmode="tel"></label><label class="full">المشكلة<input name="sub"></label><label class="full">وصف المشكلة<textarea name="text" rows="3" placeholder="ماذا حدث؟ وعلى أي جهاز أو نظام؟"></textarea></label><div class="full"><button class="pt-btn k" type="submit">أرسل البلاغ</button></div></form></div>' +
       '<div class="in-card"><div class="in-h"><b>' + (all ? 'كل البلاغات' : 'بلاغاتي') + ' <span style="color:var(--kp-muted);font-size:12.5px">(' + L.length + ')</span></b></div>' + (L.length ? L.map(function(t){ return '<div class="in-tk"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>' + E(t.sub) + '</b><span><span class="in-st in">' + E(t.cat) + '</span> <span class="in-st' + (t.status === 'مُغلق' ? ' ok' : '') + '">' + E(t.status) + '</span></span></div><span>' + E(t.text) + '</span><small style="color:var(--kp-muted)">' + E(t.id) + ' · ' + E(nameOf(t.from)) + ' · ' + K.date(t.d) + (t.pri === 'عاجلة' ? ' · عاجلة' : '') + '</small>' + t.replies.map(function(r){ return '<div class="r"><b>' + E(nameOf(r.from)) + ':</b> ' + E(r.text) + '</div>'; }).join('') +
         '<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="pt-btn" data-in="trep" data-id="' + t.id + '">أضف رداً</button>' + (all && t.status !== 'مُغلق' ? '<button class="pt-btn" data-in="tcl" data-id="' + t.id + '">أغلق البلاغ</button>' : '') + '</div></div>'; }).join('') : '<div class="in-tk" style="color:var(--kp-muted)">لا بلاغات بعد.</div>') + '</div>';
   }
@@ -229,7 +229,7 @@
   function keepFocus(fn){ var a = document.activeElement, id = a && a.id, pos = null; try { pos = a.selectionStart; } catch(e){} fn(); if (id && $(id) && $(id) !== a){ $(id).focus(); try { $(id).setSelectionRange(pos, pos); } catch(e){} } }
   function linksCard(){ var T = [['روابط هامة', LINKS], ['الصحف اليومية', PAPERS]]; return '<div class="in-card in-tabs"><div class="in-tb">' + T.map(function(t, i){ return '<button type="button" class="' + (i === linkTab ? 'on' : '') + '" data-in="tl" data-i="' + i + '">' + t[0] + '</button>'; }).join('') + '</div><div class="in-l">' + T[linkTab][1].map(function(l){ return '<a href="' + l[1] + '" target="_blank" rel="noopener">' + E(l[0]) + '</a>'; }).join('') + '</div></div>'; }
   function paint(){
-    var u = K.staffUser(); if (!u) return;
+    var u = K.staffUser(); if (!u){ vOpen = false; vAuto = {}; var gone = $('inVw'); if (gone){ gone.remove(); document.body.style.overflow = ''; } return; }
     if (document.activeElement && document.activeElement.closest && document.activeElement.closest('#inSup')) return;
     keepFocus(function(){
       hero.innerHTML = heroHTML(); bar.innerHTML = slider(); viewer(); autoShow();
@@ -259,7 +259,7 @@
   document.addEventListener('submit', function(e){
     if (e.target.id !== 'inSup') return; e.preventDefault(); var f = e.target, u = K.staffUser();
     if (!f.cat.value || !f.sub.value.trim() || !f.text.value.trim()) return toast('حدد نوع المشكلة واكتب العنوان والوصف');
-    K.db().ittickets.unshift({id:K.id('IT'), from:u.id, cat:f.cat.value, pri:f.pri.value, sub:f.sub.value.trim(), text:f.text.value.trim(), d:K.today(), status:'جديد', replies:[]}); K.log('بلاغ دعم فني من ' + u.name); f.reset(); document.activeElement && document.activeElement.blur(); K.save(); toast('وصل بلاغك إلى الدعم الفني');
+    K.db().ittickets.unshift({id:K.id('IT'), from:u.id, cat:f.cat.value, pri:f.pri.value, sub:f.sub.value.trim(), loc:f.loc.value.trim(), ext:K.latin(f.ext.value).trim(), text:f.text.value.trim(), d:K.today(), status:'جديد', replies:[]}); K.log('بلاغ دعم فني من ' + u.name); f.reset(); document.activeElement && document.activeElement.blur(); K.save(); toast('وصل بلاغك إلى الدعم الفني');
   });
   document.addEventListener('input', function(e){ if (e.target.id === 'inDq'){ dq = e.target.value.trim(); dp = 0; paint(); } if (e.target.id === 'inLq'){ lq = e.target.value.trim(); paint(); } });
   document.addEventListener('change', function(e){ if (e.target.id === 'inDc'){ dc = e.target.value; dp = 0; paint(); } });
