@@ -97,6 +97,8 @@
     var v = el('div', 'page-view'); v.id = 'view-occasions'; var anchor = $('view-news-content'); if (anchor) anchor.parentNode.insertBefore(v, anchor);
     try { pageNames.occasions = 'واجب الزملاء'; } catch(e){}
   }
+  var tb = document.querySelector('.topbar');
+  if (tb && !tb.querySelector('.tb-out')){ var out = el('button', 'tb-out', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></svg><span>تسجيل الخروج</span>'); out.type = 'button'; out.setAttribute('onclick', 'doLogout()'); tb.appendChild(out); }
   function gate(u){
     document.querySelectorAll('.sb-nav .sb-item').forEach(function(it){ var n = NEED[viewOf(it)]; it.classList.toggle('pt-off', !!n && !K.can(n, u)); });
     var a = $('sbAdmin'); if (a) a.classList.toggle('pt-off', !K.permsOf(u).some(function(p){ return /^(site|ops|admin)\.|^benefits\.(manage|claims)|^occasions\.moderate/.test(p); }));
