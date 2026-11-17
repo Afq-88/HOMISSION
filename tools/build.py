@@ -55,9 +55,12 @@ def page_layer(html, page):
     i = html.find('</head>')
     return html[:i] + '<!--kptc:page-css--><style id="kptc-layer">\n' + css + '</style><!--/kptc:page-css-->\n' + html[i:]
 
+STANDALONE = {'staffid'}   # public verification page: lean, no site chrome
+
 if __name__ == '__main__':
     for p in sorted(glob.glob(os.path.join(ROOT, 'pages/*.html'))):
         page = os.path.basename(p)[:-5]
+        if page in STANDALONE: continue
         s = open(p, encoding='utf-8').read()
         s = page_layer(decorate(inject(s), page), page)
         open(p, 'w', encoding='utf-8').write(s)

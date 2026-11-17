@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>KPTC — التحقق من هوية موظف</title>
+
+
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap");
+:root{--ind:#2E2C78;--ink:#14133A;--sign:#FFC93C;--paper:#F3F2EC;--paper2:#FAF9F5;--line:#E0DED4;--ok:#16A36A;--bad:#C2352E;--warn:#B7791F;--fd:"Noto Kufi Arabic","IBM Plex Sans Arabic",sans-serif;--fb:"IBM Plex Sans Arabic","Noto Kufi Arabic",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font:500 15px/1.75 var(--fb);min-height:100vh;font-variant-numeric:lining-nums}
+h1,h2,h3{font-family:var(--fd)}
+.bar{background:var(--ink);color:#fff;border-bottom:4px solid var(--sign)}
+.bar div{max-width:980px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:12px}
+.mk{width:34px;height:34px;border-radius:10px;background:var(--sign);color:var(--ink);display:grid;place-items:center}.mk svg{width:19px;height:19px}
+.bar b{font:800 17px var(--fd);letter-spacing:.16em;direction:ltr}.bar .t{color:#CFCDEA;font-size:13px;margin-inline-start:auto}
+main{max-width:980px;margin:0 auto;padding:34px 20px 60px;display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:34px;align-items:start;justify-content:center}
+.st{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;display:grid;gap:14px;box-shadow:0 14px 30px -22px rgba(31,29,92,.5)}
+.badge{display:flex;gap:14px;align-items:center;padding:16px;border-radius:14px;border:1.5px solid}
+.badge i{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff}.badge i svg{width:24px;height:24px}
+.badge h2{font-size:19px;line-height:1.4}.badge p{font-size:13px;color:#4C4A6B}
+.ok{background:#EAF8F1;border-color:#A8E0C6}.ok i{background:var(--ok)}
+.bad{background:#FCEDEC;border-color:#F0B8B4}.bad i{background:var(--bad)}
+.warn{background:#FFF6E3;border-color:#F0D48E}.warn i{background:var(--warn)}
+.st dl{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.st dl div{display:flex;justify-content:space-between;gap:14px;padding:11px 14px;background:#fff}.st dl div+div{border-top:1px solid var(--line)}
+.st dt{color:#6E6C85;font-size:13px}.st dd{font-weight:700;text-align:start;overflow-wrap:anywhere}.st dd.n{direction:ltr;unicode-bidi:isolate;text-align:right}
+.note{font-size:12.5px;color:#6E6C85;background:var(--paper2);border:1px dashed #CFCCBF;border-radius:10px;padding:10px 12px}
+.call{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--ind);color:#fff;border-radius:8px;padding:9px 16px;font:700 14px var(--fb);text-decoration:none}
+.btn.y{background:var(--sign);color:var(--ink)}
+@media(max-width:760px){main{grid-template-columns:1fr;gap:22px;padding-top:22px}}
+</style>
+</head>
+<body>
+<div class="bar"><div><span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><b>KPTC</b><span class="t">التحقق من هوية موظف</span></div></div>
+<main id="m"></main>
+<script src="../assets/qrcode.min.js"></script>
+<script src="../assets/staffid.js"></script>
+<script>
+(function(){
+  var m = document.getElementById('m'), d = KPStaffID.read(location.hash), E = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+  var ICON = {ok:'<path d="m5 12.5 4.5 4.5L19 7.5"/>', bad:'<path d="M6 6l12 12M18 6 6 18"/>', warn:'<path d="M12 8v5M12 16.5v.5"/>'};
+  function badge(k, h, p){ return '<div class="badge ' + k + '"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' + ICON[k] + '</svg></i><div><h2>' + h + '</h2><p>' + p + '</p></div></div>'; }
+  if (!d || !d.i || !d.n){
+    m.innerHTML = '<div class="st" style="grid-column:1/-1;max-width:560px;margin:0 auto">' + badge('bad', 'رابط الهوية غير صالح', 'لا توجد بيانات هوية في هذا الرابط. امسح رمز QR من بطاقة الموظف مباشرة.') + '<p class="note">للتأكد من أي موظف اتصل بالخط الساخن <b dir="ltr">1880001</b>.</p></div>';
+    return;
+  }
+  /* if this browser also holds the staff register (the same device or the studio), check the live record */
+  var rec = null, db = null; try { db = JSON.parse(localStorage.getItem('kptc.db.v2') || 'null'); rec = db && db.staff && db.staff[d.i] || null; } catch(e){}
+  var photo = rec && rec.photo ? '<img src="' + rec.photo + '" alt="">' : '<span class="kp-av">' + E(String(d.n).trim().charAt(0)) + '</span>';
+  var status;
+  if (rec && rec.name === d.n){
+    status = rec.status === 'active' ? badge('ok', 'هوية سارية', 'طابقنا الهوية مع سجل الموظفين على هذا الجهاز: الحساب فعّال.') : badge('bad', 'الحساب موقوف', 'هذا الموظف غير مفعّل حالياً في سجل الموظفين. لا تعتمد هذه الهوية.');
+  } else if (rec){
+    status = badge('bad', 'البيانات لا تطابق السجل', 'الاسم في الرابط يختلف عن سجل الموظفين. لا تعتمد هذه الهوية واتصل بالشركة.');
+  } else {
+    status = badge('warn', 'هوية صادرة عن KPTC', 'هذه البيانات من الرمز نفسه، ولم يمكن مطابقتها مع سجل الموظفين على هذا الجهاز. للتأكيد اتصل بالخط الساخن.');
+  }
+  var base = location.href.split('#')[0];
+  m.innerHTML = '<div id="idc"></div><div class="st">' + status +
+    '<dl><div><dt>الاسم</dt><dd>' + E(d.n) + '</dd></div><div><dt>المسمى الوظيفي</dt><dd>' + E(d.t || '—') + '</dd></div><div><dt>الإدارة</dt><dd>' + E(d.d || '—') + '</dd></div><div><dt>الرقم الوظيفي</dt><dd class="n">' + E(d.i) + '</dd></div><div><dt>في الخدمة منذ</dt><dd class="n">' + E(d.j ? d.j.split('-').reverse().join('/') : '—') + '</dd></div></dl>' +
+    '<p class="note">تحتوي هذه الصفحة على بيانات الهوية العامة فقط: الاسم والمسمى والإدارة والرقم الوظيفي. لا تعرض أي بيانات خاصة.</p>' +
+    '<div class="call"><span>للتأكد من الموظف:</span><a class="btn y" href="tel:1880001">اتصل 1880001</a></div></div>';
+  document.getElementById('idc').innerHTML = KPStaffID.card({name: d.n, title: d.t, dept: d.d, id: d.i, joined: d.j, photo: photo, qr: KPStaffID.qr(base + location.hash), url: base});
+  document.title = 'KPTC — هوية ' + d.n;
+})();
+</script>
+
+</body>
+</html>
