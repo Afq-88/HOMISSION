@@ -87,3 +87,21 @@ div:has(>#billingToggle){display:none!important}
 .k2-act button[aria-label="السلة"]{position:relative;background:var(--kp-sign)!important;border-color:var(--kp-sign)!important;color:var(--kp-ink)!important;font-weight:700!important;padding-inline:18px 14px!important;gap:10px}
 .k2-act button[aria-label="السلة"]::before{content:"";width:18px;height:18px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 7h12l-1 13H7L6 7z'/%3E%3Cpath d='M9 7a3 3 0 0 1 6 0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 7h12l-1 13H7L6 7z'/%3E%3Cpath d='M9 7a3 3 0 0 1 6 0'/%3E%3C/svg%3E") center/contain no-repeat}
 .k2-act .k2-cnt{position:static!important;background:var(--kp-ink)!important;color:var(--kp-sign)!important;min-width:22px;height:22px;border-radius:11px;display:inline-grid;place-items:center;font-size:12px;border:0!important;transform:none!important}
+
+/* a real QR: dark modules on white, with a quiet zone, large enough to scan */
+.qr-code.real{background:#fff!important;display:block!important;padding:8px;width:128px!important;height:128px!important;border:2px solid var(--kp-ink);box-sizing:border-box;border-radius:8px!important}
+.qr-code.real svg{display:block;width:100%;height:100%}
+
+/* trip form: the three controls of a row share one height and one edge */
+.route-sel-box{padding:18px!important}
+.route-sel-row{grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr)!important;gap:10px!important}
+.sel-input,.date-input{height:46px;min-height:46px;padding:0 14px!important;border-radius:8px!important;font-size:.9rem!important}
+.sel-input{-webkit-appearance:none;appearance:none;padding-inline-end:34px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%232E2C78' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E") no-repeat left 14px center}
+.swap-sm{width:44px!important;height:44px!important;border-radius:8px!important}
+.date-row{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px!important}
+.date-field{min-width:0}
+.qty-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:12px!important;align-items:center}
+.qty-ctrl{direction:ltr;display:inline-grid!important;grid-template-columns:44px 52px 44px;height:46px;border-radius:8px!important}
+.qty-btn{width:auto!important;height:100%!important;font-size:1.3rem!important}
+.qty-val{width:100%!important;height:100%;padding:0;background:#fff}
+@media(max-width:420px){.route-sel-row{grid-template-columns:1fr!important}.swap-sm{justify-self:center;rotate:90deg}.date-row{grid-template-columns:1fr}}

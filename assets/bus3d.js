@@ -14,8 +14,17 @@
     ctx.fillRect(x, y, w, h);
   }
   function fit(ctx, text, maxW, size, weight){ do { ctx.font = weight + ' ' + size + 'px ' + F_DISPLAY; size -= 2; } while (ctx.measureText(text).width > maxW && size > 12); return size + 2; }
-  function adArt(ctx, st, x, y, w, h, small, tx, tw){
+  /* a real photograph inside a rectangle: 'cover' fills it and crops the overflow, 'contain' keeps the whole picture on the brand colour */
+  function drawPhoto(ctx, im, color, x, y, w, h){
+    var el = im.el, iw = el.naturalWidth || el.width, ih = el.naturalHeight || el.height; if (!iw || !ih) return;
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    if (im.fit === 'contain'){ paint(ctx, color, x, y, w, h); var k = Math.min(w / iw, h / ih); ctx.drawImage(el, x + (w - iw * k) / 2, y + (h - ih * k) / 2, iw * k, ih * k); }
+    else { var k2 = Math.max(w / iw, h / ih), dw = iw * k2, dh = ih * k2; ctx.drawImage(el, x - (dw - w) * (im.ox == null ? .5 : im.ox), y - (dh - h) * (im.oy == null ? .5 : im.oy), dw, dh); }
+    ctx.restore();
+  }
+  function adArt(ctx, st, x, y, w, h, small, tx, tw, photo){
     paint(ctx, st.color, x, y, w, h);
+    if (photo && photo.el){ drawPhoto(ctx, photo, st.color, x, y, w, h); return; }
     var bx = x, bw = w; if (tw){ x = tx; w = tw; }
     var ink = /gradient/.test(st.color) ? '#fff' : (isLight(st.color) ? '#14133A' : '#fff');
     ctx.save(); ctx.beginPath(); ctx.rect(bx, y, bw, h); ctx.clip();
@@ -48,7 +57,7 @@
 
   /* side texture. frontRight: the bus nose is on the right edge of the image */
   function sideTex(st, on, doors, frontRight){
-    var w = 2048, h = 536, c = canvas(w, h), ctx = c.getContext('2d'), m = w / L;   // m = px per metre
+    var w = 3072, h = 804, c = canvas(w, h), ctx = c.getContext('2d'), m = w / L;   // m = px per metre
     if (!frontRight){ ctx.translate(w, 0); ctx.scale(-1, 1); }                       // draw as "nose right", mirror shapes only
     var X = function(xm){ return (xm + L / 2) * m; };                                // bus x (metres, nose = +L/2) → px
     bodyBase(ctx, w, h);
@@ -59,7 +68,10 @@
     var doorXs = doors ? [L / 2 - 2.05, -0.55] : [];
     // ad
     var ay = h * .56, ah = h * .35, wrap = on && st.mode === 'wrap';
-    if (wrap){ paint(ctx, st.color, 0, h * .112, w, h * .82); ctx.save(); ctx.globalAlpha = .55; glass(ctx, X(-L / 2 + .25), wy, (L - 1.75) * m, wh, 14); ctx.restore(); }
+    var ph = st.images && st.images[frontRight ? 'right' : 'left'];
+    if (wrap){ paint(ctx, st.color, 0, h * .112, w, h * .82);
+      if (ph && ph.el){ ctx.save(); if (!frontRight){ ctx.translate(w, 0); ctx.scale(-1, 1); } drawPhoto(ctx, ph, st.color, 0, h * .112, w, h * .82); ctx.restore(); }   // the picture is never mirrored
+      ctx.save(); ctx.globalAlpha = .55; glass(ctx, X(-L / 2 + .25), wy, (L - 1.75) * m, wh, 14); ctx.restore(); }
     var a0 = st.mode === 'half' ? WHEEL_X[1] + .85 : -L / 2 + .3, a1 = st.mode === 'half' ? WHEEL_X[0] - .85 : (doors ? L / 2 - 2.2 : L / 2 - 1.3);
     if (doors && st.mode !== 'half') a1 = L / 2 - 2.2;
     ctx.save();
@@ -67,7 +79,8 @@
     // on the door side the copy sits in the widest stretch the doors leave free
     var s0 = a0, s1 = a1; if (doors){ if (st.mode === 'half'){ s0 = 0.55; s1 = a1; } else { s0 = a0; s1 = -0.7; } }
     var u0 = frontRight ? X(s0) : w - X(s1), u1 = frontRight ? X(s1) : w - X(s0);
-    if (on) { if (wrap) adArtOnly(ctx, st, u0, ay, u1 - u0, ah); else adArt(ctx, st, t0, ay, t1 - t0, ah, false, u0, u1 - u0); }
+    if (on && ph && ph.el){ if (!wrap) adArt(ctx, st, t0, ay, t1 - t0, ah, false, 0, 0, ph); }
+    else if (on) { if (wrap) adArtOnly(ctx, st, u0, ay, u1 - u0, ah); else adArt(ctx, st, t0, ay, t1 - t0, ah, false, u0, u1 - u0); }
     else slot(ctx, t0, ay, t1 - t0, ah, 'موضع إعلانك');
     ctx.restore();
     // doors over the ad
@@ -98,12 +111,12 @@
       ctx.fillStyle = '#8FC0E4'; ctx.fillRect(0, h * .66, w, h * .27);
       ctx.fillStyle = '#1B1F26'; rr(ctx, w * .14, h * .7, w * .72, h * .07, 8); ctx.fill();   // grille
       [w * .1, w * .9].forEach(function(x){ ctx.fillStyle = '#F4F7FB'; ctx.beginPath(); ctx.ellipse(x, h * .82, 30, 20, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#FFD36A'; ctx.beginPath(); ctx.arc(x, h * .9, 9, 0, 7); ctx.fill(); });
-      if (on && st.mode !== 'wrap') adArt(ctx, st, w * .2, h * .785, w * .6, h * .1, true); else if (!on) { ctx.fillStyle = '#F2C200'; rr(ctx, w * .4, h * .8, w * .2, h * .06, 4); ctx.fill(); ctx.fillStyle = '#14133A'; ctx.font = '800 24px sans-serif'; ctx.fillText('0000', w / 2, h * .832); }
+      if (on && st.images && st.images.front && st.images.front.el) adArt(ctx, st, w * .2, h * .785, w * .6, h * .1, true, 0, 0, st.images.front); else if (on && st.mode !== 'wrap') adArt(ctx, st, w * .2, h * .785, w * .6, h * .1, true); else if (!on) { ctx.fillStyle = '#F2C200'; rr(ctx, w * .4, h * .8, w * .2, h * .06, 4); ctx.fill(); ctx.fillStyle = '#14133A'; ctx.font = '800 24px sans-serif'; ctx.fillText('0000', w / 2, h * .832); }
     } else {
       glass(ctx, w * .1, h * .15, w * .8, h * .3, 18);                                // rear window
       ctx.fillStyle = '#17181C'; ctx.fillRect(w * .12, h * .86, w * .76, h * .05);
       [w * .07, w * .93].forEach(function(x){ ctx.fillStyle = '#C2352E'; rr(ctx, x - 16, h * .5, 32, h * .2, 8); ctx.fill(); ctx.fillStyle = '#F59E0B'; rr(ctx, x - 16, h * .72, 32, h * .07, 6); ctx.fill(); });
-      if (on && st.mode !== 'wrap') adArt(ctx, st, w * .15, h * .49, w * .7, h * .34); else if (on) adArtOnly(ctx, st, w * .15, h * .49, w * .7, h * .34); else slot(ctx, w * .15, h * .49, w * .7, h * .34, 'الخلفية');
+      if (on && st.images && st.images.rear && st.images.rear.el) adArt(ctx, st, w * .15, h * .49, w * .7, h * .34, false, 0, 0, st.images.rear); else if (on && st.mode !== 'wrap') adArt(ctx, st, w * .15, h * .49, w * .7, h * .34); else if (on) adArtOnly(ctx, st, w * .15, h * .49, w * .7, h * .34); else slot(ctx, w * .15, h * .49, w * .7, h * .34, 'الخلفية');
     }
     var sh = ctx.createLinearGradient(0, 0, 0, h); sh.addColorStop(0, 'rgba(255,255,255,.08)'); sh.addColorStop(1, 'rgba(0,0,0,.25)'); ctx.fillStyle = sh; ctx.fillRect(0, 0, w, h);
     return c;
@@ -112,7 +125,7 @@
     var w = 1024, h = 256, c = canvas(w, h), ctx = c.getContext('2d');
     ctx.fillStyle = '#8FC0E4'; ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(0, h * .12, w, 5); ctx.fillRect(0, h * .86, w, 5);
-    if (on) adArt(ctx, st, w * .12, h * .2, w * .56, h * .6); else slot(ctx, w * .12, h * .2, w * .56, h * .6, 'السقف');
+    if (on) adArt(ctx, st, w * .12, h * .2, w * .56, h * .6, false, 0, 0, st.images && st.images.roof); else slot(ctx, w * .12, h * .2, w * .56, h * .6, 'السقف');
     return c;
   }
 
@@ -191,5 +204,11 @@
     refresh();
     return {refresh: refresh, look: look};
   }
-  window.KPBus3D = {mount: mount};
+  /* real-world size of every ad zone, in centimetres, for the given sticker mode: what the advertiser should design for */
+  function zones(mode){
+    var side = function(doors){ var a0 = mode === 'half' ? WHEEL_X[1] + .85 : -L / 2 + .3, a1 = mode === 'half' ? WHEEL_X[0] - .85 : (doors ? L / 2 - 2.2 : L / 2 - 1.3); return a1 - a0; };
+    var wrap = mode === 'wrap', sh = H * .35;
+    return {right:{w:wrap ? L : side(true), h:wrap ? H * .82 : sh}, left:{w:wrap ? L : side(false), h:wrap ? H * .82 : sh}, rear:{w:W * .7, h:H * (.34 * 564 / 564)}, front:{w:W * .6, h:H * .1}, roof:{w:L * .56 * (1024 / 1024), h:W * .6}};
+  }
+  window.KPBus3D = {mount: mount, zones: zones};
 })();

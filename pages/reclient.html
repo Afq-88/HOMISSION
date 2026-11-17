@@ -52,6 +52,7 @@
         assistant: true,
         texts: {},                                 // page id (or '*') -> {original text: replacement}
         hidden: {},                                // page id -> [css selectors hidden from visitors]
+        required: {},                              // page id -> {field key: true (mandatory) | false (optional)}
         sched: {}                                  // line number (or '*') -> {work:{first,last,peak,off,bands}, rest:{...}}
       },
       /* staff directory, roles and permissions (internal portal + studio) */
@@ -65,12 +66,12 @@
         {id:'admin', name:'مدير النظام', perms:['*']}
       ],
       staff: {
-        'KPTC-4821': {id:'KPTC-4821', name:'أحمد القطان', title:'مدير التسويق والعلاقات العامة', dept:'التسويق والعلاقات العامة', role:'emp', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-900)},
-        'KPTC-2891': {id:'KPTC-2891', name:'مدير الإدارة', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
-        'KPTC-ENG':  {id:'KPTC-ENG', name:'مهندس الصيانة', title:'مهندس أول', dept:'الإدارة الهندسية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
-        'KPTC-3310': {id:'KPTC-3310', name:'موظف الموارد البشرية', title:'أخصائي شؤون الموظفين', dept:'الموارد البشرية', role:'hr', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-700)},
-        'KPTC-5120': {id:'KPTC-5120', name:'محرر الموقع', title:'أخصائي محتوى رقمي', dept:'التسويق والعلاقات العامة', role:'content', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-300)},
-        'KPTC-1001': {id:'KPTC-1001', name:'مدير النظام', title:'مدير تقنية المعلومات', dept:'تقنية المعلومات', role:'admin', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2600)}
+        'KPTC-4821': {id:'KPTC-4821', email:'a.alqattan@kptc.com.kw', name:'أحمد القطان', title:'مدير التسويق والعلاقات العامة', dept:'التسويق والعلاقات العامة', role:'emp', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-900)},
+        'KPTC-2891': {id:'KPTC-2891', email:'dept.manager@kptc.com.kw', name:'مدير الإدارة', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
+        'KPTC-ENG':  {id:'KPTC-ENG', email:'engineer@kptc.com.kw', name:'مهندس الصيانة', title:'مهندس أول', dept:'الإدارة الهندسية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
+        'KPTC-3310': {id:'KPTC-3310', email:'hr.staff@kptc.com.kw', name:'موظف الموارد البشرية', title:'أخصائي شؤون الموظفين', dept:'الموارد البشرية', role:'hr', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-700)},
+        'KPTC-5120': {id:'KPTC-5120', email:'web.editor@kptc.com.kw', name:'محرر الموقع', title:'أخصائي محتوى رقمي', dept:'التسويق والعلاقات العامة', role:'content', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-300)},
+        'KPTC-1001': {id:'KPTC-1001', email:'sysadmin@kptc.com.kw', name:'مدير النظام', title:'مدير تقنية المعلومات', dept:'تقنية المعلومات', role:'admin', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2600)}
       },
       staffSession: null, staffFails: {},
       /* benefits and offers: internal or external, for everyone, departments, or named people */
@@ -156,6 +157,7 @@
     if (!mem) { mem = seed(); }
     var s = seed(); for (var k in s) if (!(k in mem)) mem[k] = s[k];   // forward-compatible
     try { if (!mem.mig3){ mem.mig3 = 1; var add = {sup:['approve.forms'], hr:['approve.hr'], fin:['approve.fin']}; (mem.roles || []).forEach(function(r){ (add[r.id] || []).forEach(function(p){ if (r.perms.indexOf(p) < 0) r.perms.push(p); }); }); if (mem.library && mem.library.length <= 4) mem.library = s.library; } } catch(x){}
+    try { var EM = {'KPTC-4821':'a.alqattan','KPTC-2891':'dept.manager','KPTC-ENG':'engineer','KPTC-3310':'hr.staff','KPTC-5120':'web.editor','KPTC-1001':'sysadmin'}; for (var ek in EM) if (mem.staff && mem.staff[ek] && !mem.staff[ek].email) mem.staff[ek].email = EM[ek] + '@kptc.com.kw'; } catch(x){}
     try { for (var sk in mem.staff) if (/\u0623\u0648\u0631\u0627\u062f/.test(mem.staff[sk].name)) mem.staff[sk].name = 'مدير الإدارة'; } catch(x){}   // a name removed at the owner's request
     return mem;
   }
@@ -216,6 +218,24 @@
     },
     isHidden: function(pid){ return K.pageState(pid) === 'off'; },
 
+    /* ---- profile photos: customers (users) and employees (staff) ---- */
+    person: function(kind, id){ var d = load(); return kind === 'staff' ? d.staff[id] : d.users[id]; },
+    photo: function(kind, id){ var o = K.person(kind, id); return o && o.photo || ''; },
+    setPhoto: function(kind, id, url){ var o = K.person(kind, id); if (!o) return; if (url) o.photo = url; else delete o.photo; log((url ? 'تحديث' : 'إزالة') + ' صورة ' + o.name); save(); },
+    /* a round avatar: the photo when there is one, otherwise the first letter */
+    avatar: function(kind, id, cls){ var o = K.person(kind, id) || {}, ph = o.photo; return ph ? '<img class="kp-av ' + (cls || '') + '" src="' + ph + '" alt="">' : '<span class="kp-av ' + (cls || '') + '">' + esc((o.name || '?').trim().charAt(0)) + '</span>'; },
+    /* opens the picker, crops the picture to a centred square, shrinks it and saves it */
+    pickPhoto: function(kind, id, done){
+      var f = document.createElement('input'); f.type = 'file'; f.accept = 'image/*'; f.style.display = 'none'; document.body.appendChild(f);
+      f.onchange = function(){ var file = f.files && f.files[0]; f.remove(); if (!file) return;
+        if (!/^image\//.test(file.type)){ if (done) done('الملف ليس صورة.'); return; }
+        var r = new FileReader(); r.onload = function(){ var im = new Image(); im.onload = function(){
+          var side = Math.min(im.width, im.height), c = document.createElement('canvas'); c.width = c.height = 320; c.getContext('2d').drawImage(im, (im.width - side) / 2, (im.height - side) / 2, side, side, 0, 0, 320, 320);
+          K.setPhoto(kind, id, c.toDataURL('image/jpeg', .82)); if (done) done(null); };
+          im.onerror = function(){ if (done) done('تعذّرت قراءة الصورة.'); }; im.src = r.result; };
+        r.readAsDataURL(file); };
+      f.click(); },
+
     /* ---- staff, roles, permissions ---- */
     DEPTS: ['التسويق والعلاقات العامة','شؤون النقل','الإدارة الهندسية','الورشة المركزية','الموارد البشرية','الشؤون المالية','تقنية المعلومات','المرافق والصيانة','المكتب الاستراتيجي وتطوير الأعمال'],
     PERMS: [
@@ -241,12 +261,19 @@
     /* pages this person may edit: everything with the role permission, otherwise the pages of their sections */
     pagesFor: function(u){ u = u || K.staffUser(); if (!u) return []; var base = K.role(u.role).perms; if (base.indexOf('*') > -1 || base.indexOf('site.texts') > -1 || (u.grant || []).indexOf('site.texts') > -1) return null; var out = []; K.sectionsOf(u).forEach(function(sc){ sc.pages.forEach(function(p){ if (out.indexOf(p) < 0) out.push(p); }); }); return out; },
     can: function(perm, u){ return K.permsOf(u).indexOf(perm) > -1; },
-    staffLogin: function(sid, pass){
-      var d = load(), now = Date.now(); sid = latin(sid || '').trim().toUpperCase(); var u = d.staff[sid], f = d.staffFails[sid] || (d.staffFails[sid] = {n:0, until:0});
+    /* the employee may sign in with the employee number, the official e-mail, the mobile or the civil number */
+    findStaff: function(q){
+      q = latin(q || '').trim(); if (!q) return null; var d = load(), low = q.toLowerCase(), digits = q.replace(/\D/g, '');
+      for (var k in d.staff){ var u = d.staff[k];
+        if (k.toUpperCase() === q.toUpperCase() || (u.email && u.email.toLowerCase() === low) || (digits.length >= 8 && ((u.phone && u.phone === digits) || (u.civil && u.civil === digits)))) return u;
+        if (/^\d{3,6}$/.test(q) && k.toUpperCase() === 'KPTC-' + q) return u; }   // the number without the prefix
+      return null; },
+    staffLogin: function(who, pass){
+      var d = load(), now = Date.now(), u = K.findStaff(who), sid = u ? u.id : (latin(who || '').trim().toUpperCase() || '-'), f = d.staffFails[sid] || (d.staffFails[sid] = {n:0, until:0});
       if (f.until > now) return {error:'الحساب مقفل مؤقتاً بعد محاولات خاطئة. حاول بعد ' + Math.ceil((f.until - now) / 1000) + ' ثانية.', locked:true};
-      if (!u || u.pass !== pass){ f.n++; if (f.n >= 5){ f.until = now + 30000; f.n = 0; log('قفل مؤقت لحساب ' + sid); } save(); return {error:'الرقم الوظيفي أو كلمة المرور غير صحيحة.' + (u && f.n >= 3 ? ' بقيت ' + (5 - f.n) + ' محاولة قبل القفل المؤقت.' : '')}; }
+      if (!u || u.pass !== pass){ f.n++; if (f.n >= 5){ f.until = now + 30000; f.n = 0; log('قفل مؤقت لحساب ' + sid); } save(); return {error:'بيانات الدخول غير صحيحة. استعمل الرقم الوظيفي أو البريد الرسمي أو رقم الجوال.' + (u && f.n >= 3 ? ' بقيت ' + (5 - f.n) + ' محاولة قبل القفل المؤقت.' : '')}; }
       if (u.status !== 'active') return {error:'هذا الحساب موقوف. راجع الموارد البشرية.'};
-      f.n = 0; u.prev = u.last || null; u.last = new Date().toISOString(); d.staffSession = sid; log('دخول موظف: ' + u.name); save(); return {user:u};
+      f.n = 0; u.prev = u.last || null; u.last = new Date().toISOString(); d.staffSession = u.id; log('دخول موظف: ' + u.name); save(); return {user:u};
     },
     staffLogout: function(){ load().staffSession = null; save(); },
     /* ---- benefits ---- */
@@ -638,6 +665,29 @@ h1{line-height:1.25}
 .kp-notice[data-tone="red"]{background:var(--kp-bad);color:#fff}
 .kp-notice[href]:hover{text-decoration:underline}
 .kp-navb{font-style:normal;font-size:10.5px;font-weight:700;background:var(--kp-sign);color:var(--kp-ink);padding:1px 6px;border-radius:2px;margin-inline-start:6px}
+
+/* profile pictures */
+.kp-av{border-radius:50%;object-fit:cover;display:inline-grid;place-items:center;flex:none;background:var(--kp-sign);color:var(--kp-ink);font:700 14px var(--f-display)}
+.kp-av-s{width:26px;height:26px;border:2px solid var(--kp-ink)}
+
+/* ===== form controls that line up everywhere (iPad Safari, Chrome, folding phones) ===== */
+input[type=date],input[type=time],input[type=datetime-local],input[type=month]{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;min-height:46px;line-height:1.4;text-align:start;font-family:inherit;background-color:#fff}
+input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:start;min-height:1.4em;margin:0}
+input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-calendar-picker-indicator{margin-inline-start:6px;cursor:pointer;opacity:.7}
+select{max-width:100%;min-width:0;box-sizing:border-box}
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea{max-width:100%;box-sizing:border-box}
+.date-row,.field-row,.fg,.fg2{min-width:0}.date-row>*,.field-row>*,.fg>*,.fg2>*{min-width:0}
+
+/* «المزيد»: the overflow menu of the main bar */
+.k2-nav{min-width:0}
+.kp-more{position:relative;display:flex;align-items:stretch;height:100%}
+.kp-more-b{display:flex;align-items:center;gap:6px;padding:0 14px;border:0;background:none;font:500 15px var(--f-body);color:var(--kp-ink);cursor:pointer;white-space:nowrap;position:relative}
+.kp-more-b i{width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;rotate:45deg;translate:0 -2px;transition:rotate .2s}
+.kp-more.open .kp-more-b i{rotate:-135deg;translate:0 2px}.kp-more-b:hover,.kp-more-b.cur{color:var(--kp-indigo);font-weight:700}
+.kp-more-p{position:absolute;top:calc(100% - 6px);inset-inline-start:0;min-width:210px;max-width:min(80vw,300px);background:#fff;border:2px solid var(--kp-ink);border-radius:10px;box-shadow:6px 6px 0 rgba(20,19,58,.16);padding:6px;display:none;z-index:300;direction:rtl}
+.kp-more.open .kp-more-p{display:grid;gap:2px;animation:kp-pop .2s var(--kp-ease) both}
+.kp-more-p a{display:flex!important;align-items:center;height:auto!important;padding:10px 12px!important;border-radius:6px;font-size:14.5px!important;white-space:nowrap}
+.kp-more-p a::after{display:none!important}.kp-more-p a:hover{background:var(--kp-paper-2)}.kp-more-p a[aria-current]{background:#FFF8E1;font-weight:700;color:var(--kp-indigo)}
 </style><!--/kptc:core-css-->
 <style>
 
@@ -842,6 +892,18 @@ footer strong{color:var(--yellow)}
 .why-card{border-radius:4px!important;border-top:4px solid var(--kp-indigo)!important}
 .cta-sec::before,.cta-sec::after{display:none!important}
 .cta-chip{border-radius:2px!important}
+
+/* hero: sized to its content instead of the whole screen, with a balanced card */
+.hero{min-height:0!important;padding:56px 24px 60px!important;align-items:stretch!important}
+.hero-wrap{grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr)!important;gap:44px!important;align-items:center!important}
+.hero h1{font-size:clamp(1.9rem,3.8vw,2.9rem)!important;margin-bottom:14px!important}
+.hero p{margin-bottom:22px!important}
+.hc-hero{justify-self:stretch;max-width:520px;width:100%;margin-inline-start:auto}
+.hero-card{padding:22px 24px!important}
+.hc-stat-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+.hcs{border-radius:8px!important;padding:14px 12px!important;text-align:center;display:grid;gap:2px}
+.hcs-v{font:700 clamp(1.5rem,2.6vw,2rem) var(--f-display)!important;line-height:1.2}
+@media(max-width:900px){.hero{padding:44px 18px 44px!important}.hero-wrap{grid-template-columns:1fr!important;gap:28px!important}.hc-hero{max-width:none;margin:0}}
 </style><!--/kptc:page-css-->
 </head>
 <body>
@@ -1833,7 +1895,7 @@ setTimeout(function(){
     if (act && !act.querySelector('.kp-acct')){
       var ghost = act.querySelector('.k2-btn-ghost, .btn-ghost'), u = K.user(), w = u && K.wallet();
       var b = link('KPTC_Account.html', '', (ghost ? ghost.className : 'k2-btn k2-btn-ghost') + ' kp-acct');
-      var paint = function(){ var u = K.user(), w = u && K.wallet(); b.innerHTML = '<i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></i>' + (u ? '<span>' + K.esc(u.name.split(' ')[0]) + '</span><b>' + K.money(w.balance) + '</b>' : '<span>حسابي</span>'); };
+      var paint = function(){ var u = K.user(), w = u && K.wallet(); b.innerHTML = (u && u.photo ? K.avatar('user', u.id, 'kp-av-s') : '<i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></i>') + (u ? '<span>' + K.esc(u.name.split(' ')[0]) + '</span><b>' + K.money(w.balance) + '</b>' : '<span>حسابي</span>'); };
       paint(); K.onChange(paint);
       if (ghost && /Portal/.test(ghost.getAttribute('href')||'')) ghost.replaceWith(b); else act.insertBefore(b, act.firstChild);
     }
@@ -1848,7 +1910,31 @@ setTimeout(function(){
       [['KPTC_PDI.html','فحص ما قبل التسليم PDI'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ var li = document.createElement('li'); li.appendChild(link(x[0], x[1], 'kp-xl')); last.appendChild(li); });
     }
     visibility();
+    fitNav();
   }
+  /* the main menu always fits: whatever does not fit the bar (and the pages that never had a slot) go under «المزيد» */
+  var EXTRA_NAV = [['KPTC_LostFound.html','المفقودات','lost'],['KPTC_PDI.html','فحص PDI','pdi']];
+  function fitNav(){
+    var nav = document.querySelector('.k2-nav'); if (!nav) return;
+    var K = window.KPTC, hide = function(id){ try { return K && K.pageState(id) === 'off'; } catch(x){ return false; } };
+    var old = nav.querySelector('.kp-more'); if (old){ [].slice.call(old.querySelectorAll('.kp-more-p a[data-own]')).forEach(function(a){ a.removeAttribute('data-own'); nav.insertBefore(a, old); }); old.remove(); }
+    if (getComputedStyle(nav).display === 'none') return;
+    var here = (location.pathname.split('/').pop() || '').replace('.html', '');
+    var more = document.createElement('div'); more.className = 'kp-more'; more.innerHTML = '<button type="button" class="kp-more-b" aria-haspopup="true" aria-expanded="false">المزيد <i aria-hidden="true"></i></button><div class="kp-more-p" role="menu"></div>';
+    var panel = more.querySelector('.kp-more-p'), pagesIn = [].map.call(nav.querySelectorAll(':scope > a'), function(a){ return a.getAttribute('href'); });
+    EXTRA_NAV.forEach(function(x){ if (hide(x[2]) || pagesIn.indexOf(x[0]) > -1) return; var a = document.createElement('a'); a.href = x[0]; a.textContent = x[1]; if (x[2] === here) a.setAttribute('aria-current', 'page'); panel.appendChild(a); });
+    nav.appendChild(more);
+    var items = [].slice.call(nav.querySelectorAll(':scope > a')), guard = 40;
+    while (nav.scrollWidth > nav.clientWidth + 1 && items.length > 1 && guard--){ var it = items.pop(); if (it.hasAttribute('aria-current')){ if (!items.length) break; var prev = items.pop(); items.push(it); it = prev; } it.setAttribute('data-own', '1'); panel.insertBefore(it, panel.firstChild); }
+    if (!panel.children.length){ more.remove(); return; }
+    if (panel.querySelector('[aria-current]')) more.querySelector('.kp-more-b').classList.add('cur');
+    var btn = more.querySelector('.kp-more-b');
+    btn.addEventListener('click', function(e){ e.stopPropagation(); var o = more.classList.toggle('open'); btn.setAttribute('aria-expanded', o); });
+    document.addEventListener('click', function(e){ if (!more.contains(e.target)){ more.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); } });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape'){ more.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); } });
+  }
+  var fitT = null; window.addEventListener('resize', function(){ clearTimeout(fitT); fitT = setTimeout(fitNav, 120); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ setTimeout(fitNav, 50); });
   var HOME_SECTIONS = {ticker:'.kx-ticker', tasks:'.kx-tasks', facts:'.facts', services:'#services', calc:'#calc', fares:'#fares', steps:'.kx-steps-sec', umrah:'.kx-umrah', sos:'.sos', biz:'#business', app:'.block.app', close:'.kx-close', contact:'#contact'};
   var tickerDefault = null;
   function visibility(){
@@ -2040,9 +2126,10 @@ setTimeout(function(){
     ['click','mousedown','mouseup','submit','pointerdown'].forEach(function(ev){ document.addEventListener(ev, function(e){
       if (e.target.closest && e.target.closest('.kp-ed')) return; e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (ev !== 'click') return;
       var t = e.target, S = K.site(), isPh = t.hasAttribute && t.hasAttribute('placeholder'), n = isPh ? null : tnode(t), orig = isPh ? (t.getAttribute('data-kpo') || t.placeholder) : n ? (n.__kpo != null ? n.__kpo : n.nodeValue).replace(/\s+/g, ' ').trim() : '', key = (isPh ? 'ph:' : '') + orig, curv = isPh ? t.placeholder : n ? n.nodeValue.trim() : '', path = sel(t), hid = ((S.hidden || {})[pid] || []).indexOf(path) > -1;
+      var isFld = !!(window.KPReq && t.matches && t.matches('input,select,textarea') && !/^(checkbox|radio|hidden|file|range|button|submit)$/.test(t.type)), rk = isFld ? KPReq.key(t) : null, rEff = isFld && rk ? KPReq.isReq(t) : false, rOv = rk ? ((S.required || {})[pid] || {})[rk] : undefined;
       close(); box = document.createElement('div'); box.className = 'kp-ed';
       box.innerHTML = '<b>' + (isPh ? 'نص الحقل الإرشادي' : orig ? 'تعديل النص' : 'عنصر بلا نص') + '</b>' + (orig ? '<textarea></textarea><small>الأصل: ' + K.esc(orig.slice(0, 90)) + '</small><label><input type="checkbox" data-all> طبّق على كل الصفحات (للنصوص المشتركة كالرأس والتذييل)</label>' : '') +
-        '<div class="r">' + (orig ? '<button class="y" data-a="save">حفظ النص</button><button data-a="orig">استرجاع الأصل</button>' : '') + '<button class="d" data-a="hide">' + (hid ? 'إظهار العنصر' : 'إخفاء العنصر') + '</button><button data-a="up">تحديد العنصر الأب</button><button data-a="x">إغلاق</button></div>';
+        (rk ? '<div class="r"><b>هذا الحقل:</b><button data-a="rq1"' + (rOv === true ? ' class="y"' : '') + '>إلزامي</button><button data-a="rq0"' + (rOv === false ? ' class="y"' : '') + '>اختياري</button><button data-a="rqd">حسب الافتراضي</button></div><small>الآن: ' + (rEff ? 'إلزامي' : 'اختياري') + (rOv === undefined ? ' (افتراضي)' : ' (معدّل)') + '</small>' : '') + '<div class="r">' + (orig ? '<button class="y" data-a="save">حفظ النص</button><button data-a="orig">استرجاع الأصل</button>' : '') + '<button class="d" data-a="hide">' + (hid ? 'إظهار العنصر' : 'إخفاء العنصر') + '</button><button data-a="up">تحديد العنصر الأب</button><button data-a="x">إغلاق</button></div>';
       document.body.appendChild(box); var ta = box.querySelector('textarea'); if (ta){ ta.value = curv; ta.focus(); }
       var r = t.getBoundingClientRect(); box.style.top = Math.max(8, Math.min(window.innerHeight - box.offsetHeight - 8, r.bottom + 8)) + 'px'; box.style.left = Math.max(8, Math.min(window.innerWidth - box.offsetWidth - 8, r.left)) + 'px';
       box.addEventListener('click', function(ev2){ var b = ev2.target.closest('[data-a]'); if (!b) return; var a = b.getAttribute('data-a'), S2 = K.site(); S2.texts = S2.texts || {}; S2.hidden = S2.hidden || {};
@@ -2050,6 +2137,7 @@ setTimeout(function(){
         if (a === 'up'){ close(); if (t.parentElement && t.parentElement !== document.body) t.parentElement.click(); return; }
         if (a === 'save' || a === 'orig'){ var scope = box.querySelector('[data-all]').checked ? '*' : pid; ['*', pid].forEach(function(sc){ if (S2.texts[sc]) delete S2.texts[sc][key]; });
           if (a === 'save' && ta.value.trim() && ta.value.trim() !== orig){ (S2.texts[scope] = S2.texts[scope] || {})[key] = ta.value.trim(); K.log('تعديل نص في ' + pid); } }
+        if (a === 'rq1' || a === 'rq0' || a === 'rqd'){ S2.required = S2.required || {}; var RQ = S2.required[pid] = S2.required[pid] || {}; if (a === 'rqd') delete RQ[rk]; else RQ[rk] = a === 'rq1'; K.log('تعديل إلزامية حقل في ' + pid, pid); K.save(); try { KPReq.mark(); } catch(z){} return close(); }
         if (a === 'hide'){ var L = S2.hidden[pid] = S2.hidden[pid] || [], i = L.indexOf(path); if (i > -1) L.splice(i, 1); else { L.push(path); K.log('إخفاء عنصر في ' + pid); } }
         K.save(); close(); });
     }, true); });
@@ -2107,6 +2195,60 @@ setTimeout(function(){
     if (cur !== 'ar') set(cur, false);
   }
 
+  /* ---- required fields: one engine for every page; the studio decides which fields are mandatory ---- */
+  var REQ_DEFAULT = {
+    umrah:['fn-ar','ln-ar','fn-en','ln-en','passport','passport-exp','l:رقم الجوال','l:الجنسية','l:رقم البطاقة','cardName','l:تاريخ الانتهاء','l:رمز الحماية CVV'],
+    vip:['d-from','d-to','d-date','d-time','d-pax','l:الاسم','l:رقم الجوال','l:تاريخ المغادرة','l:عدد الركاب','l:ليلة الديوانية','l:موقع الديوانية','l:عدد الضيوف','intl-dest'],
+    winch:['winchName','winchPhone','winchPlate','govSelect','l:الاسم','l:رقم الجوال','l:رقم اللوحة','l:الموديل والسنة','trackInput'],
+    ads:['brandName','adMessage','adContact','startDate','endDate'],
+    subs:['tk-from','tk-to','tk-date','tk-time']
+  };
+  function reqEngine(){
+    var K = window.KPTC; if (!K || !K.site) return; var pid = OWN || 'home';
+    function labelOf(el){
+      var w = el.closest('.f,.ff,.field,.pax-field,.mf,.s-field,.cf-field,.date-field,.field-row>div') || el.parentNode, lb = w && w.querySelector('label,.pax-label,.f-label,.date-label'); if (!lb) return '';
+      return lb.textContent.replace(/\(\s*اختياري\s*\)/g, '').replace(/[*✱]/g, '').replace(/^[^\p{L}\p{N}]+/u, '').replace(/\s+/g, ' ').trim();
+    }
+    function keyOf(el){ if (el.id) return el.id; if (el.name) return 'n:' + el.name; var l = labelOf(el); return l ? 'l:' + l : null; }
+    function over(){ var S = K.site(); return (S.required || {})[pid] || {}; }
+    function isReq(el){ var k = keyOf(el); if (!k) return false; var o = over(); if (k in o) return !!o[k]; if (el.getAttribute('data-req') === '0') return false; if (el.getAttribute('data-req') === '1') return true; return (REQ_DEFAULT[pid] || []).indexOf(k) > -1; }
+    function empty(el){
+      var v = (el.value || '').trim(); if (el.tagName === 'SELECT'){ var o0 = el.options[0]; return !v || (el.selectedIndex === 0 && o0 && o0.value === ''); }
+      if (/tel/.test(el.type) || /phone|tel|جوال|هاتف/i.test(keyOf(el) || '')) return K.latin(v).replace(/\D/g, '').length < 8;
+      if (el.type === 'email' && v) return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      return !v;
+    }
+    function fields(root){ return [].filter.call(root.querySelectorAll('input,select,textarea'), function(e){ return !/^(checkbox|radio|hidden|file|range|button|submit)$/.test(e.type) && !e.disabled && !e.readOnly && e.offsetParent !== null; }); }
+    var css = document.createElement('style');
+    css.textContent = '.kp-bad{border-color:#C2352E!important;box-shadow:0 0 0 3px rgba(194,53,46,.18)!important;animation:kp-shake .35s}@keyframes kp-shake{25%{translate:5px 0}75%{translate:-5px 0}}.kp-reqm::after{content:" *";color:#C2352E;font-weight:700}.kp-errt{display:block;color:#C2352E;font:600 12px var(--f-body);margin-top:4px}';
+    document.head.appendChild(css);
+    function clear(e){ e.classList.remove('kp-bad'); e.removeAttribute('aria-invalid'); var n = e.nextElementSibling; if (n && n.classList && n.classList.contains('kp-errt')) n.remove(); }
+    /* returns true when every required field inside root is filled; otherwise marks them, scrolls to the first and says why */
+    function check(root){
+      if (typeof root === 'string') root = document.querySelector(root); if (!root) return true;
+      var bad = [], names = []; fields(root).forEach(function(e){ clear(e); if (isReq(e) && empty(e)){ bad.push(e); var n = labelOf(e) || e.placeholder || ''; if (n && names.indexOf(n) < 0) names.push(n); } });
+      if (!bad.length) return true;
+      bad.forEach(function(e){ e.classList.add('kp-bad'); e.setAttribute('aria-invalid', 'true'); e.addEventListener('input', function f(){ clear(e); e.removeEventListener('input', f); }); e.addEventListener('change', function f2(){ clear(e); e.removeEventListener('change', f2); }); });
+      try { bad[0].scrollIntoView({behavior:'smooth', block:'center'}); bad[0].focus({preventScroll:true}); } catch(x){}
+      try { showToast('أكمل الحقول الإلزامية: ' + names.slice(0, 3).join('، ') + (names.length > 3 ? ' …' : '')); } catch(x){}
+      return false;
+    }
+    /* a red star on every mandatory field's label, kept current when the studio changes the rule */
+    function mark(){ document.querySelectorAll('input,select,textarea').forEach(function(e){ if (/^(checkbox|radio|hidden|file|range|button|submit)$/.test(e.type)) return; var w = e.closest('.f,.ff,.field,.pax-field,.mf,.s-field,.cf-field,.date-field'), lb = w && w.querySelector('label,.pax-label,.f-label,.date-label'); if (lb) lb.classList.toggle('kp-reqm', isReq(e)); }); }
+    window.KPReq = {key:keyOf, label:labelOf, isReq:isReq, check:check, mark:mark, over:over};
+    var G = {
+      umrah:[['nextStep', function(){ try { return '#step' + currentStep; } catch(x){ return null; } }], ['processPayment', function(){ return '#step5'; }]],
+      vip:[['confirmBooking', function(){ return '#tab-domestic'; }], ['showSuccess', function(t){ return t === 'international' ? '#tab-international' : t === 'diwaniya' ? '#tab-diwaniya' : null; }]],
+      winch:[['submitWinch', function(){ return '#pane-winch'; }], ['submitWorkshop', function(){ return '#pane-workshop'; }], ['doTrack', function(){ return '#pane-track'; }]],
+      ads:[['submitOrder', function(){ return '.page-body'; }]],
+      subs:[['addTicketToCart', function(){ return '.route-sel-box'; }]]
+    };
+    (G[pid] || []).forEach(function(g){ var o = window[g[0]]; if (typeof o !== 'function') return; window[g[0]] = function(){ var sc = g[1].apply(this, arguments); if (sc && !check(sc)) return; return o.apply(this, arguments); }; });
+    // umrah: every passenger needs a seat before moving on
+    if (pid === 'umrah' && typeof window.canAdvance === 'function'){ var ca = window.canAdvance; window.canAdvance = function(){ try { if (currentStep === 3) return selectedSeats.length === paxCounts.adult + paxCounts.child; } catch(x){} return ca.apply(this, arguments); }; }
+    mark(); K.onChange(mark); new MutationObserver(function(){ clearTimeout(mark.t); mark.t = setTimeout(mark, 200); }).observe(document.body, {childList:true, subtree:true});
+  }
+
   /* ---- small page fill-ins: Captain-K topics ---- */
   function polish(){
     if (OWN === 'assistant'){
@@ -2119,6 +2261,21 @@ setTimeout(function(){
     }
   }
 
+  /* ---- subs: the ticket's QR code is a real, scannable code (it opens the site on the subscriptions page) ---- */
+  function ticketQR(){
+    if (OWN !== 'subs') return;
+    var q = document.createElement('script'); q.src = '../assets/qrcode.min.js';
+    q.onload = function(){
+      window.generateQR = function(){
+        var box = document.getElementById('qrCode'); if (!box || !window.qrcode) return;
+        var num = (document.getElementById('tkNum') || {}).textContent || 'KPTC', base = new URL('../index.html', location.href).href.split('#')[0].split('?')[0];
+        try { var qr = window.qrcode(0, 'M'); qr.addData(base + '?ticket=' + encodeURIComponent(num.trim()) + '#/subs'); qr.make(); box.innerHTML = qr.createSvgTag({cellSize:4, margin:0, scalable:true}); box.classList.add('real'); box.setAttribute('role', 'img'); box.setAttribute('aria-label', 'رمز QR للتذكرة ' + num.trim()); } catch(e){}
+      };
+      try { window.generateQR(); } catch(e){}
+    };
+    document.head.appendChild(q);
+  }
+
   /* ---- ads: a 3D K-Bus the visitor can spin, with the campaign on the faces they picked ---- */
   function bus3d(fallback){
     var host = document.getElementById('lpBus'); if (!host) return;
@@ -2128,10 +2285,11 @@ setTimeout(function(){
       var col = '#2E2C78'; try { col = adColor; } catch(x){}
       var has = function(k){ return sel.indexOf(k) > -1; }, wrap = has('wrap'), side = wrap || has('side-full') || has('side-half');
       var faces = {right: side, left: side, rear: wrap || has('rear'), front: wrap || has('front'), roof: wrap || has('roof')};
+      var IMG = window.kpAdImages || {}; Object.keys(IMG).forEach(function(k){ if (IMG[k]) faces[k] = true; });   // a picture is always shown on its own face
       var any = faces.right || faces.rear || faces.front || faces.roof, demo = !any;
       if (demo) faces.right = faces.left = true;                      // nothing chosen yet: show a sample on the sides
       return {color: col, brand: val('brandName') || 'علامتك التجارية', message: val('adMessage') || 'رسالتك الإعلانية هنا', contact: val('adContact'), faces: faces,
-              mode: wrap ? 'wrap' : has('side-full') ? 'full' : 'half', demo: demo, inside: has('interior') || has('digital')};
+              mode: wrap ? 'wrap' : has('side-full') ? 'full' : has('side-half') ? 'half' : (IMG.right || IMG.left) ? 'full' : 'half', demo: demo, inside: has('interior') || has('digital'), images: IMG};
     }
     function load(src, cb){ var sc = document.createElement('script'); sc.src = src; sc.onload = cb; sc.onerror = fallback; document.head.appendChild(sc); }
     load('../assets/three.min.js', function(){ load('../assets/bus3d.js', function(){
@@ -2148,6 +2306,48 @@ setTimeout(function(){
       wrap.querySelector('.kp-3d-views').addEventListener('click', function(e){ var b = e.target.closest('[data-v]'); if (!b) return; api.look(b.getAttribute('data-v')); wrap.querySelectorAll('[data-v]').forEach(function(x){ x.classList.toggle('on', x === b); }); });
       var up = window.updatePreview; if (typeof up === 'function') window.updatePreview = function(){ var r = up.apply(this, arguments); try { sync(); } catch(x){} return r; };
       var tg = window.togglePosition; if (typeof tg === 'function') window.togglePosition = function(el, id){ var r = tg.apply(this, arguments); var v = {'side-full':'right','side-half':'right','rear':'rear','front':'front','roof':'roof','wrap':'hero'}[id]; if (v && el.classList.contains('selected')) api.look(v); return r; };
+      /* ---- real pictures on any face of the bus, at their true size ---- */
+      var IM = window.kpAdImages = {}, FACES = [['right','الجانب الأيمن'],['left','الجانب الأيسر'],['rear','الخلف'],['front','المقدمة'],['roof','السقف']];
+      var upBox = document.createElement('div'); upBox.className = 'kp-up'; wrap.appendChild(upBox);
+      var sym = true;
+      function cm(v){ return Math.round(v * 100); }
+      function pos(id){ return document.querySelector('[onclick*="togglePosition(this,\'' + id + '\'"]'); }
+      function ensure(face){
+        var want = {right:'side-full', left:'side-full', rear:'rear', front:'front', roof:'roof'}[face], el, sel = [];
+        try { sel = selectedPositions.map(function(p){ return p.id; }); } catch(x){}
+        if ((face === 'right' || face === 'left') && (sel.indexOf('side-full') > -1 || sel.indexOf('side-half') > -1 || sel.indexOf('wrap') > -1)) return;
+        if (sel.indexOf(want) > -1 || sel.indexOf('wrap') > -1) return; el = pos(want); if (el && !el.classList.contains('selected')) el.click();
+      }
+      function paintUp(){
+        var z = KPBus3D.zones(state().mode);
+        upBox.innerHTML = '<div class="kp-up-h"><b>ارفع تصميم إعلانك</b><small>اختر الجهة وارفع الصورة، وتظهر على الحافلة بمقاسها الحقيقي. تُختار المواضع والأسعار من البطاقات أعلاه.</small></div><div class="kp-up-g">' + FACES.map(function(f){
+          var k = f[0], im = IM[k], zz = z[k], ratio = zz.w / zz.h, warn = '', ctl = '';
+          if (im){ var ir = im.el.width / im.el.height, off = Math.abs(Math.log(ir / ratio));
+            if (off > .15) warn = '<em>نسبة صورتك ' + ir.toFixed(1) + ':1 غير نسبة المساحة ' + ratio.toFixed(1) + ':1. ' + (im.fit === 'contain' ? 'تظهر كاملة بهوامش من لون الحملة.' : 'تُقصّ الأطراف الزائدة، حرّك موضع القص أو اختر «احتواء».') + '</em>';
+            ctl = '<div class="ac"><button type="button" data-a="fit">' + (im.fit === 'contain' ? 'ملء المساحة' : 'احتواء كامل') + '</button><button type="button" data-a="rm">إزالة</button></div>' + (im.fit !== 'contain' && off > .05 ? '<label class="rg">موضع القص<input type="range" min="0" max="100" value="' + Math.round((ir > ratio ? (im.ox == null ? .5 : im.ox) : (im.oy == null ? .5 : im.oy)) * 100) + '" data-a="pos" data-h="' + (ir > ratio ? 1 : 0) + '"></label>' : ''); }
+          return '<div class="kp-up-c' + (im ? ' has' : '') + '" data-f="' + k + '"><button type="button" class="th" data-a="up" aria-label="رفع صورة ' + f[1] + '">' + (im ? '<img src="' + im.thumb + '" alt="">' : '<span>+</span>') + '</button><b>' + f[1] + '</b><small>' + cm(zz.w) + '×' + cm(zz.h) + ' سم · ' + ratio.toFixed(1) + ':1<br>الأفضل ' + Math.round(zz.w * 250) + '×' + Math.round(zz.h * 250) + ' بكسل</small>' + warn + (im ? '' : '<button type="button" class="up" data-a="up">رفع صورة</button>') + ctl + '</div>'; }).join('') + '</div>' +
+          '<label class="kp-up-s"><input type="checkbox" id="kpSym"' + (sym ? ' checked' : '') + '> الجانبان بالصورة نفسها (الأيمن والأيسر)</label>';
+      }
+      upBox.addEventListener('click', function(e){
+        var b = e.target.closest('[data-a]'); if (!b) return; var f = b.closest('[data-f]').getAttribute('data-f'), a = b.getAttribute('data-a');
+        if (a === 'up'){ var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none'; document.body.appendChild(inp);
+          inp.onchange = function(){ var file = inp.files && inp.files[0]; inp.remove(); if (!file) return; if (!/^image\//.test(file.type)) return toast('الملف ليس صورة');
+            var r = new FileReader(); r.onload = function(){ var im = new Image(); im.onload = function(){
+              var k = Math.min(1, 2600 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+              var t = document.createElement('canvas'), tk = 120 / Math.max(c.width, c.height); t.width = Math.round(c.width * tk); t.height = Math.round(c.height * tk); t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
+              var rec = {el:c, fit:'cover', ox:.5, oy:.5, name:file.name, thumb:t.toDataURL('image/jpeg', .7)};
+              IM[f] = rec; var twin = f === 'right' ? 'left' : f === 'left' ? 'right' : null; if (twin && sym) IM[twin] = Object.assign({}, rec);
+              ensure(f); if (twin && sym) ensure(twin); sync(); api.look(f); toast('رُفعت الصورة على ' + FACES.filter(function(x){ return x[0] === f; })[0][1]); };
+              im.onerror = function(){ toast('تعذّرت قراءة الصورة'); }; im.src = r.result; };
+            r.readAsDataURL(file); };
+          inp.click(); }
+        else if (a === 'rm'){ delete IM[f]; if (sym && (f === 'right' || f === 'left')) delete IM[f === 'right' ? 'left' : 'right']; sync(); }
+        else if (a === 'fit'){ var cur = IM[f].fit === 'contain' ? 'cover' : 'contain'; IM[f].fit = cur; if (sym && IM[f === 'right' ? 'left' : f === 'left' ? 'right' : '']) IM[f === 'right' ? 'left' : 'right'].fit = cur; sync(); }
+      });
+      upBox.addEventListener('input', function(e){ var b = e.target.closest('[data-a="pos"]'); if (!b) return; var f = b.closest('[data-f]').getAttribute('data-f'), v = b.value / 100, key = b.getAttribute('data-h') === '1' ? 'ox' : 'oy'; IM[f][key] = v; if (sym && (f === 'right' || f === 'left') && IM[f === 'right' ? 'left' : 'right']) IM[f === 'right' ? 'left' : 'right'][key] = v; api.refresh(); });
+      upBox.addEventListener('change', function(e){ if (e.target.id === 'kpSym') sym = e.target.checked; });
+      var syncBase = sync; sync = function(){ syncBase(); if (!upBox.contains(document.activeElement) || !document.activeElement.matches('input[type=range]')) paintUp(); };
+      function toast(t){ try { showToast(t); } catch(x){} }
       sync();
     }); });
   }
@@ -2172,12 +2372,23 @@ setTimeout(function(){
     // hero: the same 3D K-Bus, turning slowly and trying on sample campaigns
     var hero = document.querySelector('.bus-svg-wrap');
     if (hero){
-      var SAMPLES = [{n:'أصفر جريء', color:'#FFC93C', brand:'علامتك التجارية', message:'إعلانك يجوب الكويت كل يوم'}, {n:'أخضر هادئ', color:'gradient #1E7F55 #0C4A32', brand:'افتتاح قريباً', message:'يراك الركاب والمارة في كل شارع'}, {n:'كحلي فاخر', color:'#14133A', brand:'عرض الموسم', message:'أكثر من 400 حافلة · 26 مساراً'}], si = 0, api = null, timer = null;
+      var SAMPLES = [{n:'أصفر جريء', color:'#FFC93C', brand:'علامتك التجارية', message:'إعلانك يجوب الكويت كل يوم'}, {n:'أخضر هادئ', color:'#1E7F55', brand:'افتتاح قريباً', message:'يراك الركاب والمارة في كل شارع'}, {n:'أحمر لافت', color:'#DC2626', brand:'عرض الموسم', message:'أكثر من 400 حافلة · 26 مساراً'}], si = 0, api = null, timer = null;
       var h3 = document.createElement('div'); h3.className = 'kp-hero3d';
       h3.innerHTML = '<div class="kp-hero3d-v"></div><div class="kp-hero3d-b"><span>اسحب الحافلة لتدويرها</span><div>' + SAMPLES.map(function(x, i){ return '<button type="button" data-s="' + i + '" class="' + (i ? '' : 'on') + '" title="' + x.n + '" aria-label="' + x.n + '" style="--c:' + (x.color.match(/#[0-9a-f]{6}/i) || ['#FFC93C'])[0] + '"></button>'; }).join('') + '</div><a href="#livePreview" class="kp-hero3d-go">جرّب تصميمك</a></div>';
       hero.parentNode.insertBefore(h3, hero); hero.style.display = 'none';
       var pick = function(i){ si = i; h3.querySelectorAll('[data-s]').forEach(function(x, k){ x.classList.toggle('on', k === i); }); if (api) api.refresh(); };
-      h3.addEventListener('click', function(e){ var b2 = e.target.closest('[data-s]'); if (b2){ clearInterval(timer); pick(+b2.getAttribute('data-s')); } var g = e.target.closest('.kp-hero3d-go'); if (g){ e.preventDefault(); var t = document.querySelector('.kp-3d, #lpBus, .live-preview'); if (t) t.scrollIntoView({behavior:'smooth', block:'center'}); } });
+      // the sample the visitor likes becomes the real campaign in the builder, and the page scrolls to the live preview
+      function tryDesign(i){
+        var x = SAMPLES[i], set = function(id, v){ var e = document.getElementById(id); if (e){ e.value = v; e.dispatchEvent(new Event('input', {bubbles:true})); } };
+        try { adColor = x.color; } catch(z){}
+        document.querySelectorAll('.color-opt').forEach(function(c){ c.classList.toggle('selected', (c.getAttribute('style') || '').toLowerCase().indexOf(x.color.toLowerCase()) > -1); });
+        set('brandName', x.brand); set('adMessage', x.message);
+        try { var sel = selectedPositions.map(function(p){ return p.id; }); if (!sel.length){ var card = document.querySelector('[onclick*="togglePosition(this,\'side-full\'"]'); if (card) card.click(); } } catch(z){}
+        try { updatePreview(); } catch(z){}
+        var t = document.querySelector('.kp-3d') || document.querySelector('.builder-card'); if (t) t.scrollIntoView({behavior:'smooth', block:'center'});
+        try { showToast('نمط «' + x.n + '» جاهز. عدّل النصوص وارفع صورتك وشاهد النتيجة على الحافلة.'); } catch(z){}
+      }
+      h3.addEventListener('click', function(e){ var b2 = e.target.closest('[data-s]'); if (b2){ clearInterval(timer); pick(+b2.getAttribute('data-s')); try { showToast('نمط «' + SAMPLES[si].n + '» — اضغط «جرّب تصميمك» لتطبيقه على حملتك'); } catch(z){} } var g = e.target.closest('.kp-hero3d-go'); if (g){ e.preventDefault(); clearInterval(timer); tryDesign(si); } });
       window.__kpHero3d = function(ok){
         if (ok && window.KPBus3D) api = KPBus3D.mount(h3.querySelector('.kp-hero3d-v'), function(){ var x = SAMPLES[si]; return {color:x.color, brand:x.brand, message:x.message, contact:'1880001', faces:{right:true, left:true, rear:true}, mode:'full'}; });
         if (api){ timer = setInterval(function(){ if (!document.hidden) pick((si + 1) % SAMPLES.length); }, 4500); h3.querySelector('.kp-hero3d-v').addEventListener('pointerdown', function(){ clearInterval(timer); }); }
@@ -2221,7 +2432,7 @@ setTimeout(function(){
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); siteEdits(); i18n();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); ticketQR(); reqEngine(); siteEdits(); i18n();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });

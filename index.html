@@ -164,7 +164,7 @@ body.menu .drawer{transform:none}
 }
 
 /* ── MOTION ───────────────────────────────────────────────────── */
-:root{--ease:cubic-bezier(.2,.7,.2,1);--sh:30px;
+:root{--ease:cubic-bezier(.2,.7,.2,1);--sh:40px;
   --bus:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 24'%3E%3Crect x='1' y='1.5' width='44' height='17' rx='4.5' fill='%232E2C78'/%3E%3Cpath d='M1 9.5V6a4.5 4.5 0 0 1 4.5-4.5H9v8z' fill='%23BFD4FF'/%3E%3Crect x='12' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='21' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='30' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='1' y='13' width='44' height='2' fill='%23FFC93C'/%3E%3Ccircle cx='11' cy='19' r='3.6' fill='%2314133A' stroke='%23fff' stroke-width='1.4'/%3E%3Ccircle cx='34' cy='19' r='3.6' fill='%2314133A' stroke='%23fff' stroke-width='1.4'/%3E%3C/svg%3E")}
 button{transition-property:background,color,border-color,scale,transform;transition-duration:.15s}
 button:active{scale:.96}
@@ -204,7 +204,7 @@ body.viewing .viewer{top:calc(var(--hh) + var(--sh) + env(safe-area-inset-top))}
 .strip .track{position:relative;flex:1;display:flex;justify-content:space-between;align-items:center;height:100%}
 .strip .track::before{content:"";position:absolute;inset-inline:0;top:50%;height:3px;margin-top:-1.5px;background:var(--line-2)}
 .strip .fill{position:absolute;right:0;top:50%;height:3px;margin-top:-1.5px;background:var(--indigo);transition:width .6s var(--ease)}
-.strip .sbus{position:absolute;top:50%;width:28px;height:15px;margin-top:-13px;background:var(--bus) center/contain no-repeat;transition:right .6s var(--ease);pointer-events:none;z-index:2}
+.strip .sbus{position:absolute;top:50%;width:26px;height:14px;margin-top:-21px;filter:drop-shadow(0 1px 1px rgba(20,19,58,.25));background:var(--bus) center/contain no-repeat;transition:right .6s var(--ease);pointer-events:none;z-index:2}
 .strip .dot{position:relative;width:20px;height:100%;display:grid;place-items:center;background:none;border:0;cursor:pointer;padding:0;z-index:1}
 .strip .dot::before{content:"";width:11px;height:11px;border-radius:50%;background:#fff;border:3px solid var(--c);box-sizing:border-box;transition:scale .2s,background .2s}
 .strip .dot.seen::before{background:var(--c)}
@@ -266,6 +266,9 @@ body.touring .tour-tag{display:flex}
 .strip.off .sbus,.strip.off .fill{opacity:0}
 @media(max-width:1020px){.g-users .stops{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.g-users .stops{grid-template-columns:1fr}.tour-tag b{display:none}}
+/* very narrow screens (folded phones' cover displays): the header shrinks instead of clipping its buttons */
+@media(max-width:420px){.hd{gap:3px;padding-inline:6px}.hb{min-width:34px;height:36px;padding:0 6px}.crumb{padding-inline:6px}.crumb b{font-size:.78rem}}
+@media(max-width:340px){.hd{padding-inline:4px;gap:2px}.hb{min-width:30px;padding:0 4px}.hb .i{width:16px;height:16px}.crumb{display:none}.hd .hb:nth-last-of-type(2){display:none}}
 </style>
 </head>
 <body>
@@ -381,7 +384,12 @@ var seen={},last='';
 try{seen=JSON.parse(localStorage.getItem('kptc.seen')||'{}')||{};last=localStorage.getItem('kptc.last')||''}catch(x){}
 function remember(id){seen[id]=1;last=id;try{localStorage.setItem('kptc.seen',JSON.stringify(seen));localStorage.setItem('kptc.last',id)}catch(x){}
   document.querySelectorAll('[data-id="'+id+'"]').forEach(function(e){if(e.classList.contains('card')||e.classList.contains('dot'))e.classList.add('seen')})}
-var prevIdx=-1;
+var prevIdx=-1,curPct=0;
+/* the bus rides exactly over the active stop: the stops are inset by half a dot from each end of the track */
+function placeBus(){var tr=document.getElementById('track'),b=document.getElementById('sbus'),f=document.getElementById('fill');if(!tr||!b||!f)return;
+  var d=tr.querySelector('.dot'),D=d?d.offsetWidth:20,W=tr.clientWidth||1,x=D/2+curPct*(W-D);
+  f.style.width=x+'px';b.style.right=(x-(b.offsetWidth||26)/2)+'px'}
+window.addEventListener('resize',placeBus);
 
 function decode(b){var s=atob(b),u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new TextDecoder('utf-8').decode(u)}
 
@@ -431,8 +439,7 @@ function show(id){
   document.getElementById('strip').classList.toggle('off',!inSeq);
   document.getElementById('viewer').classList.toggle('back',prevIdx>-1&&i<prevIdx);prevIdx=i;
   var pct=ORDER.length>1&&inSeq?i/(ORDER.length-1):0,tw=document.getElementById('track').clientWidth||1;
-  document.getElementById('fill').style.width=(pct*100)+'%';
-  document.getElementById('sbus').style.right='calc('+(pct*100)+'% - 14px)';
+  curPct=pct;placeBus();
   document.querySelectorAll('.strip .dot').forEach(function(d){d.classList.toggle('on',d.getAttribute('data-id')===id)});
   document.getElementById('loaderNext').textContent=p.t;
   remember(id);

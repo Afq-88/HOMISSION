@@ -45,12 +45,14 @@
   '.oc-book textarea{width:100%;box-sizing:border-box;border:1.5px solid var(--kp-line-2,#cfcde6);border-radius:6px;padding:8px;font:500 13px var(--f-body);min-height:56px;resize:vertical}',
   '.pt-form{display:grid;gap:10px}.pt-form label{display:grid;gap:4px;font-size:.78rem;font-weight:700;color:var(--kp-ink)}.pt-form input,.pt-form select,.pt-form textarea{border:1.5px solid var(--kp-line-2,#cfcde6);border-radius:6px;padding:8px 10px;font:500 14px var(--f-body);background:#fff}',
   '.pt-chips{display:flex;flex-wrap:wrap;gap:5px}.pt-chips span{font-size:11.5px;background:var(--kp-paper-2,#f1efe6);border-radius:12px;padding:2px 10px;color:var(--kp-ink)}',
+  '.kp-av-f{width:100%;height:100%;font-size:inherit;font-weight:700}.pt-up{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.pt-up .pt-btn{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.4)}.pt-up .pt-btn:hover{background:var(--kp-sign);color:var(--kp-ink)}',
   '.pt-kv{display:flex;justify-content:space-between;gap:10px;font-size:.82rem}.pt-kv span{color:var(--gray)}'
   ].join('\n');
   document.head.appendChild(css);
 
   /* ---------- 1. sign-in ---------- */
   var idIn = $('empId'), pwIn = $('empPass'), btn = document.querySelector('.btn-login');
+  if (idIn){ var lab = idIn.parentNode.querySelector('.lc-label'); if (lab) lab.textContent = 'الرقم الوظيفي أو البريد الرسمي أو الجوال'; idIn.placeholder = 'KPTC-0000  ·  name@kptc.com.kw  ·  55501234'; idIn.setAttribute('autocapitalize', 'off'); idIn.setAttribute('autocorrect', 'off'); idIn.setAttribute('spellcheck', 'false'); idIn.setAttribute('inputmode', 'email'); idIn.setAttribute('dir', 'ltr'); }
   if (idIn && pwIn && btn){
     idIn.value = ''; pwIn.value = ''; idIn.setAttribute('autocomplete', 'username'); pwIn.setAttribute('autocomplete', 'current-password');
     var err = el('div', 'lc-err'); err.id = 'lcErr'; btn.parentNode.insertBefore(err, btn);
@@ -104,10 +106,20 @@
     var a = $('sbAdmin'); if (a) a.classList.toggle('pt-off', !K.permsOf(u).some(function(p){ return /^(site|ops|admin)\.|^benefits\.(manage|claims)|^occasions\.moderate/.test(p); }));
     var r = $('sbRole'); if (r && !r.parentNode.querySelector('.pt-role')) r.parentNode.appendChild(el('span', 'pt-role')); var rb = document.querySelector('.sb-user .pt-role'); if (rb) rb.textContent = K.role(u.role).name;
     document.querySelectorAll('.ph-badge').forEach(function(b, i){ if (i === 0) b.textContent = u.id; });
+    avatars(u);
   }
   var gt = window.goTo; window.goTo = function(page){ var u = K.staffUser(), n = NEED[page]; if (u && n && !K.can(n, u)){ toast('هذه الصفحة ليست ضمن صلاحيات حسابك'); return; } var r = gt.apply(this, arguments); paintAll(); return r; };
 
   /* ---------- 3. my account card (profile) ---------- */
+  /* the employee's picture: sidebar, top bar and profile; the profile avatar and a button change it */
+  function avatars(u){
+    var html = K.avatar('staff', u.id, 'kp-av-f');
+    ['sbAvatar', 'tbAvatar', 'profileAvatar'].forEach(function(id){ var e = $(id); if (!e) return; e.innerHTML = html; e.style.overflow = 'hidden'; e.style.padding = '0'; e.style.display = 'grid'; e.style.placeItems = 'center'; });
+    var pa = $('profileAvatar'); if (pa && !pa.getAttribute('data-up')){ pa.setAttribute('data-up', '1'); pa.style.cursor = 'pointer'; pa.title = 'تغيير الصورة'; pa.addEventListener('click', function(){ pick(); });
+      var box = pa.parentNode.querySelector('.ph-info'); if (box){ var row = el('div', 'pt-up', '<button type="button" class="pt-btn" data-ph="up">تغيير صورتي</button><button type="button" class="pt-btn" data-ph="rm" id="ptRm">إزالة</button>'); box.appendChild(row); row.addEventListener('click', function(e){ var b = e.target.closest('[data-ph]'); if (!b) return; if (b.getAttribute('data-ph') === 'up') pick(); else { K.setPhoto('staff', K.staffUser().id, ''); toast('أُزيلت الصورة'); } }); } }
+    var rm = $('ptRm'); if (rm) rm.style.display = u.photo ? '' : 'none';
+  }
+  function pick(){ K.pickPhoto('staff', K.staffUser().id, function(err){ toast(err || 'تم تحديث صورتك'); }); }
   function account(u){
     var host = document.querySelector('#view-profile .profile-grid'); if (!host) return; var c = $('ptAcc'); if (!c){ c = el('div', 'fcard'); c.id = 'ptAcc'; c.style.gridColumn = '1/-1'; host.appendChild(c); }
     var labels = {}; K.PERMS.forEach(function(g){ g[1].forEach(function(p){ labels[p[0]] = p[1]; }); });
@@ -175,7 +187,7 @@
       $('ptOc').onsubmit = function(ev){ ev.preventDefault(); var f = ev.target; if (!f.name.value.trim() || !f.text.value.trim()) return toast('اكتب صاحب المناسبة والنص'); d.occasions.unshift({id:K.id('O'), kind:f.kind.value, name:f.name.value.trim(), dept:f.dept.value, text:f.text.value.trim(), date:f.date.value, time:'', place:f.place.value.trim(), status:direct ? 'منشور' : 'بانتظار المراجعة', by:u.id, marks:{}, book:[]}); K.log('مناسبة مقترحة من ' + u.name); K.save(); closeModal(); toast(direct ? 'نُشرت المناسبة' : 'وصلت للموارد البشرية للمراجعة'); }; }
   });
 
-  function paintAll(){ var u = K.staffUser(); if (!u) return; try { gate(u); account(u); offers(u); occasions(u); strip(u); } catch(e){ console.error(e); } }
+  function paintAll(){ var u = K.staffUser(); if (!u) return; try { gate(u); avatars(u); account(u); offers(u); occasions(u); strip(u); } catch(e){ console.error(e); } }
   K.onChange(function(){ var u = K.staffUser(); if (!u && $('portal').classList.contains('show')){ $('portal').classList.remove('show'); $('loginPage').style.display = 'flex'; return; } if (document.activeElement && /TEXTAREA|INPUT/.test(document.activeElement.tagName) && document.activeElement.closest('#view-occasions,#modalBody,#ptPw')) return; paintAll(); });
   var me = K.staffUser(); if (me) enter(me, true);
 })();

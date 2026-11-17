@@ -45,6 +45,7 @@
         assistant: true,
         texts: {},                                 // page id (or '*') -> {original text: replacement}
         hidden: {},                                // page id -> [css selectors hidden from visitors]
+        required: {},                              // page id -> {field key: true (mandatory) | false (optional)}
         sched: {}                                  // line number (or '*') -> {work:{first,last,peak,off,bands}, rest:{...}}
       },
       /* staff directory, roles and permissions (internal portal + studio) */
@@ -58,12 +59,12 @@
         {id:'admin', name:'مدير النظام', perms:['*']}
       ],
       staff: {
-        'KPTC-4821': {id:'KPTC-4821', name:'أحمد القطان', title:'مدير التسويق والعلاقات العامة', dept:'التسويق والعلاقات العامة', role:'emp', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-900)},
-        'KPTC-2891': {id:'KPTC-2891', name:'مدير الإدارة', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
-        'KPTC-ENG':  {id:'KPTC-ENG', name:'مهندس الصيانة', title:'مهندس أول', dept:'الإدارة الهندسية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
-        'KPTC-3310': {id:'KPTC-3310', name:'موظف الموارد البشرية', title:'أخصائي شؤون الموظفين', dept:'الموارد البشرية', role:'hr', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-700)},
-        'KPTC-5120': {id:'KPTC-5120', name:'محرر الموقع', title:'أخصائي محتوى رقمي', dept:'التسويق والعلاقات العامة', role:'content', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-300)},
-        'KPTC-1001': {id:'KPTC-1001', name:'مدير النظام', title:'مدير تقنية المعلومات', dept:'تقنية المعلومات', role:'admin', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2600)}
+        'KPTC-4821': {id:'KPTC-4821', email:'a.alqattan@kptc.com.kw', name:'أحمد القطان', title:'مدير التسويق والعلاقات العامة', dept:'التسويق والعلاقات العامة', role:'emp', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-900)},
+        'KPTC-2891': {id:'KPTC-2891', email:'dept.manager@kptc.com.kw', name:'مدير الإدارة', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
+        'KPTC-ENG':  {id:'KPTC-ENG', email:'engineer@kptc.com.kw', name:'مهندس الصيانة', title:'مهندس أول', dept:'الإدارة الهندسية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
+        'KPTC-3310': {id:'KPTC-3310', email:'hr.staff@kptc.com.kw', name:'موظف الموارد البشرية', title:'أخصائي شؤون الموظفين', dept:'الموارد البشرية', role:'hr', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-700)},
+        'KPTC-5120': {id:'KPTC-5120', email:'web.editor@kptc.com.kw', name:'محرر الموقع', title:'أخصائي محتوى رقمي', dept:'التسويق والعلاقات العامة', role:'content', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-300)},
+        'KPTC-1001': {id:'KPTC-1001', email:'sysadmin@kptc.com.kw', name:'مدير النظام', title:'مدير تقنية المعلومات', dept:'تقنية المعلومات', role:'admin', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2600)}
       },
       staffSession: null, staffFails: {},
       /* benefits and offers: internal or external, for everyone, departments, or named people */
@@ -149,6 +150,7 @@
     if (!mem) { mem = seed(); }
     var s = seed(); for (var k in s) if (!(k in mem)) mem[k] = s[k];   // forward-compatible
     try { if (!mem.mig3){ mem.mig3 = 1; var add = {sup:['approve.forms'], hr:['approve.hr'], fin:['approve.fin']}; (mem.roles || []).forEach(function(r){ (add[r.id] || []).forEach(function(p){ if (r.perms.indexOf(p) < 0) r.perms.push(p); }); }); if (mem.library && mem.library.length <= 4) mem.library = s.library; } } catch(x){}
+    try { var EM = {'KPTC-4821':'a.alqattan','KPTC-2891':'dept.manager','KPTC-ENG':'engineer','KPTC-3310':'hr.staff','KPTC-5120':'web.editor','KPTC-1001':'sysadmin'}; for (var ek in EM) if (mem.staff && mem.staff[ek] && !mem.staff[ek].email) mem.staff[ek].email = EM[ek] + '@kptc.com.kw'; } catch(x){}
     try { for (var sk in mem.staff) if (/\u0623\u0648\u0631\u0627\u062f/.test(mem.staff[sk].name)) mem.staff[sk].name = 'مدير الإدارة'; } catch(x){}   // a name removed at the owner's request
     return mem;
   }
@@ -209,6 +211,24 @@
     },
     isHidden: function(pid){ return K.pageState(pid) === 'off'; },
 
+    /* ---- profile photos: customers (users) and employees (staff) ---- */
+    person: function(kind, id){ var d = load(); return kind === 'staff' ? d.staff[id] : d.users[id]; },
+    photo: function(kind, id){ var o = K.person(kind, id); return o && o.photo || ''; },
+    setPhoto: function(kind, id, url){ var o = K.person(kind, id); if (!o) return; if (url) o.photo = url; else delete o.photo; log((url ? 'تحديث' : 'إزالة') + ' صورة ' + o.name); save(); },
+    /* a round avatar: the photo when there is one, otherwise the first letter */
+    avatar: function(kind, id, cls){ var o = K.person(kind, id) || {}, ph = o.photo; return ph ? '<img class="kp-av ' + (cls || '') + '" src="' + ph + '" alt="">' : '<span class="kp-av ' + (cls || '') + '">' + esc((o.name || '?').trim().charAt(0)) + '</span>'; },
+    /* opens the picker, crops the picture to a centred square, shrinks it and saves it */
+    pickPhoto: function(kind, id, done){
+      var f = document.createElement('input'); f.type = 'file'; f.accept = 'image/*'; f.style.display = 'none'; document.body.appendChild(f);
+      f.onchange = function(){ var file = f.files && f.files[0]; f.remove(); if (!file) return;
+        if (!/^image\//.test(file.type)){ if (done) done('الملف ليس صورة.'); return; }
+        var r = new FileReader(); r.onload = function(){ var im = new Image(); im.onload = function(){
+          var side = Math.min(im.width, im.height), c = document.createElement('canvas'); c.width = c.height = 320; c.getContext('2d').drawImage(im, (im.width - side) / 2, (im.height - side) / 2, side, side, 0, 0, 320, 320);
+          K.setPhoto(kind, id, c.toDataURL('image/jpeg', .82)); if (done) done(null); };
+          im.onerror = function(){ if (done) done('تعذّرت قراءة الصورة.'); }; im.src = r.result; };
+        r.readAsDataURL(file); };
+      f.click(); },
+
     /* ---- staff, roles, permissions ---- */
     DEPTS: ['التسويق والعلاقات العامة','شؤون النقل','الإدارة الهندسية','الورشة المركزية','الموارد البشرية','الشؤون المالية','تقنية المعلومات','المرافق والصيانة','المكتب الاستراتيجي وتطوير الأعمال'],
     PERMS: [
@@ -234,12 +254,19 @@
     /* pages this person may edit: everything with the role permission, otherwise the pages of their sections */
     pagesFor: function(u){ u = u || K.staffUser(); if (!u) return []; var base = K.role(u.role).perms; if (base.indexOf('*') > -1 || base.indexOf('site.texts') > -1 || (u.grant || []).indexOf('site.texts') > -1) return null; var out = []; K.sectionsOf(u).forEach(function(sc){ sc.pages.forEach(function(p){ if (out.indexOf(p) < 0) out.push(p); }); }); return out; },
     can: function(perm, u){ return K.permsOf(u).indexOf(perm) > -1; },
-    staffLogin: function(sid, pass){
-      var d = load(), now = Date.now(); sid = latin(sid || '').trim().toUpperCase(); var u = d.staff[sid], f = d.staffFails[sid] || (d.staffFails[sid] = {n:0, until:0});
+    /* the employee may sign in with the employee number, the official e-mail, the mobile or the civil number */
+    findStaff: function(q){
+      q = latin(q || '').trim(); if (!q) return null; var d = load(), low = q.toLowerCase(), digits = q.replace(/\D/g, '');
+      for (var k in d.staff){ var u = d.staff[k];
+        if (k.toUpperCase() === q.toUpperCase() || (u.email && u.email.toLowerCase() === low) || (digits.length >= 8 && ((u.phone && u.phone === digits) || (u.civil && u.civil === digits)))) return u;
+        if (/^\d{3,6}$/.test(q) && k.toUpperCase() === 'KPTC-' + q) return u; }   // the number without the prefix
+      return null; },
+    staffLogin: function(who, pass){
+      var d = load(), now = Date.now(), u = K.findStaff(who), sid = u ? u.id : (latin(who || '').trim().toUpperCase() || '-'), f = d.staffFails[sid] || (d.staffFails[sid] = {n:0, until:0});
       if (f.until > now) return {error:'الحساب مقفل مؤقتاً بعد محاولات خاطئة. حاول بعد ' + Math.ceil((f.until - now) / 1000) + ' ثانية.', locked:true};
-      if (!u || u.pass !== pass){ f.n++; if (f.n >= 5){ f.until = now + 30000; f.n = 0; log('قفل مؤقت لحساب ' + sid); } save(); return {error:'الرقم الوظيفي أو كلمة المرور غير صحيحة.' + (u && f.n >= 3 ? ' بقيت ' + (5 - f.n) + ' محاولة قبل القفل المؤقت.' : '')}; }
+      if (!u || u.pass !== pass){ f.n++; if (f.n >= 5){ f.until = now + 30000; f.n = 0; log('قفل مؤقت لحساب ' + sid); } save(); return {error:'بيانات الدخول غير صحيحة. استعمل الرقم الوظيفي أو البريد الرسمي أو رقم الجوال.' + (u && f.n >= 3 ? ' بقيت ' + (5 - f.n) + ' محاولة قبل القفل المؤقت.' : '')}; }
       if (u.status !== 'active') return {error:'هذا الحساب موقوف. راجع الموارد البشرية.'};
-      f.n = 0; u.prev = u.last || null; u.last = new Date().toISOString(); d.staffSession = sid; log('دخول موظف: ' + u.name); save(); return {user:u};
+      f.n = 0; u.prev = u.last || null; u.last = new Date().toISOString(); d.staffSession = u.id; log('دخول موظف: ' + u.name); save(); return {user:u};
     },
     staffLogout: function(){ load().staffSession = null; save(); },
     /* ---- benefits ---- */

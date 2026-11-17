@@ -12,3 +12,15 @@
 .why-card{border-radius:4px!important;border-top:4px solid var(--kp-indigo)!important}
 .cta-sec::before,.cta-sec::after{display:none!important}
 .cta-chip{border-radius:2px!important}
+
+/* hero: sized to its content instead of the whole screen, with a balanced card */
+.hero{min-height:0!important;padding:56px 24px 60px!important;align-items:stretch!important}
+.hero-wrap{grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr)!important;gap:44px!important;align-items:center!important}
+.hero h1{font-size:clamp(1.9rem,3.8vw,2.9rem)!important;margin-bottom:14px!important}
+.hero p{margin-bottom:22px!important}
+.hc-hero{justify-self:stretch;max-width:520px;width:100%;margin-inline-start:auto}
+.hero-card{padding:22px 24px!important}
+.hc-stat-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+.hcs{border-radius:8px!important;padding:14px 12px!important;text-align:center;display:grid;gap:2px}
+.hcs-v{font:700 clamp(1.5rem,2.6vw,2rem) var(--f-display)!important;line-height:1.2}
+@media(max-width:900px){.hero{padding:44px 18px 44px!important}.hero-wrap{grid-template-columns:1fr!important;gap:28px!important}.hc-hero{max-width:none;margin:0}}

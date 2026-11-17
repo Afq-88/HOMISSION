@@ -12,13 +12,24 @@
 .seg button.on{background:var(--kp-ink);color:var(--kp-sign)}
 .demo{font-size:12.5px;color:var(--kp-muted);background:var(--kp-paper-2);border:1px dashed var(--kp-line-2);border-radius:4px;padding:9px 12px;margin-top:6px}
 .top{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;margin-bottom:22px}
-.hello{background:#fff;border:1px solid var(--kp-line);border-radius:6px;padding:24px;display:grid;gap:14px;align-content:space-between}
-.hello h2{font-size:26px}
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);border-top:2px solid var(--kp-ink)}
-.kpis div{padding:12px 0 0;border-inline-start:1px solid var(--kp-line-2);padding-inline-start:14px}
-.kpis div:first-child{border:0;padding-inline-start:0}
-.kpis b{display:block;font:700 26px/1.2 var(--f-display);color:var(--kp-indigo)}
-.kpis span{font-size:12.5px;color:var(--kp-muted)}
+.hello{background:#fff;border:1px solid var(--kp-line);border-radius:14px;padding:22px;display:grid;gap:18px;align-content:space-between}
+.me-top{display:flex;align-items:center;gap:18px;min-width:0}
+.me-av{position:relative;flex:none;width:92px;height:92px;border-radius:50%;border:3px solid var(--kp-ink);padding:0;background:var(--kp-sign);cursor:pointer;box-shadow:4px 4px 0 var(--kp-ink);overflow:visible}
+.me-av .kp-av{width:100%;height:100%;border-radius:50%;object-fit:cover;display:grid;place-items:center;font:700 36px var(--f-display);color:var(--kp-ink);background:var(--kp-sign)}
+.me-av .cam{position:absolute;bottom:-4px;left:-4px;width:32px;height:32px;border-radius:50%;background:var(--kp-ink);color:var(--kp-sign);display:grid;place-items:center;border:2px solid #fff;transition:scale .2s}
+.me-av .cam svg{width:16px;height:16px}.me-av:hover .cam{scale:1.15}
+.me-id{min-width:0;display:grid;gap:8px;justify-items:start}
+.me-id h2{font-size:clamp(20px,2.6vw,26px);line-height:1.3;overflow-wrap:anywhere}
+.me-meta{display:flex;flex-wrap:wrap;gap:6px 8px}
+.me-meta>*{font:600 12.5px var(--f-body);color:var(--kp-ink);background:var(--kp-paper-2);border:1px solid var(--kp-line);border-radius:14px;padding:3px 11px;white-space:nowrap}
+.me-rm{border:0;background:none;color:var(--kp-muted);font:600 12px var(--f-body);cursor:pointer;text-decoration:underline;padding:0}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.kpis div{background:var(--kp-paper-2);border:1px solid var(--kp-line);border-radius:12px;padding:12px 14px;display:grid;gap:2px;align-content:space-between;text-align:start}
+.kpis b{display:block;font:700 28px/1.15 var(--f-display);color:var(--kp-indigo);font-variant-numeric:tabular-nums}
+.kpis span{font-size:12.5px;color:var(--kp-muted);line-height:1.5}
+.me-act{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px}.me-act .btn{justify-content:center;text-align:center}
+.me-act .out{border-color:var(--kp-bad);color:var(--kp-bad)}
+@media(max-width:560px){.me-top{flex-direction:column;text-align:center}.me-id{justify-items:center}.me-meta{justify-content:center}.kpis b{font-size:23px}}
 /* wallet card: a transit smart card */
 .card{position:relative;background:var(--kp-indigo);color:#fff;border-radius:12px;padding:22px 24px;overflow:hidden;min-height:214px;display:grid;align-content:space-between;box-shadow:var(--sh-3)}
 .card::before{content:"";position:absolute;inset:auto -40px -70px auto;width:240px;height:240px;border-radius:50%;border:34px solid rgba(255,201,60,.16)}
@@ -86,9 +97,12 @@
   <section id="vMe" hidden>
     <div class="top">
       <div class="hello">
-        <div><h2 id="meName"></h2><p class="sd" id="meSince" style="margin:0"></p></div>
-        <div class="kpis"><div><b class="num" id="kAct">0</b><span>طلبات نشطة</span></div><div><b class="num" id="kAll">0</b><span>إجمالي الطلبات</span></div><div><b id="kSub">—</b><span>اشتراكك</span></div></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn o sm" href="KPTC_Subscriptions.html">اشتراك جديد</a><a class="btn o sm" href="KPTC_Umrah.html">حجز عمرة</a><a class="btn o sm" href="KPTC_VIP.html">حجز VIP</a><a class="btn o sm" href="KPTC_Winch.html">طلب ونش</a><button class="btn o sm" type="button" id="outBtn">تسجيل الخروج</button></div>
+        <div class="me-top">
+          <button class="me-av" id="meAv" type="button" aria-label="تغيير صورتي"><span id="meAvI"></span><i class="cam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg></i></button>
+          <div class="me-id"><h2 id="meName"></h2><div class="me-meta"><span id="meSince"></span><bdi class="num" id="mePhone"></bdi></div><button class="me-rm" type="button" id="meRm" hidden>إزالة الصورة</button></div>
+        </div>
+        <div class="kpis"><div><b class="num" id="kAct">0</b><span>طلبات نشطة</span></div><div><b class="num" id="kAll">0</b><span>إجمالي الطلبات</span></div><div><b class="num" id="kSub">—</b><span id="kSubL">اشتراكك</span></div></div>
+        <div class="me-act"><a class="btn o sm" href="KPTC_Subscriptions.html">اشتراك جديد</a><a class="btn o sm" href="KPTC_Umrah.html">حجز عمرة</a><a class="btn o sm" href="KPTC_VIP.html">حجز VIP</a><a class="btn o sm" href="KPTC_Winch.html">طلب ونش</a><button class="btn o sm out" type="button" id="outBtn">تسجيل الخروج</button></div>
       </div>
       <div class="card" id="wCard">
         <div class="card-h"><span>محفظة KPTC</span><b>K-PASS</b></div>
@@ -143,9 +157,9 @@
     if (!u){ $('acTitle').textContent = 'كل ما يخصّك في مكان واحد'; return; }
     var d = K.db(), w = K.wallet(), mine = d.bookings.filter(function(b){ return b.uid === u.id; });
     $('acTitle').textContent = 'أهلاً ' + u.name.split(' ')[0]; $('acLead').textContent = 'هذه حجوزاتك وطلباتك ومحفظتك. كل ما تحجزه في الموقع يظهر هنا مباشرة.';
-    $('meName').textContent = u.name; $('meSince').textContent = 'عضو منذ ' + K.date(u.joined) + ' · ' + u.phone;
+    $('meName').textContent = u.name; $('meSince').textContent = 'عضو منذ ' + K.date(u.joined); $('mePhone').textContent = u.phone; $('meAvI').innerHTML = K.avatar('user', u.id); $('meRm').hidden = !u.photo;
     $('kAll').textContent = mine.length; $('kAct').textContent = mine.filter(function(b){ return !/مكتمل|ملغ|وُجد/.test(b.status); }).length;
-    var sub = mine.filter(function(b){ return b.page === 'subs' && /فعّال/.test(b.status); })[0]; $('kSub').textContent = sub ? 'حتى ' + K.date(sub.until || '') : 'لا يوجد';
+    var sub = mine.filter(function(b){ return b.page === 'subs' && /فعّال/.test(b.status); })[0]; var left = sub && sub.until ? Math.max(0, Math.round((new Date(sub.until) - new Date(K.today())) / 864e5)) : 0; $('kSub').textContent = sub ? left : '—'; $('kSubL').textContent = sub ? 'يوماً متبقياً في اشتراكك (حتى ' + K.date(sub.until || '') + ')' : 'لا اشتراك فعّال';
     $('wBal').textContent = K.money(w.balance); $('wNo').textContent = 'KP ' + u.phone.replace(/(\d{4})(\d+)/, '$1 $2');
     $('wCard').classList.toggle('frz', !!w.frozen); $('wState').textContent = w.frozen ? 'المحفظة موقوفة مؤقتاً من الإدارة' : 'الرصيد المتاح'; $('topBtn').disabled = !!w.frozen;
     var types = ['الكل'].concat(mine.map(function(b){ return b.type; }).filter(function(v, i, a){ return a.indexOf(v) === i; }));
@@ -165,6 +179,8 @@
   $('demoBtn').onclick = function(){ K.login('55501234', '123456'); render(); flash('دخلت بالحساب التجريبي'); };
   $('fUp').addEventListener('submit', function(e){ e.preventDefault(); var r = K.register({name:$('upName').value, phone:$('upPhone').value, email:$('upEmail').value, pass:$('upPass').value}); $('upErr').textContent = r.error || ''; if (!r.error){ render(); flash('تم إنشاء حسابك'); } });
   $('outBtn').onclick = function(){ K.logout(); render(); };
+  $('meAv').onclick = function(){ K.pickPhoto('user', K.user().id, function(err){ if (err) flash(err); else flash('تم تحديث صورتك.'); }); };
+  $('meRm').onclick = function(){ K.setPhoto('user', K.user().id, ''); flash('أُزيلت الصورة.'); };
   document.querySelectorAll('[data-pane]').forEach(function(b){ b.onclick = function(){ document.querySelectorAll('[data-pane]').forEach(function(x){ x.classList.toggle('on', x === b); }); document.querySelectorAll('.pane').forEach(function(p){ p.classList.toggle('on', p.id === b.getAttribute('data-pane')); }); }; });
   $('bFilter').addEventListener('click', function(e){ var b = e.target.closest('[data-f]'); if (b){ filter = b.getAttribute('data-f'); render(); } });
   $('bRows').addEventListener('click', function(e){
