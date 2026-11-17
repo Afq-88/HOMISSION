@@ -107,6 +107,8 @@
       ittickets: [],       // {id, from, cat, pri, sub, text, d, status, replies:[{from,text,d}]}
       library: [['دليل قواعد الحوكمة (الإصدار السادس)','الحوكمة'],['قواعد الحوكمة بالشركة','الحوكمة'],['سياسات الحوكمة','الحوكمة'],['وثيقة قواعد ممارسات العمل','الحوكمة'],['لوائح شركة النقل العام','لوائح'],['نماذج المراسلات المعتمدة 2025','لوائح'],['أرشيف الإعلانات','مراجع'],['الإجراءات الأولية لمواجهة الكوارث الطبيعية','السلامة'],['إرشادات استخدام الهاتف الرقمي','إرشادات'],['دليل السياسات والإجراءات — إدارة التسويق والعلاقات العامة وخدمة العملاء','السياسات والإجراءات'],['دليل الصلاحيات المالية','السياسات والإجراءات']].map(function(x, i){ return {id:'L-' + (i + 1), title:x[0], cat:x[1], kind:'PDF'}; }),
       requests: [],        // e-forms submitted by staff: {id, form, staff, d, data, steps:[{who, perm, status, by, at, note}], status}
+      /* lost-and-found: items waiting at the Mirqab office (no personal names are kept) */
+      found: [['محفظة جلد بنية','محفظة','#8B4513','77','السالمية ← حولي','تحتوي على بطاقات'],['محفظة سوداء صغيرة','محفظة','#1a1a1a','18','الشويخ ← خيطان','محفظة سوداء بسحّاب'],['شنطة تسوق','حقيبة','#2E5AAC','X1','كارفور ← حولي','أكياس تسوق من كارفور'],['شنطة ظهر بنية','حقيبة','#92400E','66','حولي ← خيطان','شنطة بنية'],['هاتف Samsung','هاتف','#1a1a1a','15','خيطان ← السالمية','هاتف Galaxy — شاشة مكسورة قليلاً'],['نقود','أخرى','#16A34A','77','السالمية ← حولي','مبلغ نقدي صغير مع باقي تذكرة'],['مفاتيح مع كيتشين','مفاتيح','#5D5C80','40','الفروانية ← القرين','مجموعة مفاتيح مع كيتشين معدني'],['نظارة طبية','نظارة','#1a1a1a','92','الجليب ← حولي','نظارة بإطار أسود'],['حقيبة مدرسية','حقيبة','#C2352E','66','حولي ← خيطان','حقيبة مدرسية حمراء'],['محفظة جلدية','محفظة','#8B4513','106','الجليب ← الشويخ','محفظة بنية بدون بطاقات'],['هاتف iPhone','هاتف','#5D5C80','15','المالية ← السالمية','iPhone بكفر شفاف'],['مفاتيح سيارة','مفاتيح','#C77A12','99','السالمية ← الكويت سيتي','مفاتيح مع ريموت سيارة ذهبي اللون']].map(function(x, i){ return {id:'F-' + (101 + i), name:x[0], type:x[1], color:x[2], bus:x[3], route:x[4], desc:x[5], d:today(-(i % 9) - (i > 8 ? 3 : 1)), status:i === 8 ? 'claimed' : i % 3 === 1 ? 'new' : 'found'}; }),
       claims: [],          // {id, bid, staff, d, status:'بانتظار الاعتماد'|'مقبول'|'مرفوض'|'مستخدم', code, msgs:[{from, text, d}]}
       /* colleagues' occasions (condolences and celebrations) */
       occasions: [
@@ -836,8 +838,8 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
     if (pvKeep && pvKeep.getAttribute('data-src') === want){ f.replaceWith(pvKeep); f = pvKeep; } else { f.src = want; pvKeep = f; }   // keep the frame alive across re-renders
     var w = dev === 'mob' ? 390 : 1280, sc = Math.min(1, b.clientWidth / w); f.style.left = Math.max(0, (b.clientWidth - w * sc) / 2) + 'px'; f.style.transform = 'scale(' + sc + ')'; f.style.height = (b.clientHeight / sc) + 'px';
   }
-  var GROUPS = [['عملي',['desk']],['التحكم بالموقع',['pages','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['العملاء',['wallets','bookings']],['الموظفون',['staff','roles','intranet','benefits','occasions']],['النظام',['log']]];
-  var NEED = {desk:[], intranet:['portal.admin'], pages:['site.pages'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
+  var GROUPS = [['عملي',['desk']],['التحكم بالموقع',['pages','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['العملاء',['wallets','bookings','found']],['الموظفون',['staff','roles','intranet','benefits','occasions']],['النظام',['log']]];
+  var NEED = {found:['ops.bookings'], desk:[], intranet:['portal.admin'], pages:['site.pages'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
   function allow(k){ var u = K.staffUser(); if (!u || !TABS[k] || !V[k]) return false;
     if (k === 'desk') return K.can('admin.sections', u) || K.db().sections.some(function(x){ return x.owner === u.id || (x.team || []).indexOf(u.id) > -1; });
     if (k === 'editor' && (K.pagesFor(u) || []).length) return true;
@@ -1345,6 +1347,29 @@ body.gated .gate{display:grid}
     else if (a === 'inon'){ var c = d.circulars.filter(function(x){ return x.id === id; })[0]; c.on = !c.on; K.save(); }
     else if (a === 'indel'){ if (b.getAttribute('data-sure')){ d[kind] = d[kind].filter(function(x){ return x.id !== id; }); K.save(); flash('تم الحذف.'); } else { b.setAttribute('data-sure', '1'); b.textContent = 'تأكيد الحذف'; } }
   });
+})();
+</script>
+
+<script>
+(function(){
+  var X = window.KPStudio, K = X.K, $ = X.$, E = X.E, T = X.TABS, V = X.V, flash = X.flash, tag = X.tag;
+  var TYPES = ['محفظة','هاتف','مفاتيح','حقيبة','وثائق','نظارة','نقود','أخرى'], ST = [['found','موجود'],['new','جديد'],['pending','قيد المراجعة'],['claimed','سُلّم أو تمت المطالبة']];
+  T.found = ['أغراض المفقودات', 'الأغراض الموجودة في مكتب المرقاب كما تظهر للزوار في صفحة المفقودات. لا تكتب أسماء أصحابها.'];
+  V.found = function(d){
+    $('hA').innerHTML = '<button class="btn y" data-act="fdnew">غرض جديد</button>';
+    return '<div class="tw"><table class="t"><thead><tr><th>الرقم</th><th>الغرض</th><th>النوع</th><th>الخط والمسار</th><th>التاريخ</th><th>الحالة</th><th></th></tr></thead><tbody>' + d.found.map(function(i){ return '<tr><td class="num">' + E(i.id) + '</td><td><b>' + E(i.name) + '</b><br><small>' + E(i.desc) + '</small></td><td>' + E(i.type) + '</td><td>خط <span class="num">' + E(i.bus) + '</span><br><small>' + E(i.route) + '</small></td><td class="num">' + K.date(i.d) + '</td><td><select class="s" data-fs="' + E(i.id) + '">' + ST.map(function(s){ return '<option value="' + s[0] + '"' + (s[0] === i.status ? ' selected' : '') + '>' + s[1] + '</option>'; }).join('') + '</select></td><td><button class="btn o" data-act="fdedit" data-id="' + E(i.id) + '">تعديل</button><button class="btn o" data-act="fddel" data-id="' + E(i.id) + '">حذف</button></td></tr>'; }).join('') + '</tbody></table></div>';
+  };
+  function form(id){
+    var d = K.db(), it = id ? d.found.filter(function(x){ return x.id === id; })[0] : {name:'', type:'محفظة', color:'#1a1a1a', bus:'', route:'', desc:'', d:K.today(), status:'new'};
+    X.dlg(id ? 'تعديل غرض' : 'غرض جديد', '<label class="f">اسم الغرض<input name="name" value="' + E(it.name) + '"></label><label class="f">النوع<select name="type">' + TYPES.map(function(t){ return '<option' + (t === it.type ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></label><label class="f">رقم الخط<input name="bus" dir="ltr" value="' + E(it.bus) + '"></label><label class="f">المسار<input name="route" value="' + E(it.route) + '" placeholder="من ← إلى"></label><label class="f">الوصف (دون أسماء أصحاب الأغراض)<textarea name="desc" rows="2">' + E(it.desc) + '</textarea></label><label class="f">اللون<input name="color" type="color" value="' + E(it.color) + '"></label><label class="f">تاريخ العثور<input name="d" type="date" value="' + E(it.d) + '"></label>', function(f){
+      if (!f.name.value.trim() || !f.bus.value.trim()) return 'اكتب اسم الغرض ورقم الخط.';
+      it.name = f.name.value.trim(); it.type = f.type.value; it.bus = K.latin(f.bus.value).trim().toUpperCase(); it.route = f.route.value.trim(); it.desc = f.desc.value.trim(); it.color = f.color.value; it.d = f.d.value;
+      if (!id){ it.id = 'F-' + (100 + d.found.length + 1 + Math.floor(Math.random() * 900)); d.found.unshift(it); } K.log((id ? 'تعديل غرض: ' : 'غرض جديد: ') + it.name); K.save(); flash('حُفظ ويظهر للزوار.'); });
+  }
+  document.addEventListener('click', function(e){ var b = e.target.closest('button[data-act]'); if (!b) return; var a = b.getAttribute('data-act'), id = b.getAttribute('data-id'), d = K.db();
+    if (a === 'fdnew') form(); else if (a === 'fdedit') form(id);
+    else if (a === 'fddel'){ if (b.getAttribute('data-sure')){ d.found = d.found.filter(function(x){ return x.id !== id; }); K.save(); flash('حُذف الغرض.'); } else { b.setAttribute('data-sure', '1'); b.textContent = 'تأكيد الحذف'; } } });
+  document.addEventListener('change', function(e){ var s = e.target.closest('[data-fs]'); if (!s) return; var it = K.db().found.filter(function(x){ return x.id === s.getAttribute('data-fs'); })[0]; it.status = s.value; K.log('حالة غرض ' + it.id + ': ' + s.value); K.save(); flash('حُفظت الحالة.'); });
 })();
 </script>
 <!--kptc:core-js--><script id="kptc-core-js">
@@ -1955,7 +1980,8 @@ body.gated .gate{display:grid}
     vip:['d-from','d-to','d-date','d-time','d-pax','l:الاسم','l:رقم الجوال','l:تاريخ المغادرة','l:عدد الركاب','l:ليلة الديوانية','l:موقع الديوانية','l:عدد الضيوف','intl-dest'],
     winch:['winchName','winchPhone','winchPlate','govSelect','l:الاسم','l:رقم الجوال','l:رقم اللوحة','l:الموديل والسنة','trackInput'],
     ads:['brandName','adMessage','adContact','startDate','endDate'],
-    subs:['tk-from','tk-to','tk-date','tk-time']
+    subs:['tk-from','tk-to','tk-date','tk-time'],
+    lost:['lfDesc','lfDate','lfName','lfPhone','lfcProof','lfcName','lfcPhone']
   };
   function reqEngine(){
     var K = window.KPTC; if (!K || !K.site) return; var pid = OWN || 'home';
@@ -2013,6 +2039,14 @@ body.gated .gate{display:grid}
       host.insertBefore(box, host.firstChild);
       box.addEventListener('click', function(e){ var b = e.target.closest('[data-q]'); if (!b) return; try { openChat(); setTimeout(function(){ quickAsk(b.getAttribute('data-q')); }, 350); } catch(x){} });
     }
+  }
+
+  /* ---- lost and found: the radar page (assets/lost.js) ---- */
+  function lostKit(){
+    if (OWN !== 'lost') return;
+    var q = document.createElement('script'); q.src = '../assets/qrcode.min.js';
+    var next = function(){ var n = document.createElement('script'); n.src = '../assets/lost.js'; document.head.appendChild(n); };
+    q.onload = next; q.onerror = next; document.head.appendChild(q);
   }
 
   /* ---- subs: the ticket's QR code is a real, scannable code (it opens the site on the subscriptions page) ---- */
@@ -2186,7 +2220,7 @@ body.gated .gate{display:grid}
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); ticketQR(); reqEngine(); siteEdits(); i18n();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); ticketQR(); lostKit(); reqEngine(); siteEdits(); i18n();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });

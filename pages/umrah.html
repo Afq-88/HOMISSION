@@ -107,6 +107,8 @@
       ittickets: [],       // {id, from, cat, pri, sub, text, d, status, replies:[{from,text,d}]}
       library: [['دليل قواعد الحوكمة (الإصدار السادس)','الحوكمة'],['قواعد الحوكمة بالشركة','الحوكمة'],['سياسات الحوكمة','الحوكمة'],['وثيقة قواعد ممارسات العمل','الحوكمة'],['لوائح شركة النقل العام','لوائح'],['نماذج المراسلات المعتمدة 2025','لوائح'],['أرشيف الإعلانات','مراجع'],['الإجراءات الأولية لمواجهة الكوارث الطبيعية','السلامة'],['إرشادات استخدام الهاتف الرقمي','إرشادات'],['دليل السياسات والإجراءات — إدارة التسويق والعلاقات العامة وخدمة العملاء','السياسات والإجراءات'],['دليل الصلاحيات المالية','السياسات والإجراءات']].map(function(x, i){ return {id:'L-' + (i + 1), title:x[0], cat:x[1], kind:'PDF'}; }),
       requests: [],        // e-forms submitted by staff: {id, form, staff, d, data, steps:[{who, perm, status, by, at, note}], status}
+      /* lost-and-found: items waiting at the Mirqab office (no personal names are kept) */
+      found: [['محفظة جلد بنية','محفظة','#8B4513','77','السالمية ← حولي','تحتوي على بطاقات'],['محفظة سوداء صغيرة','محفظة','#1a1a1a','18','الشويخ ← خيطان','محفظة سوداء بسحّاب'],['شنطة تسوق','حقيبة','#2E5AAC','X1','كارفور ← حولي','أكياس تسوق من كارفور'],['شنطة ظهر بنية','حقيبة','#92400E','66','حولي ← خيطان','شنطة بنية'],['هاتف Samsung','هاتف','#1a1a1a','15','خيطان ← السالمية','هاتف Galaxy — شاشة مكسورة قليلاً'],['نقود','أخرى','#16A34A','77','السالمية ← حولي','مبلغ نقدي صغير مع باقي تذكرة'],['مفاتيح مع كيتشين','مفاتيح','#5D5C80','40','الفروانية ← القرين','مجموعة مفاتيح مع كيتشين معدني'],['نظارة طبية','نظارة','#1a1a1a','92','الجليب ← حولي','نظارة بإطار أسود'],['حقيبة مدرسية','حقيبة','#C2352E','66','حولي ← خيطان','حقيبة مدرسية حمراء'],['محفظة جلدية','محفظة','#8B4513','106','الجليب ← الشويخ','محفظة بنية بدون بطاقات'],['هاتف iPhone','هاتف','#5D5C80','15','المالية ← السالمية','iPhone بكفر شفاف'],['مفاتيح سيارة','مفاتيح','#C77A12','99','السالمية ← الكويت سيتي','مفاتيح مع ريموت سيارة ذهبي اللون']].map(function(x, i){ return {id:'F-' + (101 + i), name:x[0], type:x[1], color:x[2], bus:x[3], route:x[4], desc:x[5], d:today(-(i % 9) - (i > 8 ? 3 : 1)), status:i === 8 ? 'claimed' : i % 3 === 1 ? 'new' : 'found'}; }),
       claims: [],          // {id, bid, staff, d, status:'بانتظار الاعتماد'|'مقبول'|'مرفوض'|'مستخدم', code, msgs:[{from, text, d}]}
       /* colleagues' occasions (condolences and celebrations) */
       occasions: [
@@ -2333,7 +2335,8 @@ document.getElementById('cardFields').style.display='none';
     vip:['d-from','d-to','d-date','d-time','d-pax','l:الاسم','l:رقم الجوال','l:تاريخ المغادرة','l:عدد الركاب','l:ليلة الديوانية','l:موقع الديوانية','l:عدد الضيوف','intl-dest'],
     winch:['winchName','winchPhone','winchPlate','govSelect','l:الاسم','l:رقم الجوال','l:رقم اللوحة','l:الموديل والسنة','trackInput'],
     ads:['brandName','adMessage','adContact','startDate','endDate'],
-    subs:['tk-from','tk-to','tk-date','tk-time']
+    subs:['tk-from','tk-to','tk-date','tk-time'],
+    lost:['lfDesc','lfDate','lfName','lfPhone','lfcProof','lfcName','lfcPhone']
   };
   function reqEngine(){
     var K = window.KPTC; if (!K || !K.site) return; var pid = OWN || 'home';
@@ -2391,6 +2394,14 @@ document.getElementById('cardFields').style.display='none';
       host.insertBefore(box, host.firstChild);
       box.addEventListener('click', function(e){ var b = e.target.closest('[data-q]'); if (!b) return; try { openChat(); setTimeout(function(){ quickAsk(b.getAttribute('data-q')); }, 350); } catch(x){} });
     }
+  }
+
+  /* ---- lost and found: the radar page (assets/lost.js) ---- */
+  function lostKit(){
+    if (OWN !== 'lost') return;
+    var q = document.createElement('script'); q.src = '../assets/qrcode.min.js';
+    var next = function(){ var n = document.createElement('script'); n.src = '../assets/lost.js'; document.head.appendChild(n); };
+    q.onload = next; q.onerror = next; document.head.appendChild(q);
   }
 
   /* ---- subs: the ticket's QR code is a real, scannable code (it opens the site on the subscriptions page) ---- */
@@ -2564,7 +2575,7 @@ document.getElementById('cardFields').style.display='none';
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); ticketQR(); reqEngine(); siteEdits(); i18n();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); ticketQR(); lostKit(); reqEngine(); siteEdits(); i18n();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });

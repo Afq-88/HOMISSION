@@ -605,7 +605,8 @@
     vip:['d-from','d-to','d-date','d-time','d-pax','l:الاسم','l:رقم الجوال','l:تاريخ المغادرة','l:عدد الركاب','l:ليلة الديوانية','l:موقع الديوانية','l:عدد الضيوف','intl-dest'],
     winch:['winchName','winchPhone','winchPlate','govSelect','l:الاسم','l:رقم الجوال','l:رقم اللوحة','l:الموديل والسنة','trackInput'],
     ads:['brandName','adMessage','adContact','startDate','endDate'],
-    subs:['tk-from','tk-to','tk-date','tk-time']
+    subs:['tk-from','tk-to','tk-date','tk-time'],
+    lost:['lfDesc','lfDate','lfName','lfPhone','lfcProof','lfcName','lfcPhone']
   };
   function reqEngine(){
     var K = window.KPTC; if (!K || !K.site) return; var pid = OWN || 'home';
@@ -663,6 +664,14 @@
       host.insertBefore(box, host.firstChild);
       box.addEventListener('click', function(e){ var b = e.target.closest('[data-q]'); if (!b) return; try { openChat(); setTimeout(function(){ quickAsk(b.getAttribute('data-q')); }, 350); } catch(x){} });
     }
+  }
+
+  /* ---- lost and found: the radar page (assets/lost.js) ---- */
+  function lostKit(){
+    if (OWN !== 'lost') return;
+    var q = document.createElement('script'); q.src = '../assets/qrcode.min.js';
+    var next = function(){ var n = document.createElement('script'); n.src = '../assets/lost.js'; document.head.appendChild(n); };
+    q.onload = next; q.onerror = next; document.head.appendChild(q);
   }
 
   /* ---- subs: the ticket's QR code is a real, scannable code (it opens the site on the subscriptions page) ---- */
@@ -836,7 +845,7 @@
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); ticketQR(); reqEngine(); siteEdits(); i18n();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); ticketQR(); lostKit(); reqEngine(); siteEdits(); i18n();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });
