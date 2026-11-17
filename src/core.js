@@ -705,14 +705,14 @@
               mode: wrap ? 'wrap' : has('side-full') ? 'full' : has('side-half') ? 'half' : (IMG.right || IMG.left) ? 'full' : 'half', demo: demo, inside: has('interior') || has('digital'), images: IMG};
     }
     function load(src, cb){ var sc = document.createElement('script'); sc.src = src; sc.onload = cb; sc.onerror = fallback; document.head.appendChild(sc); }
-    load('../assets/three.min.js', function(){ load('../assets/bus3d.js', function(){
+    function begin(M){
       var wrap = document.createElement('div'); wrap.className = 'kp-3d';
       wrap.innerHTML = '<div class="kp-3d-view"></div><div class="kp-3d-bar"><span class="kp-3d-hint"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + P.refresh + '</svg></i>اسحب لتدوير الحافلة</span><div class="kp-3d-views" role="group" aria-label="زاوية العرض">' +
         [['right','الجانب الأيمن'],['left','الجانب الأيسر'],['rear','الخلف'],['front','المقدمة'],['roof','السقف']].map(function(v){ return '<button type="button" data-v="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div></div><p class="kp-3d-note" aria-live="polite"></p>';
       host.parentNode.insertBefore(wrap, host);
-      var api = window.KPBus3D && KPBus3D.mount(wrap.querySelector('.kp-3d-view'), state);
+      var api = M.mount(wrap.querySelector('.kp-3d-view'), state);
       if (!api){ wrap.remove(); return fallback(); }
-      host.style.display = 'none';
+      host.style.display = 'none'; window.__kpGLM = M.gl ? M : null;
       if (window.__kpHero3d){ var hf = window.__kpHero3d; window.__kpHero3d = null; hf(true); }
       var note = wrap.querySelector('.kp-3d-note');
       function sync(){ api.refresh(); var s = state(); note.textContent = s.demo ? 'معاينة تجريبية على الجانبين. اختر مواضع الإعلان من البطاقات أعلاه لتراها على الحافلة.' : (s.inside ? 'المواضع الداخلية والشاشات الرقمية لا تظهر على هيكل الحافلة الخارجي.' : 'هذا شكل إعلانك على المواضع التي اخترتها.'); }
@@ -732,7 +732,7 @@
         if (sel.indexOf(want) > -1 || sel.indexOf('wrap') > -1) return; el = pos(want); if (el && !el.classList.contains('selected')) el.click();
       }
       function paintUp(){
-        var z = KPBus3D.zones(state().mode);
+        var z = M.zones(state().mode);
         upBox.innerHTML = '<div class="kp-up-h"><b>ارفع تصميم إعلانك</b><small>اختر الجهة وارفع الصورة، وتظهر على الحافلة بمقاسها الحقيقي. تُختار المواضع والأسعار من البطاقات أعلاه.</small></div><div class="kp-up-g">' + FACES.map(function(f){
           var k = f[0], im = IM[k], zz = z[k], ratio = zz.w / zz.h, warn = '', ctl = '';
           if (im){ var ir = im.el.width / im.el.height, off = Math.abs(Math.log(ir / ratio));
@@ -762,7 +762,13 @@
       var syncBase = sync; sync = function(){ syncBase(); if (!upBox.contains(document.activeElement) || !document.activeElement.matches('input[type=range]')) paintUp(); };
       function toast(t){ try { showToast(t); } catch(x){} }
       sync();
-    }); });
+    }
+    /* the real 3D K-Bus model (glTF) when the browser can do WebGL2/ES modules; otherwise the lighter built-in one */
+    function classic(){ load('../assets/three.min.js', function(){ load('../assets/bus3d.js', function(){ begin(window.KPBus3D); }); }); }
+    try {
+      var dyn = new Function('u', 'return import(u)');
+      dyn('../assets/busgl.js').then(function(M){ return M.ready().then(function(g){ if (g) begin({mount: M.mount, zones: M.zones, gl: true}); else classic(); }); }).catch(classic);
+    } catch(e){ classic(); }
   }
 
   /* ---- ads: the campaign preview is painted onto a real K-Bus photo ---- */
@@ -803,7 +809,7 @@
       }
       h3.addEventListener('click', function(e){ var b2 = e.target.closest('[data-s]'); if (b2){ clearInterval(timer); pick(+b2.getAttribute('data-s')); try { showToast('نمط «' + SAMPLES[si].n + '» — اضغط «جرّب تصميمك» لتطبيقه على حملتك'); } catch(z){} } var g = e.target.closest('.kp-hero3d-go'); if (g){ e.preventDefault(); clearInterval(timer); tryDesign(si); } });
       window.__kpHero3d = function(ok){
-        if (ok && window.KPBus3D) api = KPBus3D.mount(h3.querySelector('.kp-hero3d-v'), function(){ var x = SAMPLES[si]; return {color:x.color, brand:x.brand, message:x.message, contact:'1880001', faces:{right:true, left:true, rear:true}, mode:'full'}; });
+        if (ok && (window.__kpGLM || window.KPBus3D)) api = (window.__kpGLM || KPBus3D).mount(h3.querySelector('.kp-hero3d-v'), function(){ var x = SAMPLES[si]; return {color:x.color, brand:x.brand, message:x.message, contact:'1880001', faces:{right:true, left:true, rear:true}, mode:'full'}; });
         if (api){ timer = setInterval(function(){ if (!document.hidden) pick((si + 1) % SAMPLES.length); }, 4500); h3.querySelector('.kp-hero3d-v').addEventListener('pointerdown', function(){ clearInterval(timer); }); }
         else { h3.remove(); hero.style.display = ''; stage(hero, document.getElementById('heroBusAd'), 'kp-herobus'); }   // no WebGL: the official photo
       };

@@ -210,5 +210,5 @@
     var wrap = mode === 'wrap', sh = H * .35;
     return {right:{w:wrap ? L : side(true), h:wrap ? H * .82 : sh}, left:{w:wrap ? L : side(false), h:wrap ? H * .82 : sh}, rear:{w:W * .7, h:H * (.34 * 564 / 564)}, front:{w:W * .6, h:H * .1}, roof:{w:L * .56 * (1024 / 1024), h:W * .6}};
   }
-  window.KPBus3D = {mount: mount, zones: zones};
+  window.KPBus3D = {mount: mount, zones: zones, art: {adArt: adArt, drawPhoto: drawPhoto, fit: fit, paint: paint, isLight: isLight, slot: slot}};
 })();

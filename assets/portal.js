@@ -46,7 +46,39 @@
   '.pt-form{display:grid;gap:10px}.pt-form label{display:grid;gap:4px;font-size:.78rem;font-weight:700;color:var(--kp-ink)}.pt-form input,.pt-form select,.pt-form textarea{border:1.5px solid var(--kp-line-2,#cfcde6);border-radius:6px;padding:8px 10px;font:500 14px var(--f-body);background:#fff}',
   '.pt-chips{display:flex;flex-wrap:wrap;gap:5px}.pt-chips span{font-size:11.5px;background:var(--kp-paper-2,#f1efe6);border-radius:12px;padding:2px 10px;color:var(--kp-ink)}',
   '.kp-av-f{width:100%;height:100%;font-size:inherit;font-weight:700}.pt-up{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.pt-up .pt-btn{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.4)}.pt-up .pt-btn:hover{background:var(--kp-sign);color:var(--kp-ink)}',
-  '.pt-kv{display:flex;justify-content:space-between;gap:10px;font-size:.82rem}.pt-kv span{color:var(--gray)}'
+  '.pt-kv{display:flex;justify-content:space-between;gap:10px;font-size:.82rem}.pt-kv span{color:var(--gray)}',
+  '#view-profile .profile-hero,#view-profile .profile-grid>.fcard:not(#ptAcc){display:none}',
+  '.pf{display:grid;gap:16px;margin-bottom:16px;perspective:1400px}',
+  '.pf-card{position:relative;min-height:296px;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.2,.8,.2,1);animation:pfin .8s cubic-bezier(.2,.9,.25,1.04) backwards}.pf-card.flip{transform:rotateY(180deg)}',
+  '@keyframes pfin{from{transform:translateY(22px) scale(.98)}}',
+  '.pf-f,.pf-b{position:absolute;inset:0;border-radius:22px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;color:#fff;background:linear-gradient(125deg,#1b1950 0%,#2E2C78 52%,#3d3a96 100%);box-shadow:0 24px 44px -22px rgba(31,29,92,.75)}',
+  '.pf-b{transform:rotateY(180deg)}',
+  '.pf-f::before{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'900\' height=\'300\' fill=\'none\' stroke=\'%23fff\' stroke-opacity=\'.09\' stroke-width=\'3\'%3E%3Cpath d=\'M-10 250 C140 250 160 140 300 140 S470 230 590 150 S780 40 920 60\'/%3E%3Cpath d=\'M-10 290 C200 290 240 200 380 200 S600 270 920 150\' stroke-opacity=\'.06\'/%3E%3Ccircle cx=\'300\' cy=\'140\' r=\'10\'/%3E%3Ccircle cx=\'590\' cy=\'150\' r=\'10\'/%3E%3C/svg%3E") center/cover}',
+  '.pf-f::after{content:"";position:absolute;inset-inline-end:-70px;top:-110px;width:300px;height:300px;border-radius:50%;border:44px solid rgba(255,201,60,.13)}',
+  '.pf-band{position:absolute;inset-inline:0;top:0;height:8px;background:var(--kp-sign,#FFC93C);z-index:2}',
+  '.pf-in{position:relative;z-index:1;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:26px;align-items:center;padding:34px 34px 28px;height:100%}',
+  '.pf-ph{position:relative;width:150px;height:186px;border-radius:22px;overflow:hidden;border:4px solid var(--kp-sign,#FFC93C);background:var(--kp-sign,#FFC93C);box-shadow:0 14px 26px -12px rgba(0,0,0,.6);rotate:-2deg}',
+  '.pf-ph .kp-av{width:100%;height:100%;object-fit:cover;display:grid;place-items:center;font:700 64px var(--f-display);color:var(--kp-ink);border-radius:0}',
+  '.pf-ph-n{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:12px;font-size:11px;color:rgba(255,255,255,.7);max-width:150px;text-align:center;line-height:1.5}.pf-ph-n svg{flex:none;width:13px;height:13px}',
+  '.pf-co{display:flex;gap:8px;align-items:center;font:700 11.5px var(--f-body);letter-spacing:.04em;color:#CFCDEA}.pf-co i{width:22px;height:22px;border-radius:6px;background:var(--kp-sign,#FFC93C);color:var(--kp-ink);display:grid;place-items:center}.pf-co i svg{width:13px;height:13px}',
+  '.pf-main h2{font:800 clamp(24px,3.2vw,34px)/1.25 var(--f-display);margin:8px 0 2px;overflow-wrap:anywhere}',
+  '.pf-main .pf-t{color:var(--kp-sign,#FFC93C);font:700 14.5px var(--f-body)}',
+  '.pf-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.pf-chips span{font:600 12px var(--f-body);background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:3px 12px}',
+  '.pf-facts{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:8px 28px;margin-top:18px;border-top:1px dashed rgba(255,255,255,.28);padding-top:14px}',
+  '.pf-facts small{display:block;font-size:10.5px;color:#B9B7DD}.pf-facts b{display:block;font:700 14px var(--f-body);text-align:start}.pf-facts .num{direction:ltr;unicode-bidi:isolate;text-align:right}',
+  '.pf-qr{display:grid;justify-items:center;gap:8px;color:#CFCDEA;font-size:11px}.pf-qr div{width:112px;height:112px;background:#fff;border-radius:14px;padding:8px;box-shadow:0 10px 20px -10px rgba(0,0,0,.6)}.pf-qr svg{width:100%;height:100%;display:block}',
+  '.pf-flipb{position:absolute;z-index:3;inset-inline-end:18px;top:24px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:16px;padding:4px 13px;font:600 12px var(--f-body);cursor:pointer}.pf-flipb:hover{background:rgba(255,255,255,.26)}',
+  '.pf-bk{position:relative;z-index:1;height:100%;padding:34px;display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;align-content:center}.pf-bk h3{grid-column:1/-1;font:800 20px var(--f-display)}',
+  '.pf-bk div{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:10px 14px;min-width:0}.pf-bk small{display:block;font-size:11px;color:#B9B7DD}.pf-bk b{display:block;font:600 14px var(--f-body);overflow-wrap:anywhere;text-align:start}',
+  '.pf-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}',
+  '.pf-tile{background:#fff;border:1px solid var(--kp-line,#e0ded4);border-radius:16px;padding:14px 16px;display:grid;gap:3px;position:relative;overflow:hidden;animation:pfin .7s backwards}.pf-tile:nth-child(2){animation-delay:.07s}.pf-tile:nth-child(3){animation-delay:.14s}.pf-tile:nth-child(4){animation-delay:.21s}',
+  '.pf-tile::after{content:"";position:absolute;inset-inline-end:-18px;top:-18px;width:64px;height:64px;border-radius:50%;background:var(--kp-paper-2,#faf9f5)}',
+  '.pf-tile i{position:relative;z-index:1;width:34px;height:34px;border-radius:10px;background:var(--kp-ink);color:var(--kp-sign,#FFC93C);display:grid;place-items:center;margin-bottom:6px}.pf-tile i svg{width:18px;height:18px}',
+  '.pf-tile b{position:relative;z-index:1;font:800 28px/1.1 var(--f-display);color:var(--kp-indigo);direction:rtl;text-align:start}.pf-tile span{position:relative;z-index:1;font-size:12.5px;color:var(--gray);text-align:start}',
+  '.pf-info{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pf-info .fcard{margin:0}.pf-info .pt-kv{padding:9px 0;border-bottom:1px dashed var(--kp-line,#e0ded4)}.pf-info .pt-kv:last-child{border-bottom:0}.pf-info .pt-kv strong{text-align:start;overflow-wrap:anywhere;min-width:0}.pf-info .cp{cursor:copy}',
+  '@media(max-width:860px){.pf-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.pf-info{grid-template-columns:1fr}}',
+  '@media(max-width:640px){.pf-card{min-height:430px}.pf-in{grid-template-columns:1fr;justify-items:center;text-align:center;gap:16px;padding:28px 18px 46px}.pf-ph{width:120px;height:150px}.pf-co,.pf-chips{justify-content:center}.pf-facts{grid-template-columns:repeat(3,auto);justify-content:center;text-align:center}.pf-facts b{text-align:center}.pf-qr{display:none}.pf-bk{grid-template-columns:1fr;padding:24px 18px}}',
+  '@media(prefers-reduced-motion:reduce){.pf-card,.pf-tile{animation:none}}'
   ].join('\n');
   document.head.appendChild(css);
 
@@ -114,12 +146,47 @@
   /* the employee's picture: sidebar, top bar and profile; the profile avatar and a button change it */
   function avatars(u){
     var html = K.avatar('staff', u.id, 'kp-av-f');
-    ['sbAvatar', 'tbAvatar', 'profileAvatar'].forEach(function(id){ var e = $(id); if (!e) return; e.innerHTML = html; e.style.overflow = 'hidden'; e.style.padding = '0'; e.style.display = 'grid'; e.style.placeItems = 'center'; });
-    var pa = $('profileAvatar'); if (pa && !pa.getAttribute('data-up')){ pa.setAttribute('data-up', '1'); pa.style.cursor = 'pointer'; pa.title = 'تغيير الصورة'; pa.addEventListener('click', function(){ pick(); });
-      var box = pa.parentNode.querySelector('.ph-info'); if (box){ var row = el('div', 'pt-up', '<button type="button" class="pt-btn" data-ph="up">تغيير صورتي</button><button type="button" class="pt-btn" data-ph="rm" id="ptRm">إزالة</button>'); box.appendChild(row); row.addEventListener('click', function(e){ var b = e.target.closest('[data-ph]'); if (!b) return; if (b.getAttribute('data-ph') === 'up') pick(); else { K.setPhoto('staff', K.staffUser().id, ''); toast('أُزيلت الصورة'); } }); } }
-    var rm = $('ptRm'); if (rm) rm.style.display = u.photo ? '' : 'none';
+    ['sbAvatar', 'tbAvatar'].forEach(function(id){ var e = $(id); if (!e) return; e.innerHTML = html; e.style.overflow = 'hidden'; e.style.padding = '0'; e.style.display = 'grid'; e.style.placeItems = 'center'; });
   }
-  function pick(){ K.pickPhoto('staff', K.staffUser().id, function(err){ toast(err || 'تم تحديث صورتك'); }); }
+  /* ---------- 2b. my personal page: a digital staff ID ---------- */
+  var IC = {
+    co: '<path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+    lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    cal: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>',
+    doc: '<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/>',
+    bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/>',
+    ok: '<circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16 9.6"/>'
+  };
+  function svg(k){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[k] + '</svg>'; }
+  var pfQr = '', pfQrBusy = 0;
+  function pfQrDraw(txt){
+    function go(){ try { var q = window.qrcode(0, 'M'); q.addData(txt); q.make(); pfQr = q.createSvgTag({cellSize:4, margin:0, scalable:true}); var e = $('pfQr'); if (e) e.innerHTML = pfQr; } catch(x){} }
+    if (window.qrcode) go(); else if (!pfQrBusy){ pfQrBusy = 1; var sc = document.createElement('script'); sc.src = '../assets/qrcode.min.js'; sc.onload = go; document.head.appendChild(sc); }
+  }
+  function since(j){
+    if (!j) return {t: '—', y: 0};
+    var a = new Date(j), n = new Date(), m = (n.getFullYear() - a.getFullYear()) * 12 + n.getMonth() - a.getMonth(), y = Math.floor(m / 12), r = m % 12;
+    return {t: y ? y + (r ? ' سنة و ' + r + ' شهر' : ' سنة') : (r ? r + ' شهر' : 'أقل من شهر'), y: y, m: m};
+  }
+  function profile(u){
+    var view = $('view-profile'); if (!view) return; var d = K.db(), host = $('ptProf');
+    if (!host){ host = el('div', 'pf'); host.id = 'ptProf'; view.insertBefore(host, view.firstChild); }
+    var sn = since(u.joined), reqs = (d.requests || []).filter(function(r){ return r.staff === u.id; }), open = reqs.filter(function(r){ return !/معتمد|مرفوض|مكتمل|ملغ|منفّذ/.test(r.status || ''); }).length, unread = (d.circulars || []).filter(function(c){ return !(c.seenBy || {})[u.id]; }).length;
+    var role = K.role(u.role).name, can = K.canPhoto(), noPhoto = !u.photo, flipped = host.querySelector('.pf-card.flip') ? ' flip' : '';
+    var note = can ? '' : '<div class="pf-ph-n">' + svg('lock') + '<span>' + (noPhoto ? 'صورتك تُضاف عبر الموارد البشرية' : 'الصورة تُحدَّث عبر الموارد البشرية') + '</span></div>';
+    host.innerHTML = '<div class="pf-card' + flipped + '" id="pfCard">' +
+      '<div class="pf-f"><i class="pf-band"></i><div class="pf-in"><div><div class="pf-ph">' + K.avatar('staff', u.id) + '</div>' + note + '</div>' +
+      '<div class="pf-main"><div class="pf-co"><i>' + svg('co') + '</i>شركة النقل العام الكويتية · KPTC</div><h2>' + E(u.name) + '</h2><div class="pf-t">' + E(u.title || role) + '</div><div class="pf-chips"><span>' + E(u.dept) + '</span><span>' + E(role) + '</span><span>' + (u.status === 'active' ? 'حساب فعّال' : 'موقوف') + '</span></div>' +
+      '<div class="pf-facts"><div><small>الرقم الوظيفي</small><b class="num">' + E(u.id) + '</b></div><div><small>في الخدمة منذ</small><b class="num">' + E(K.date(u.joined)) + '</b></div><div><small>المدة</small><b>' + E(sn.t) + '</b></div></div></div>' +
+      '<div class="pf-qr"><div id="pfQr"></div><span>للتحقق من الهوية</span></div></div><button type="button" class="pf-flipb" data-pf="flip">اقلب البطاقة</button></div>' +
+      '<div class="pf-b"><div class="pf-bk"><h3>بيانات التواصل</h3><div><small>البريد الرسمي</small><b>' + E(u.email || '—') + '</b></div><div><small>الهاتف</small><b class="num">' + E(u.phone || 'غير مسجّل') + '</b></div><div><small>الإدارة</small><b>' + E(u.dept) + '</b></div><div><small>المقر</small><b>المرقاب — المقر الرئيسي</b></div></div><button type="button" class="pf-flipb" data-pf="flip">أرني الوجه</button></div></div>' +
+      '<div class="pf-tiles"><div class="pf-tile"><i>' + svg('cal') + '</i><b class="num">' + (sn.y || sn.m || 0) + '</b><span>' + (sn.y ? 'سنوات في الخدمة' : 'أشهر في الخدمة') + '</span></div><div class="pf-tile"><i>' + svg('doc') + '</i><b class="num">' + reqs.length + '</b><span>طلباتي المرسلة</span></div><div class="pf-tile"><i>' + svg('ok') + '</i><b class="num">' + open + '</b><span>طلبات قيد الاعتماد</span></div><div class="pf-tile"><i>' + svg('bell') + '</i><b class="num">' + unread + '</b><span>تعاميم لم تقرأها</span></div></div>' +
+      '<div class="pf-info"><div class="fcard"><div class="fcard-head">المعلومات الوظيفية</div><div class="fcard-body"><div class="pt-kv"><span>الاسم الكامل</span><strong>' + E(u.name) + '</strong></div><div class="pt-kv"><span>المسمى الوظيفي</span><strong>' + E(u.title || '—') + '</strong></div><div class="pt-kv"><span>الإدارة</span><strong>' + E(u.dept) + '</strong></div><div class="pt-kv"><span>الدور في النظام</span><strong>' + E(role) + '</strong></div><div class="pt-kv"><span>تاريخ المباشرة</span><strong class="num">' + E(K.date(u.joined)) + '</strong></div></div></div>' +
+      '<div class="fcard"><div class="fcard-head">بيانات التواصل</div><div class="fcard-body"><div class="pt-kv"><span>البريد الرسمي</span><strong class="cp" data-cp="' + E(u.email || '') + '" title="اضغط للنسخ">' + E(u.email || '—') + '</strong></div><div class="pt-kv"><span>الهاتف</span><strong class="num cp" data-cp="' + E(u.phone || '') + '" title="اضغط للنسخ">' + E(u.phone || 'غير مسجّل') + '</strong></div><div class="pt-kv"><span>الخط الساخن للشركة</span><strong class="num">1880001</strong></div><div class="pt-kv"><span>المقر</span><strong>المرقاب — المقر الرئيسي</strong></div></div></div></div>';
+    if (!host.getAttribute('data-b')){ host.setAttribute('data-b', '1'); setTimeout(function(){ host.classList.add('seen'); }, 1200); host.addEventListener('click', function(e){ var f = e.target.closest('[data-pf="flip"]'); if (f){ $('pfCard').classList.toggle('flip'); return; } var c = e.target.closest('[data-cp]'); if (c && c.getAttribute('data-cp')){ try { navigator.clipboard.writeText(c.getAttribute('data-cp')); toast('نُسخ'); } catch(x){} } }); }
+    pfQrDraw('KPTC-STAFF|' + u.id);
+    if (pfQr){ var q = $('pfQr'); if (q) q.innerHTML = pfQr; }
+  }
   function account(u){
     var host = document.querySelector('#view-profile .profile-grid'); if (!host) return; var c = $('ptAcc'); if (!c){ c = el('div', 'fcard'); c.id = 'ptAcc'; c.style.gridColumn = '1/-1'; host.appendChild(c); }
     var labels = {}; K.PERMS.forEach(function(g){ g[1].forEach(function(p){ labels[p[0]] = p[1]; }); });
@@ -187,7 +254,7 @@
       $('ptOc').onsubmit = function(ev){ ev.preventDefault(); var f = ev.target; if (!f.name.value.trim() || !f.text.value.trim()) return toast('اكتب صاحب المناسبة والنص'); d.occasions.unshift({id:K.id('O'), kind:f.kind.value, name:f.name.value.trim(), dept:f.dept.value, text:f.text.value.trim(), date:f.date.value, time:'', place:f.place.value.trim(), status:direct ? 'منشور' : 'بانتظار المراجعة', by:u.id, marks:{}, book:[]}); K.log('مناسبة مقترحة من ' + u.name); K.save(); closeModal(); toast(direct ? 'نُشرت المناسبة' : 'وصلت للموارد البشرية للمراجعة'); }; }
   });
 
-  function paintAll(){ var u = K.staffUser(); if (!u) return; try { gate(u); avatars(u); account(u); offers(u); occasions(u); strip(u); } catch(e){ console.error(e); } }
+  function paintAll(){ var u = K.staffUser(); if (!u) return; try { gate(u); avatars(u); profile(u); account(u); offers(u); occasions(u); strip(u); } catch(e){ console.error(e); } }
   K.onChange(function(){ var u = K.staffUser(); if (!u && $('portal').classList.contains('show')){ $('portal').classList.remove('show'); $('loginPage').style.display = 'flex'; return; } if (document.activeElement && /TEXTAREA|INPUT/.test(document.activeElement.tagName) && document.activeElement.closest('#view-occasions,#modalBody,#ptPw')) return; paintAll(); });
   var me = K.staffUser(); if (me) enter(me, true);
 })();

@@ -216,11 +216,14 @@
     /* ---- profile photos: customers (users) and employees (staff) ---- */
     person: function(kind, id){ var d = load(); return kind === 'staff' ? d.staff[id] : d.users[id]; },
     photo: function(kind, id){ var o = K.person(kind, id); return o && o.photo || ''; },
-    setPhoto: function(kind, id, url){ var o = K.person(kind, id); if (!o) return; if (url) o.photo = url; else delete o.photo; log((url ? 'تحديث' : 'إزالة') + ' صورة ' + o.name); save(); },
+    setPhoto: function(kind, id, url){ var o = K.person(kind, id); if (!o) return; if (kind === 'staff' && !K.canPhoto()) return; if (url) o.photo = url; else delete o.photo; log((url ? 'تحديث' : 'إزالة') + ' صورة ' + o.name); save(); },
     /* a round avatar: the photo when there is one, otherwise the first letter */
     avatar: function(kind, id, cls){ var o = K.person(kind, id) || {}, ph = o.photo; return ph ? '<img class="kp-av ' + (cls || '') + '" src="' + ph + '" alt="">' : '<span class="kp-av ' + (cls || '') + '">' + esc((o.name || '?').trim().charAt(0)) + '</span>'; },
     /* opens the picker, crops the picture to a centred square, shrinks it and saves it */
+    /* an employee's picture is changed only by the system administrator, or by a department the administrator has authorised (admin.photos) */
+    canPhoto: function(){ var u = K.staffUser(); return !!u && K.can('admin.photos', u); },
     pickPhoto: function(kind, id, done){
+      if (kind === 'staff' && !K.canPhoto()){ if (done) done('تغيير صور الموظفين لمسؤول النظام أو للإدارة المخوّلة بذلك.'); return; }
       var f = document.createElement('input'); f.type = 'file'; f.accept = 'image/*'; f.style.display = 'none'; document.body.appendChild(f);
       f.onchange = function(){ var file = f.files && f.files[0]; f.remove(); if (!file) return;
         if (!/^image\//.test(file.type)){ if (done) done('الملف ليس صورة.'); return; }
@@ -239,7 +242,7 @@
       ['المزايا والمناسبات', [['benefits.manage','إنشاء العروض وتخصيصها'],['benefits.claims','اعتماد طلبات الاستفادة'],['occasions.post','نشر مناسبة مباشرة'],['occasions.moderate','مراجعة المناسبات المقترحة'],['portal.admin','التعاميم والقرارات والتقويم ومركز المعلومات'],['it.support','الرد على بلاغات الدعم الفني']]],
       ['محتوى الموقع', [['site.pages','إظهار الصفحات وإخفاؤها وترتيبها'],['site.texts','تحرير نصوص الصفحات'],['site.elements','إخفاء عناصر الصفحات وحقولها'],['site.home','أقسام الصفحة الرئيسية والتنبيهات'],['site.news','الأخبار والمركز الإعلامي'],['site.tenders','المناقصات'],['site.jobs','الوظائف وطلبات التوظيف'],['site.sched','مواعيد الخطوط']]],
       ['العمليات', [['ops.bookings','الحجوزات والطلبات'],['ops.wallets','محافظ العملاء'],['ops.winch','طلبات الونش والورشة'],['ops.pdi','طلبات فحص PDI']]],
-      ['إدارة النظام', [['admin.staff','حسابات الموظفين'],['admin.roles','الأدوار والصلاحيات'],['admin.log','سجل النشاط'],['admin.backup','النسخ والاستعادة'],['admin.sections','تسليم الأقسام والإشراف عليها'],['admin.support','الرد على طلبات الدعم']]]
+      ['إدارة النظام', [['admin.staff','حسابات الموظفين'],['admin.roles','الأدوار والصلاحيات'],['admin.log','سجل النشاط'],['admin.backup','النسخ والاستعادة'],['admin.sections','تسليم الأقسام والإشراف عليها'],['admin.support','الرد على طلبات الدعم'],['admin.photos','تغيير صور الموظفين']]]
     ],
     staffUser: function(){ var d = load(); return d.staffSession && d.staff[d.staffSession] || null; },
     role: function(rid){ return load().roles.filter(function(r){ return r.id === rid; })[0] || {id:rid, name:rid, perms:[]}; },

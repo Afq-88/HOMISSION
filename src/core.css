@@ -395,3 +395,6 @@ input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),
 .kp-more.open .kp-more-p{display:grid;gap:2px;animation:kp-pop .2s var(--kp-ease) both}
 .kp-more-p a{display:flex!important;align-items:center;height:auto!important;padding:10px 12px!important;border-radius:6px;font-size:14.5px!important;white-space:nowrap}
 .kp-more-p a::after{display:none!important}.kp-more-p a:hover{background:var(--kp-paper-2)}.kp-more-p a[aria-current]{background:#FFF8E1;font-weight:700;color:var(--kp-indigo)}
+
+/* numbers keep their Latin digits but sit on the reading side: right in Arabic / RTL, left in LTR */
+html[dir="rtl"] :where(b,strong,div,p,td,th,li,dd,h1,h2,h3,h4).num{text-align:right}
