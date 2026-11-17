@@ -92,6 +92,7 @@
         {id:'estate', name:'الأصول العقارية', pages:['reclient'], perms:['ops.bookings'], dept:'المرافق والصيانة'},
         {id:'care', name:'خدمة العملاء والمفقودات', pages:['lost','assistant','account'], perms:['ops.bookings','ops.wallets'], dept:'التسويق والعلاقات العامة'}
       ].map(function(x){ x.owner = ''; x.team = []; x.status = 'لم يُسلَّم'; x.note = ''; return x; }),
+      deptInfo: {},        // contact details a department publishes in the staff directory: {dept:{p:phone, e:email}}
       tickets: [],         // support requests from a section to the system admin: {id, sec, from, text, d, status, replies:[{from,text,d}]}
       pdi: [               // pre-delivery inspection requests (engineering)
         {id:'PDI-10412', d:today(-6), name:'شركة تجريبية للسيارات', phone:'55500000', org:'وكالة مركبات', kind:'حافلة متوسطة', make:'مثال — موديل 2026', count:3, vin:'', where:'ورشة KPTC', date:today(-3), note:'(طلب تجريبي للتوضيح)', status:'مكتمل', result:'مطابق بملاحظات', remarks:'ضبط ضغط الإطارات وتحديث برمجية شاشة السائق قبل التسليم.', inspector:'KPTC-ENG', checks:{}}
@@ -752,14 +753,49 @@ table.t tr:hover td{background:var(--kp-paper-2)}
 @media(max-width:920px){.g2,.g3,.g4{grid-template-columns:1fr}.sub{top:66px}.w{padding:0 16px}}
 
 body{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
-aside{background:var(--kp-ink);color:#fff;position:sticky;top:0;height:100vh;overflow:auto;padding-bottom:20px}
-.ab{display:flex;gap:10px;align-items:center;padding:16px;border-bottom:1px solid rgba(255,255,255,.1)}
+aside{background:linear-gradient(180deg,#14133A 0%,#1b1950 100%);color:#fff;position:sticky;top:0;height:100vh;overflow:auto;padding-bottom:20px;scrollbar-width:thin;scrollbar-color:#3b3a78 transparent}
+.ab{display:flex;gap:10px;align-items:center;padding:18px 18px 14px}
 .ab .kp-mark{width:38px;height:38px}.ab b{letter-spacing:.14em;direction:ltr}.ab small{display:block;color:#A9A7C9;font-size:11.5px}
-aside h4{font:600 11.5px var(--f-body);color:#8E8CB8;padding:16px 16px 6px}
-aside button{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;border:0;border-right:4px solid transparent;color:#C9C8E6;padding:10px 16px;font:500 14px var(--f-body);cursor:pointer;text-align:right}
-aside button:hover{background:rgba(255,255,255,.05);color:#fff}
-aside button.on{background:rgba(255,201,60,.1);color:#fff;border-right-color:var(--kp-sign);font-weight:700}
-aside button em{font-style:normal;font-size:11px;font-weight:700;background:var(--kp-sign);color:var(--kp-ink);border-radius:2px;padding:0 6px}
+.nv-q{position:relative;margin:4px 14px 6px}.nv-q svg{position:absolute;inset-inline-start:11px;top:50%;translate:0 -50%;width:16px;height:16px;color:#8E8CB8;pointer-events:none}
+.nv-q input{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 12px 9px 12px;padding-inline-start:34px;color:#fff;font:500 13.5px var(--f-body);outline:0;transition:.2s}
+.nv-q input::placeholder{color:#8E8CB8}.nv-q input:focus{border-color:var(--kp-sign);background:rgba(255,255,255,.11)}
+aside nav{padding:0 10px}
+.nv-g{margin-top:6px}
+.nv-h{display:flex!important;align-items:center;gap:8px;width:100%;background:none!important;border:0!important;color:#8E8CB8!important;padding:10px 10px 6px!important;font:700 11.5px var(--f-body)!important;letter-spacing:.04em;cursor:pointer;text-align:start}
+.nv-h::after{content:"";margin-inline-start:auto;width:7px;height:7px;border-inline-end:2px solid currentColor;border-bottom:2px solid currentColor;rotate:45deg;transition:rotate .2s;translate:0 -2px}
+.nv-g.shut .nv-h::after{rotate:-45deg}.nv-g.shut .nv-l{display:none}
+.nv-h i{font-style:normal;background:rgba(255,255,255,.1);border-radius:9px;padding:0 7px;font-size:10.5px;color:#C9C8E6}
+.nv-l{display:grid;gap:2px}
+.nv-l button{position:relative;display:flex;align-items:center;gap:11px;width:100%;background:none;border:0;border-radius:10px;color:#C9C8E6;padding:9px 11px;font:500 14px var(--f-body);cursor:pointer;text-align:start;transition:background .18s,color .18s}
+.nv-l button .ni{flex:none;width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.07);display:grid;place-items:center;color:#B9B7DD;transition:.18s}
+.nv-l button .ni svg{width:17px;height:17px}
+.nv-l button span.t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nv-l button:hover{background:rgba(255,255,255,.06);color:#fff}.nv-l button:hover .ni{background:rgba(255,255,255,.12)}
+.nv-l button.on{background:linear-gradient(90deg,rgba(255,201,60,.18),rgba(255,201,60,.05));color:#fff;font-weight:700}
+.nv-l button.on .ni{background:var(--kp-sign);color:var(--kp-ink)}
+.nv-l button.on::before{content:"";position:absolute;inset-inline-end:-10px;top:8px;bottom:8px;width:4px;border-radius:3px;background:var(--kp-sign)}
+.nv-l button em{font-style:normal;font-size:11px;font-weight:700;background:var(--kp-sign);color:var(--kp-ink);border-radius:9px;padding:0 7px;min-width:20px;text-align:center}
+.nv-l button.hid{display:none}.nv-g.hid{display:none}
+.nv-none{display:none;margin:14px;padding:12px;border:1px dashed rgba(255,255,255,.2);border-radius:10px;color:#A9A7C9;font-size:13px;text-align:center}.nv-none.on{display:block}
+.who{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:center;margin:2px 14px 10px;padding:11px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px}
+.who i{overflow:hidden;width:40px;height:40px;border-radius:50%;background:var(--kp-sign);color:var(--kp-ink);display:grid;place-items:center;font:700 16px var(--f-display);font-style:normal;box-shadow:0 0 0 2px rgba(255,255,255,.15)}
+.who i .kp-av-f{width:100%;height:100%;object-fit:cover}
+.who b{display:block;font-size:13.5px;color:#fff;line-height:1.3}.who small{color:#A9A7C9;font-size:11px;display:block;line-height:1.4}
+.who button{width:auto!important;border:1px solid rgba(255,255,255,.22)!important;border-radius:8px;padding:5px 9px!important;color:#fff!important;background:none;cursor:pointer}
+.backs{display:grid;gap:6px;margin:16px 14px 0;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)}
+.backs a{display:flex;align-items:center;gap:8px;color:#C9C8E6;text-decoration:none;font-size:13px;padding:8px 11px;border:1px solid rgba(255,255,255,.12);border-radius:10px;transition:.18s}
+.backs a:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.3)}
+/* sections panel */
+.scp{margin-bottom:14px}
+.scb{padding:0;overflow:hidden}
+.sc-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--kp-line);background:var(--kp-paper-2)}.sc-h h3{margin:0}.sc-h small{color:var(--kp-muted);font-size:13px}
+.sc-l{list-style:none;margin:0;padding:0}
+.sc-l li{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--kp-line);background:#fff;transition:background .15s}
+.sc-l li:hover{background:#FFFBEB}.sc-l li.off{background:var(--kp-paper-2)}.sc-l li.off b{color:var(--kp-muted);text-decoration:line-through}
+.sc-n{width:28px;height:28px;border-radius:50%;background:var(--kp-paper);border:1px solid var(--kp-line);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--kp-indigo)}
+.sc-l b{display:block;font-size:14.5px;line-height:1.45;overflow-wrap:anywhere}.sc-l small{color:var(--kp-muted);font-size:12px}
+.sc-t{margin:0;padding:12px 18px;color:var(--kp-muted);font-size:12.5px;background:var(--kp-paper-2)}
+.sc-load{display:grid;gap:10px;padding:18px}.sc-load i{display:block;height:44px;border-radius:8px;background:linear-gradient(90deg,#eee,#f7f6f1,#eee);background-size:200% 100%;animation:scl 1.2s linear infinite}@keyframes scl{to{background-position:-200% 0}}
 .mn{padding:26px 30px 60px;min-width:0}
 .mh{display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;margin-bottom:18px}
 .mh h1{font-size:26px}.mh p{color:var(--kp-muted)}
@@ -773,9 +809,10 @@ aside button em{font-style:normal;font-size:11px;font-weight:700;background:var(
 .kp4 b{display:block;font:700 26px/1.2 var(--f-display);color:var(--kp-indigo)}.kp4 span{font-size:12.5px;color:var(--kp-muted)}
 td .btn{margin-inline-end:4px}
 select.s{border:1.5px solid var(--kp-line-2);border-radius:4px;padding:5px 8px;font:600 13px var(--f-body);background:#fff}
-@media(max-width:900px){body{grid-template-columns:1fr}aside{position:static;height:auto}aside nav{display:flex;overflow-x:auto}aside h4{display:none}aside button{white-space:nowrap;border-right:0;border-bottom:4px solid transparent}aside button.on{border-bottom-color:var(--kp-sign)}.kp4{grid-template-columns:1fr 1fr}.mn{padding:18px 14px 50px}}
+@media(max-width:900px){body{grid-template-columns:1fr}aside{position:static;height:auto}.nv-g.shut .nv-l{display:grid}.nv-l{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.nv-l button.on::before{display:none}.kp4{grid-template-columns:1fr 1fr}.mn{padding:18px 14px 50px}}
 /* studio */
 .studio{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,44%);gap:20px;align-items:start}
+.st3.edm button.on{background:var(--kp-ink);color:var(--kp-sign)}
 .pv-slot{position:sticky;top:16px;height:calc(min(70vh,640px) + 42px)}
 .fh{position:fixed;z-index:30;overflow:hidden}.fh[hidden]{display:none}#pvHost .pv{position:static;height:100%}#edHost{border:2px solid var(--kp-ink);border-radius:8px;background:var(--kp-paper);box-sizing:border-box;direction:ltr}
 .pv{position:sticky;top:16px;background:#fff;border:1px solid var(--kp-line);border-radius:6px;overflow:hidden}
@@ -812,6 +849,7 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
 <body>
 <aside>
   <div class="ab"><div class="kp-mark"></div><div><b>KPTC</b><small>مركز إدارة الموقع</small></div></div>
+  <div class="nv-q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg><input id="nvQ" type="search" placeholder="ابحث عن أداة…" autocomplete="off" aria-label="ابحث عن أداة"></div>
   <nav id="nav"></nav>
 </aside>
 <div class="mn">
@@ -827,6 +865,7 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
   var PAGES = [['home','الصفحة الرئيسية','واجهة الزوار'],['routes','الخطوط والمسارات','البحث والخريطة'],['subs','الاشتراكات والتذاكر','الباقات والدفع'],['umrah','رحلات العمرة','الحجز والمقاعد'],['vip','باصات VIP والتأجير','الحجز والمعاينة'],['winch','الونش والورشة','الطلبات الطارئة'],['lost','المفقودات','البلاغات'],['ads','الإعلان على الحافلات','باقات المعلنين'],['reclient','مساحات للإيجار','العقارات للزوار'],['assistant','كابتن K','كابتن K'],['media','المركز الإعلامي','الأخبار والصور'],['tenders','المناقصات','الفرص المطروحة'],['careers','الوظائف','الشواغر والتقديم'],['account','حسابي والمحفظة','تسجيل العملاء'],['tenant','بوابة المستأجر','المستأجرون الحاليون'],['portal','بوابة الموظفين','الدخول الوظيفي'],['pdi','فحص PDI','الإدارة الهندسية']];
   var TABS = {
     pages:['استوديو الصفحات','لكل صفحة: الحالة (ظاهرة، صيانة، مخفية)، مكانها وترتيبها في القائمة، اسمها وشارتها، وجدولة ظهورها. المعاينة على اليسار تتحدث فوراً.'],
+    sections:['أقسام الصفحات','لوحة واحدة لكل صفحات الموقع: اختر الصفحة، وشغّل أو أوقف أي قسم منها. تُرى النتيجة في المعاينة فوراً.'],
     home:['الصفحة الرئيسية','شغّل أو أوقف أي قسم من الصفحة الرئيسية، وحرّر الشريط المتحرك.'],
     general:['إعدادات عامة','شريط التنبيه، وضع الصيانة الشامل، زر المساعد، ونسخ الإعدادات واستعادتها.'],
     news:['الأخبار والمركز الإعلامي','أضف خبراً أو بياناً صحفياً، عدّله، أو أوقف نشره.'],
@@ -854,6 +893,7 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
     $('pvT').textContent = 'معاينة: ' + p[1];
     [].forEach.call(h.querySelectorAll('[data-act="dev"]'), function(x){ x.classList.toggle('on', x.getAttribute('data-v') === dev); });
     if (f.getAttribute('data-loaded') !== want){ f.setAttribute('data-loaded', want); f.src = want; }
+    if (!f.__ld){ f.__ld = 1; f.addEventListener('load', function(){ setTimeout(function(){ var fr = $('pvF'); if (fr && tab === 'sections') try { fr.contentWindow.postMessage({kpAsk: 'sections'}, '*'); } catch(x){} }, 900); }); }
     b.classList.toggle('mob', dev === 'mob'); fit(b, f, dev === 'mob' ? 390 : 1280);
   }
   /* what the preview reports as changed (the page highlights it; this lists it) */
@@ -864,8 +904,8 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
     n.innerHTML = '<b>ما الذي تغيّر</b>' + d.kpSpot.slice(0, 5).map(function(x){ return '<span class="k-' + E(x.k) + '"><i>' + (W[x.k] || 'تغيّر') + '</i>' + E(x.n) + '</span>'; }).join('');
     n.classList.add('on'); clearTimeout(pvTm); pvTm = setTimeout(function(){ n.classList.remove('on'); }, 6000);
   });
-  var GROUPS = [['عملي',['desk']],['التحكم بالموقع',['pages','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['العملاء',['wallets','bookings','found']],['الموظفون',['staff','roles','intranet','benefits','occasions']],['النظام',['log']]];
-  var NEED = {found:['ops.bookings'], desk:[], intranet:['portal.admin'], pages:['site.pages'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
+  var GROUPS = [['عملي',['desk']],['التحكم بالموقع',['pages','sections','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['العملاء',['wallets','bookings','found']],['الموظفون',['staff','roles','intranet','benefits','occasions']],['النظام',['log']]];
+  var NEED = {found:['ops.bookings'], desk:[], intranet:['portal.admin'], pages:['site.pages'], sections:['site.elements'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
   function allow(k){ var u = K.staffUser(); if (!u || !TABS[k] || !V[k]) return false;
     if (k === 'desk') return K.can('admin.sections', u) || K.db().sections.some(function(x){ return x.owner === u.id || (x.team || []).indexOf(u.id) > -1; });
     if (k === 'editor' && (K.pagesFor(u) || []).length) return true;
@@ -874,10 +914,43 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
     var d = K.db(), c = {tenders:d.bids.filter(function(b){ return b.status === 'جديد'; }).length, jobs:d.applications.filter(function(a){ return a.status === 'قيد المراجعة'; }).length, bookings:d.bookings.filter(function(b){ return b.status === 'قيد المعالجة'; }).length}, u = K.staffUser();
     c.desk = d.sections.filter(function(x){ return u && x.owner === u.id && x.status === 'بانتظار الاستلام'; }).length + (u && K.can('admin.support', u) ? d.tickets.filter(function(t){ return t.status === 'مفتوح'; }).length : 0);
     c.benefits = d.claims.filter(function(x){ return x.status === 'بانتظار الاعتماد'; }).length; c.occasions = d.occasions.filter(function(x){ return x.status === 'بانتظار المراجعة'; }).length;
-    $('nav').innerHTML = (u ? '<div class="who"><i>' + K.avatar('staff', u.id, 'kp-av-f') + '</i><div><b>' + E(u.name) + '</b><small>' + E(K.role(u.role).name) + ' · ' + E(u.id) + '</small></div><button type="button" data-act="out" title="خروج">⎋</button></div>' : '') +
-      GROUPS.map(function(g){ var l = g[1].filter(allow); return l.length ? '<h4>' + g[0] + '</h4>' + l.map(btn).join('') : ''; }).join('') + '<div class="backs"><a href="KPTC_Portal.html">→ بوابة الموظفين</a><a href="KPTC_Home.html">→ الموقع العام</a></div>';
-    function btn(k){ return '<button type="button" class="' + (k === tab ? 'on' : '') + '" data-tab="' + k + '">' + TABS[k][0] + (c[k] ? '<em class="num">' + c[k] + '</em>' : '') + '</button>'; }
+    var shut = {}; try { shut = JSON.parse(localStorage.getItem('kp.nvc') || '{}'); } catch(x){}
+    $('nav').innerHTML = (u ? '<div class="who"><i>' + K.avatar('staff', u.id, 'kp-av-f') + '</i><div><b>' + E(u.name) + '</b><small>' + E(K.role(u.role).name) + ' · ' + E(u.id) + '</small></div><button type="button" data-act="out" title="خروج" aria-label="تسجيل الخروج"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></svg></button></div>' : '') +
+      GROUPS.map(function(g, gi){ var l = g[1].filter(allow); return l.length ? '<section class="nv-g' + (shut[gi] && !l.some(function(k){ return k === tab; }) ? ' shut' : '') + '" data-g="' + gi + '"><button type="button" class="nv-h" data-grp="' + gi + '" aria-expanded="' + (shut[gi] ? 'false' : 'true') + '">' + g[0] + '<i>' + l.length + '</i></button><div class="nv-l">' + l.map(btn).join('') + '</div></section>' : ''; }).join('') +
+      '<div class="nv-none" id="nvNone">لا توجد أداة بهذا الاسم</div><div class="backs"><a href="KPTC_Portal.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>بوابة الموظفين</a><a href="KPTC_Home.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>الموقع العام</a></div>';
+    function btn(k){ return '<button type="button" class="' + (k === tab ? 'on' : '') + '" data-tab="' + k + '" title="' + E(TABS[k][1]) + '"><i class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICN[k] || ICN.dot) + '</svg></i><span class="t">' + TABS[k][0] + '</span>' + (c[k] ? '<em class="num">' + c[k] + '</em>' : '') + '</button>'; }
+    navFilter();
   }
+  var ICN = {
+    desk:'<rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/>',
+    pages:'<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/>',
+    sections:'<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
+    editor:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+    home:'<path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/>',
+    general:'<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+    sched:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    news:'<path d="M5 5h11v14H7a2 2 0 0 1-2-2z"/><path d="M16 9h3v8a2 2 0 0 1-2 2M8 9h5M8 13h5"/>',
+    tenders:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+    jobs:'<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>',
+    wallets:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12.5h2M3 10h18"/>',
+    bookings:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v3M16 3v3M4 9h16m-11 5 2 2 4-4"/>',
+    found:'<circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/>',
+    staff:'<circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0M16 4.5a3.5 3.5 0 0 1 0 7M18 20a5 5 0 0 0-2.5-4.3"/>',
+    roles:'<path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/>',
+    intranet:'<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M10 21v-4h4v4"/>',
+    benefits:'<rect x="3" y="9" width="18" height="11" rx="1.5"/><path d="M12 9v11M3 13h18M12 9c-3 0-4-4-1.5-4S12 8 12 9zm0 0c3 0 4-4 1.5-4S12 8 12 9z"/>',
+    occasions:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+    log:'<path d="M5 4h14v16H5z"/><path d="M9 9h6M9 13h6M9 17h3"/>',
+    dot:'<circle cx="12" cy="12" r="3"/>'
+  };
+  /* tool search + collapsible groups */
+  function navFilter(){
+    var q = ($('nvQ').value || '').trim(), any = false;
+    [].forEach.call(document.querySelectorAll('.nv-g'), function(g){ var shown = 0; [].forEach.call(g.querySelectorAll('.nv-l button'), function(b){ var hit = !q || (b.textContent + ' ' + (b.title || '')).indexOf(q) > -1; b.classList.toggle('hid', !hit); if (hit) shown++; }); g.classList.toggle('hid', !shown); if (q && shown) g.classList.remove('shut'); if (shown) any = true; });
+    var n = $('nvNone'); if (n) n.classList.toggle('on', !!q && !any);
+  }
+  document.addEventListener('input', function(e){ if (e.target.id === 'nvQ') navFilter(); });
+  document.addEventListener('click', function(e){ var h = e.target.closest('[data-grp]'); if (!h) return; var g = h.parentNode, shut = g.classList.toggle('shut'), m = {}; try { m = JSON.parse(localStorage.getItem('kp.nvc') || '{}'); } catch(x){} m[h.getAttribute('data-grp')] = shut ? 1 : 0; try { localStorage.setItem('kp.nvc', JSON.stringify(m)); } catch(x){} h.setAttribute('aria-expanded', shut ? 'false' : 'true'); });
   function tag(s){ var c = /منشور|مفتوح|فعّال|مؤكد|مدفوع|مكتمل|مقبول|مقابلة|نشطة/.test(s) ? 'ok' : /مغلق|ملغ|مرفوض|موقوف|مخفي/.test(s) ? 'bad' : 'warn'; return '<span class="tag ' + c + '">' + E(s) + '</span>'; }
   function sel(list, cur, attrs){ return '<select class="s" ' + attrs + '>' + list.map(function(o){ return '<option' + (o === cur ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>'; }
   var V = {
@@ -946,6 +1019,45 @@ textarea.code{font:500 12px/1.5 ui-monospace,Menlo,monospace;direction:ltr;min-h
     if (!allow(tab)){ var first = null; GROUPS.forEach(function(g){ g[1].forEach(function(k){ if (!first && allow(k)) first = k; }); }); if (!first){ nav(); $('hT').textContent = 'لا صلاحية'; $('hD').textContent = 'حسابك لا يملك صلاحيات على مركز الإدارة. اطلبها من مدير النظام.'; $('hA').innerHTML = '<a class="btn o" href="KPTC_Portal.html">بوابة الموظفين</a>'; $('view').innerHTML = ''; return; } tab = first; }
     $('hA').innerHTML = '';
     nav(); $('hT').textContent = TABS[tab][0]; $('hD').textContent = TABS[tab][1]; var foc = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-f') ? [document.activeElement.getAttribute('data-f'), document.activeElement.getAttribute('data-id')] : null; $('view').innerHTML = V[tab](K.db()); mountPreview(); if (window.KPStudio && KPStudio.mountEd) KPStudio.mountEd(); if (foc){ var e2 = document.querySelector('[data-f="' + foc[0] + '"][data-id="' + foc[1] + '"]'); if (e2 && e2.focus){ e2.focus(); try { e2.setSelectionRange(e2.value.length, e2.value.length); } catch(x){} } } }
+  /* ---- sections of every page, one control panel ---- */
+  var secData = {};
+  V.sections = function(d){
+    $('hA').innerHTML = '';
+    var cur = (PAGES.filter(function(x){ return x[0] === selPg; })[0] || PAGES[0]);
+    return '<div class="chips scp">' + PAGES.map(function(p){ var n = ((K.site().hidden || {})[p[0]] || []).length; return '<button type="button" data-act="scpg" data-id="' + p[0] + '" class="' + (p[0] === selPg ? 'on' : '') + '">' + p[1] + (n ? '<em class="num">' + n + '</em>' : '') + '</button>'; }).join('') + '</div>' +
+      '<div class="studio"><div class="box scb" id="scBox">' + secHtml(selPg) + '</div>' + preview() + '</div>';
+  };
+  function secHtml(pid){
+    var L = secData[pid], p = PAGES.filter(function(x){ return x[0] === pid; })[0] || PAGES[0];
+    if (!L) return '<div class="sc-h"><h3>' + E(p[1]) + '</h3><small>جارٍ قراءة أقسام الصفحة…</small></div><div class="sc-load"><i></i><i></i><i></i></div>';
+    var on = L.filter(function(x){ return x.on; }).length, off = L.length - on;
+    return '<div class="sc-h"><div><h3>' + E(p[1]) + '</h3><small>' + on + ' قسم ظاهر' + (off ? ' · ' + off + ' مخفي' : '') + '</small></div>' + (off ? '<button type="button" class="btn o" data-act="scall">إظهار الكل</button>' : '') + '</div>' +
+      '<ol class="sc-l">' + L.map(function(x, i){ return '<li class="' + (x.on ? '' : 'off') + '" data-sel="' + E(x.sel) + '" data-i="' + i + '" data-l="' + E(x.label) + '"><span class="sc-n num">' + (i + 1) + '</span><div><b>' + E(x.label) + '</b><small>' + (x.on ? 'ظاهر للزوار' + (x.h ? ' · ارتفاع ' + x.h + 'px' : '') : 'مخفي عن الزوار') + '</small></div><button type="button" class="sw ' + (x.on ? 'on' : '') + '" data-act="sct" aria-label="' + (x.on ? 'إيقاف' : 'تشغيل') + ' ' + E(x.label) + '"></button></li>'; }).join('') + '</ol>' +
+      '<p class="sc-t">مرّر المؤشر على أي قسم لتراه مظلّلاً في المعاينة. الإخفاء يسري على كل الزوار فوراً.</p>';
+  }
+  function paintSec(){ var b = $('scBox'); if (b && tab === 'sections') b.innerHTML = secHtml(selPg); }
+  function askSec(){ var f = $('pvF'); if (f && f.contentWindow && tab === 'sections') try { f.contentWindow.postMessage({kpAsk: 'sections'}, '*'); } catch(x){} }
+  window.addEventListener('message', function(e){
+    var d = e.data || {};
+    if (d.kpSec){ secData[d.kpSec.page] = d.kpSec.list; if (d.kpSec.page === selPg) paintSec(); }
+    if (d.kptcNav && HOSTS.pvHost && $('pvF') && e.source === $('pvF').contentWindow && PAGES.some(function(x){ return x[0] === d.kptcNav; }) && selPg !== d.kptcNav){ selPg = d.kptcNav; render(); }
+  });
+  function secToggle(li){
+    var S = K.site(); S.hidden = S.hidden || {}; S.hiddenLabels = S.hiddenLabels || {}; var L = S.hidden[selPg] = S.hidden[selPg] || [], LB = S.hiddenLabels[selPg] = S.hiddenLabels[selPg] || {}, sel = li.getAttribute('data-sel'), i = L.indexOf(sel);
+    if (i > -1){ L.splice(i, 1); delete LB[sel]; K.log('إظهار قسم في ' + selPg); }
+    else { L.push(sel); LB[sel] = {l: li.getAttribute('data-l'), i: +li.getAttribute('data-i')}; K.log('إخفاء قسم في ' + selPg); }
+    var it = (secData[selPg] || []).filter(function(x){ return x.sel === sel; })[0]; if (it) it.on = !it.on;
+    paintSec(); K.save();
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-act]'); if (!b) return; var a = b.getAttribute('data-act');
+    if (a === 'scpg'){ selPg = b.getAttribute('data-id'); render(); }
+    else if (a === 'sct') secToggle(b.closest('li'));
+    else if (a === 'scall'){ var S = K.site(); if (S.hidden) delete S.hidden[selPg]; if (S.hiddenLabels) delete S.hiddenLabels[selPg]; (secData[selPg] || []).forEach(function(x){ x.on = true; }); paintSec(); K.save(); flash('أُظهرت كل أقسام الصفحة.'); }
+  });
+  function peekFrame(li){ var f = $('pvF'); if (f && f.contentWindow) try { f.contentWindow.postMessage({kpPeek: li ? li.getAttribute('data-sel') : null, label: li ? li.getAttribute('data-l') : ''}, '*'); } catch(x){} }
+  document.addEventListener('mouseover', function(e){ var li = e.target.closest('.sc-l li'); if (li && !li.classList.contains('off') && li !== peekFrame.cur){ peekFrame.cur = li; peekFrame(li); } else if (!li && peekFrame.cur){ peekFrame.cur = null; peekFrame(null); } });
+
   window.addEventListener('resize', mountPreview);
   var FORMS = {
     news:{t:'خبر', f:[['title','العنوان'],['cat','القسم','select',['أخبار الشركة','بيانات صحفية','المسؤولية الاجتماعية']],['d','التاريخ','date'],['img','الصورة','select',['kbus-fleet.jpg','kbus-ev.jpg','kbus-street.jpg','kbus-depot.jpg','coach-1.jpg','tow-1.jpg','workshop-1.jpg','hq.jpg','umrah-art.jpg']],['body','النص','textarea']], d:function(){ return {id:K.id('N'), pub:true, d:K.today(), cat:'أخبار الشركة', img:'kbus-fleet.jpg'}; }},
@@ -1020,10 +1132,6 @@ body.gated .gate{display:grid}
 .gate .demo button:hover{border-color:var(--kp-ink)}
 .backs{display:grid;gap:6px;padding:16px;margin-top:10px;border-top:1px solid rgba(255,255,255,.1)}.backs a{color:#C9C8E6;text-decoration:none;font:600 13px var(--f-body);border:1px solid rgba(255,255,255,.2);border-radius:5px;padding:8px 12px}.backs a:hover{background:var(--kp-sign);color:var(--kp-ink);border-color:var(--kp-sign)}
 .sfp{display:flex;align-items:center;gap:10px;min-width:0}.sfp i{flex:none;width:40px;height:40px;border-radius:50%;overflow:hidden;background:var(--kp-sign);display:grid;place-items:center;font:700 16px var(--f-display);color:var(--kp-ink);font-style:normal}.sfp .kp-av-f{width:100%;height:100%;object-fit:cover}
-.who{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
-.who i .kp-av-f{width:100%;height:100%}.who i{overflow:hidden;width:34px;height:34px;border-radius:50%;background:var(--kp-sign);color:var(--kp-ink);display:grid;place-items:center;font:700 15px var(--f-display);font-style:normal}
-.who b{display:block;font-size:13.5px;color:#fff}.who small{color:#A9A7C9;font-size:11px}
-.who button{width:auto!important;border:1px solid rgba(255,255,255,.25)!important;border-radius:4px;padding:4px 8px!important;color:#fff!important}
 .ed{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
 .ed-f{background:var(--kp-paper);border:2px solid var(--kp-ink);border-radius:8px;overflow:hidden;height:74vh;position:relative;direction:ltr}
 .ed-f iframe{position:absolute;top:0;left:0;border:0;background:#fff;transform-origin:0 0}
@@ -1077,11 +1185,11 @@ body.gated .gate{display:grid}
 
   /* ---- visual editor: texts and elements of any page ---- */
   var ALL = [['home','الرئيسية'],['routes','الخطوط'],['subs','الاشتراكات'],['umrah','العمرة'],['vip','VIP'],['winch','الونش'],['ads','الإعلانات'],['reclient','العقارات'],['lost','المفقودات'],['assistant','كابتن K'],['account','حسابي'],['media','المركز الإعلامي'],['tenders','المناقصات'],['careers','الوظائف'],['pdi','فحص PDI'],['portal','بوابة الموظفين']];
-  var edPg = 'home', edDev = 'desk', edKeep = null; X.editPage = function(p){ edPg = p; };
+  var edPg = 'home', edDev = 'desk', edMode = 'edit', edKeep = null; X.editPage = function(p){ edPg = p; };
   T.editor = ['المحرر المرئي', 'افتح أي صفحة واضغط على أي نص أو حقل أو عنصر: عدّل النص، غيّر النص الإرشادي للحقل، أو أخفِ العنصر عن الزوار. يعمل على كل الصفحات الحالية وأي صفحة تُضاف لاحقاً.'];
   V.editor = function(){
     var S = K.site(), tx = S.texts || {}, hd = S.hidden || {}, n = function(p){ return Object.keys(tx[p] || {}).length + (hd[p] || []).length; };
-    $('hA').innerHTML = '<span class="st3"><button data-act="eddev" data-v="desk" class="' + (edDev === 'desk' ? 'on' : '') + '" style="' + (edDev === 'desk' ? 'background:var(--kp-ink);color:var(--kp-sign)' : '') + '">حاسوب</button><button data-act="eddev" data-v="mob" style="' + (edDev === 'mob' ? 'background:var(--kp-ink);color:var(--kp-sign)' : '') + '">جوال</button></span>';
+    $('hA').innerHTML = '<span class="st3 edm"><button data-act="edmode" data-v="edit" class="' + (edMode === 'edit' ? 'on' : '') + '">تحرير</button><button data-act="edmode" data-v="browse" class="' + (edMode === 'browse' ? 'on' : '') + '">تصفّح</button></span> ' + '<span class="st3"><button data-act="eddev" data-v="desk" class="' + (edDev === 'desk' ? 'on' : '') + '" style="' + (edDev === 'desk' ? 'background:var(--kp-ink);color:var(--kp-sign)' : '') + '">حاسوب</button><button data-act="eddev" data-v="mob" style="' + (edDev === 'mob' ? 'background:var(--kp-ink);color:var(--kp-sign)' : '') + '">جوال</button></span>';
     function texts(scope, title){ var m = tx[scope] || {}, ks = Object.keys(m); return '<div class="cl"><h4>' + title + '<span class="num">' + ks.length + '</span></h4>' + (ks.length ? ks.map(function(k){ return '<div class="it"><div><s>' + E(k.replace(/^ph:/, 'حقل: ')) + '</s><b>' + E(m[k]) + '</b></div><button class="btn o" data-act="txdel" data-id="' + scope + '" data-k="' + E(k) + '">استرجاع</button></div>'; }).join('') : '<div class="empty">لا نصوص معدّلة.</div>') + '</div>'; }
     var hl = hd[edPg] || [];
     var okP = K.pagesFor(); var LIST = okP ? ALL.filter(function(p){ return okP.indexOf(p[0]) > -1; }) : ALL; if (LIST.length && !LIST.some(function(p){ return p[0] === edPg; })) edPg = LIST[0][0];
@@ -1091,7 +1199,14 @@ body.gated .gate{display:grid}
             '<div class="cl"><h4>عناصر مخفية في هذه الصفحة<span class="num">' + hl.length + '</span></h4>' + (hl.length ? hl.map(function(s, i){ return '<div class="it"><code>' + E(s.split('>').slice(-3).join(' › ')) + '</code><button class="btn o" data-act="hddel" data-id="' + i + '">إظهار</button></div>'; }).join('') : '<div class="empty">لا عناصر مخفية.</div>') + '</div>' +
       '<button class="btn o" data-act="edclear">استرجاع الصفحة كما كانت</button></div></div>';
   };
-  function mountEd(){ var H = window.__kpFH, host = H.host, track = H.track, fit = H.fit, slot = $('edB'), h = host('edHost', '<iframe id="edF" title="تحرير الصفحة"></iframe>'); track(h, slot); if (!slot) return; var f = $('edF'), want = edPg + '.html#kpedit'; if (f.getAttribute('data-loaded') !== want){ f.setAttribute('data-loaded', want); f.src = want; } f.style.cssText = 'position:absolute;top:0;border:0;background:#fff;transform-origin:0 0'; fit(slot, f, edDev === 'mob' ? 390 : 1280); }
+  function mountEd(){ var H = window.__kpFH, host = H.host, track = H.track, fit = H.fit, slot = $('edB'), h = host('edHost', '<iframe id="edF" title="تحرير الصفحة"></iframe>'); track(h, slot); if (!slot) return; var f = $('edF'), want = edPg; if (f.getAttribute('data-loaded') !== want){ f.setAttribute('data-loaded', want); f.src = edPg + '.html#kpedit' + (edMode === 'browse' ? '-browse' : ''); } f.style.cssText = 'position:absolute;top:0;border:0;background:#fff;transform-origin:0 0'; fit(slot, f, edDev === 'mob' ? 390 : 1280); }
+  /* the page inside the editor frame tells us where the visitor went (links) and which mode it is in */
+  window.addEventListener('message', function(e){
+    var f = document.getElementById('edF'), d = e.data || {}; if (!f || e.source !== f.contentWindow) return;
+    if (d.kptcNav && d.kptcNav !== edPg && ALL.some(function(p){ return p[0] === d.kptcNav; })){ edPg = d.kptcNav; X.render(); }
+    else if (d.kpPage && d.kpPage !== edPg){ edPg = d.kpPage; f.setAttribute('data-loaded', edPg); X.render(); }
+    if (d.kpMode && d.kpMode !== edMode){ edMode = d.kpMode; X.render(); }
+  });
   X.mountEd = mountEd; window.addEventListener('resize', mountEd);
 
   /* ---- line timetables ---- */
@@ -1114,7 +1229,7 @@ body.gated .gate{display:grid}
   /* ---- staff accounts ---- */
   T.staff = ['حسابات الموظفين', 'أضف موظفاً، غيّر دوره أو إدارته، امنحه صلاحية إضافية أو اسحب منه صلاحية، أوقف حسابه أو أعد تعيين كلمة مروره.'];
   V.staff = function(d){
-    $('hA').innerHTML = '<button class="btn y" data-act="sfnew">موظف جديد</button>';
+    $('hA').innerHTML = '<button class="btn o" data-act="deptinfo">بيانات الإدارات</button> <button class="btn y" data-act="sfnew">موظف جديد</button>';
     var L = Object.keys(d.staff).map(function(k){ return d.staff[k]; });
     return '<div class="kp4"><div><b class="num">' + L.length + '</b><span>حساباً</span></div><div><b class="num">' + L.filter(function(u){ return u.status === 'active'; }).length + '</b><span>فعّالاً</span></div><div><b class="num">' + d.roles.length + '</b><span>أدوار</span></div><div><b class="num">' + L.filter(function(u){ return (u.grant || []).length || (u.deny || []).length; }).length + '</b><span>بصلاحيات مخصصة</span></div></div>' +
       '<div class="tw"><table class="t"><thead><tr><th>الموظف</th><th>الإدارة</th><th>الدور</th><th>الصلاحيات</th><th>آخر دخول</th><th>الحالة</th><th></th></tr></thead><tbody>' + L.map(function(u){ var me = K.staffUser().id === u.id;
@@ -1126,6 +1241,11 @@ body.gated .gate{display:grid}
       var sid = K.latin(f.id.value).trim().toUpperCase(); if (!sid || !f.name.value.trim()) return 'اكتب الرقم الوظيفي والاسم.'; if (!id && d.staff[sid]) return 'هذا الرقم الوظيفي مسجّل.'; var em0 = f.email.value.trim().toLowerCase(); if (em0 && Object.keys(d.staff).some(function(k){ return k !== sid && (d.staff[k].email || '').toLowerCase() === em0; })) return 'هذا البريد مستخدم لموظف آخر.'; if (!id && f.pass.value.length < 8) return 'كلمة المرور 8 أحرف على الأقل.'; if (id && f.pass.value && f.pass.value.length < 8) return 'كلمة المرور 8 أحرف على الأقل.';
       var o = id ? u : (d.staff[sid] = {id:sid, status:'active', grant:[], deny:[], joined:K.today()}); o.name = f.name.value.trim(); o.title = f.title.value.trim(); o.dept = f.dept.value; o.role = f.role.value; o.phone = K.latin(f.phone.value).trim(); o.email = f.email.value.trim().toLowerCase(); if (f.pass.value) o.pass = f.pass.value;
       K.log((id ? 'تعديل حساب ' : 'حساب موظف جديد: ') + o.name); K.save(); flash('حُفظ الحساب.'); });
+  }
+  function deptForm(){
+    var d = K.db(), inf = d.deptInfo || {};
+    X.dlg('بيانات تواصل الإدارات', '<p style="font-size:12.5px;color:var(--kp-muted);margin:0">تظهر في دليل الموظفين تحت اسم كل إدارة.</p><div class="pm">' + K.DEPTS.map(function(n, i){ var v = inf[n] || {}; return '<h5>' + E(n) + '</h5><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><label class="f">هاتف / داخلي<input name="p' + i + '" dir="ltr" value="' + E(v.p || '') + '"></label><label class="f">بريد الإدارة<input name="e' + i + '" dir="ltr" value="' + E(v.e || '') + '"></label></div>'; }).join('') + '</div>', function(f){
+      var o = {}; K.DEPTS.forEach(function(n, i){ var p = K.latin(f['p' + i].value).trim(), e = f['e' + i].value.trim(); if (p || e) o[n] = {p: p, e: e}; }); d.deptInfo = o; K.log('تحديث بيانات تواصل الإدارات'); K.save(); flash('حُفظت بيانات الإدارات.'); });
   }
   function permForm(id){
     var u = K.db().staff[id], base = K.role(u.role).perms, all = base.indexOf('*') > -1;
@@ -1194,6 +1314,7 @@ body.gated .gate{display:grid}
     var b = e.target.closest('button[data-act]'); if (!b) return; var a = b.getAttribute('data-act'), id = b.getAttribute('data-id'), d = K.db(), S = K.site(), find = function(L){ return L.filter(function(x){ return x.id === id; })[0]; };
     if (a === 'edpg'){ edPg = id; X.render(); }
     else if (a === 'eddev'){ edDev = b.getAttribute('data-v'); X.render(); }
+    else if (a === 'edmode'){ edMode = b.getAttribute('data-v'); var ef = document.getElementById('edF'); if (ef && ef.contentWindow) try { ef.contentWindow.postMessage({kpMode: edMode}, '*'); } catch(x){} X.render(); }
     else if (a === 'txdel'){ delete S.texts[id][b.getAttribute('data-k')]; K.save(); flash('عاد النص الأصلي.'); }
     else if (a === 'rqdel'){ delete S.required[edPg][id]; K.save(); flash('عادت إلزامية الحقل للافتراضي.'); }
     else if (a === 'hddel'){ S.hidden[edPg].splice(+id, 1); K.save(); flash('ظهر العنصر من جديد.'); }
@@ -1203,6 +1324,7 @@ body.gated .gate{display:grid}
     else if (a === 'scdel'){ delete S.sched[id]; K.save(); flash('عاد الخط للمواعيد العامة.'); }
     else if (a === 'sfnew') staffForm();
     else if (a === 'sfedit') staffForm(id);
+    else if (a === 'deptinfo') deptForm();
     else if (a === 'sfphoto') K.pickPhoto('staff', id, function(err){ flash(err || 'تم تحديث صورة الموظف.'); });
     else if (a === 'sfphotorm'){ K.setPhoto('staff', id, ''); flash('أُزيلت صورة الموظف.'); }
     else if (a === 'sfperm') permForm(id);
@@ -1900,9 +2022,10 @@ body.gated .gate{display:grid}
   function winchKit(){ if (OWN !== 'winch') return; var n = document.createElement('script'); n.src = '../assets/winch.js'; document.head.appendChild(n); }
 
   /* ---- studio edits: any text, placeholder or element on any page (existing or future) ---- */
+  function selPath(e){ var parts = []; while (e && e !== document.body && e.nodeType === 1){ if (e.id && !/^\d/.test(e.id)){ parts.unshift('#' + (window.CSS && CSS.escape ? CSS.escape(e.id) : e.id)); break; } var i = 1, sib = e; while ((sib = sib.previousElementSibling)) if (sib.nodeName === e.nodeName) i++; parts.unshift(e.nodeName.toLowerCase() + ':nth-of-type(' + i + ')'); e = e.parentElement; } if (parts[0] && parts[0].charAt(0) !== '#') parts.unshift('body'); return parts.join('>'); }
   function siteEdits(){
     var K = window.KPTC; if (!K || !K.site) return;
-    var pid = OWN || 'home', EDIT = /kpedit/.test(location.hash), busy = false, st = document.createElement('style'); document.head.appendChild(st);
+    var pid = OWN || 'home', EDIT = /kpedit/.test(location.hash), browse = /browse/.test(location.hash), busy = false, st = document.createElement('style'); document.head.appendChild(st);
     function maps(){ var S = K.site(), T = S.texts || {}, H = S.hidden || {}, m = {}, k; for (k in (T['*'] || {})) m[k] = T['*'][k]; for (k in (T[pid] || {})) m[k] = T[pid][k]; return {t:m, h:(H['*'] || []).concat(H[pid] || [])}; }
     function skip(n){ var p = n.parentNode; return !p || /^(SCRIPT|STYLE|NOSCRIPT|TEXTAREA|OPTION)$/.test(p.nodeName) || (p.closest && p.closest('.kp-ed,[contenteditable],.leaflet-container')); }
     function apply(root){
@@ -1926,14 +2049,19 @@ body.gated .gate{display:grid}
     var css = document.createElement('style');
     css.textContent = '.kp-edh{outline:2px solid #FFC93C!important;outline-offset:2px;cursor:pointer!important}.kp-ed{position:fixed;z-index:99999;width:min(340px,92vw);background:#fff;border:2px solid #14133A;border-radius:8px;box-shadow:6px 6px 0 rgba(20,19,58,.25);padding:12px;display:grid;gap:8px;font:500 13px var(--f-body);direction:rtl;text-align:right}.kp-ed b{font:700 14px var(--f-display);color:#14133A}.kp-ed textarea{width:100%;min-height:64px;border:1.5px solid #cfcde6;border-radius:5px;padding:8px;font:500 14px var(--f-body);resize:vertical;box-sizing:border-box}.kp-ed .r{display:flex;flex-wrap:wrap;gap:6px}.kp-ed button{border:2px solid #14133A;background:#fff;border-radius:4px;padding:5px 10px;font:700 12px var(--f-display);cursor:pointer;color:#14133A}.kp-ed button.y{background:#FFC93C}.kp-ed button.d{border-color:#C2352E;color:#C2352E}.kp-ed label{display:flex;gap:6px;align-items:center;font-size:12px;color:#55537a}.kp-ed small{color:#77759A}.kp-edbar{position:fixed;z-index:99998;bottom:10px;left:50%;transform:translateX(-50%);background:#14133A;color:#fff;border-radius:20px;padding:6px 16px;font:600 12.5px var(--f-body);white-space:nowrap;pointer-events:none}';
     document.head.appendChild(css);
-    var bar = document.createElement('div'); bar.className = 'kp-edbar'; bar.textContent = 'وضع التحرير: اضغط أي نص أو عنصر لتعديله أو إخفائه'; document.body.appendChild(bar);
     var box = null, hov = null;
+    var bar = document.createElement('div'); bar.className = 'kp-edbar'; bar.innerHTML = '<span class="kp-edhint"></span><button type="button" data-m="edit">تحرير</button><button type="button" data-m="browse">تصفّح</button>'; document.body.appendChild(bar);
+    var bcss = document.createElement('style'); bcss.textContent = '.kp-edbar{display:flex!important;align-items:center;gap:6px;padding:5px 6px 5px 14px!important}.kp-edbar button{border:0;border-radius:14px;padding:3px 12px;font:700 12px "Noto Kufi Arabic",sans-serif;cursor:pointer;background:rgba(255,255,255,.14);color:#fff}.kp-edbar button.on{background:#FFC93C;color:#14133A}.kp-edhint{margin-inline-end:6px}'; document.head.appendChild(bcss);
+    function setMode(m){ browse = m === 'browse'; bar.querySelector('.kp-edhint').textContent = browse ? 'وضع التصفّح: تنقّل بين الصفحات الداخلية' : 'وضع التحرير: اضغط أي نص أو عنصر'; [].forEach.call(bar.querySelectorAll('button'), function(b){ b.classList.toggle('on', b.getAttribute('data-m') === m); }); if (browse){ close(); if (hov){ hov.classList.remove('kp-edh'); hov = null; } } }
+    bar.addEventListener('click', function(e){ var b = e.target.closest('[data-m]'); if (!b) return; setMode(b.getAttribute('data-m')); try { parent.postMessage({kpMode: browse ? 'browse' : 'edit'}, '*'); } catch(x){} });
+    window.addEventListener('message', function(e){ if (e.data && e.data.kpMode) setMode(e.data.kpMode); });
+    setMode(browse ? 'browse' : 'edit');
     function sel(e){ var parts = []; while (e && e !== document.body && e.nodeType === 1){ if (e.id && !/^\d/.test(e.id)){ parts.unshift('#' + (window.CSS && CSS.escape ? CSS.escape(e.id) : e.id)); break; } var i = 1, sib = e; while ((sib = sib.previousElementSibling)) if (sib.nodeName === e.nodeName) i++; parts.unshift(e.nodeName.toLowerCase() + ':nth-of-type(' + i + ')'); e = e.parentElement; } if (parts[0] && parts[0].charAt(0) !== '#') parts.unshift('body'); return parts.join('>'); }
     function tnode(e){ var w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT, null), n; while ((n = w.nextNode())) if (!skip(n) && n.nodeValue.trim()) return n; return null; }
     function close(){ if (box){ box.remove(); box = null; } }
-    document.addEventListener('mouseover', function(e){ if (e.target.closest('.kp-ed')) return; if (hov) hov.classList.remove('kp-edh'); hov = e.target; hov.classList.add('kp-edh'); }, true);
+    document.addEventListener('mouseover', function(e){ if (browse || e.target.closest('.kp-ed') || e.target.closest('.kp-edbar')) return; if (hov) hov.classList.remove('kp-edh'); hov = e.target; hov.classList.add('kp-edh'); }, true);
     ['click','mousedown','mouseup','submit','pointerdown'].forEach(function(ev){ document.addEventListener(ev, function(e){
-      if (e.target.closest && e.target.closest('.kp-ed')) return; e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (ev !== 'click') return;
+      if (browse || (e.target.closest && (e.target.closest('.kp-ed') || e.target.closest('.kp-edbar')))) return; e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (ev !== 'click') return;
       var t = e.target, S = K.site(), isPh = t.hasAttribute && t.hasAttribute('placeholder'), n = isPh ? null : tnode(t), orig = isPh ? (t.getAttribute('data-kpo') || t.placeholder) : n ? (n.__kpo != null ? n.__kpo : n.nodeValue).replace(/\s+/g, ' ').trim() : '', key = (isPh ? 'ph:' : '') + orig, curv = isPh ? t.placeholder : n ? n.nodeValue.trim() : '', path = sel(t), hid = ((S.hidden || {})[pid] || []).indexOf(path) > -1;
       var isFld = !!(window.KPReq && t.matches && t.matches('input,select,textarea') && !/^(checkbox|radio|hidden|file|range|button|submit)$/.test(t.type)), rk = isFld ? KPReq.key(t) : null, rEff = isFld && rk ? KPReq.isReq(t) : false, rOv = rk ? ((S.required || {})[pid] || {})[rk] : undefined;
       close(); box = document.createElement('div'); box.className = 'kp-ed';
@@ -2046,6 +2174,47 @@ body.gated .gate{display:grid}
       try { parent.postMessage({kpSpot: out}, '*'); } catch(x){}
     }
     KPTC.onChange(function(){ armed = 1; clearTimeout(armT); armT = setTimeout(function(){ armed = 0; }, 1000); });
+  }
+
+  /* ---- studio link: lets the studio list a page's sections, point at one, and follow which page is open ---- */
+  function studioLink(){
+    if (window.parent === window || !/kpprev|kpedit/.test(location.hash) || !window.KPTC) return;
+    var pid = OWN || 'home', SKIP = '.k2-util,.util,header,.k2-head,.k2-drawer,.drawer,nav.sub,footer,.k2-foot,.kp-ask,.kp-top,.kp-fab,.floating-call,.dlg,.toast,#toast,#toastEl,.flash,.kp-notice,.kp-closed,.kx-rail,.kp-edbar,.kp-ed,.kp-spot-chip,[data-kp-spot],[data-kp-peek],.success-overlay,.success-page,.overlay,.modal-overlay,.modal-bg,.mbg,#kpGT,.skiptranslate,script,style,link,noscript,iframe,canvas.kp-hidden';
+    function blocks(root, depth){
+      var out = [];
+      [].slice.call(root.children).forEach(function(e){
+        if (e.matches(SKIP) || /^(ASIDE)$/.test(e.tagName)) return;
+        var cs = getComputedStyle(e); if (cs.display === 'none' || cs.position === 'fixed') return;
+        var h = e.getBoundingClientRect().height; if (h < 40) return;
+        var inner = (e.tagName === 'MAIN' || (h > 700 && depth < 3)) ? blocks(e, depth + 1) : [];
+        if (inner.length >= 2) out = out.concat(inner); else out.push(e);
+      });
+      return out;
+    }
+    function labelOf(e){
+      var a = e.getAttribute('aria-label') || e.getAttribute('data-label'); if (a) return a.slice(0, 40);
+      var h = e.querySelector('h1,h2,h3,h4,.kp-tag,.sec-title,.block-title'); var t = (h && h.textContent || '').replace(/\s+/g, ' ').trim();
+      if (!t){ var tx = (e.innerText || '').replace(/\s+/g, ' ').trim(); t = tx.slice(0, 34); }
+      return t || (e.id ? '#' + e.id : e.tagName.toLowerCase());
+    }
+    function list(){
+      var S = KPTC.site(), H = (S.hidden || {})[pid] || [], lab = (S.hiddenLabels || {})[pid] || {}, L = blocks(document.body, 0).map(function(e, i){ return {sel: selPath(e), label: labelOf(e), on: true, h: Math.round(e.getBoundingClientRect().height)}; });
+      H.forEach(function(sel){ if (L.some(function(x){ return x.sel === sel; })) return; var m = lab[sel] || {}; L.splice(Math.min(m.i == null ? L.length : m.i, L.length), 0, {sel: sel, label: m.l || 'قسم مخفي', on: false}); });
+      return L;
+    }
+    function post(){ try { parent.postMessage({kpSec: {page: pid, list: list()}}, '*'); } catch(x){} }
+    var st = document.createElement('style'); st.textContent = '[data-kp-peek]{position:absolute;z-index:2147483000;pointer-events:none;border:3px solid #FFC93C;background:rgba(255,201,60,.14);border-radius:6px;box-shadow:0 0 0 4px rgba(46,44,120,.65)}[data-kp-peek] b{position:absolute;top:8px;inset-inline-start:8px;background:#2E2C78;color:#FFC93C;font:700 12px "Noto Kufi Arabic",sans-serif;padding:3px 11px;border-radius:10px}'; document.head.appendChild(st);
+    function peek(sel, label){
+      document.querySelectorAll('[data-kp-peek]').forEach(function(n){ n.remove(); }); if (!sel) return;
+      var el; try { el = document.querySelector(sel); } catch(x){} if (!el) return;
+      var r = el.getBoundingClientRect(); if (r.height < 4) return;
+      if (r.top < 0 || r.top > window.innerHeight * .6) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+      setTimeout(function(){ var r2 = el.getBoundingClientRect(), d = document.createElement('div'); d.setAttribute('data-kp-peek', ''); d.style.cssText = 'left:' + (r2.left + scrollX) + 'px;top:' + (r2.top + scrollY) + 'px;width:' + r2.width + 'px;height:' + r2.height + 'px'; d.innerHTML = '<b>' + (label ? K2.esc(label) : 'هذا القسم') + '</b>'; document.body.appendChild(d); }, 380);
+    }
+    var K2 = KPTC;
+    window.addEventListener('message', function(e){ var d = e.data || {}; if (d.kpAsk === 'sections') post(); if ('kpPeek' in d) peek(d.kpPeek, d.label); });
+    var t = null; KPTC.onChange(function(){ clearTimeout(t); t = setTimeout(post, 500); });
+    window.addEventListener('load', function(){ setTimeout(post, 700); try { parent.postMessage({kpPage: pid}, '*'); } catch(x){} });
   }
 
   /* ---- required fields: one engine for every page; the studio decides which fields are mandatory ---- */
@@ -2300,7 +2469,7 @@ body.gated .gate{display:grid}
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); ticketQR(); lostKit(); reqEngine(); siteEdits(); spotlight(); i18n();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); ticketQR(); lostKit(); reqEngine(); siteEdits(); spotlight(); studioLink(); i18n();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });

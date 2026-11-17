@@ -92,6 +92,7 @@
         {id:'estate', name:'الأصول العقارية', pages:['reclient'], perms:['ops.bookings'], dept:'المرافق والصيانة'},
         {id:'care', name:'خدمة العملاء والمفقودات', pages:['lost','assistant','account'], perms:['ops.bookings','ops.wallets'], dept:'التسويق والعلاقات العامة'}
       ].map(function(x){ x.owner = ''; x.team = []; x.status = 'لم يُسلَّم'; x.note = ''; return x; }),
+      deptInfo: {},        // contact details a department publishes in the staff directory: {dept:{p:phone, e:email}}
       tickets: [],         // support requests from a section to the system admin: {id, sec, from, text, d, status, replies:[{from,text,d}]}
       pdi: [               // pre-delivery inspection requests (engineering)
         {id:'PDI-10412', d:today(-6), name:'شركة تجريبية للسيارات', phone:'55500000', org:'وكالة مركبات', kind:'حافلة متوسطة', make:'مثال — موديل 2026', count:3, vin:'', where:'ورشة KPTC', date:today(-3), note:'(طلب تجريبي للتوضيح)', status:'مكتمل', result:'مطابق بملاحظات', remarks:'ضبط ضغط الإطارات وتحديث برمجية شاشة السائق قبل التسليم.', inspector:'KPTC-ENG', checks:{}}
@@ -3238,9 +3239,10 @@ initDashboard();
   function winchKit(){ if (OWN !== 'winch') return; var n = document.createElement('script'); n.src = '../assets/winch.js'; document.head.appendChild(n); }
 
   /* ---- studio edits: any text, placeholder or element on any page (existing or future) ---- */
+  function selPath(e){ var parts = []; while (e && e !== document.body && e.nodeType === 1){ if (e.id && !/^\d/.test(e.id)){ parts.unshift('#' + (window.CSS && CSS.escape ? CSS.escape(e.id) : e.id)); break; } var i = 1, sib = e; while ((sib = sib.previousElementSibling)) if (sib.nodeName === e.nodeName) i++; parts.unshift(e.nodeName.toLowerCase() + ':nth-of-type(' + i + ')'); e = e.parentElement; } if (parts[0] && parts[0].charAt(0) !== '#') parts.unshift('body'); return parts.join('>'); }
   function siteEdits(){
     var K = window.KPTC; if (!K || !K.site) return;
-    var pid = OWN || 'home', EDIT = /kpedit/.test(location.hash), busy = false, st = document.createElement('style'); document.head.appendChild(st);
+    var pid = OWN || 'home', EDIT = /kpedit/.test(location.hash), browse = /browse/.test(location.hash), busy = false, st = document.createElement('style'); document.head.appendChild(st);
     function maps(){ var S = K.site(), T = S.texts || {}, H = S.hidden || {}, m = {}, k; for (k in (T['*'] || {})) m[k] = T['*'][k]; for (k in (T[pid] || {})) m[k] = T[pid][k]; return {t:m, h:(H['*'] || []).concat(H[pid] || [])}; }
     function skip(n){ var p = n.parentNode; return !p || /^(SCRIPT|STYLE|NOSCRIPT|TEXTAREA|OPTION)$/.test(p.nodeName) || (p.closest && p.closest('.kp-ed,[contenteditable],.leaflet-container')); }
     function apply(root){
@@ -3264,14 +3266,19 @@ initDashboard();
     var css = document.createElement('style');
     css.textContent = '.kp-edh{outline:2px solid #FFC93C!important;outline-offset:2px;cursor:pointer!important}.kp-ed{position:fixed;z-index:99999;width:min(340px,92vw);background:#fff;border:2px solid #14133A;border-radius:8px;box-shadow:6px 6px 0 rgba(20,19,58,.25);padding:12px;display:grid;gap:8px;font:500 13px var(--f-body);direction:rtl;text-align:right}.kp-ed b{font:700 14px var(--f-display);color:#14133A}.kp-ed textarea{width:100%;min-height:64px;border:1.5px solid #cfcde6;border-radius:5px;padding:8px;font:500 14px var(--f-body);resize:vertical;box-sizing:border-box}.kp-ed .r{display:flex;flex-wrap:wrap;gap:6px}.kp-ed button{border:2px solid #14133A;background:#fff;border-radius:4px;padding:5px 10px;font:700 12px var(--f-display);cursor:pointer;color:#14133A}.kp-ed button.y{background:#FFC93C}.kp-ed button.d{border-color:#C2352E;color:#C2352E}.kp-ed label{display:flex;gap:6px;align-items:center;font-size:12px;color:#55537a}.kp-ed small{color:#77759A}.kp-edbar{position:fixed;z-index:99998;bottom:10px;left:50%;transform:translateX(-50%);background:#14133A;color:#fff;border-radius:20px;padding:6px 16px;font:600 12.5px var(--f-body);white-space:nowrap;pointer-events:none}';
     document.head.appendChild(css);
-    var bar = document.createElement('div'); bar.className = 'kp-edbar'; bar.textContent = 'وضع التحرير: اضغط أي نص أو عنصر لتعديله أو إخفائه'; document.body.appendChild(bar);
     var box = null, hov = null;
+    var bar = document.createElement('div'); bar.className = 'kp-edbar'; bar.innerHTML = '<span class="kp-edhint"></span><button type="button" data-m="edit">تحرير</button><button type="button" data-m="browse">تصفّح</button>'; document.body.appendChild(bar);
+    var bcss = document.createElement('style'); bcss.textContent = '.kp-edbar{display:flex!important;align-items:center;gap:6px;padding:5px 6px 5px 14px!important}.kp-edbar button{border:0;border-radius:14px;padding:3px 12px;font:700 12px "Noto Kufi Arabic",sans-serif;cursor:pointer;background:rgba(255,255,255,.14);color:#fff}.kp-edbar button.on{background:#FFC93C;color:#14133A}.kp-edhint{margin-inline-end:6px}'; document.head.appendChild(bcss);
+    function setMode(m){ browse = m === 'browse'; bar.querySelector('.kp-edhint').textContent = browse ? 'وضع التصفّح: تنقّل بين الصفحات الداخلية' : 'وضع التحرير: اضغط أي نص أو عنصر'; [].forEach.call(bar.querySelectorAll('button'), function(b){ b.classList.toggle('on', b.getAttribute('data-m') === m); }); if (browse){ close(); if (hov){ hov.classList.remove('kp-edh'); hov = null; } } }
+    bar.addEventListener('click', function(e){ var b = e.target.closest('[data-m]'); if (!b) return; setMode(b.getAttribute('data-m')); try { parent.postMessage({kpMode: browse ? 'browse' : 'edit'}, '*'); } catch(x){} });
+    window.addEventListener('message', function(e){ if (e.data && e.data.kpMode) setMode(e.data.kpMode); });
+    setMode(browse ? 'browse' : 'edit');
     function sel(e){ var parts = []; while (e && e !== document.body && e.nodeType === 1){ if (e.id && !/^\d/.test(e.id)){ parts.unshift('#' + (window.CSS && CSS.escape ? CSS.escape(e.id) : e.id)); break; } var i = 1, sib = e; while ((sib = sib.previousElementSibling)) if (sib.nodeName === e.nodeName) i++; parts.unshift(e.nodeName.toLowerCase() + ':nth-of-type(' + i + ')'); e = e.parentElement; } if (parts[0] && parts[0].charAt(0) !== '#') parts.unshift('body'); return parts.join('>'); }
     function tnode(e){ var w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT, null), n; while ((n = w.nextNode())) if (!skip(n) && n.nodeValue.trim()) return n; return null; }
     function close(){ if (box){ box.remove(); box = null; } }
-    document.addEventListener('mouseover', function(e){ if (e.target.closest('.kp-ed')) return; if (hov) hov.classList.remove('kp-edh'); hov = e.target; hov.classList.add('kp-edh'); }, true);
+    document.addEventListener('mouseover', function(e){ if (browse || e.target.closest('.kp-ed') || e.target.closest('.kp-edbar')) return; if (hov) hov.classList.remove('kp-edh'); hov = e.target; hov.classList.add('kp-edh'); }, true);
     ['click','mousedown','mouseup','submit','pointerdown'].forEach(function(ev){ document.addEventListener(ev, function(e){
-      if (e.target.closest && e.target.closest('.kp-ed')) return; e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (ev !== 'click') return;
+      if (browse || (e.target.closest && (e.target.closest('.kp-ed') || e.target.closest('.kp-edbar')))) return; e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (ev !== 'click') return;
       var t = e.target, S = K.site(), isPh = t.hasAttribute && t.hasAttribute('placeholder'), n = isPh ? null : tnode(t), orig = isPh ? (t.getAttribute('data-kpo') || t.placeholder) : n ? (n.__kpo != null ? n.__kpo : n.nodeValue).replace(/\s+/g, ' ').trim() : '', key = (isPh ? 'ph:' : '') + orig, curv = isPh ? t.placeholder : n ? n.nodeValue.trim() : '', path = sel(t), hid = ((S.hidden || {})[pid] || []).indexOf(path) > -1;
       var isFld = !!(window.KPReq && t.matches && t.matches('input,select,textarea') && !/^(checkbox|radio|hidden|file|range|button|submit)$/.test(t.type)), rk = isFld ? KPReq.key(t) : null, rEff = isFld && rk ? KPReq.isReq(t) : false, rOv = rk ? ((S.required || {})[pid] || {})[rk] : undefined;
       close(); box = document.createElement('div'); box.className = 'kp-ed';
@@ -3384,6 +3391,47 @@ initDashboard();
       try { parent.postMessage({kpSpot: out}, '*'); } catch(x){}
     }
     KPTC.onChange(function(){ armed = 1; clearTimeout(armT); armT = setTimeout(function(){ armed = 0; }, 1000); });
+  }
+
+  /* ---- studio link: lets the studio list a page's sections, point at one, and follow which page is open ---- */
+  function studioLink(){
+    if (window.parent === window || !/kpprev|kpedit/.test(location.hash) || !window.KPTC) return;
+    var pid = OWN || 'home', SKIP = '.k2-util,.util,header,.k2-head,.k2-drawer,.drawer,nav.sub,footer,.k2-foot,.kp-ask,.kp-top,.kp-fab,.floating-call,.dlg,.toast,#toast,#toastEl,.flash,.kp-notice,.kp-closed,.kx-rail,.kp-edbar,.kp-ed,.kp-spot-chip,[data-kp-spot],[data-kp-peek],.success-overlay,.success-page,.overlay,.modal-overlay,.modal-bg,.mbg,#kpGT,.skiptranslate,script,style,link,noscript,iframe,canvas.kp-hidden';
+    function blocks(root, depth){
+      var out = [];
+      [].slice.call(root.children).forEach(function(e){
+        if (e.matches(SKIP) || /^(ASIDE)$/.test(e.tagName)) return;
+        var cs = getComputedStyle(e); if (cs.display === 'none' || cs.position === 'fixed') return;
+        var h = e.getBoundingClientRect().height; if (h < 40) return;
+        var inner = (e.tagName === 'MAIN' || (h > 700 && depth < 3)) ? blocks(e, depth + 1) : [];
+        if (inner.length >= 2) out = out.concat(inner); else out.push(e);
+      });
+      return out;
+    }
+    function labelOf(e){
+      var a = e.getAttribute('aria-label') || e.getAttribute('data-label'); if (a) return a.slice(0, 40);
+      var h = e.querySelector('h1,h2,h3,h4,.kp-tag,.sec-title,.block-title'); var t = (h && h.textContent || '').replace(/\s+/g, ' ').trim();
+      if (!t){ var tx = (e.innerText || '').replace(/\s+/g, ' ').trim(); t = tx.slice(0, 34); }
+      return t || (e.id ? '#' + e.id : e.tagName.toLowerCase());
+    }
+    function list(){
+      var S = KPTC.site(), H = (S.hidden || {})[pid] || [], lab = (S.hiddenLabels || {})[pid] || {}, L = blocks(document.body, 0).map(function(e, i){ return {sel: selPath(e), label: labelOf(e), on: true, h: Math.round(e.getBoundingClientRect().height)}; });
+      H.forEach(function(sel){ if (L.some(function(x){ return x.sel === sel; })) return; var m = lab[sel] || {}; L.splice(Math.min(m.i == null ? L.length : m.i, L.length), 0, {sel: sel, label: m.l || 'قسم مخفي', on: false}); });
+      return L;
+    }
+    function post(){ try { parent.postMessage({kpSec: {page: pid, list: list()}}, '*'); } catch(x){} }
+    var st = document.createElement('style'); st.textContent = '[data-kp-peek]{position:absolute;z-index:2147483000;pointer-events:none;border:3px solid #FFC93C;background:rgba(255,201,60,.14);border-radius:6px;box-shadow:0 0 0 4px rgba(46,44,120,.65)}[data-kp-peek] b{position:absolute;top:8px;inset-inline-start:8px;background:#2E2C78;color:#FFC93C;font:700 12px "Noto Kufi Arabic",sans-serif;padding:3px 11px;border-radius:10px}'; document.head.appendChild(st);
+    function peek(sel, label){
+      document.querySelectorAll('[data-kp-peek]').forEach(function(n){ n.remove(); }); if (!sel) return;
+      var el; try { el = document.querySelector(sel); } catch(x){} if (!el) return;
+      var r = el.getBoundingClientRect(); if (r.height < 4) return;
+      if (r.top < 0 || r.top > window.innerHeight * .6) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+      setTimeout(function(){ var r2 = el.getBoundingClientRect(), d = document.createElement('div'); d.setAttribute('data-kp-peek', ''); d.style.cssText = 'left:' + (r2.left + scrollX) + 'px;top:' + (r2.top + scrollY) + 'px;width:' + r2.width + 'px;height:' + r2.height + 'px'; d.innerHTML = '<b>' + (label ? K2.esc(label) : 'هذا القسم') + '</b>'; document.body.appendChild(d); }, 380);
+    }
+    var K2 = KPTC;
+    window.addEventListener('message', function(e){ var d = e.data || {}; if (d.kpAsk === 'sections') post(); if ('kpPeek' in d) peek(d.kpPeek, d.label); });
+    var t = null; KPTC.onChange(function(){ clearTimeout(t); t = setTimeout(post, 500); });
+    window.addEventListener('load', function(){ setTimeout(post, 700); try { parent.postMessage({kpPage: pid}, '*'); } catch(x){} });
   }
 
   /* ---- required fields: one engine for every page; the studio decides which fields are mandatory ---- */
@@ -3638,7 +3686,7 @@ initDashboard();
   }
 
   function init(){
-    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); ticketQR(); lostKit(); reqEngine(); siteEdits(); spotlight(); i18n();
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); ticketQR(); lostKit(); reqEngine(); siteEdits(); spotlight(); studioLink(); i18n();
     walk(document.body);
     stages();
     if (window.KPTC) KPTC.onChange(function(){ visibility(); });
