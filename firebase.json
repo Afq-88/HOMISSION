@@ -1,11 +1,58 @@
 {
   "hosting": {
     "public": ".",
-    "ignore": ["firebase.json", ".firebaserc", "**/.*", "src/**", "tools/**", "node_modules/**", "*.zip", "FIREBASE.txt"],
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "**/.*",
+      "src/**",
+      "tools/**",
+      "node_modules/**",
+      "*.zip",
+      "FIREBASE.txt"
+    ],
     "cleanUrls": false,
     "headers": [
-      {"source": "assets/**", "headers": [{"key": "Cache-Control", "value": "public, max-age=604800"}]},
-      {"source": "**/*.html", "headers": [{"key": "Cache-Control", "value": "no-cache"}]}
+      {
+        "source": "assets/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=604800"
+          }
+        ]
+      },
+      {
+        "source": "**/*.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "passes/*.pkpass",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/vnd.apple.pkpass"
+          },
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "passes/google.json",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
     ]
   }
 }

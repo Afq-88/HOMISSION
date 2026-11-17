@@ -18,12 +18,12 @@
     '.sid-card.back .sid-f{display:none}.sid-card.back .sid-b{display:flex}',
     '.sid-top{position:relative;flex:0 0 40%;background:linear-gradient(150deg,#1b1950 0%,#2E2C78 55%,#3d3a96 100%);color:#fff;padding:26px 20px 0;overflow:hidden}',
     '.sid-top::before{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'340\' height=\'220\' fill=\'none\' stroke=\'%23fff\' stroke-opacity=\'.1\' stroke-width=\'3\'%3E%3Cpath d=\'M-10 170 C60 170 70 100 130 100 S210 160 260 110 S320 40 360 50\'/%3E%3Ccircle cx=\'130\' cy=\'100\' r=\'8\'/%3E%3Ccircle cx=\'260\' cy=\'110\' r=\'8\'/%3E%3C/svg%3E") center/cover}',
-    '.sid-top::after{content:"";position:absolute;inset-inline-end:-60px;top:-70px;width:190px;height:190px;border-radius:50%;border:30px solid rgba(255,201,60,.14)}',
+    '.sid-top::after{content:"";position:absolute;inset-inline-end:-80px;bottom:-90px;width:190px;height:190px;border-radius:50%;border:30px solid rgba(255,201,60,.12)}',
     '.sid-slot{position:absolute;top:9px;left:50%;translate:-50% 0;width:54px;height:9px;border-radius:6px;background:rgba(0,0,0,.35);box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}',
-    '.sid-brand{position:relative;z-index:1;display:flex;align-items:center;gap:9px;margin-top:6px}',
-    '.sid-mk{width:30px;height:30px;border-radius:9px;background:#FFC93C;color:#14133A;display:grid;place-items:center;flex:none}.sid-mk svg{width:17px;height:17px}',
-    '.sid-brand b{display:block;font:800 15px/1.1 ' + F + ';letter-spacing:.16em;direction:ltr;text-align:start}.sid-brand small{display:block;font-size:10.5px;color:#CFCDEA;margin-top:2px}',
-    '.sid-ph{position:relative;z-index:2;width:118px;height:118px;border-radius:50%;margin:-60px auto 0;border:5px solid #fff;box-shadow:0 0 0 4px #FFC93C,0 12px 22px -10px rgba(0,0,0,.5);overflow:hidden;background:#FFC93C;display:grid;place-items:center;flex:none}',
+    '.sid-brand{position:relative;z-index:1;display:grid;justify-items:center;gap:7px;margin-top:8px;text-align:center}.sid-brand::after{content:"";width:44px;height:3px;border-radius:2px;background:#FFC93C;margin-top:2px}',
+    '.sid-mk{width:40px;height:40px;border-radius:12px;background:#FFC93C;color:#14133A;display:grid;place-items:center;flex:none;box-shadow:0 8px 16px -8px rgba(0,0,0,.55)}.sid-mk svg{width:22px;height:22px}',
+    '.sid-brand b{display:block;font:800 19px/1 ' + F + ';letter-spacing:.3em;padding-inline-start:.3em;direction:ltr;text-align:center}.sid-brand small{display:block;font-size:11px;color:#CFCDEA;margin-top:5px}',
+    '.sid-ph{position:relative;z-index:2;width:118px;height:118px;border-radius:50%;margin:-52px auto 0;border:5px solid #fff;box-shadow:0 0 0 4px #FFC93C,0 12px 22px -10px rgba(0,0,0,.5);overflow:hidden;background:#FFC93C;display:grid;place-items:center;flex:none}',
     '.sid-ph .kp-av,.sid-ph img{width:100%;height:100%;object-fit:cover;display:grid;place-items:center;font:700 48px ' + F + ';color:#14133A;border-radius:0}',
     '.sid-body{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:14px 20px 0;min-height:0}',
     '.sid-body h3{font:800 clamp(18px,5.2vw,22px)/1.3 ' + F + ';overflow-wrap:anywhere}',
@@ -31,8 +31,8 @@
     '.sid-d{display:inline-block;margin-top:8px;font:600 12px ' + F + ';background:#F3F2EC;border:1px solid #E0DED4;border-radius:14px;padding:2px 12px}',
     '.sid-dl{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:auto;padding:12px 0;border-top:1px dashed #CFCCBF}',
     '.sid-dl dt{font-size:10.5px;color:#6E6C85}.sid-dl dd{font:800 14px ' + F + ';text-align:center;direction:ltr;unicode-bidi:isolate}',
-    '.sid-foot{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#2E2C78;color:#fff;padding:11px 18px;border-top:5px solid #FFC93C}',
-    '.sid-tag{font:800 15px/1.2 ' + F + '}.sid-tag small{display:block;font:600 10px ' + F + ';letter-spacing:.2em;color:#FFC93C;direction:ltr;text-align:start}',
+    '.sid-foot{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:12px;background:#2E2C78;color:#fff;padding:13px 18px;border-top:5px solid #FFC93C}',
+    '.sid-tag{font:800 16px/1.3 ' + F + ';text-align:center}.sid-tag small{display:block;font:600 10px ' + F + ';letter-spacing:.3em;padding-inline-start:.3em;color:#FFC93C;direction:ltr;text-align:center}',
     '.sid-q{display:flex;align-items:center;gap:9px;font-size:10.5px;color:#CFCDEA;line-height:1.5}.sid-q i{display:block;width:62px;height:62px;background:#fff;border-radius:9px;padding:5px;flex:none}.sid-q svg{width:100%;height:100%;display:block}',
     '.sid-stripe{height:46px;background:#0d0c26;margin-top:26px;flex:none}',
     '.sid-bk{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px 22px 20px;gap:10px;min-height:0}',
@@ -58,7 +58,7 @@
       '<div class="sid-ph">' + (o.photo || '') + '</div>' +
       '<div class="sid-body"><h3>' + esc(o.name) + '</h3><div class="sid-t">' + esc(o.title || 'موظف') + '</div><span class="sid-d">' + esc(o.dept || '') + '</span>' +
       '<dl class="sid-dl"><div><dt>الرقم الوظيفي</dt><dd>' + esc(o.id) + '</dd></div><div><dt>في الخدمة منذ</dt><dd>' + esc(fdate(o.joined)) + '</dd></div></dl></div>' +
-      '<div class="sid-foot"><div class="sid-tag">موظف<small>EMPLOYEE</small></div><div class="sid-q"><span>امسح للتحقق<br>من الهوية</span><i>' + (o.qr || '') + '</i></div></div></div>' +
+      '<div class="sid-foot"><div class="sid-tag">موظف<small>EMPLOYEE</small></div></div></div>' +
       '<div class="sid-b"><div class="sid-stripe"></div><div class="sid-bk"><div class="sid-big">' + (o.qr || '') + '</div><h4>تحقّق من هذه الهوية</h4><p>امسح الرمز بكاميرا الجوال لتفتح بطاقة صاحب الهوية.</p>' +
       '<ul>' + (o.email ? '<li><span>البريد</span><b>' + esc(o.email) + '</b></li>' : '') + (o.phone ? '<li><span>الهاتف</span><b>' + esc(o.phone) + '</b></li>' : '') + '<li><span>الخط الساخن</span><b>1880001</b></li></ul>' +
       '<em>هذه البطاقة ملك لشركة النقل العام الكويتية. عند العثور عليها يرجى الاتصال بالخط الساخن.</em></div></div>' +
@@ -76,26 +76,23 @@
     x.strokeStyle = 'rgba(255,255,255,.1)'; x.lineWidth = 6; x.beginPath(); x.moveTo(-20, 340); x.bezierCurveTo(120, 340, 140, 200, 260, 200); x.bezierCurveTo(380, 200, 420, 320, 520, 220); x.bezierCurveTo(600, 140, 640, 100, 720, 110); x.stroke();
     x.beginPath(); x.arc(W - 40, -10, 130, 0, 7); x.lineWidth = 60; x.strokeStyle = 'rgba(255,201,60,.14)'; x.stroke();
     x.fillStyle = 'rgba(0,0,0,.35)'; rr(W / 2 - 54, 16, 108, 18, 10); x.fill();
-    x.fillStyle = '#FFC93C'; rr(W - 96, 62, 60, 60, 18); x.fill(); x.fillStyle = '#14133A'; x.font = '800 34px ' + F; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('K', W - 66, 94);
-    x.fillStyle = '#fff'; x.textAlign = 'right'; x.font = '800 32px ' + F; x.fillText('KPTC', W - 112, 80); x.fillStyle = '#CFCDEA'; x.font = '600 21px ' + F; x.direction = 'rtl'; x.fillText('شركة النقل العام الكويتية', W - 112, 112);
+    x.fillStyle = '#FFC93C'; rr(W / 2 - 40, 58, 80, 80, 24); x.fill(); x.fillStyle = '#14133A'; x.font = '800 46px ' + F; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'ltr'; x.fillText('K', W / 2, 100);
+    x.fillStyle = '#fff'; x.font = '800 40px ' + F; x.fillText('K P T C', W / 2, 176); x.fillStyle = '#CFCDEA'; x.font = '600 23px ' + F; x.direction = 'rtl'; x.fillText('شركة النقل العام الكويتية', W / 2, 218); x.fillStyle = '#FFC93C'; rr(W / 2 - 44, 240, 88, 6, 3); x.fill();
     x.restore();
     function rest(img){
-      var cx = W / 2, cy = 425;
+      var cx = W / 2, cy = 440;
       x.beginPath(); x.arc(cx, cy, 128, 0, 7); x.fillStyle = '#FFC93C'; x.fill(); x.beginPath(); x.arc(cx, cy, 118, 0, 7); x.fillStyle = '#fff'; x.fill();
       x.save(); x.beginPath(); x.arc(cx, cy, 108, 0, 7); x.clip(); x.fillStyle = '#FFC93C'; x.fillRect(cx - 108, cy - 108, 216, 216);
       if (img){ var s = Math.min(img.width, img.height); x.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, cx - 108, cy - 108, 216, 216); } else { x.fillStyle = '#14133A'; x.font = '800 96px ' + F; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(String(o.name || '?').trim().charAt(0), cx, cy + 6); }
       x.restore();
-      x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl'; x.fillStyle = '#14133A'; x.font = '800 46px ' + F; x.fillText(o.name, cx, 600);
+      x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl'; x.fillStyle = '#14133A'; x.font = '800 46px ' + F; x.fillText(o.name, cx, 612);
       x.fillStyle = '#2E2C78'; x.font = '700 28px ' + F; x.fillText(o.title || 'موظف', cx, 652);
       x.font = '600 23px ' + F; var tw = x.measureText(o.dept || '').width + 44; x.fillStyle = '#F3F2EC'; rr(cx - tw / 2, 684, tw, 44, 22); x.fill(); x.strokeStyle = '#E0DED4'; x.lineWidth = 2; x.stroke(); x.fillStyle = '#14133A'; x.fillText(o.dept || '', cx, 707);
       x.strokeStyle = '#CFCCBF'; x.setLineDash([8, 8]); x.beginPath(); x.moveTo(40, 770); x.lineTo(W - 40, 770); x.stroke(); x.setLineDash([]);
       x.fillStyle = '#6E6C85'; x.font = '500 20px ' + F; x.fillText('الرقم الوظيفي', W * .73, 806); x.fillText('في الخدمة منذ', W * .27, 806);
       x.fillStyle = '#14133A'; x.font = '800 28px ' + F; x.direction = 'ltr'; x.fillText(o.id, W * .73, 848); x.fillText(fdate(o.joined), W * .27, 848);
-      x.fillStyle = '#2E2C78'; x.fillRect(0, 900, W, H - 900); x.fillStyle = '#FFC93C'; x.fillRect(0, 900, W, 10);
-      x.fillStyle = '#fff'; x.textAlign = 'right'; x.direction = 'rtl'; x.font = '800 34px ' + F; x.fillText('موظف', W - 44, 970); x.fillStyle = '#FFC93C'; x.font = '600 18px ' + F; x.direction = 'ltr'; x.fillText('EMPLOYEE', W - 44, 1006);
-      x.fillStyle = '#CFCDEA'; x.textAlign = 'left'; x.font = '500 19px ' + F; x.direction = 'rtl'; x.textAlign = 'center'; x.fillText('امسح للتحقق', 262, 960); x.fillText('من الهوية', 262, 988);
-      var qx = 44, qy = 920, qs = 120; x.fillStyle = '#fff'; rr(qx, qy, qs + 16, qs + 16, 14); x.fill();
-      try { var q = window.qrcode(0, 'M'); q.addData(o.url); q.make(); var n = q.getModuleCount(), c = qs / n; x.fillStyle = '#14133A'; for (var r = 0; r < n; r++) for (var k = 0; k < n; k++) if (q.isDark(r, k)) x.fillRect(qx + 8 + k * c, qy + 8 + r * c, Math.ceil(c), Math.ceil(c)); } catch(e){}
+      x.fillStyle = '#2E2C78'; x.fillRect(0, 930, W, H - 930); x.fillStyle = '#FFC93C'; x.fillRect(0, 930, W, 10);
+      x.fillStyle = '#fff'; x.textAlign = 'center'; x.direction = 'rtl'; x.font = '800 36px ' + F; x.fillText('موظف', W / 2, 990); x.fillStyle = '#FFC93C'; x.font = '600 20px ' + F; x.direction = 'ltr'; x.fillText('E M P L O Y E E', W / 2, 1030);
       done(cv.toDataURL('image/png'));
     }
     if (o.photoUrl){ var im = new Image(); im.onload = function(){ rest(im); }; im.onerror = function(){ rest(null); }; im.src = o.photoUrl; } else rest(null);

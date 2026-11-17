@@ -50,6 +50,7 @@
         ticker: [],                                // custom ticker lines (empty = the built-in ones)
         maintenance: {on:false, text:''},
         assistant: true,
+        wallet: {worker: ''},                      // address of the free wallet-signing service (worker/wallet-worker.js), for customer passes
         texts: {},                                 // page id (or '*') -> {original text: replacement}
         hidden: {},                                // page id -> [css selectors hidden from visitors]
         required: {},                              // page id -> {field key: true (mandatory) | false (optional)}

@@ -1,0 +1,46 @@
+إضافة الهوية وبطاقة العضوية إلى محفظة الجوال
+=============================================
+
+ما يعمل الآن بلا أي إعداد (مجاني):
+  - «احفظها كصورة»: تنزل الهوية أو بطاقة العضوية صورة PNG إلى جوال المستخدم.
+  - «أضفها للشاشة الرئيسية»: يفتح الجوال البطاقة بملء الشاشة بضغطة (الخطوات تظهر للمستخدم).
+
+ما يحتاج إعداداً لمرة واحدة (هذا قيد من Apple وGoogle وليس من الموقع):
+  بطاقة المحفظة الحقيقية يجب أن تُوقَّع بمفتاح خاص بالشركة. ولا يجوز أن يكون المفتاح داخل صفحة
+  الويب. لذلك التوقيع يتم خارج الموقع، وما يُنشر على الموقع ملفات جاهزة غير سرّية.
+
+أولاً: هوية الموظف (ثابتة، مجانية على Google، و99 دولاراً سنوياً على Apple)
+  الأداة: tools/wallet_pass.py (تعمل على جهاز مدير النظام أو Cloud Shell، تحتاج Python وopenssl).
+  1) من مركز الإدارة ← إعدادات عامة ← «نسخة من الإعدادات» انسخ النص واحفظه في ملف backup.json.
+  2) Google Wallet (مجاني):
+       - افتح  https://pay.google.com/business/console  وأنشئ حساب جهة (Issuer) وخذ الرقم Issuer ID.
+       - من Google Cloud فعّل Google Wallet API وأنشئ Service Account ونزّل مفتاحه JSON.
+       - اربط الـ Service Account بالجهة من Wallet Console ← Users.
+       - نفّذ:
+           python3 tools/wallet_pass.py google --db backup.json --site https://kptc-4ea83.web.app \
+               --issuer ISSUER_ID --sa service-account.json
+         ينتج passes/google.json.
+  3) Apple Wallet (يتطلب Apple Developer Program مدفوعاً، ولا يوجد طريق مجاني لآيفون):
+       - أنشئ Pass Type ID من developer.apple.com ← Certificates ← Identifiers، ثم شهادة له.
+       - صدّر الشهادة والمفتاح بصيغة PEM ونزّل شهادة Apple WWDR بصيغة PEM.
+       - نفّذ:
+           python3 tools/wallet_pass.py apple --db backup.json --site https://kptc-4ea83.web.app \
+               --pass-type pass.com.kptc.staff --team TEAM_ID --cert pass.pem --key pass.key --wwdr wwdr.pem
+         ينتج passes/<الرقم-الوظيفي>.pkpass لكل موظف.
+  4) ارفع الموقع كالمعتاد (firebase deploy). يقرأ زر «أضفها إلى المحفظة» الملفات تلقائياً:
+     يضيء زر Apple أو Google لكل موظف حسب الملف الموجود له.
+  أضف الخيار --barcode إن أردت رمز QR على بطاقة المحفظة (بلا رمز افتراضياً).
+  عند إضافة موظف جديد أو تغيير بياناته أعد تشغيل الأداة.
+
+ثانياً: بطاقة عضوية العميل (تُنشأ عند الطلب، فتحتاج خدمة صغيرة)
+  بيانات العملاء داخل متصفح كل عميل، لذلك لا يمكن تجهيز بطاقاتهم مسبقاً.
+  الحل المجاني: خدمة Cloudflare Workers مرفقة في worker/wallet-worker.js
+     1) أنشئ حساباً مجانياً في Cloudflare ← Workers ← Create ← ألصق محتوى الملف.
+     2) في Settings ← Variables أضف: GOOGLE_SA (سرّي: محتوى مفتاح الـ Service Account كاملاً)،
+        ISSUER (رقم الجهة)، SITE (https://kptc-4ea83.web.app).
+     3) انسخ عنوان الخدمة (https://....workers.dev) وألصقه في مركز الإدارة ← إعدادات عامة ←
+        «المحفظة الرقمية للعملاء» ثم احفظ. يظهر زر Google Wallet لكل العملاء.
+  Apple Wallet للعملاء يتطلب الشهادة المدفوعة نفسها وتوقيعاً عند الطلب. لم أضفه لأنه لا يمكن
+  تنفيذه مجاناً، وسيحتاج خدمة أكبر من هذه.
+
+تنبيه: بطاقة المحفظة تحمل البيانات الظاهرة على الهوية فقط ولا تحمل رصيداً ولا وسيلة دفع.
