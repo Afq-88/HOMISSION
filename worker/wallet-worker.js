@@ -29,6 +29,7 @@ export default {
         header: { defaultValue: { language: 'ar', value: name } },
         subheader: { defaultValue: { language: 'ar', value: clip('plan') || tier || 'عضو KPTC' } },
         hexBackgroundColor: TIERS[tier] || '#2E2C78', logo: { sourceUri: { uri: env.SITE + '/assets/pass-logo.png' } },
+        barcode: { type: 'QR_CODE', value: env.SITE + '/pages/staffid.html#' + enc({ k: 'm', i: id, n: name, p: clip('plan'), t: tier, u: clip('until_iso', 10), v: 1 }) },
         textModulesData: [{ id: 'no', header: 'رقم العضوية', body: clip('no') }, { id: 'until', header: 'صالحة حتى', body: clip('until') }, { id: 'hot', header: 'الخط الساخن', body: '1880001' }],
       }],
     };

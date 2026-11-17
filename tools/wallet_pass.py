@@ -18,8 +18,7 @@ It only needs the "staff" object.
           --issuer 3388000000012345678 --sa service-account.json
       -> passes/google.json  ({employee id: "Add to Google Wallet" link})
 
-Both need only Python 3 and the openssl command (present on macOS, Linux and Cloud Shell). Add --barcode to print the
-verification QR on the pass (off by default: the card design has no barcode).
+Both need only Python 3 and the openssl command (present on macOS, Linux and Cloud Shell). The pass carries a working verification QR (it opens the verification page). Add --no-barcode to leave it off.
 """
 import argparse, base64, hashlib, json, os, struct, subprocess, sys, tempfile, time, zipfile
 
@@ -140,7 +139,7 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest='cmd', required=True)
     for name in ('apple', 'google'):
-        s = sub.add_parser(name); s.add_argument('--db', required=True); s.add_argument('--site', required=True); s.add_argument('--barcode', action='store_true')
+        s = sub.add_parser(name); s.add_argument('--db', required=True); s.add_argument('--site', required=True); s.add_argument('--no-barcode', dest='barcode', action='store_false', default=True)
     s = sub.choices['apple']
     for k in ('pass-type', 'team', 'cert', 'key', 'wwdr'): s.add_argument('--' + k, required=True)
     s.add_argument('--key-pass', default='')

@@ -48,6 +48,7 @@
   function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
   function dec(h){ try { var s = String(h || '').replace(/^#/, '').replace(/^d=/, '').replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return JSON.parse(decodeURIComponent(escape(atob(s)))); } catch(e){ return null; } }
   function url(u, base){ return base + '#' + enc({i: u.id, n: u.name, t: u.title || '', d: u.dept || '', j: u.joined || '', s: u.status === 'active' ? 1 : 0, v: 1}); }
+  function memberUrl(m, base){ return base + '#' + enc({k: 'm', i: m.id, n: m.name, p: m.plan || '', t: m.tier || '', u: m.until || '', v: 1}); }
   function qr(txt, cell){ try { var q = window.qrcode(0, 'M'); q.addData(txt); q.make(); return q.createSvgTag({cellSize: cell || 4, margin: 0, scalable: true}); } catch(e){ return ''; } }
 
   function card(o){
@@ -97,5 +98,5 @@
     }
     if (o.photoUrl){ var im = new Image(); im.onload = function(){ rest(im); }; im.onerror = function(){ rest(null); }; im.src = o.photoUrl; } else rest(null);
   }
-  window.KPStaffID = {card: card, url: url, read: dec, qr: qr, png: png, flip: flip, css: css};
+  window.KPStaffID = {card: card, url: url, memberUrl: memberUrl, read: dec, qr: qr, png: png, flip: flip, css: css};
 })();

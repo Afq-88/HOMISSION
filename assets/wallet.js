@@ -6,7 +6,7 @@
      - member: a small signing service (worker/wallet-worker.js, free on Cloudflare Workers) whose address is set in the studio;
      - always available: save the card as a picture, or put the page on the home screen. */
 (function(){
-  var K = window.KPTC, F = '"Noto Kufi Arabic","IBM Plex Sans Arabic",sans-serif';
+  var SRC = document.currentScript && document.currentScript.src, K = window.KPTC, F = '"Noto Kufi Arabic","IBM Plex Sans Arabic",sans-serif';
   function E(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), android = /Android/i.test(navigator.userAgent);
   var CSS = [
@@ -24,6 +24,7 @@
     '.kw-pm h4{font:800 20px/1.35 ' + F + ';overflow-wrap:anywhere}.kw-pm p{font-size:12.5px;color:#FFC93C;font-weight:700}',
     '.kw-pf{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;border-top:1px dashed rgba(255,255,255,.3);padding-top:11px}.kw-pf small{display:block;font-size:10.5px;color:#CFCDEA}.kw-pf b{display:block;font:700 13.5px ' + F + ';direction:ltr;unicode-bidi:isolate;text-align:start;overflow-wrap:anywhere}',
     '.kw-pass.gold{color:#14133A}.kw-pass.gold .kw-hd,.kw-pass.gold .kw-pf small,.kw-pass.gold .kw-hd b,.kw-pass.gold .kw-pm p{color:#14133A}.kw-pass.gold::before{filter:invert(1);opacity:.5}',
+    '.kw-qr{justify-self:center;display:grid;justify-items:center;gap:6px;margin-top:2px}.kw-qr div{width:112px;height:112px;background:#fff;border-radius:12px;padding:8px;box-shadow:0 8px 16px -8px rgba(0,0,0,.5)}.kw-qr svg{width:100%;height:100%;display:block}.kw-qr small{font-size:10.5px;color:#CFCDEA}.kw-pass.gold .kw-qr small{color:#14133A}',
     '.kw-b{display:grid;gap:10px}',
     '.kw-btn{display:flex;align-items:center;justify-content:center;gap:11px;width:100%;border:0;border-radius:14px;padding:13px 16px;font:700 15px ' + F + ';cursor:pointer;text-decoration:none;transition:.15s;position:relative}',
     '.kw-btn svg{width:22px;height:22px;flex:none}.kw-ap{background:#000;color:#fff}.kw-gg{background:#fff;color:#14133A;box-shadow:inset 0 0 0 1.5px #CFCCBF}',
@@ -53,13 +54,15 @@
     bg.innerHTML = '<div class="kw"><div class="kw-h"><h3>أضف بطاقتك إلى محفظة الجوال</h3><button type="button" class="kw-x" aria-label="إغلاق">×</button></div>' +
       '<div class="kw-pass' + (gold ? ' gold' : '') + '" style="background:' + THEME[theme] + '"><div class="kw-pt"><span class="kw-lg"><i>' + PIN + '</i>KPTC</span><span class="kw-hd">' + hd + '</span></div>' +
       '<div class="kw-pm"><div class="kw-av">' + photo + '</div><div style="min-width:0"><h4>' + E(o.name) + '</h4><p>' + E(o.kind === 'staff' ? (o.title || 'موظف') : (o.plan || 'عضو')) + '</p></div></div>' +
-      '<div class="kw-pf">' + fields.map(function(f){ return '<div><small>' + f[0] + '</small><b>' + E(f[1]) + '</b></div>'; }).join('') + '</div></div>' +
+      '<div class="kw-pf">' + fields.map(function(f){ return '<div><small>' + f[0] + '</small><b>' + E(f[1]) + '</b></div>'; }).join('') + '</div><div class="kw-qr"><div id="kwQr"></div><small>امسح للتحقق من صحة البيانات</small></div></div>' +
       '<div class="kw-b" id="kwB"></div><div class="kw-or">أو بلا أي إعداد</div><div class="kw-fb"><button type="button" data-k="png">احفظها كصورة في جوالك</button><button type="button" data-k="home">أضفها للشاشة الرئيسية</button></div><div id="kwN"></div></div>';
     document.body.appendChild(bg); document.body.style.overflow = 'hidden';
     function close(){ bg.remove(); document.body.style.overflow = ''; document.removeEventListener('keydown', esc); }
     function esc(e){ if (e.key === 'Escape') close(); }
     document.addEventListener('keydown', esc);
     bg.addEventListener('click', function(e){ if (e.target === bg || e.target.closest('.kw-x')) close(); });
+    function drawQr(){ try { var q = window.qrcode(0, 'M'); q.addData(o.url); q.make(); bg.querySelector('#kwQr').innerHTML = q.createSvgTag({cellSize: 4, margin: 0, scalable: true}); } catch(x){} }
+    if (window.qrcode) drawQr(); else { var qs = document.createElement('script'); qs.src = new URL('qrcode.min.js', SRC || location.href).href; qs.onload = drawQr; document.head.appendChild(qs); }
     var note = bg.querySelector('#kwN');
     function say(h){ note.innerHTML = '<div class="kw-note">' + h + '</div>'; }
     var B = bg.querySelector('#kwB');
@@ -88,7 +91,7 @@
       if (!goog.__ok){ say(o.kind === 'staff' ? '<b>Google Wallet:</b> لم تُجهَّز بطاقتك بعد. اطلب من إدارة النظام تجهيزها، وتكفيك الآن الصورة أو الشاشة الرئيسية.' : '<b>Google Wallet:</b> يحتاج خدمة توقيع صغيرة مجانية (Cloudflare Workers) وحساب Google Wallet API. تُضبط من مركز الإدارة ← إعدادات عامة ← المحفظة الرقمية. بطاقتك متاحة الآن كصورة أو على الشاشة الرئيسية.'); return; }
       if (goog.__url){ location.href = goog.__url; return; }
       goog.querySelector('small').textContent = 'جارٍ إنشاء البطاقة…';
-      var q = new URLSearchParams({kind: 'member', id: o.id, name: o.name, tier: o.tierName || '', plan: o.plan || '', no: o.no || '', until: o.until || ''});
+      var q = new URLSearchParams({kind: 'member', until_iso: o.untilIso || '', id: o.id, name: o.name, tier: o.tierName || '', plan: o.plan || '', no: o.no || '', until: o.until || ''});
       fetch(cfg.worker + (cfg.worker.indexOf('?') > -1 ? '&' : '?') + q.toString()).then(function(r){ return r.json(); }).then(function(j){ if (j && j.url) location.href = j.url; else throw 0; }).catch(function(){ goog.querySelector('small').textContent = 'تعذّر الإنشاء'; say('تعذّر الاتصال بخدمة التوقيع. جرّب لاحقاً أو احفظ بطاقتك كصورة.'); });
     });
     bg.querySelector('.kw-fb').addEventListener('click', function(e){

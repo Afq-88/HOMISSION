@@ -267,7 +267,7 @@
     (function tick(n){ var k = Math.min(1, (n - t0) / 900); $('mcLeft').textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(tick); })(t0);
     setTimeout(function(){ $('mcFg').style.strokeDashoffset = 138.2 * (1 - pct); }, 60);
     qr('KPTC|' + u.id + '|' + u.phone);
-    cardData = {u: u, t: t, no: no, until: $('mcUntil').textContent, left: to, bal: w.balance, pct: pct};
+    cardData = {u: u, t: t, no: no, untilIso: sub && sub.until || '', until: $('mcUntil').textContent, left: to, bal: w.balance, pct: pct};
   }
   (function cardUI(){
     var c = $('mCard'), wrap = c.parentNode;
@@ -277,7 +277,7 @@
     function flip(){ if (c.getAttribute('data-t')) return; c.setAttribute('data-t', '1'); c.style.setProperty('--sx', '.02'); setTimeout(function(){ c.classList.toggle('flip'); c.style.setProperty('--sx', '1'); c.removeAttribute('data-t'); $('mcFlip').textContent = c.classList.contains('flip') ? 'أرني الوجه' : 'اقلب البطاقة'; }, 240); }
     $('mcFlip').onclick = flip; c.addEventListener('click', function(e){ if (e.target.closest('button')) return; flip(); });
     $('mcDl').onclick = function(){ if (!cardData) return; savePng(); };
-    $('mcWl').onclick = function(){ if (!cardData) return; var d = cardData, go = function(){ KPWallet.open({kind: 'member', id: d.u.id, name: d.u.name, tier: d.t.k, tierName: d.t.name, plan: d.t.plan, no: d.no, until: d.until, photoUrl: d.u.photo || '', png: savePng}); }; if (window.KPWallet) go(); else { var ws = document.createElement('script'); ws.src = '../assets/wallet.js'; ws.onload = go; document.head.appendChild(ws); } };
+    $('mcWl').onclick = function(){ if (!cardData) return; var d = cardData, go = function(){ KPWallet.open({kind: 'member', untilIso: d.untilIso, url: KPStaffID.memberUrl({id: d.u.id, name: d.u.name, plan: d.t.plan, tier: d.t.name, until: d.untilIso}, new URL('staffid.html', location.href).href.split('#')[0]), id: d.u.id, name: d.u.name, tier: d.t.k, tierName: d.t.name, plan: d.t.plan, no: d.no, until: d.until, photoUrl: d.u.photo || '', png: savePng}); }; function ld(src, ok){ var sc = document.createElement('script'); sc.src = src; sc.onload = ok; document.head.appendChild(sc); } if (window.KPWallet && window.KPStaffID) go(); else ld('../assets/staffid.js', function(){ ld('../assets/wallet.js', go); }); };
   })();
   /* the same card drawn on a canvas, so it can be kept on the phone as a picture */
   function savePng(){
