@@ -76,6 +76,7 @@
 
   ST.start = async function () {
     if (ST.me && ST.me.must_change) return ST.renderMustChange();
+    if (ST.me && ST.me.needs_2fa) return ST.renderTotpSetup();
     try { ST.cfg = await ST.api('GET', '/api/staff/config'); } catch (e) { return; }
     if (!location.hash) location.hash = '#/';
     since = -1; poll(); route();

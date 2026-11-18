@@ -118,6 +118,14 @@ ensureColumn('requests', 'dept_id', 'INTEGER REFERENCES departments(id)');
 ensureColumn('requests', 'tag', 'TEXT');
 ensureColumn('users', 'dept_id', 'INTEGER REFERENCES departments(id)');
 ensureColumn('users', 'ref_code', 'TEXT');
+ensureColumn('users', 'totp_secret', 'TEXT');
+ensureColumn('users', 'totp_enabled', 'INTEGER NOT NULL DEFAULT 0');
+ensureColumn('users', 'totp_last_step', 'INTEGER NOT NULL DEFAULT 0');
+ensureColumn('users', 'recovery', "TEXT NOT NULL DEFAULT '[]'");
+ensureColumn('sessions', 'reauth_until', 'TEXT');
+ensureColumn('audit', 'hash', 'TEXT');
+ensureColumn('audit', 'dhash', 'TEXT');
+ensureColumn('requests', 'anonymized', 'INTEGER NOT NULL DEFAULT 0');
 db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS ix_users_ref ON users(ref_code); CREATE INDEX IF NOT EXISTS ix_req_dept ON requests(dept_id);
 CREATE TRIGGER IF NOT EXISTS trg_users_ref AFTER INSERT ON users WHEN NEW.ref_code IS NULL BEGIN UPDATE users SET ref_code = lower(hex(randomblob(4))) WHERE id = NEW.id; END;`);
 
@@ -138,6 +146,8 @@ const DEFAULT_SETTINGS = {
   whatsapp_link_enabled: false,
   retention_archive_days: 90,
   retention_delete_days: 365,
+  retention_anonymize_days: 90,
+  require_2fa: true,
   kiosk_idle_seconds: 120,
   kiosk_warn_seconds: 30,
   rate_limit_per_10min: 80,
@@ -198,9 +208,31 @@ function nextCounter(name) {
   return db.prepare('SELECT value FROM counters WHERE name=?').get(name).value;
 }
 
+// ---------- سجل العمليات: سلسلة تجزئة مقاومة للتلاعب ----------
+// كل سطر يضم تجزئة السطر السابق. أي تعديل أو حذف لسطر قديم يكسر السلسلة ويكشفه التحقق.
+// تجزئة «التفاصيل» محفوظة منفصلة (dhash) ليمكن مسح التفاصيل الشخصية عند إخفاء الهوية دون كسر السلسلة.
+const sha = x => require('crypto').createHash('sha256').update(x).digest('hex');
+const entryHash = (prev, r, dh) => sha([prev, r.created_at, r.actor || '', r.action, r.request_id ?? '', r.user_id ?? '', dh].join('|'));
 function audit(actor, action, detail, requestId = null) {
-  db.prepare('INSERT INTO audit(request_id,user_id,actor,action,detail,created_at) VALUES(?,?,?,?,?,?)')
-    .run(requestId, actor && actor.id ? actor.id : null, actor ? (actor.display_name || actor.name || String(actor)) : 'النظام', action, detail ? JSON.stringify(detail) : null, new Date().toISOString());
+  const row = {
+    request_id: requestId, user_id: actor && actor.id ? actor.id : null, actor: actor ? (actor.display_name || actor.name || String(actor)) : 'النظام',
+    action, created_at: new Date().toISOString(),
+  };
+  const det = detail ? JSON.stringify(detail) : null;
+  const dh = sha(det || '');
+  const prev = (db.prepare('SELECT hash FROM audit WHERE hash IS NOT NULL ORDER BY id DESC LIMIT 1').get() || {}).hash || '';
+  db.prepare('INSERT INTO audit(request_id,user_id,actor,action,detail,created_at,hash,dhash) VALUES(?,?,?,?,?,?,?,?)')
+    .run(row.request_id, row.user_id, row.actor, row.action, det, row.created_at, entryHash(prev, row, dh), dh);
+}
+function verifyAudit() {
+  let prev = '', checked = 0, legacy = 0;
+  for (const r of db.prepare('SELECT * FROM audit ORDER BY id').iterate()) {
+    if (!r.hash) { legacy++; continue; }
+    if (r.detail != null && sha(r.detail) !== r.dhash) return { ok: false, checked, legacy, brokenAt: r.id, reason: 'تفاصيل السطر عُدِّلت' };
+    if (entryHash(prev, r, r.dhash) !== r.hash) return { ok: false, checked, legacy, brokenAt: r.id, reason: 'السلسلة مكسورة (تعديل أو حذف)' };
+    prev = r.hash; checked++;
+  }
+  return { ok: true, checked, legacy };
 }
 
 // نسخة احتياطية متسقة (VACUUM INTO) أثناء التشغيل
@@ -211,4 +243,4 @@ function backupTo(file) {
   return file;
 }
 
-module.exports = { newRefCode, db, tx, nextCounter, audit, getSettings, setSetting, getServices, setServices, DEFAULT_SETTINGS, backupTo };
+module.exports = { verifyAudit, newRefCode, db, tx, nextCounter, audit, getSettings, setSetting, getServices, setServices, DEFAULT_SETTINGS, backupTo };

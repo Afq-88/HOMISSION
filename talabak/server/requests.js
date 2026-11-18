@@ -323,15 +323,36 @@ function applyRetention(user, { archiveDays, deleteDays, dryRun }) {
   if (deleteDays != null) {
     const sql = `FROM requests WHERE archived=1 AND julianday('now') - julianday(updated_at) >= ?`;
     out.deleted = db.prepare('SELECT COUNT(*) n ' + sql).get(deleteDays).n;
-    if (!dryRun && out.deleted) { db.prepare(`DELETE ${sql}`).run(deleteDays); audit(user, 'retention_delete', { days: deleteDays, count: out.deleted }); }
+    if (!dryRun && out.deleted) { db.prepare(`UPDATE audit SET detail=NULL WHERE request_id IN (SELECT id ${sql})`).run(deleteDays); db.prepare(`DELETE ${sql}`).run(deleteDays); audit(user, 'retention_delete', { days: deleteDays, count: out.deleted }); }
   }
   return out;
+}
+
+// إخفاء هوية الطلبات المنتهية (مكتمل/مغلق) بعد مدة: تُمحى البيانات الشخصية والنصوص الحرة وتبقى الأعداد والإحصاءات.
+function anonymize(user, { days, dryRun }) {
+  const services = getServices();
+  const rows = db.prepare(`SELECT id, service, payload FROM requests WHERE anonymized=0 AND status IN ('completed','closed') AND julianday('now') - julianday(updated_at) >= ?`).all(days);
+  if (dryRun || !rows.length) return { count: rows.length };
+  tx(() => {
+    for (const r of rows) {
+      const svc = services.find(x => x.id === r.service);
+      const textKeys = new Set(((svc && svc.fields) || []).filter(f => f.type === 'text' || f.type === 'textarea').map(f => f.key));
+      const payload = JSON.parse(r.payload || '{}'); for (const k of Object.keys(payload)) if (textKeys.has(k)) delete payload[k];
+      db.prepare(`UPDATE requests SET name='(مُخفى)', phone_cc='0', phone='0000', phone_e164='anon-'||id, email=NULL, org_name=NULL, notes=NULL, assisted_by=NULL,
+        next_action=NULL, outcome_note=NULL, payload=?, anonymized=1, idem_key=NULL WHERE id=?`).run(JSON.stringify(payload), r.id);
+      db.prepare("UPDATE contact_log SET summary='(مُخفى)' WHERE request_id=?").run(r.id);
+      db.prepare('UPDATE audit SET detail=NULL WHERE request_id=?').run(r.id); // dhash يبقي السلسلة سليمة
+    }
+    audit(user, 'anonymize', { days, count: rows.length });
+  });
+  return { count: rows.length };
 }
 
 function deleteRequest(id, user) {
   const cur = db.prepare('SELECT * FROM requests WHERE id=?').get(id);
   if (!cur) throw new HttpError(404, 'الطلب غير موجود');
   if (!cur.archived && !cur.is_test) throw new HttpError(409, 'لا يُحذف إلا الطلب المؤرشف أو التجريبي. أرشف الطلب أولًا.');
+  db.prepare('UPDATE audit SET detail=NULL WHERE request_id=?').run(id); // مسح التفاصيل الشخصية من السجل
   db.prepare('DELETE FROM requests WHERE id=?').run(id);
   audit(user, 'delete', { ref: cur.ref, service: cur.service, reason: cur.is_test ? 'test' : 'archived' });
 }
@@ -357,4 +378,4 @@ function liveFeed(user, since) {
   return { latest, items, stats: statsFor(user) };
 }
 
-module.exports = { statsFor, liveFeed, createRequest, receiptFor, listRequests, getRequest, updateRequest, addContact, followupMessage, duplicateGroups, applyRetention, deleteRequest, filters, dto, OFF, serviceById };
+module.exports = { anonymize, statsFor, liveFeed, createRequest, receiptFor, listRequests, getRequest, updateRequest, addContact, followupMessage, duplicateGroups, applyRetention, deleteRequest, filters, dto, OFF, serviceById };

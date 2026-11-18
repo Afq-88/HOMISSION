@@ -11,6 +11,9 @@
     "restore": "node --no-warnings scripts/restore.js",
     "seed-demo": "node --no-warnings scripts/seed-demo.js",
     "qr": "node --no-warnings scripts/qr.js",
+    "reset-2fa": "node --no-warnings scripts/reset-2fa.js",
+    "verify-audit": "node --no-warnings scripts/verify-audit.js",
+    "decrypt-backup": "node --no-warnings scripts/decrypt-backup.js",
     "test": "node --no-warnings --test test/*.test.js"
   }
 }

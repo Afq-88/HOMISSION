@@ -6,14 +6,16 @@
   const ST = window.ST = { me: null, cfg: null, routes: {}, esc, fmtDate, app };
 
   // ---------- مساعدات ----------
-  ST.api = async function (method, url, body, raw) {
+  ST.api = async function (method, url, body, raw, retried) {
     let res;
     try { res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'talabak' }, body: body ? JSON.stringify(body) : undefined, credentials: 'same-origin' }); }
     catch { const e = new Error('تعذّر الاتصال بالخادم. تحقق من الإنترنت.'); e.net = true; throw e; }
     if (raw && res.ok) return res;
     let data = {}; try { data = await res.json(); } catch { /* */ }
     if (!res.ok) {
-      if (res.status === 401 && ST.me) { ST.me = null; renderLogin('انتهت الجلسة، سجّل الدخول من جديد.'); }
+      if (res.status === 403 && data.reauth && !retried) { await ST.reauth(data.totp); return ST.api(method, url, body, raw, true); }
+      if (res.status === 403 && data.setup_2fa) renderTotpSetup();
+      if (res.status === 401 && ST.me && url !== '/api/auth/reauth') { ST.me = null; renderLogin('انتهت الجلسة، سجّل الدخول من جديد.'); }
       if (res.status === 403 && data.must_change) { renderMustChange(); }
       const e = new Error(data.error || 'حدث خطأ'); e.status = res.status; e.data = data; throw e;
     }
@@ -43,17 +45,21 @@
   const dayFmt = iso => { try { return new Date(iso).toLocaleDateString('ar-KW-u-nu-latn', { timeZone: 'Asia/Kuwait', day: 'numeric', month: 'short' }); } catch { return iso; } };
 
   // ---------- الدخول ----------
-  function renderLogin(msg) {
+  function renderLogin(msg, needCode) {
     document.getElementById('nav').hidden = true; document.getElementById('who').textContent = ''; document.getElementById('logout').hidden = true; document.getElementById('livebtn').hidden = true; document.getElementById('soundbtn').hidden = true;
     app.innerHTML = `<div class="card login"><h1>تسجيل دخول الموظفين</h1><p class="lead">هذه الصفحة مخصصة لموظفي الشركة فقط.</p>
       ${msg ? `<div class="notice warn" role="alert">${esc(msg)}</div>` : ''}
       <form id="lf" autocomplete="on"><div class="field"><label for="u">اسم المستخدم</label><input id="u" name="username" type="text" dir="ltr" autocomplete="username" required autocapitalize="off"></div>
       <div class="field"><label for="p">كلمة المرور</label><input id="p" name="password" type="password" dir="ltr" autocomplete="current-password" required></div>
+      <div class="field" id="codef" ${needCode ? '' : 'hidden'}><label for="c">رمز التحقق (٦ أرقام من تطبيق المصادقة، أو رمز استرداد)</label><input id="c" name="code" type="text" dir="ltr" inputmode="numeric" autocomplete="one-time-code" maxlength="24"></div>
       <div id="lerr"></div><button class="btn btn-primary" style="width:100%" type="submit">دخول</button></form></div>`;
     document.getElementById('lf').onsubmit = async e => {
       e.preventDefault(); const btn = e.target.querySelector('button'); btn.disabled = true;
-      try { const r = await ST.api('POST', '/api/auth/login', { username: e.target.username.value, password: e.target.password.value }); ST.me = r.user; ST.start(); }
-      catch (err) { document.getElementById('lerr').innerHTML = `<div class="notice bad" role="alert">${esc(err.message)}</div>`; btn.disabled = false; }
+      try { const r = await ST.api('POST', '/api/auth/login', { username: e.target.username.value, password: e.target.password.value, code: e.target.code.value }); ST.me = r.user; ST.start(); }
+      catch (err) {
+        if (err.data && err.data.need_code) { document.getElementById('codef').hidden = false; document.getElementById('c').focus(); }
+        document.getElementById('lerr').innerHTML = `<div class="notice ${err.data && err.data.need_code && !e.target.code.value ? 'info' : 'bad'}" role="alert">${esc(err.message)}</div>`; btn.disabled = false;
+      }
     };
     document.getElementById('u').focus();
   }
@@ -64,10 +70,48 @@
       <button class="btn btn-primary" style="width:100%">حفظ ومتابعة</button></form></div>`;
     document.getElementById('pf').onsubmit = async e => {
       e.preventDefault();
-      try { await ST.api('POST', '/api/auth/password', { current: e.target.cur.value, next: e.target.nw.value }); ST.me.must_change = false; ST.toast('تم تغيير كلمة المرور'); ST.start(); }
+      try { await ST.api('POST', '/api/auth/password', { current: e.target.cur.value, next: e.target.nw.value }); ST.toast('تم تغيير كلمة المرور'); const me = await ST.api('GET', '/api/auth/me'); ST.me = me.user; ST.start(); }
       catch (err) { document.getElementById('perr').innerHTML = `<div class="notice bad">${esc(err.message)}</div>`; }
     };
   }
+  async function renderTotpSetup() {
+    document.getElementById('nav').hidden = true;
+    let info; try { info = await ST.api('POST', '/api/auth/totp/setup', {}); } catch (e) { app.innerHTML = `<div class="notice bad">${esc(e.message)}</div>`; return; }
+    const q = qrcode(0, 'M'); q.addData(info.uri); q.make();
+    app.innerHTML = `<div class="card login" style="max-width:520px"><h1>تفعيل المصادقة الثنائية</h1>
+      <div class="notice info">حماية بيانات العملاء تتطلب رمزًا ثانيًا عند كل دخول. ثبّت تطبيق مصادقة على جوالك (Microsoft Authenticator أو Google Authenticator أو Authy) ثم:</div>
+      <ol style="padding-inline-start:20px"><li>امسح الرمز أدناه من التطبيق (أو أدخل المفتاح يدويًا).</li><li>اكتب الرمز المكوّن من ٦ أرقام الظاهر في التطبيق.</li></ol>
+      <div style="text-align:center">${q.createSvgTag({ cellSize: 5, margin: 4, scalable: true }).replace('<svg ', '<svg style="width:220px;height:220px;border:1px solid var(--line);border-radius:12px;padding:6px;background:#fff" ')}</div>
+      <p class="mono" style="text-align:center;word-break:break-all;user-select:all">${esc(info.secret)}</p>
+      <form id="tf"><div class="field"><label>الرمز من التطبيق</label><input name="code" dir="ltr" inputmode="numeric" autocomplete="one-time-code" maxlength="8" required></div><div id="terr"></div><button class="btn btn-primary" style="width:100%">تفعيل</button></form></div>`;
+    document.getElementById('tf').onsubmit = async e => {
+      e.preventDefault();
+      try {
+        const r = await ST.api('POST', '/api/auth/totp/enable', { code: e.target.code.value });
+        app.innerHTML = `<div class="card login" style="max-width:520px"><h1>تم التفعيل ✓</h1><div class="notice warn"><b>رموز الاسترداد (تُعرض مرة واحدة):</b> احفظها في مكان آمن (مدير كلمات مرور أو ورقة مغلقة). كل رمز يعمل مرة واحدة إذا ضاع جوالك.</div>
+          <div class="receipt" style="padding:14px"><div class="mono" style="font-size:19px;line-height:2;text-align:center;user-select:all">${r.recovery.map(esc).join('<br>')}</div></div>
+          <div class="actions"><button class="btn btn-ghost" id="cprc">نسخ الرموز</button><button class="btn btn-primary" id="gorc">حفظتها — متابعة</button></div></div>`;
+        document.getElementById('cprc').onclick = () => ST.copy(r.recovery.join('\n'));
+        document.getElementById('gorc').onclick = async () => { const me = await ST.api('GET', '/api/auth/me'); ST.me = me.user; ST.start(); };
+      } catch (err) { document.getElementById('terr').innerHTML = `<div class="notice bad">${esc(err.message)}</div>`; }
+    };
+  }
+  ST.renderTotpSetup = renderTotpSetup;
+  // إعادة تأكيد الهوية قبل الإجراءات الحساسة (تصدير بيانات العملاء، تنزيل نسخة، حذف، إعدادات، مستخدمون…)
+  ST.reauth = totp => new Promise((resolve, reject) => {
+    const m = ST.modal(`<h2>تأكيد هويتك</h2><p class="lead">هذا إجراء حساس يتعلق ببيانات العملاء. أدخل كلمة مرورك${totp ? ' ورمز التحقق' : ''} (يبقى التأكيد صالحًا ٥ دقائق).</p>
+      <form id="rf"><div class="field"><label>كلمة المرور</label><input type="password" name="password" dir="ltr" autocomplete="current-password" required></div>
+      ${totp ? '<div class="field"><label>رمز التحقق</label><input name="code" dir="ltr" inputmode="numeric" autocomplete="one-time-code" maxlength="24" required></div>' : ''}
+      <div id="rerr"></div><div class="actions"><button class="btn btn-primary">تأكيد</button><button type="button" class="btn btn-ghost" data-close>إلغاء</button></div></form>`);
+    let done = false; const bg = m.el.parentNode;
+    bg.addEventListener('click', e => { if (!done && (e.target === bg || e.target.closest('[data-close]'))) { done = true; reject(new Error('أُلغي تأكيد الهوية')); } });
+    m.el.querySelector('input').focus();
+    m.el.querySelector('#rf').onsubmit = async e => {
+      e.preventDefault();
+      try { await ST.api('POST', '/api/auth/reauth', { password: e.target.password.value, code: e.target.code ? e.target.code.value : undefined }); done = true; m.close(); resolve(); }
+      catch (err) { m.el.querySelector('#rerr').innerHTML = `<div class="notice bad">${esc(err.message)}</div>`; }
+    };
+  });
   ST.changePassword = () => {
     const m = ST.modal(`<h2>تغيير كلمة المرور</h2><form id="pf2"><div class="field"><label>الحالية</label><input type="password" name="cur" dir="ltr" autocomplete="current-password" required></div><div class="field"><label>الجديدة</label><input type="password" name="nw" dir="ltr" autocomplete="new-password" required></div><div id="perr2"></div><div class="actions"><button class="btn btn-primary">حفظ</button><button type="button" class="btn btn-ghost" data-close>إلغاء</button></div></form>`);
     m.el.querySelector('form').onsubmit = async e => { e.preventDefault(); try { await ST.api('POST', '/api/auth/password', { current: e.target.cur.value, next: e.target.nw.value }); m.close(); ST.toast('تم تغيير كلمة المرور'); } catch (err) { m.el.querySelector('#perr2').innerHTML = `<div class="notice bad">${esc(err.message)}</div>`; } };

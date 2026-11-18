@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'talabak-'));
 process.env.DATA_DIR = tmp; process.env.DB_PATH = path.join(tmp, 't.db'); process.env.BACKUP_DIR = path.join(tmp, 'bk');
-process.env.PORT = '0'; process.env.BACKUP_EVERY_HOURS = '0';
+process.env.PORT = '0'; process.env.BACKUP_EVERY_HOURS = '0'; process.env.TRUST_PROXY = '1';
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -13,7 +13,9 @@ const { DatabaseSync } = require('node:sqlite');
 const { db, setSetting } = require('../server/db');
 const { createServer } = require('../server/app');
 const U = require('../server/util');
-const { runBackup } = require('../server/backup');
+const { runBackup, encryptBuffer, decryptBuffer } = require('../server/backup');
+const T = require('../server/totp');
+const { verifyAudit } = require('../server/db');
 
 let base;
 const server = createServer();
@@ -21,7 +23,8 @@ test.before(async () => {
   await new Promise(r => server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${server.address().port}`;
   const mk = (u, n, role) => db.prepare('INSERT INTO users(username,display_name,role,pass_hash,created_at) VALUES(?,?,?,?,?)').run(u, n, role, U.hashPassword('Passw0rd-test1'), new Date().toISOString());
-  mk('boss', 'المدير', 'admin'); mk('sara', 'سارة', 'staff'); mk('omar', 'عمر', 'staff');
+  mk('boss', 'المدير', 'admin'); mk('sara', 'سارة', 'staff'); mk('omar', 'عمر', 'staff'); mk('boss2', 'مدير ٢', 'admin');
+  setSetting('require_2fa', false); // الاختبارات العامة بلا عامل ثانٍ؛ اختبار المصادقة الثنائية يفعّله بنفسه
   setSetting('rate_limit_per_10min', 2000);
 });
 test.after(() => { server.close(); db.close(); });
@@ -35,11 +38,13 @@ async function call(method, url, body, { cookie, headers } = {}) {
   return { status: res.status, data, res };
 }
 const sessions = {};
-async function loginAs(u) {
-  if (sessions[u]) return sessions[u];
+async function loginAs(u, { reauth = true } = {}) {
+  if (reauth && sessions[u]) return sessions[u];
   const r = await call('POST', '/api/auth/login', { username: u, password: 'Passw0rd-test1' });
   assert.equal(r.status, 200);
-  return (sessions[u] = r.res.headers.get('set-cookie').split(';')[0]);
+  const ck = r.res.headers.get('set-cookie').split(';')[0];
+  if (reauth) { assert.equal((await call('POST', '/api/auth/reauth', { password: 'Passw0rd-test1' }, { cookie: ck })).status, 200); sessions[u] = ck; }
+  return ck;
 }
 const common = (o = {}) => ({ name: 'عميل تجريبي', phone_cc: '965', phone: '55512345', pref_channel: 'call', party_type: 'individual', ...o });
 const submit = (body, k = key()) => call('POST', '/api/public/requests', body, { headers: { 'idempotency-key': k } });
@@ -380,4 +385,139 @@ test('تنزيل النسخة الاحتياطية: للمدير فقط، بمس
   assert.ok([400, 404].includes((await fetch(`${base}/api/admin/backups/..%2f..%2fetc%2fpasswd/download`, { headers: { cookie: boss } })).status));
   assert.equal((await fetch(`${base}/api/admin/backups/evil.db/download`, { headers: { cookie: boss } })).status, 400);
   assert.ok(db.prepare("SELECT COUNT(*) n FROM audit WHERE action='backup_download'").get().n >= 1);
+});
+
+
+// ================= الأمان المشدَّد =================
+test('المصادقة الثنائية: إلزامية، إعداد، دخول برمز، منع إعادة استخدام الرمز، رموز الاسترداد', async () => {
+  db.prepare('INSERT INTO users(username,display_name,role,pass_hash,created_at) VALUES(?,?,?,?,?)').run('tf1', 'موظف ٢FA', 'staff', U.hashPassword('Passw0rd-test1'), new Date().toISOString());
+  setSetting('require_2fa', true);
+  try {
+    const lg = await call('POST', '/api/auth/login', { username: 'tf1', password: 'Passw0rd-test1' });
+    assert.equal(lg.status, 200); assert.equal(lg.data.user.needs_2fa, true);
+    const ck = lg.res.headers.get('set-cookie').split(';')[0];
+    const blocked = await call('GET', '/api/staff/requests', null, { cookie: ck });
+    assert.equal(blocked.status, 403); assert.equal(blocked.data.setup_2fa, true);
+    const st = await call('POST', '/api/auth/totp/setup', {}, { cookie: ck });
+    assert.match(st.data.secret, /^[A-Z2-7]{32}$/); assert.ok(st.data.uri.startsWith('otpauth://totp/'));
+    assert.ok(!db.prepare('SELECT totp_secret FROM users WHERE username=?').get('tf1').totp_secret.includes(st.data.secret), 'السر مشفّر داخل القاعدة');
+    assert.equal((await call('POST', '/api/auth/totp/enable', { code: '000000' }, { cookie: ck })).status, 422);
+    const en = await call('POST', '/api/auth/totp/enable', { code: T.hotp(st.data.secret, T.stepNow()) }, { cookie: ck });
+    assert.equal(en.status, 200); assert.equal(en.data.recovery.length, 8);
+    assert.equal((await call('GET', '/api/staff/requests', null, { cookie: ck })).status, 200);
+    assert.ok(!db.prepare('SELECT recovery FROM users WHERE username=?').get('tf1').recovery.includes(en.data.recovery[0]), 'رموز الاسترداد مجزّأة');
+    // الدخول التالي يتطلب الرمز
+    const nocode = await call('POST', '/api/auth/login', { username: 'tf1', password: 'Passw0rd-test1' });
+    assert.equal(nocode.status, 401); assert.equal(nocode.data.need_code, true);
+    assert.equal((await call('POST', '/api/auth/login', { username: 'tf1', password: 'Passw0rd-test1', code: '123456' })).status, 401);
+    const nextStep = T.hotp(st.data.secret, T.stepNow() + 1);
+    const ok = await call('POST', '/api/auth/login', { username: 'tf1', password: 'Passw0rd-test1', code: nextStep });
+    assert.equal(ok.status, 200);
+    assert.equal((await call('POST', '/api/auth/login', { username: 'tf1', password: 'Passw0rd-test1', code: nextStep })).status, 401, 'الرمز لا يُستخدم مرتين');
+    // رمز استرداد: يعمل مرة واحدة (مستخدم آخر لتفادي حد المحاولات)
+    db.prepare('INSERT INTO users(username,display_name,role,pass_hash,created_at) VALUES(?,?,?,?,?)').run('tf2', 'موظف ٢FA-ب', 'staff', U.hashPassword('Passw0rd-test1'), new Date().toISOString());
+    const l2 = await call('POST', '/api/auth/login', { username: 'tf2', password: 'Passw0rd-test1' }); const c2 = l2.res.headers.get('set-cookie').split(';')[0];
+    const s2 = await call('POST', '/api/auth/totp/setup', {}, { cookie: c2 });
+    const e2 = await call('POST', '/api/auth/totp/enable', { code: T.hotp(s2.data.secret, T.stepNow()) }, { cookie: c2 });
+    const rc = e2.data.recovery[0];
+    assert.equal((await call('POST', '/api/auth/login', { username: 'tf2', password: 'Passw0rd-test1', code: rc })).status, 200);
+    assert.equal((await call('POST', '/api/auth/login', { username: 'tf2', password: 'Passw0rd-test1', code: rc })).status, 401, 'رمز الاسترداد يُستهلك');
+    // المدير (بلا TOTP في هذا الاختبار) يعيد تعيينها؛ نُوقف الإلزام مؤقتًا لأنه نفسه بلا عامل ثانٍ
+    setSetting('require_2fa', false);
+    const boss = await loginAs('boss');
+    assert.equal((await call('POST', `/api/admin/users/${db.prepare("SELECT id FROM users WHERE username='tf2'").get().id}/reset-2fa`, {}, { cookie: boss })).status, 200);
+    assert.equal(db.prepare("SELECT totp_enabled FROM users WHERE username='tf2'").get().totp_enabled, 0);
+  } finally { setSetting('require_2fa', false); }
+});
+
+test('الإجراءات الحساسة تتطلب إعادة تأكيد كلمة المرور (وتنتهي بعد ٥ دقائق)', async () => {
+  const b = await loginAs('boss2', { reauth: false });
+  const need = async (m, u, body) => { const r = await call(m, u, body, { cookie: b }); assert.equal(r.status, 403, u); assert.equal(r.data.reauth, true, u); };
+  await need('GET', '/api/admin/export/requests.csv?pii=1');
+  await need('POST', '/api/admin/users', { username: 'x.y', display_name: 'اختبار', role: 'staff' });
+  await need('PUT', '/api/admin/settings', { accepting: true });
+  await need('POST', '/api/admin/retention', { delete: true, dryRun: false });
+  await need('POST', '/api/admin/anonymize', { dryRun: false });
+  const bk = (await call('POST', '/api/admin/backups', {}, { cookie: b })).data; // إنشاء نسخة لا يحتاج، التنزيل يحتاج
+  assert.equal((await fetch(`${base}/api/admin/backups/${bk.file}/download`, { headers: { cookie: b } })).status, 403);
+  // التصدير بلا بيانات تواصل وقراءة التقارير لا تحتاج reauth
+  assert.equal((await call('GET', '/api/admin/export/requests.csv', null, { cookie: b })).status, 200);
+  assert.equal((await call('POST', '/api/auth/reauth', { password: 'wrong-password-1' }, { cookie: b })).status, 401);
+  assert.equal((await call('POST', '/api/auth/reauth', { password: 'Passw0rd-test1' }, { cookie: b })).status, 200);
+  assert.equal((await call('GET', '/api/admin/export/requests.csv?pii=1', null, { cookie: b })).status, 200);
+  // انتهاء الصلاحية
+  db.prepare("UPDATE sessions SET reauth_until=? WHERE reauth_until IS NOT NULL").run(new Date(Date.now() - 1000).toISOString());
+  await need('GET', '/api/admin/export/requests.csv?pii=1');
+  sessions['boss'] = undefined; sessions['sara'] = undefined; sessions['omar'] = undefined; // الجلسات المخزَّنة فقدت reauth
+});
+
+test('النسخ الاحتياطي المشفَّر: لا يُقرأ بدون العبارة، ويكشف أي تعديل', () => {
+  const plain = Buffer.from('SQLite format 3\0 بيانات عملاء سرية');
+  const enc = encryptBuffer(plain, 'عبارة-قوية-123');
+  assert.ok(!enc.includes('SQLite format 3') && !enc.includes(Buffer.from('بيانات عملاء')));
+  assert.deepEqual(decryptBuffer(enc, 'عبارة-قوية-123'), plain);
+  assert.throws(() => decryptBuffer(enc, 'خاطئة'), /العبارة خاطئة/);
+  const bad = Buffer.from(enc); bad[bad.length - 3] ^= 1;
+  assert.throws(() => decryptBuffer(bad, 'عبارة-قوية-123'), /تالف|خاطئة/);
+  const r = runBackup('enc', 'test-pass-123456');
+  assert.ok(r.file.endsWith('.db.enc') && r.encrypted);
+  const raw = fs.readFileSync(path.join(process.env.BACKUP_DIR, r.file));
+  assert.ok(!raw.subarray(0, 64).includes('SQLite format 3'));
+  assert.equal(decryptBuffer(raw, 'test-pass-123456').subarray(0, 15).toString(), 'SQLite format 3');
+  assert.equal(fs.statSync(path.join(process.env.BACKUP_DIR, r.file)).mode & 0o077, 0, 'صلاحيات الملف للمالك فقط');
+});
+
+test('سجل العمليات مقاوم للتلاعب: أي تعديل أو حذف يُكتشف', () => {
+  assert.equal(verifyAudit().ok, true);
+  const row = db.prepare("SELECT id, actor FROM audit WHERE hash IS NOT NULL ORDER BY id LIMIT 1 OFFSET 3").get();
+  db.prepare('UPDATE audit SET actor=? WHERE id=?').run('مزوَّر', row.id);
+  let v = verifyAudit(); assert.equal(v.ok, false); assert.equal(v.brokenAt, row.id);
+  db.prepare('UPDATE audit SET actor=? WHERE id=?').run(row.actor, row.id); assert.equal(verifyAudit().ok, true);
+  const del = db.prepare("SELECT * FROM audit WHERE hash IS NOT NULL ORDER BY id LIMIT 1 OFFSET 5").get();
+  db.prepare('DELETE FROM audit WHERE id=?').run(del.id); assert.equal(verifyAudit().ok, false);
+  db.prepare('INSERT INTO audit(id,request_id,user_id,actor,action,detail,created_at,hash,dhash) VALUES(?,?,?,?,?,?,?,?,?)').run(del.id, del.request_id, del.user_id, del.actor, del.action, del.detail, del.created_at, del.hash, del.dhash);
+  assert.equal(verifyAudit().ok, true);
+});
+
+test('إخفاء الهوية بعد المعرض: تُمحى البيانات الشخصية وتبقى الإحصاءات وسلامة السجل', async () => {
+  const boss = await loginAs('boss');
+  const refs = [];
+  for (let i = 0; i < 3; i++) refs.push((await submit({ ...common({ phone: '5558000' + i, name: 'اسم سري ' + i, notes: 'ملاحظة شخصية' }), service: 'other', fields: { title: 'عنوان خاص', description: 'وصف شخصي' } })).data.receipt.ref);
+  const ids = refs.map(r => db.prepare('SELECT id FROM requests WHERE ref=?').get(r).id);
+  await call('POST', `/api/staff/requests/${ids[0]}/contacts`, { kind: 'call', summary: 'تفاصيل شخصية في المكالمة' }, { cookie: boss });
+  for (const id of ids.slice(0, 2)) assert.equal((await call('PATCH', `/api/staff/requests/${id}`, { status: 'closed', outcome: 'answered', name: 'اسم جديد ' + id }, { cookie: boss })).status, 200);
+  db.prepare('UPDATE requests SET updated_at=? WHERE id IN (?,?)').run(new Date(Date.now() - 200 * 864e5).toISOString(), ids[0], ids[1]);
+  const before = (await call('GET', '/api/admin/reports/summary', null, { cookie: boss })).data.totals.requests;
+  const dry = await call('POST', '/api/admin/anonymize', { dryRun: true }, { cookie: boss });
+  assert.equal(dry.data.count, 2); assert.equal(db.prepare('SELECT name FROM requests WHERE id=?').get(ids[0]).name.startsWith('اسم'), true, 'المعاينة لا تغيّر شيئًا');
+  assert.equal((await call('POST', '/api/admin/anonymize', { dryRun: false }, { cookie: boss })).data.count, 2);
+  const a = db.prepare('SELECT * FROM requests WHERE id=?').get(ids[0]);
+  assert.equal(a.name, '(مُخفى)'); assert.equal(a.phone_e164, 'anon-' + ids[0]); assert.equal(a.notes, null); assert.equal(a.email, null); assert.equal(a.anonymized, 1);
+  assert.ok(!a.payload.includes('عنوان خاص') && !a.payload.includes('وصف شخصي'));
+  assert.equal(db.prepare('SELECT summary FROM contact_log WHERE request_id=?').get(ids[0]).summary, '(مُخفى)');
+  assert.ok(!JSON.stringify(db.prepare('SELECT detail FROM audit WHERE request_id=?').all(ids[0])).includes('اسم جديد'), 'تفاصيل السجل الشخصية مُسحت');
+  assert.equal(db.prepare('SELECT name FROM requests WHERE id=?').get(ids[2]).name.startsWith('اسم سري'), true, 'غير المنتهية لا تُمس');
+  assert.equal((await call('GET', '/api/admin/reports/summary', null, { cookie: boss })).data.totals.requests, before, 'الأعداد ثابتة');
+  assert.equal(verifyAudit().ok, true, 'السلسلة سليمة بعد مسح التفاصيل');
+});
+
+test('ترويسات الأمان والكوكي __Host- عند HTTPS، وجلسة بلا تجديد منزلق', async () => {
+  const home = await fetch(base + '/');
+  for (const h of ['content-security-policy', 'x-content-type-options', 'x-frame-options', 'cross-origin-opener-policy', 'cross-origin-resource-policy', 'referrer-policy']) assert.ok(home.headers.get(h), h);
+  assert.match(home.headers.get('content-security-policy'), /script-src 'self'/); assert.ok(!/unsafe-inline.*script|script-src[^;]*unsafe/.test(home.headers.get('content-security-policy')));
+  db.prepare('INSERT INTO users(username,display_name,role,pass_hash,created_at) VALUES(?,?,?,?,?)').run('cookie1', 'ك', 'staff', U.hashPassword('Passw0rd-test1'), new Date().toISOString());
+  const lg = await call('POST', '/api/auth/login', { username: 'cookie1', password: 'Passw0rd-test1' }, { headers: { 'x-forwarded-proto': 'https' } });
+  const sc = lg.res.headers.get('set-cookie'); assert.match(sc, /^__Host-tsid=/); assert.match(sc, /Secure/); assert.match(sc, /HttpOnly/); assert.match(sc, /SameSite=Strict/); assert.ok(!/Domain=/i.test(sc));
+  assert.equal((await call('GET', '/api/staff/stats', null, { cookie: sc.split(';')[0] })).status, 200);
+  assert.ok(new Date(db.prepare('SELECT expires_at FROM sessions ORDER BY created_at DESC LIMIT 1').get().expires_at) - Date.now() <= 12 * 3600e3 + 5000);
+});
+
+test('حقن XSS/SQL في الحقول يُخزَّن كنص ولا يُنفَّذ', async () => {
+  const evil = `<img src=x onerror=alert(1)>'; DROP TABLE requests;--`;
+  const r = await submit({ ...common({ phone: '55591111', name: evil, notes: evil }), service: 'other', fields: { title: evil, description: evil } });
+  assert.equal(r.status, 201);
+  const row = db.prepare('SELECT name, notes FROM requests WHERE ref=?').get(r.data.receipt.ref);
+  assert.equal(row.name, evil); assert.ok(db.prepare('SELECT COUNT(*) n FROM requests').get().n > 10, 'الجدول سليم');
+  const boss = await loginAs('boss');
+  const q = await call('GET', `/api/staff/requests?q=${encodeURIComponent("' OR 1=1 --")}`, null, { cookie: boss }); assert.equal(q.status, 200); assert.equal(q.data.total, 0);
 });

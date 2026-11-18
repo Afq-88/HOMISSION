@@ -1,39 +1,69 @@
 #!/usr/bin/env bash
-# تثبيت «طلبك معنا» على خادم Ubuntu مجاني (Oracle Cloud Always Free أو Google Cloud e2-micro) مع HTTPS تلقائي.
+# تثبيت «طلبك معنا» على خادم Ubuntu مجاني (Oracle Cloud Always Free أو Google Cloud e2-micro) بإعدادات أمان مشدَّدة.
 # الاستخدام (من داخل المجلد talabak بعد استنساخ المستودع):
-#   sudo bash deploy/vm-setup.sh                 → رابط تلقائي مجاني بصيغة  https://1-2-3-4.sslip.io
-#   sudo bash deploy/vm-setup.sh talabak.example.com   → إن كان لديك نطاق يشير إلى عنوان الخادم
-# آمن للتكرار: لا يعيد تعيين كلمة مرور مدير موجود، ولا يمس قاعدة البيانات.
+#   sudo bash deploy/vm-setup.sh                               → رابط HTTPS تلقائي مجاني  https://1-2-3-4.sslip.io
+#   sudo bash deploy/vm-setup.sh talabak.example.com           → نطاقك الخاص
+#   sudo bash deploy/vm-setup.sh --staff-allow="203.0.113.5 198.51.100.0/24"   → حصر لوحة الموظفين/الإدارة بعناوين محددة (اختياري)
+# آمن للتكرار: لا يعيد تعيين كلمة مرور مدير موجود، ولا يمس قاعدة البيانات ولا الأسرار المولَّدة.
 set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
-
 [ "$(id -u)" = 0 ] || { echo "شغّل السكربت بـ sudo"; exit 1; }
+
+DOMAIN=""; STAFF_ALLOW=""
+for a in "$@"; do
+  case "$a" in
+    --staff-allow=*) STAFF_ALLOW="${a#*=}" ;;
+    -*) echo "خيار غير معروف: $a"; exit 1 ;;
+    *) DOMAIN="$a" ;;
+  esac
+done
 APP_SRC="$(cd "$(dirname "$0")/.." && pwd)"
 APP_DIR=/opt/talabak
 DATA_DIR=/var/lib/talabak
-DOMAIN="${1:-}"
+ENV_FILE=/etc/talabak.env
+SSH_USER="${SUDO_USER:-ubuntu}"
 
-echo "▶ ١/٦ تحديث الحزم"
+echo "▶ ١/٩ تحديث الحزم"
 apt-get update -y
-apt-get install -y curl ca-certificates gnupg apt-transport-https debian-keyring debian-archive-keyring
+apt-get install -y curl ca-certificates gnupg apt-transport-https debian-keyring debian-archive-keyring openssl
 
-echo "▶ ٢/٦ Node.js 22"
+echo "▶ ٢/٩ Node.js 22"
 if ! command -v node >/dev/null || ! node -e 'process.exit(+process.versions.node.split(".")[0] >= 22 ? 0 : 1)'; then
   curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
   apt-get install -y nodejs
 fi
 node -v
 
-echo "▶ ٣/٦ نسخ التطبيق"
+echo "▶ ٣/٩ نسخ التطبيق (الشيفرة للقراءة فقط على حساب الخدمة؛ البيانات وحدها قابلة للكتابة)"
 id talabak >/dev/null 2>&1 || useradd --system --home "$APP_DIR" --shell /usr/sbin/nologin talabak
 mkdir -p "$APP_DIR" "$DATA_DIR"
 if [ "$APP_SRC" != "$APP_DIR" ]; then
   tar --exclude=./data --exclude=./node_modules --exclude=./.git -C "$APP_SRC" -cf - . | tar -C "$APP_DIR" -xf -
 fi
-chown -R talabak:talabak "$APP_DIR" "$DATA_DIR"
-chmod 700 "$DATA_DIR"
+chown -R root:talabak "$APP_DIR"; chmod -R g-w,o-rwx "$APP_DIR"
+chown -R talabak:talabak "$DATA_DIR"; chmod 700 "$DATA_DIR"
 
-echo "▶ ٤/٦ خدمة systemd (تعمل تلقائيًا وتعيد التشغيل عند الأعطال)"
+echo "▶ ٤/٩ الأسرار (مفتاح التطبيق + عبارة تشفير النسخ الاحتياطية) في ملف بصلاحية root فقط"
+NEW_SECRETS=0
+if [ ! -f "$ENV_FILE" ]; then
+  umask 077
+  { echo "APP_SECRET=$(openssl rand -hex 32)"; echo "BACKUP_PASSPHRASE=$(openssl rand -base64 24 | tr -d '/+=' | cut -c1-28)"; } > "$ENV_FILE"
+  NEW_SECRETS=1
+fi
+chown root:root "$ENV_FILE"; chmod 600 "$ENV_FILE"
+
+# أداة إدارة تعمل بنفس بيئة الخدمة:  sudo talabak-admin create-admin | reset-2fa --username=x | verify-audit | backup | restore <ملف>
+cat > /usr/local/bin/talabak-admin <<'WRAP'
+#!/usr/bin/env bash
+[ "$(id -u)" = 0 ] || { echo "استخدم sudo"; exit 1; }
+[ -n "${1:-}" ] || { echo "الاستخدام: sudo talabak-admin <create-admin|reset-2fa|verify-audit|backup|restore|decrypt-backup> [خيارات]"; exit 1; }
+set -a; . /etc/talabak.env; set +a
+export DATA_DIR=/var/lib/talabak
+cd /opt/talabak && exec sudo -u talabak --preserve-env=APP_SECRET,BACKUP_PASSPHRASE,DATA_DIR node --no-warnings "scripts/$1.js" "${@:2}"
+WRAP
+chmod 750 /usr/local/bin/talabak-admin; chown root:root /usr/local/bin/talabak-admin
+
+echo "▶ ٥/٩ خدمة systemd معزولة (تعمل تلقائيًا وتعيد التشغيل عند الأعطال)"
 cat > /etc/systemd/system/talabak.service <<UNIT
 [Unit]
 Description=Talabak Maana (KPTC)
@@ -42,7 +72,9 @@ Wants=network-online.target
 
 [Service]
 User=talabak
+Group=talabak
 WorkingDirectory=$APP_DIR
+EnvironmentFile=$ENV_FILE
 Environment=PORT=3000
 Environment=HOST=127.0.0.1
 Environment=DATA_DIR=$DATA_DIR
@@ -52,10 +84,30 @@ Environment=BACKUP_EVERY_HOURS=6
 ExecStart=/usr/bin/node --no-warnings server/index.js
 Restart=always
 RestartSec=3
+# --- عزل ---
+UMask=0077
 NoNewPrivileges=true
 ProtectSystem=strict
 ReadWritePaths=$DATA_DIR
+ProtectHome=true
 PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallArchitectures=native
+LimitCORE=0
+LimitNOFILE=4096
+MemoryMax=600M
 
 [Install]
 WantedBy=multi-user.target
@@ -68,13 +120,13 @@ try { const {DatabaseSync}=require('node:sqlite'); const d=new DatabaseSync(proc
 console.log(d.prepare(\"select count(*) n from users where role='admin'\").get().n) } catch { console.log(0) }")
 ADMIN_PW=""
 if [ "$HAS_ADMIN" = "0" ]; then
-  OUT=$(cd "$APP_DIR" && sudo -u talabak env DATA_DIR="$DATA_DIR" node --no-warnings scripts/create-admin.js --username=admin --name="مدير النظام")
+  OUT=$(talabak-admin create-admin --username=admin --name="مدير النظام")
   ADMIN_PW=$(echo "$OUT" | grep -E '^\s+\S{10,}$' | tr -d ' ')
 fi
 systemctl enable --now talabak
 systemctl restart talabak
 
-echo "▶ ٥/٦ Caddy (HTTPS تلقائي من Let's Encrypt)"
+echo "▶ ٦/٩ Caddy (HTTPS تلقائي) + ترويسات أمان + حد لحجم الطلب"
 if ! command -v caddy >/dev/null; then
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list
@@ -85,16 +137,35 @@ if [ -z "$DOMAIN" ]; then
   IP=$(curl -4 -fsS https://api.ipify.org)
   DOMAIN="${IP//./-}.sslip.io"   # نطاق مجاني يشير تلقائيًا إلى عنوان IP
 fi
+BLOCK=""
+if [ -n "$STAFF_ALLOW" ]; then
+  BLOCK="	@blocked {
+		path /staff /staff/* /api/staff/* /api/admin/* /api/auth/*
+		not remote_ip $STAFF_ALLOW
+	}
+	respond @blocked \"غير مسموح\" 403"
+fi
 cat > /etc/caddy/Caddyfile <<CADDY
 $DOMAIN {
 	encode gzip
-	reverse_proxy 127.0.0.1:3000
+	header {
+		-Server
+		X-Content-Type-Options "nosniff"
+	}
+	request_body {
+		max_size 300KB
+	}
+$BLOCK
+	reverse_proxy 127.0.0.1:3000 {
+		header_up X-Forwarded-For {remote_host}
+	}
 }
 CADDY
+caddy validate --config /etc/caddy/Caddyfile >/dev/null 2>&1 || { echo "تحذير: إعداد Caddy غير صالح"; caddy validate --config /etc/caddy/Caddyfile || true; }
 systemctl enable caddy
 systemctl restart caddy
 
-echo "▶ ٦/٦ فتح المنفذين 80 و443 في جدار الخادم"
+echo "▶ ٧/٩ جدار الحماية: المنفذان 80 و443 (+SSH فقط)"
 if command -v ufw >/dev/null && ufw status | grep -q "Status: active"; then
   ufw allow 80/tcp; ufw allow 443/tcp
 fi
@@ -104,16 +175,70 @@ if command -v iptables >/dev/null; then   # صور Oracle تحجب كل شيء �
   netfilter-persistent save >/dev/null 2>&1 || true
 fi
 
+echo "▶ ٨/٩ تشديد SSH + fail2ban"
+AK="/home/$SSH_USER/.ssh/authorized_keys"
+if [ -s "$AK" ]; then
+  # الاسم 00- ليُقرأ قبل إعدادات السحابة (أول قيمة هي المعتمدة)
+  cat > /etc/ssh/sshd_config.d/00-talabak.conf <<'SSHD'
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin no
+PubkeyAuthentication yes
+MaxAuthTries 3
+LoginGraceTime 30
+X11Forwarding no
+AllowAgentForwarding no
+AllowTcpForwarding no
+ClientAliveInterval 300
+ClientAliveCountMax 2
+SSHD
+  if sshd -t; then systemctl reload ssh 2>/dev/null || systemctl reload sshd 2>/dev/null || true; else rm -f /etc/ssh/sshd_config.d/00-talabak.conf; echo "تحذير: إعداد SSH غير صالح — أُلغي"; fi
+else
+  echo "تحذير: لم أجد مفتاح SSH للمستخدم $SSH_USER — لم أعطّل كلمات المرور في SSH حتى لا أقفلك خارج الخادم."
+fi
+apt-get install -y fail2ban
+cat > /etc/fail2ban/jail.d/talabak.local <<'F2B'
+[sshd]
+enabled = true
+maxretry = 4
+findtime = 10m
+bantime = 1h
+F2B
+systemctl enable --now fail2ban
+systemctl restart fail2ban
+
+echo "▶ ٩/٩ تحديثات الأمان التلقائية + سجلات محدودة الحجم"
+apt-get install -y unattended-upgrades
+cat > /etc/apt/apt.conf.d/20auto-upgrades <<'APT'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+APT
+cat > /etc/apt/apt.conf.d/52talabak-unattended <<'APT'
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "01:30";
+APT
+mkdir -p /etc/systemd/journald.conf.d && printf '[Journal]\nSystemMaxUse=200M\nMaxRetentionSec=1month\n' > /etc/systemd/journald.conf.d/talabak.conf
+systemctl restart systemd-journald || true
+
 sleep 3
 echo
-echo "════════════════════════════════════════════════════"
+echo "════════════════════════════════════════════════════════════"
 echo " تم. رابط التطبيق:  https://$DOMAIN"
 echo " لوحة الموظفين:     https://$DOMAIN/staff"
 if [ -n "$ADMIN_PW" ]; then
-  echo " المدير: admin    كلمة المرور المؤقتة (تُعرض مرة واحدة): $ADMIN_PW"
+  echo " المدير: admin    كلمة المرور المؤقتة (مرة واحدة): $ADMIN_PW"
+  echo " عند أول دخول: غيّر كلمة المرور ثم فعّل المصادقة الثنائية (تطبيق Authenticator على جوالك)."
 else
   echo " (يوجد مدير مسبقًا — لم تُمسّ كلمة مروره)"
 fi
-echo "════════════════════════════════════════════════════"
-echo " مهم: افتح المنفذين 80 و443 أيضًا في لوحة مزوّد السحابة (Security List / Firewall) وإلا لن يعمل الرابط من الخارج."
-echo " فحص: curl -s https://$DOMAIN/healthz"
+if [ "$NEW_SECRETS" = "1" ]; then
+  echo
+  echo " ⚠⚠ احفظ هذين السرّين الآن خارج الخادم (مدير كلمات مرور) — لا يمكن استرجاعهما إن ضاع الخادم:"
+  echo "    $(grep ^APP_SECRET= $ENV_FILE)"
+  echo "    $(grep ^BACKUP_PASSPHRASE= $ENV_FILE)"
+  echo "    • BACKUP_PASSPHRASE: بدونها لا تُفتح النسخ الاحتياطية المشفّرة."
+  echo "    • APP_SECRET: بدونه يُطلب من الجميع إعادة تفعيل المصادقة الثنائية بعد أي استعادة."
+fi
+echo "════════════════════════════════════════════════════════════"
+echo " مهم: افتح المنفذين 80 و443 في لوحة مزوّد السحابة (Security List / Firewall)، وقيّد المنفذ 22 بعنوانك فقط."
+echo " فحص: curl -s https://$DOMAIN/healthz     أوامر الإدارة: sudo talabak-admin <create-admin|reset-2fa|verify-audit|backup|restore>"

@@ -25,6 +25,10 @@ services:
         value: "1"
       - key: BACKUP_EVERY_HOURS
         value: "6"
+      - key: APP_SECRET            # مفتاح تشفير أسرار المصادقة الثنائية
+        generateValue: true
+      - key: BACKUP_PASSPHRASE     # عبارة تشفير النسخ الاحتياطية — انسخها من لوحة Render واحفظها خارجها
+        generateValue: true
       # إنشاء المدير الأول عند أول تشغيل (يُتجاهل بعد وجود مدير؛ احذفه بعد أول دخول)
       - key: BOOTSTRAP_ADMIN_USER
         value: admin

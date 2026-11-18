@@ -3,15 +3,17 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const cfg = require('./config');
-const { db, audit, getSettings, setSetting, getServices, setServices, DEFAULT_SETTINGS, newRefCode } = require('./db');
+const { verifyAudit, db, audit, getSettings, setSetting, getServices, setServices, DEFAULT_SETTINGS, newRefCode } = require('./db');
 const S = require('./services');
 const U = require('./util');
 const R = require('./requests');
 const REP = require('./reports');
-const { runBackup, listBackups } = require('./backup');
+const { runBackup, listBackups, FILE_RE } = require('./backup');
+const T = require('./totp');
+const SECRETS = require('./secrets');
 const { HttpError } = U;
 
-const COOKIE = 'tsid';
+const COOKIE = 'tsid', COOKIE_HOST = '__Host-tsid';
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.webp': 'image/webp', '.webmanifest': 'application/manifest+json' };
 
 // ---------- تحديد المعدل (في الذاكرة) ----------
@@ -44,13 +46,14 @@ function readBody(req, limit = 200 * 1024) {
     req.on('error', reject);
   });
 }
+const readToken = req => { const c = parseCookies(req); return c[COOKIE_HOST] || c[COOKIE]; };
 function parseCookies(req) {
   const out = {};
   for (const part of String(req.headers.cookie || '').split(';')) { const i = part.indexOf('='); if (i > 0) out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim()); }
   return out;
 }
 function setCookie(req, res, val, maxAgeSec) {
-  const parts = [`${COOKIE}=${val}`, 'Path=/', 'HttpOnly', 'SameSite=Strict', `Max-Age=${maxAgeSec}`];
+  const parts = [`${secure(req) ? COOKIE_HOST : COOKIE}=${val}`, 'Path=/', 'HttpOnly', 'SameSite=Strict', `Max-Age=${maxAgeSec}`];
   if (secure(req)) parts.push('Secure');
   res.setHeader('Set-Cookie', parts.join('; '));
 }
@@ -59,22 +62,34 @@ const SEC_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'no-referrer',
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Resource-Policy': 'same-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
 };
 
 // ---------- المصادقة ----------
 function sessionUser(req) {
-  const t = parseCookies(req)[COOKIE];
+  const t = readToken(req);
   if (!t) return null;
   const h = U.sha256(t);
-  const row = db.prepare(`SELECT u.*, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=?`).get(h);
+  const row = db.prepare(`SELECT u.*, s.expires_at, s.reauth_until, s.token_hash AS sth FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=?`).get(h);
   if (!row || !row.active || row.expires_at < new Date().toISOString()) { if (row) db.prepare('DELETE FROM sessions WHERE token_hash=?').run(h); return null; }
-  const exp = new Date(Date.now() + cfg.SESSION_HOURS * 3600e3).toISOString();
-  if (new Date(row.expires_at).getTime() - Date.now() < cfg.SESSION_HOURS * 1800e3) db.prepare('UPDATE sessions SET expires_at=? WHERE token_hash=?').run(exp, h);
-  return row;
+  return row; // مدة الجلسة مطلقة (SESSION_HOURS) ولا تتجدد بالنشاط
 }
-const publicUser = u => ({ id: u.id, username: u.username, display_name: u.display_name, role: u.role, must_change: !!u.must_change, dept_id: u.dept_id || null });
+const needs2fa = u => !!getSettings().require_2fa && !u.totp_enabled;
+const publicUser = u => ({ id: u.id, username: u.username, display_name: u.display_name, role: u.role, must_change: !!u.must_change, dept_id: u.dept_id || null, totp: !!u.totp_enabled, needs_2fa: needs2fa(u) });
+// العامل الثاني: رمز TOTP (لا يُقبل مرتين) أو رمز استرداد يُستهلك
+function checkSecondFactor(u, code) {
+  const secret = SECRETS.open(u.totp_secret);
+  if (secret) { const step = T.verify(secret, code, u.totp_last_step); if (step) { db.prepare('UPDATE users SET totp_last_step=? WHERE id=?').run(step, u.id); return true; } }
+  const h = U.sha256(String(code).replace(/\s/g, '').toLowerCase()); const list = JSON.parse(u.recovery || '[]'); const i = list.indexOf(h);
+  if (i >= 0) { list.splice(i, 1); db.prepare('UPDATE users SET recovery=? WHERE id=?').run(JSON.stringify(list), u.id); audit(u, 'recovery_code_used', { left: list.length }); return true; }
+  return false;
+}
+function needReauth(c) {
+  if (!c.user.reauth_until || c.user.reauth_until < new Date().toISOString()) throw new HttpError(403, 'يلزم تأكيد هويتك لهذا الإجراء الحساس', { reauth: true, totp: !!c.user.totp_enabled });
+}
 const DUMMY = U.hashPassword('dummy-password-1');
 
 function login(req, res, body) {
@@ -84,6 +99,11 @@ function login(req, res, body) {
   const u = db.prepare('SELECT * FROM users WHERE username=?').get(username);
   const ok = U.verifyPassword(password, u ? u.pass_hash : DUMMY);
   if (!u || !ok || !u.active) { audit('محاولة دخول', 'login_failed', { username, ip }); throw new HttpError(401, 'اسم المستخدم أو كلمة المرور غير صحيحة'); }
+  if (u.totp_enabled) {
+    const code = U.clean(body.code, 24);
+    if (!code) throw new HttpError(401, 'أدخل رمز التحقق من تطبيق المصادقة', { need_code: true });
+    if (!checkSecondFactor(u, code)) { audit('محاولة دخول', 'login_failed_2fa', { username, ip }); throw new HttpError(401, 'رمز التحقق غير صحيح أو مستخدم', { need_code: true }); }
+  }
   const t = U.token(); const now = new Date();
   db.prepare('INSERT INTO sessions(token_hash,user_id,created_at,expires_at) VALUES(?,?,?,?)').run(U.sha256(t), u.id, now.toISOString(), new Date(now.getTime() + cfg.SESSION_HOURS * 3600e3).toISOString());
   db.prepare('UPDATE users SET last_login=? WHERE id=?').run(now.toISOString(), u.id);
@@ -96,7 +116,7 @@ function login(req, res, body) {
 const SETTING_RULES = {
   event_name: ['str', 100], ref_prefix: ['code', 12], event_code: ['code', 12], event_start: ['date'], event_end: ['date'], accepting: ['bool'],
   closed_message: ['str', 300], public_base_url: ['url'], official_channel_text: ['str', 300], official_channel_url: ['str', 300], emergency_number: ['str', 30],
-  response_promise: ['str', 300], whatsapp_link_enabled: ['bool'], retention_archive_days: ['int', 1, 3650], retention_delete_days: ['int', 1, 3650],
+  response_promise: ['str', 300], whatsapp_link_enabled: ['bool'], retention_archive_days: ['int', 1, 3650], retention_delete_days: ['int', 1, 3650], retention_anonymize_days: ['int', 1, 3650], require_2fa: ['bool'],
   kiosk_idle_seconds: ['int', 30, 900], kiosk_warn_seconds: ['int', 10, 120], rate_limit_per_10min: ['int', 5, 2000], followup_template: ['str', 1500], privacy_text: ['str', 800],
 };
 function sanitizeSettings(input) {
@@ -172,17 +192,39 @@ route('POST', '/api/public/kiosk/ping', {}, c => {
 
 route('POST', '/api/auth/login', {}, c => ({ user: login(c.req, c.res, c.body) }));
 route('POST', '/api/auth/logout', {}, c => {
-  const t = parseCookies(c.req)[COOKIE]; if (t) db.prepare('DELETE FROM sessions WHERE token_hash=?').run(U.sha256(t));
+  const t = readToken(c.req); if (t) db.prepare('DELETE FROM sessions WHERE token_hash=?').run(U.sha256(t));
   setCookie(c.req, c.res, '', 0); return { ok: true };
 });
 route('GET', '/api/auth/me', {}, c => ({ user: c.user ? publicUser(c.user) : null }));
-route('POST', '/api/auth/password', { auth: 'user', allowMustChange: true }, c => {
+route('POST', '/api/auth/totp/setup', { auth: 'user', allowSetup: true }, c => {
+  if (c.user.totp_enabled) throw new HttpError(409, 'المصادقة الثنائية مفعّلة مسبقًا');
+  const secret = T.newSecret();
+  db.prepare('UPDATE users SET totp_secret=?, totp_last_step=0 WHERE id=?').run(SECRETS.seal(secret), c.user.id);
+  return { secret, uri: T.uri(c.user.username, secret) };
+});
+route('POST', '/api/auth/totp/enable', { auth: 'user', allowSetup: true }, c => {
+  if (c.user.totp_enabled) throw new HttpError(409, 'المصادقة الثنائية مفعّلة مسبقًا');
+  if (!rateLimit('totpen:' + c.user.id, 10, 15 * 60e3)) throw new HttpError(429, 'محاولات كثيرة');
+  const secret = SECRETS.open(c.user.totp_secret); if (!secret) throw new HttpError(409, 'ابدأ الإعداد أولًا');
+  const step = T.verify(secret, c.body.code, 0); if (!step) throw new HttpError(422, 'الرمز غير صحيح. تأكد من ساعة الجوال وأعد المحاولة.');
+  const codes = T.recoveryCodes();
+  db.prepare('UPDATE users SET totp_enabled=1, totp_last_step=?, recovery=? WHERE id=?').run(step, JSON.stringify(codes.map(x => U.sha256(x))), c.user.id);
+  audit(c.user, 'totp_enabled', null); return { recovery: codes };
+});
+route('POST', '/api/auth/reauth', needUser, c => {
+  if (!rateLimit('reauth:' + c.user.id, 8, 15 * 60e3)) throw new HttpError(429, 'محاولات كثيرة. انتظر قليلًا.');
+  if (!U.verifyPassword(String(c.body.password || ''), c.user.pass_hash)) { audit(c.user, 'reauth_failed', null); throw new HttpError(401, 'كلمة المرور غير صحيحة'); }
+  if (c.user.totp_enabled && !checkSecondFactor(c.user, U.clean(c.body.code, 24))) { audit(c.user, 'reauth_failed_2fa', null); throw new HttpError(401, 'رمز التحقق غير صحيح', { need_code: true }); }
+  db.prepare('UPDATE sessions SET reauth_until=? WHERE token_hash=?').run(new Date(Date.now() + 5 * 60e3).toISOString(), c.user.sth);
+  return { ok: true, valid_minutes: 5 };
+});
+route('POST', '/api/auth/password', { auth: 'user', allowSetup: true }, c => {
   const { current, next } = c.body;
   if (!U.verifyPassword(String(current || ''), c.user.pass_hash)) throw new HttpError(401, 'كلمة المرور الحالية غير صحيحة');
   const prob = U.passwordProblem(next); if (prob) throw new HttpError(422, prob);
   if (next === current) throw new HttpError(422, 'اختر كلمة مرور مختلفة عن الحالية');
   db.prepare('UPDATE users SET pass_hash=?, must_change=0 WHERE id=?').run(U.hashPassword(next), c.user.id);
-  const keep = U.sha256(parseCookies(c.req)[COOKIE] || '');
+  const keep = U.sha256(readToken(c.req) || '');
   db.prepare('DELETE FROM sessions WHERE user_id=? AND token_hash!=?').run(c.user.id, keep);
   audit(c.user, 'password_change', null); return { ok: true };
 });
@@ -215,8 +257,9 @@ route('POST', '/api/staff/requests/:id/contacts', needUser, c => R.addContact(+c
 route('GET', '/api/staff/requests/:id/message', needUser, c => R.followupMessage(+c.params.id, c.user));
 
 // ----- المدير -----
-route('GET', '/api/admin/users', needAdmin, () => ({ users: db.prepare('SELECT id,username,display_name,role,active,must_change,created_at,last_login,dept_id,ref_code FROM users ORDER BY id').all() }));
+route('GET', '/api/admin/users', needAdmin, () => ({ users: db.prepare('SELECT id,username,display_name,role,active,must_change,created_at,last_login,dept_id,ref_code,totp_enabled FROM users ORDER BY id').all() }));
 route('POST', '/api/admin/users', needAdmin, c => {
+  needReauth(c);
   const username = U.clean(c.body.username, 32).toLowerCase(), display = U.clean(c.body.display_name, 80), role = c.body.role === 'admin' ? 'admin' : 'staff';
   if (!/^[a-z0-9._-]{3,32}$/.test(username)) throw new HttpError(422, 'اسم المستخدم: ٣–٣٢ حرفًا إنجليزيًا أو أرقامًا (. _ -)');
   if (display.length < 2) throw new HttpError(422, 'أدخل اسم العرض');
@@ -227,6 +270,7 @@ route('POST', '/api/admin/users', needAdmin, c => {
   c.status = 201; return { id: info.lastInsertRowid, username, temp_password: pw, note: 'تُعرض كلمة المرور المؤقتة مرة واحدة فقط، وسيُطلب تغييرها عند أول دخول.' };
 });
 route('PATCH', '/api/admin/users/:id', needAdmin, c => {
+  if ('role' in c.body || 'active' in c.body) needReauth(c);
   const id = +c.params.id, u = db.prepare('SELECT * FROM users WHERE id=?').get(id);
   if (!u) throw new HttpError(404, 'المستخدم غير موجود');
   const set = {};
@@ -247,7 +291,13 @@ route('PATCH', '/api/admin/users/:id', needAdmin, c => {
   if (set.dept_id !== undefined && Object.keys(set).length === 1) { /* لا حاجة لإنهاء الجلسات */ }
   audit(c.user, 'user_update', { id, ...set }); return { ok: true };
 });
+route('POST', '/api/admin/users/:id/reset-2fa', needAdmin, c => {
+  needReauth(c); const id = +c.params.id; if (!db.prepare('SELECT 1 FROM users WHERE id=?').get(id)) throw new HttpError(404, 'المستخدم غير موجود');
+  db.prepare("UPDATE users SET totp_secret=NULL, totp_enabled=0, totp_last_step=0, recovery='[]' WHERE id=?").run(id); db.prepare('DELETE FROM sessions WHERE user_id=?').run(id);
+  audit(c.user, 'totp_reset', { id }); return { ok: true };
+});
 route('POST', '/api/admin/users/:id/reset', needAdmin, c => {
+  needReauth(c);
   const id = +c.params.id; if (!db.prepare('SELECT 1 FROM users WHERE id=?').get(id)) throw new HttpError(404, 'المستخدم غير موجود');
   const pw = U.strongPassword();
   db.prepare('UPDATE users SET pass_hash=?, must_change=1 WHERE id=?').run(U.hashPassword(pw), id);
@@ -306,6 +356,7 @@ route('POST', '/api/admin/kiosks/:id', needAdmin, c => {
 });
 route('GET', '/api/admin/settings', needAdmin, () => ({ settings: getSettings(), defaults_note: Object.keys(DEFAULT_SETTINGS) }));
 route('PUT', '/api/admin/settings', needAdmin, c => {
+  needReauth(c);
   const clean = sanitizeSettings(c.body); const before = getSettings();
   for (const [k, v] of Object.entries(clean)) setSetting(k, v);
   audit(c.user, 'settings_update', Object.fromEntries(Object.keys(clean).filter(k => JSON.stringify(before[k]) !== JSON.stringify(clean[k])).map(k => [k, [before[k], clean[k]]])));
@@ -325,7 +376,7 @@ route('GET', '/api/admin/export/pivot.csv', needAdmin, c => {
   return { raw: csv, type: 'text/csv; charset=utf-8', headers: { 'Content-Disposition': `attachment; filename="talabak-report-${U.kuwaitToday()}.csv"`, 'X-Row-Count': String(count) } };
 });
 route('GET', '/api/admin/export/requests.csv', needAdmin, c => {
-  const pii = c.query.pii === '1';
+  const pii = c.query.pii === '1'; if (pii) needReauth(c);
   const { csv, count } = REP.requestsCsv(c.query, c.user, pii);
   audit(c.user, 'export', { kind: 'requests', pii, count, filters: c.query });
   return { raw: csv, type: 'text/csv; charset=utf-8', headers: { 'Content-Disposition': `attachment; filename="talabak-requests${pii ? '-with-contacts' : ''}-${U.kuwaitToday()}.csv"`, 'X-Row-Count': String(count) } };
@@ -337,21 +388,28 @@ route('GET', '/api/admin/export/summary.csv', needAdmin, c => {
 });
 route('GET', '/api/admin/duplicates', needAdmin, c => ({ groups: R.duplicateGroups(c.query.event || getSettings().event_code) }));
 route('POST', '/api/admin/retention', needAdmin, c => {
+  if (c.body.dryRun === false) needReauth(c);
   const s = getSettings();
   const a = c.body.archive ? s.retention_archive_days : null, d = c.body.delete ? s.retention_delete_days : null;
   return R.applyRetention(c.user, { archiveDays: a, deleteDays: d, dryRun: c.body.dryRun !== false });
 });
-route('DELETE', '/api/admin/requests/:id', needAdmin, c => { R.deleteRequest(+c.params.id, c.user); return { ok: true }; });
+route('DELETE', '/api/admin/requests/:id', needAdmin, c => { needReauth(c); R.deleteRequest(+c.params.id, c.user); return { ok: true }; });
 route('GET', '/api/admin/backups', needAdmin, () => ({ backups: listBackups(), dir: cfg.BACKUP_DIR }));
 route('GET', '/api/admin/backups/:file/download', needAdmin, c => {
+  needReauth(c);
   const f = c.params.file;
-  if (!/^talabak-[A-Za-z0-9._-]+\.db$/.test(f)) throw new HttpError(400, 'اسم الملف غير صالح');
+  if (!FILE_RE.test(f)) throw new HttpError(400, 'اسم الملف غير صالح');
   const full = path.join(cfg.BACKUP_DIR, f);
   if (!fs.existsSync(full)) throw new HttpError(404, 'النسخة غير موجودة');
   audit(c.user, 'backup_download', { file: f });
   return { sendFile: full, type: 'application/octet-stream', headers: { 'Content-Disposition': `attachment; filename="${f}"` } };
 });
 route('POST', '/api/admin/backups', needAdmin, c => { const b = runBackup('manual'); audit(c.user, 'backup', b); c.status = 201; return b; });
+route('GET', '/api/admin/audit/verify', needAdmin, () => verifyAudit());
+route('POST', '/api/admin/anonymize', needAdmin, c => {
+  const dry = c.body.dryRun !== false; if (!dry) needReauth(c);
+  return R.anonymize(c.user, { days: getSettings().retention_anonymize_days, dryRun: dry });
+});
 route('GET', '/api/admin/audit', needAdmin, c => {
   const limit = Math.min(500, parseInt(c.query.limit, 10) || 100);
   return { rows: db.prepare('SELECT id,request_id,actor,action,detail,created_at FROM audit ORDER BY id DESC LIMIT ?').all(limit).map(r => ({ ...r, detail: r.detail ? JSON.parse(r.detail) : null })) };
@@ -394,7 +452,8 @@ async function handle(req, res) {
     const auth = matched.opts.auth;
     if (auth) {
       if (!user) throw new HttpError(401, 'سجّل الدخول للمتابعة');
-      if (user.must_change && !matched.opts.allowMustChange) throw new HttpError(403, 'يجب تغيير كلمة المرور أولًا', { must_change: true });
+      if (user.must_change && !matched.opts.allowSetup) throw new HttpError(403, 'يجب تغيير كلمة المرور أولًا', { must_change: true });
+      if (!user.must_change && needs2fa(user) && !matched.opts.allowSetup) throw new HttpError(403, 'يجب تفعيل المصادقة الثنائية أولًا', { setup_2fa: true });
       if (auth === 'admin' && user.role !== 'admin') throw new HttpError(403, 'هذه الصلاحية للمدير فقط');
     }
     const body = unsafe ? await readBody(req) : {};

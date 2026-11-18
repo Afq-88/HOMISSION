@@ -17,6 +17,9 @@ const U = require('./util');
 })();
 
 const server = createServer();
+server.requestTimeout = 30000; server.headersTimeout = 15000; server.keepAliveTimeout = 5000; server.maxHeadersCount = 60;
+process.on('uncaughtException', e => { console.error('[فادح]', e); process.exit(1); });   // systemd يعيد التشغيل
+process.on('unhandledRejection', e => { console.error('[فادح]', e); process.exit(1); });
 server.listen(cfg.PORT, cfg.HOST, () => {
   const admins = db.prepare("SELECT COUNT(*) n FROM users WHERE role='admin' AND active=1").get().n;
   console.log(`طلبك معنا يعمل على http://${cfg.HOST}:${server.address().port}`);
