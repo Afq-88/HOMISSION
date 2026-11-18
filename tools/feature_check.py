@@ -64,13 +64,18 @@ ALLOWED = {
     ('pages/umrah.html', 'handlers', "onclick=showToast('⬇️ جاري تحميل تذكرة العمرة PDF...')"),
     ('pages/umrah.html', 'handlers', "onclick=showToast('📱 تم الإرسال على واتساب')"),
     ('pages/vip.html', 'handlers', "onclick=showToast('📱 تم إرسال التأكيد على واتساب');closeSuccess()"),
+    # the old admin dashboard was merged into the control centre: its gateway button now opens that
+    ('index.html', 'handlers', "onclick=nav('dashboard')"),
 }
+
+MERGED = {'pages/dashboard.html'}   # folded into the single control centre (pages/siteadmin.html) at the owner's request
 
 def main(a, b):
     files = sorted(os.path.relpath(p, a) for p in glob.glob(os.path.join(a, '**/*.html'), recursive=True))
     bad = 0
     for rel in files:
         nb = os.path.join(b, rel)
+        if rel in MERGED: continue
         if not os.path.exists(nb):
             print(f'MISSING FILE {rel}'); bad += 1; continue
         fa, fb = facts(load(os.path.join(a, rel))), facts(load(nb))

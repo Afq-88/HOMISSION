@@ -138,7 +138,7 @@
   if (tb && !tb.querySelector('.tb-out')){ var out = el('button', 'tb-out', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></svg><span>تسجيل الخروج</span>'); out.type = 'button'; out.setAttribute('onclick', 'doLogout()'); tb.appendChild(out); }
   function gate(u){
     document.querySelectorAll('.sb-nav .sb-item').forEach(function(it){ var n = NEED[viewOf(it)]; it.classList.toggle('pt-off', !!n && !K.can(n, u)); });
-    var a = $('sbAdmin'); if (a) a.classList.toggle('pt-off', !K.permsOf(u).some(function(p){ return /^(site|ops|admin)\.|^benefits\.(manage|claims)|^occasions\.moderate/.test(p); }));
+    var a = $('sbAdmin'); if (a) a.classList.toggle('pt-off', !K.can('studio.access', u));
     var r = $('sbRole'); if (r && !r.parentNode.querySelector('.pt-role')) r.parentNode.appendChild(el('span', 'pt-role')); var rb = document.querySelector('.sb-user .pt-role'); if (rb) rb.textContent = K.role(u.role).name;
     document.querySelectorAll('.ph-badge').forEach(function(b, i){ if (i === 0) b.textContent = u.id; });
     avatars(u);
