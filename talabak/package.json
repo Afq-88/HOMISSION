@@ -1,0 +1,16 @@
+{
+  "name": "talabak-maana",
+  "version": "1.0.0",
+  "description": "طلبك معنا — نظام استقبال ومتابعة طلبات زوار المعارض (KPTC)",
+  "private": true,
+  "engines": { "node": ">=22.5" },
+  "scripts": {
+    "start": "node --no-warnings server/index.js",
+    "create-admin": "node --no-warnings scripts/create-admin.js",
+    "backup": "node --no-warnings scripts/backup.js",
+    "restore": "node --no-warnings scripts/restore.js",
+    "seed-demo": "node --no-warnings scripts/seed-demo.js",
+    "qr": "node --no-warnings scripts/qr.js",
+    "test": "node --no-warnings --test test/*.test.js"
+  }
+}
