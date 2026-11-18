@@ -167,6 +167,7 @@
         var R = mem.roles = mem.roles || []; if (!R.some(function(r){ return r.id === 'owner'; })) R.push({id:'owner', name:'مسؤول النظام', perms:['*']});
         R.forEach(function(r){ if (r.id === 'admin'){ r.perms = ALL.filter(function(p){ return RESTRICT.indexOf(p) < 0; }); } });
         if (mem.staff && !mem.staff['KPTC-0001']) mem.staff['KPTC-0001'] = seed().staff['KPTC-0001']; } } catch(x){}
+    try { if (!mem.mig5){ mem.mig5 = 1; (mem.roles || []).forEach(function(r){ if ((r.id === 'admin' || r.id === 'content') && r.perms.indexOf('*') < 0 && r.perms.indexOf('site.marketing') < 0) r.perms.push('site.marketing'); }); } } catch(x){}
     try { if (!mem.mig3){ mem.mig3 = 1; var add = {sup:['approve.forms'], hr:['approve.hr'], fin:['approve.fin']}; (mem.roles || []).forEach(function(r){ (add[r.id] || []).forEach(function(p){ if (r.perms.indexOf(p) < 0) r.perms.push(p); }); }); if (mem.library && mem.library.length <= 4) mem.library = s.library; } } catch(x){}
     try { var EM = {'KPTC-4821':'a.alqattan','KPTC-2891':'dept.manager','KPTC-ENG':'engineer','KPTC-3310':'hr.staff','KPTC-5120':'web.editor','KPTC-1001':'sysadmin'}; for (var ek in EM) if (mem.staff && mem.staff[ek] && !mem.staff[ek].email) mem.staff[ek].email = EM[ek] + '@kptc.com.kw'; } catch(x){}
     try { for (var sk in mem.staff) if (/\u0623\u0648\u0631\u0627\u062f/.test(mem.staff[sk].name)) mem.staff[sk].name = 'مدير الإدارة'; } catch(x){}   // a name removed at the owner's request
@@ -241,6 +242,16 @@
     isOwner: function(u){ u = u || K.staffUser(); return !!u && u.role === 'owner'; },
     /* may the signed-in staff member act on this staff account? (owners are untouchable by anyone but owners) */
     canTouch: function(target){ var me = K.staffUser(); if (!me || !target) return false; if (target.role === 'owner' && me.role !== 'owner') return false; return true; },
+    /* picture of a news item: an uploaded one (kept as a small JPEG in the data), otherwise one of the library's */
+    newsImg: function(n){ return (n && n.imgData) || '../assets/' + ((n && n.img) || 'kbus-fleet.jpg'); },
+    /* shrink a picture the user picked and hand back a JPEG data URL: done(err, dataUrl, w, h) */
+    compressImage: function(file, max, q, done){
+      if (!file || !/^image\//.test(file.type)) return done('الملف ليس صورة.');
+      var r = new FileReader(); r.onerror = function(){ done('تعذّرت قراءة الملف.'); };
+      r.onload = function(){ var im = new Image(); im.onerror = function(){ done('تعذّرت قراءة الصورة.'); }; im.onload = function(){
+        var k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height); done(null, c.toDataURL('image/jpeg', q), c.width, c.height); }; im.src = r.result; };
+      r.readAsDataURL(file); },
     canPhoto: function(){ var u = K.staffUser(); return !!u && K.can('admin.photos', u); },
     pickPhoto: function(kind, id, done){
       if (kind === 'staff' && !K.canPhoto()){ if (done) done('تغيير صور الموظفين لمسؤول النظام أو للإدارة المخوّلة بذلك.'); return; }
@@ -260,7 +271,7 @@
       ['البوابة الداخلية', [['portal.leave','طلب الإجازات'],['portal.supplies','طلب المستلزمات'],['portal.invoice','صرف الفواتير'],['portal.payslip','كشف الراتب'],['portal.benefits','المزايا والعروض'],['portal.directory','دليل الموظفين'],['portal.news','أخبار الشركة'],['portal.policies','سياسات الموارد البشرية'],['portal.occasions','واجب الزملاء (المناسبات)']]],
       ['الاعتمادات', [['approve.leave','اعتماد الإجازات'],['approve.supplies','اعتماد المستلزمات'],['approve.invoice','اعتماد صرف الفواتير'],['approve.forms','اعتماد نماذج موظفي الإدارة (المسؤول المباشر)'],['approve.hr','اعتماد الشؤون الإدارية والموارد البشرية'],['approve.fin','اعتماد الشؤون المالية والمراجعة'],['approve.exec','اعتماد الإدارة التنفيذية']]],
       ['المزايا والمناسبات', [['benefits.manage','إنشاء العروض وتخصيصها'],['benefits.claims','اعتماد طلبات الاستفادة'],['occasions.post','نشر مناسبة مباشرة'],['occasions.moderate','مراجعة المناسبات المقترحة'],['portal.admin','التعاميم والقرارات والتقويم ومركز المعلومات'],['it.support','الرد على بلاغات الدعم الفني']]],
-      ['محتوى الموقع', [['site.pages','إظهار الصفحات وإخفاؤها وترتيبها'],['site.texts','تحرير نصوص الصفحات'],['site.elements','إخفاء عناصر الصفحات وحقولها'],['site.home','أقسام الصفحة الرئيسية والتنبيهات'],['site.news','الأخبار والمركز الإعلامي'],['site.tenders','المناقصات'],['site.jobs','الوظائف وطلبات التوظيف'],['site.sched','مواعيد الخطوط']]],
+      ['محتوى الموقع', [['site.pages','إظهار الصفحات وإخفاؤها وترتيبها'],['site.marketing','كاتب المحتوى والخبير التسويقي'],['site.texts','تحرير نصوص الصفحات'],['site.elements','إخفاء عناصر الصفحات وحقولها'],['site.home','أقسام الصفحة الرئيسية والتنبيهات'],['site.news','الأخبار والمركز الإعلامي'],['site.tenders','المناقصات'],['site.jobs','الوظائف وطلبات التوظيف'],['site.sched','مواعيد الخطوط']]],
       ['العمليات', [['ops.bookings','الحجوزات والطلبات'],['ops.wallets','محافظ العملاء'],['ops.winch','طلبات الونش والورشة'],['ops.pdi','طلبات فحص PDI']]],
       ['إدارة النظام', [['admin.staff','حسابات الموظفين'],['admin.roles','الأدوار والصلاحيات'],['admin.log','سجل النشاط'],['admin.backup','النسخ والاستعادة'],['admin.sections','تسليم الأقسام والإشراف عليها'],['admin.support','الرد على طلبات الدعم'],['admin.photos','تغيير صور الموظفين'],['admin.accounts','الحسابات: البحث والتحكم بحسابات الموظفين والعملاء'],['studio.access','دخول مركز التحكم']]]
     ],
@@ -928,6 +939,12 @@ tr[hidden],.cd[hidden],.sx[hidden],.pg[hidden],.row[hidden]{display:none!importa
 .nw-f{display:flex;gap:6px;padding:10px 16px 14px;border-top:1px solid var(--kp-line);margin-top:6px}.nw-f .btn{flex:1;justify-content:center}
 .nw-none{grid-column:1/-1;text-align:center;padding:44px;border:2px dashed var(--kp-line);border-radius:16px;color:var(--kp-muted)}.nw-none b{display:block;color:var(--kp-ink);font-size:16px}
 @media(max-width:700px){.nw-st3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.f.up>span{font-size:13px;font-weight:600;color:var(--kp-muted)}
+.up-box{display:flex;gap:12px;align-items:center;border:1.5px dashed var(--kp-line-2);border-radius:12px;padding:10px;background:var(--kp-paper-2)}
+.up-th{flex:none;width:120px;aspect-ratio:16/10;border-radius:8px;background:var(--kp-paper) center/cover no-repeat;border:1px solid var(--kp-line)}
+.up-b{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.up-b small{flex-basis:100%;color:var(--kp-muted);font-size:12px}.up-b .btn.r{color:var(--kp-bad);border-color:var(--kp-bad);background:#fff}
+.up-lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;margin-top:8px}.up-lib[hidden]{display:none}.up-lib button{aspect-ratio:16/10;border:2px solid transparent;border-radius:8px;background:center/cover no-repeat;cursor:pointer}.up-lib button:hover{border-color:var(--kp-indigo)}
 </style>
 </head>
 <body>
@@ -989,8 +1006,8 @@ tr[hidden],.cd[hidden],.sx[hidden],.pg[hidden],.row[hidden]{display:none!importa
     n.innerHTML = '<b>ما الذي تغيّر</b>' + d.kpSpot.slice(0, 5).map(function(x){ return '<span class="k-' + E(x.k) + '"><i>' + (W[x.k] || 'تغيّر') + '</i>' + E(x.n) + '</span>'; }).join('');
     n.classList.add('on'); clearTimeout(pvTm); pvTm = setTimeout(function(){ n.classList.remove('on'); }, 6000);
   });
-  var GROUPS = [['نظرة عامة',['overview','desk','reports']],['الموقع',['pages','sections','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['العملاء والعمليات',['wallets','bookings','found']],['الموظفون والبوابة',['intranet','benefits','occasions']],['الحسابات والأمان',['accounts','roles','log']],['تطبيقات مرتبطة',['apps']]];
-  var NEED = {overview:[], reports:['ops.bookings','admin.accounts','admin.log'], apps:[], accounts:['admin.accounts','admin.staff'], found:['ops.bookings'], desk:[], intranet:['portal.admin'], pages:['site.pages'], sections:['site.elements'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
+  var GROUPS = [['نظرة عامة',['overview','desk','reports']],['الموقع',['pages','sections','editor','home','general','sched']],['المحتوى',['news','tenders','jobs']],['التسويق والمحتوى',['writer','marketing']],['العملاء والعمليات',['wallets','bookings','found']],['الموظفون والبوابة',['intranet','benefits','occasions']],['الحسابات والأمان',['accounts','roles','log']],['تطبيقات مرتبطة',['apps']]];
+  var NEED = {writer:['site.marketing'], marketing:['site.marketing'], overview:[], reports:['ops.bookings','admin.accounts','admin.log'], apps:[], accounts:['admin.accounts','admin.staff'], found:['ops.bookings'], desk:[], intranet:['portal.admin'], pages:['site.pages'], sections:['site.elements'], editor:['site.texts','site.elements'], home:['site.home'], general:['site.home','admin.backup'], sched:['site.sched'], news:['site.news'], tenders:['site.tenders'], jobs:['site.jobs'], wallets:['ops.wallets'], bookings:['ops.bookings'], staff:['admin.staff'], roles:['admin.roles'], benefits:['benefits.manage','benefits.claims'], occasions:['occasions.moderate','occasions.post'], log:['admin.log']};
   function allow(k){ var u = K.staffUser(); if (!u || !TABS[k] || !V[k] || !K.can('studio.access', u)) return false;
     if (!NEED[k].length && k !== 'desk') return true;
     if (k === 'desk') return K.can('admin.sections', u) || K.db().sections.some(function(x){ return x.owner === u.id || (x.team || []).indexOf(u.id) > -1; });
@@ -1074,6 +1091,7 @@ tr[hidden],.cd[hidden],.sx[hidden],.pg[hidden],.row[hidden]{display:none!importa
     benefits:'<rect x="3" y="9" width="18" height="11" rx="1.5"/><path d="M12 9v11M3 13h18M12 9c-3 0-4-4-1.5-4S12 8 12 9zm0 0c3 0 4-4 1.5-4S12 8 12 9z"/>',
     occasions:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
     log:'<path d="M5 4h14v16H5z"/><path d="M9 9h6M9 13h6M9 17h3"/>',
+    writer:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4M4 20l1.500-4.500"/>', marketing:'<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/>',
     overview:'<path d="M4 13h4v7H4zM10 4h4v16h-4zM16 9h4v11h-4z"/>', reports:'<path d="M12 4v11m-4-4 4 4 4-4M5 19h14"/>', accounts:'<circle cx="11" cy="8" r="3.5"/><path d="M4 20a7 7 0 0 1 14 0M17 14l2 2 3-3"/>', apps:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><path d="M16.5 13v7M13 16.500h7"/>',
     dot:'<circle cx="12" cy="12" r="3"/>'
   };
@@ -1092,7 +1110,7 @@ tr[hidden],.cd[hidden],.sx[hidden],.pg[hidden],.row[hidden]{display:none!importa
     var toks = lnz(NW.q).split(' ').filter(Boolean), L = d.news.filter(function(n){ var h = lnz(n.title + ' ' + n.cat + ' ' + (n.body || '')); return toks.every(function(t){ return h.indexOf(t) > -1; }) && (!NW.cat || n.cat === NW.cat) && (!NW.st || (NW.st === '1') === !!n.pub); });
     L.sort(function(a, b){ return NW.sort === 'old' ? (a.d < b.d ? -1 : 1) : (a.d < b.d ? 1 : -1); });
     if (!L.length) return '<div class="nw-none"><b>لا مواد مطابقة</b>غيّر البحث أو التصنيف، أو أضف خبراً جديداً.</div>';
-    return L.map(function(n){ return '<article class="nw-c' + (n.pub ? '' : ' off') + '"><div class="nw-i" style="background-image:url(../assets/' + E(n.img || 'kbus-fleet.jpg') + ')"><span class="nw-cat">' + E(n.cat) + '</span><span class="nw-s ' + (n.pub ? 'on' : '') + '">' + (n.pub ? 'منشور' : 'مخفي') + '</span></div><div class="nw-b"><time class="num">' + K.date(n.d) + '</time><h4>' + E(n.title) + '</h4><p>' + E((n.body || '').slice(0, 110)) + ((n.body || '').length > 110 ? '…' : '') + '</p></div><div class="nw-f"><button class="btn sm o" data-act="edit" data-k="news" data-id="' + n.id + '">تعديل</button><button class="btn sm o" data-act="pub" data-id="' + n.id + '">' + (n.pub ? 'إخفاء' : 'نشر') + '</button><button class="btn sm r" data-act="del" data-k="news" data-id="' + n.id + '">حذف</button></div></article>'; }).join('');
+    return L.map(function(n){ return '<article class="nw-c' + (n.pub ? '' : ' off') + '"><div class="nw-i" style="background-image:url(\'' + E(K.newsImg(n)) + '\')"><span class="nw-cat">' + E(n.cat) + '</span><span class="nw-s ' + (n.pub ? 'on' : '') + '">' + (n.pub ? 'منشور' : 'مخفي') + '</span></div><div class="nw-b"><time class="num">' + K.date(n.d) + '</time><h4>' + E(n.title) + '</h4><p>' + E((n.body || '').slice(0, 110)) + ((n.body || '').length > 110 ? '…' : '') + '</p></div><div class="nw-f"><button class="btn sm o" data-act="edit" data-k="news" data-id="' + n.id + '">تعديل</button>' + (K.can('site.marketing') ? '<button class="btn sm o" data-act="wrnews" data-id="' + n.id + '" title="صياغة منشورات لهذا الخبر">منشورات</button>' : '') + '<button class="btn sm o" data-act="pub" data-id="' + n.id + '">' + (n.pub ? 'إخفاء' : 'نشر') + '</button><button class="btn sm r" data-act="del" data-k="news" data-id="' + n.id + '">حذف</button></div></article>'; }).join('');
   }
   document.addEventListener('input', function(e){ if (e.target.id === 'nwQ'){ NW.q = e.target.value; $('nwG').innerHTML = nwCards(K.db()); } });
   document.addEventListener('change', function(e){ if (e.target.id === 'nwSort'){ NW.sort = e.target.value; $('nwG').innerHTML = nwCards(K.db()); } });
@@ -1222,7 +1240,7 @@ tr[hidden],.cd[hidden],.sx[hidden],.pg[hidden],.row[hidden]{display:none!importa
 
   window.addEventListener('resize', mountPreview);
   var FORMS = {
-    news:{t:'خبر', f:[['title','العنوان'],['cat','القسم','select',['أخبار الشركة','بيانات صحفية','المسؤولية الاجتماعية']],['d','التاريخ','date'],['img','الصورة','select',['kbus-fleet.jpg','kbus-ev.jpg','kbus-street.jpg','kbus-depot.jpg','coach-1.jpg','tow-1.jpg','workshop-1.jpg','hq.jpg','umrah-art.jpg']],['body','النص','textarea']], d:function(){ return {id:K.id('N'), pub:true, d:K.today(), cat:'أخبار الشركة', img:'kbus-fleet.jpg'}; }},
+    news:{t:'خبر', f:[['title','العنوان'],['cat','القسم','select',['أخبار الشركة','بيانات صحفية','المسؤولية الاجتماعية']],['d','التاريخ','date'],['img','الصورة','image',['kbus-fleet.jpg','kbus-ev.jpg','kbus-street.jpg','kbus-depot.jpg','coach-1.jpg','tow-1.jpg','workshop-1.jpg','hq.jpg','umrah-art.jpg']],['body','النص','textarea']], d:function(){ return {id:K.id('N'), pub:true, d:K.today(), cat:'أخبار الشركة', img:'kbus-fleet.jpg'}; }},
     tenders:{t:'مناقصة', f:[['no','الرقم / السنة'],['kind','النوع','select',['مناقصة','ممارسة','مزايدة']],['title','العنوان'],['meet','الاجتماع التمهيدي','date'],['place','مكان الاجتماع'],['close','آخر موعد للعطاءات','date'],['box','رقم الصندوق'],['fee','قيمة الوثائق (د.ك)','number']], d:function(){ return {id:K.id('T'), status:'مفتوحة', kind:'مناقصة', meet:K.today(7), close:K.today(21), fee:75, box:'1'}; }},
     jobs:{t:'وظيفة', f:[['title','المسمى الوظيفي'],['dept','الإدارة'],['loc','مكان العمل'],['type','نوع الدوام','select',['دوام كامل','دوام جزئي','عقد مؤقت']],['close','آخر موعد للتقديم','date'],['req','المتطلبات','textarea']], d:function(){ return {id:K.id('J'), open:true, type:'دوام كامل', close:K.today(30)}; }}
   };
@@ -1232,6 +1250,7 @@ tr[hidden],.cd[hidden],.sx[hidden],.pg[hidden],.row[hidden]{display:none!importa
     $('dT').textContent = (id ? 'تعديل ' : 'إضافة ') + F.t;
     $('dF').innerHTML = F.f.map(function(f){ var v = item[f[0]] == null ? '' : item[f[0]], c;
       if (f[2] === 'select') c = '<select name="' + f[0] + '">' + f[3].map(function(o){ return '<option' + (o === v ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>';
+      else if (f[2] === 'image') return '<div class="f up"><span>' + f[1] + '</span><div class="up-box"><div class="up-th" id="upTh" style="background-image:url(\'' + E(K.newsImg(item)) + '\')"></div><div class="up-b"><button type="button" class="btn y sm" data-upl>رفع صورة من جهازك</button><button type="button" class="btn o sm" data-lib>اختيار من مكتبة KPTC</button><button type="button" class="btn o sm r" data-upx' + (item.imgData ? '' : ' hidden') + '>إزالة الصورة المرفوعة</button><small id="upInfo">' + (item.imgData ? 'صورة مرفوعة · ' + Math.round(item.imgData.length * .75 / 1024) + ' ك.ب' : 'JPG أو PNG. تُصغَّر تلقائياً.') + '</small></div></div><div class="up-lib" id="upLib" hidden>' + f[3].map(function(o){ return '<button type="button" data-lb="' + o + '" style="background-image:url(../assets/' + o + ')" aria-label="' + o + '"></button>'; }).join('') + '</div><input type="hidden" name="' + f[0] + '" value="' + E(v || f[3][0]) + '"><input type="hidden" name="imgData" value="' + E(item.imgData || '') + '"></div>';
       else if (f[2] === 'textarea') c = '<textarea name="' + f[0] + '" rows="3">' + E(v) + '</textarea>';
       else c = '<input name="' + f[0] + '" ' + (f[2] === 'date' ? 'type="date"' : f[2] === 'number' ? 'inputmode="decimal" dir="ltr"' : '') + ' value="' + E(v) + '">';
       return '<label class="f">' + f[1] + c + '</label>'; }).join('') + '<div class="err" id="dE"></div><button class="btn y" type="submit">حفظ</button>';
@@ -1239,8 +1258,32 @@ tr[hidden],.cd[hidden],.sx[hidden],.pg[hidden],.row[hidden]{display:none!importa
   }
   $('dF').addEventListener('submit', function(e){ e.preventDefault(); if (!editing) return; var F = FORMS[editing.k], ok = true;
     F.f.forEach(function(f){ var el = $('dF').elements[f[0]], v = el.value.trim(); if (f[2] === 'number') v = parseFloat(K.latin(v)) || 0; if (!v && f[2] !== 'number' && f[0] !== 'place' && f[0] !== 'box') ok = false; editing.item[f[0]] = v; });
+    var idEl = $('dF').elements.imgData; if (idEl){ if (idEl.value) editing.item.imgData = idEl.value; else delete editing.item.imgData; }
     if (!ok){ $('dE').textContent = 'أكمل كل الحقول.'; return; }
     if (editing.isNew) K.db()[editing.k].unshift(editing.item); K.log((editing.isNew ? 'إضافة ' : 'تعديل ') + F.t + ': ' + (editing.item.title || '')); K.save(); $('dlg').classList.remove('on'); flash('تم الحفظ. التغيير ظاهر في الموقع الآن.'); });
+
+  /* ---- picture upload inside the news form ---- */
+  document.addEventListener('click', function(e){
+    var f = $('dF'); if (!f || !f.contains(e.target)) return;
+    var lib = e.target.closest('[data-lib]'), up = e.target.closest('[data-upl]'), rm = e.target.closest('[data-upx]'), lb = e.target.closest('[data-lb]');
+    function th(src){ var t = $('upTh'); if (t) t.style.backgroundImage = 'url(\'' + src + '\')'; }
+    if (lib){ var L = $('upLib'); L.hidden = !L.hidden; }
+    else if (lb){ f.elements.img.value = lb.getAttribute('data-lb'); f.elements.imgData.value = ''; th('../assets/' + lb.getAttribute('data-lb')); $('upLib').hidden = true; $('upInfo').textContent = 'من مكتبة KPTC'; f.querySelector('[data-upx]').hidden = true; }
+    else if (rm){ f.elements.imgData.value = ''; th('../assets/' + f.elements.img.value); rm.hidden = true; $('upInfo').textContent = 'أُزيلت الصورة المرفوعة.'; }
+    else if (up){
+      var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none'; document.body.appendChild(inp);
+      inp.onchange = function(){ var file = inp.files && inp.files[0]; inp.remove(); if (!file) return; $('upInfo').textContent = 'جارٍ تجهيز الصورة…';
+        K.compressImage(file, 1280, .8, function(err, url, w, h){
+          if (err) return ($('upInfo').textContent = err);
+          if (url.length > 420000) return K.compressImage(file, 1000, .68, function(e2, u2, w2, h2){ done(e2, u2, w2, h2); });
+          done(null, url, w, h); });
+        function done(err, url, w, h){
+          if (err) return ($('upInfo').textContent = err);
+          var used = 0; try { used = JSON.stringify(K.db()).length; } catch(x){}
+          if (used + url.length > 4500000){ $('upInfo').textContent = 'مساحة التخزين المحلية شبه ممتلئة. احذف صوراً قديمة أو استعمل صورة من المكتبة. (تُحل بعد ربط Firestore وStorage).'; return; }
+          f.elements.imgData.value = url; th(url); f.querySelector('[data-upx]').hidden = false; $('upInfo').textContent = 'صورة مرفوعة · ' + w + '×' + h + ' · ' + Math.round(url.length * .75 / 1024) + ' ك.ب'; } };
+      inp.click(); }
+  });
   function amount(label, cb){ editing = null; $('dT').textContent = label; $('dF').innerHTML = '<label class="f">المبلغ (د.ك)<input name="a" inputmode="decimal" dir="ltr" autofocus></label><label class="f">السبب / البيان<input name="n"></label><div class="err" id="dE"></div><button class="btn y" type="submit">تنفيذ</button>'; $('dlg').classList.add('on');
     $('dF').onsubmit = function(e){ e.preventDefault(); e.stopImmediatePropagation(); var a = parseFloat(K.latin($('dF').elements.a.value)); if (!(a > 0)){ $('dE').textContent = 'أدخل مبلغاً أكبر من صفر.'; return; } var r = cb(a, $('dF').elements.n.value.trim()); if (r && r.error){ $('dE').textContent = r.error; return; } $('dF').onsubmit = null; $('dlg').classList.remove('on'); flash('تم تنفيذ العملية.'); }; }
   document.addEventListener('click', function(e){
@@ -1838,6 +1881,7 @@ body.gated .gate{display:grid}
   document.addEventListener('change', function(e){ var s = e.target.closest('[data-fs]'); if (!s) return; var it = K.db().found.filter(function(x){ return x.id === s.getAttribute('data-fs'); })[0]; it.status = s.value; K.log('حالة غرض ' + it.id + ': ' + s.value); K.save(); flash('حُفظت الحالة.'); });
 })();
 </script>
+<script src="../assets/studio-ai.js"></script>
 <!--kptc:core-js--><script id="kptc-core-js">
 /* KPTC design-system runtime.
    1) Replaces emoji pictographs with one consistent line-icon set (presentation only:
