@@ -64,6 +64,8 @@ ALLOWED = {
     ('pages/umrah.html', 'handlers', "onclick=showToast('⬇️ جاري تحميل تذكرة العمرة PDF...')"),
     ('pages/umrah.html', 'handlers', "onclick=showToast('📱 تم الإرسال على واتساب')"),
     ('pages/vip.html', 'handlers', "onclick=showToast('📱 تم إرسال التأكيد على واتساب');closeSuccess()"),
+    # the home page now uses the one standard header + drawer (k2Drawer) like every other page
+    ('pages/home.html', 'ids', 'menuBtn'), ('pages/home.html', 'ids', 'drawer'),
     # the old admin dashboard was merged into the control centre: its gateway button now opens that
     ('index.html', 'handlers', "onclick=nav('dashboard')"),
 }
