@@ -367,3 +367,17 @@ test('رابط المندوب الميداني يُسند الطلب له تلق
   assert.equal(db.prepare('SELECT source FROM requests WHERE ref=?').get(fake.data.receipt.ref).source, 'web');
   const rg = await call('POST', `/api/admin/users/${omar.id}/refcode`, {}, { cookie: boss }); assert.notEqual(rg.data.ref_code, omar.ref_code);
 });
+
+test('تنزيل النسخة الاحتياطية: للمدير فقط، بمسار آمن، ومسجَّل', async () => {
+  const boss = await loginAs('boss'), sara = await loginAs('sara');
+  const b = (await call('POST', '/api/admin/backups', {}, { cookie: boss })).data;
+  const ok = await fetch(`${base}/api/admin/backups/${b.file}/download`, { headers: { cookie: boss } });
+  assert.equal(ok.status, 200);
+  const head = Buffer.from(await ok.arrayBuffer()).subarray(0, 15).toString();
+  assert.equal(head, 'SQLite format 3');
+  assert.equal((await fetch(`${base}/api/admin/backups/${b.file}/download`, { headers: { cookie: sara } })).status, 403);
+  assert.equal((await fetch(`${base}/api/admin/backups/${b.file}/download`)).status, 401);
+  assert.ok([400, 404].includes((await fetch(`${base}/api/admin/backups/..%2f..%2fetc%2fpasswd/download`, { headers: { cookie: boss } })).status));
+  assert.equal((await fetch(`${base}/api/admin/backups/evil.db/download`, { headers: { cookie: boss } })).status, 400);
+  assert.ok(db.prepare("SELECT COUNT(*) n FROM audit WHERE action='backup_download'").get().n >= 1);
+});

@@ -24,7 +24,11 @@ npm run create-admin -- --username=admin --name="اسم المدير"   # يطب
 | `COOKIE_SECURE=1` | عند التشغيل المباشر على HTTPS |
 | `BACKUP_EVERY_HOURS` / `BACKUP_KEEP` | النسخ التلقائي (الافتراضي كل ٦ ساعات، ٤٠ نسخة) |
 
-### النشر على Render (الملف `render.yaml` في جذر المستودع)
+### النشر المجاني ١٠٠٪ (الموصى به): انظر `deploy/FREE-HOSTING-AR.md`
+خادم Oracle Always Free بسكربت واحد (`deploy/vm-setup.sh`) مع HTTPS تلقائي، أو حاسوب الشركة مع Tailscale Funnel بلا بطاقة. الخطط المجانية في Render وأخواتها لا تصلح (بلا قرص دائم أو تنام).
+نزّل نسخة احتياطية يوميًا من «النسخ الاحتياطي ← تنزيل».
+
+### النشر على Render (مدفوع — اختياري؛ الملف `render.yaml` في جذر المستودع)
 1. ادخل Render ← **New ← Blueprint** (أو افتح `https://dashboard.render.com/blueprint/new?repo=https://github.com/Afq-88/HOMISSION`) واربط حساب GitHub بالمستودع.
 2. اختر الفرع `claude/kptc-request-app-3t4trj` (أو `main` بعد الدمج وعدّل `branch` في الملف). سيُنشئ Render خدمة `talabak-maana` بقرص دائم ١GB على `/data` في منطقة Frankfurt.
 3. سيطلب منك Render قيمة `BOOTSTRAP_ADMIN_PASSWORD`: اكتب كلمة مرور مؤقتة قوية (١٠ أحرف+، حروف وأرقام). تُنشئ أول تشغيل مديرًا باسم `admin` ويُجبَر على تغييرها عند أول دخول.

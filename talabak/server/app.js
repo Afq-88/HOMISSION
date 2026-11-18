@@ -343,6 +343,14 @@ route('POST', '/api/admin/retention', needAdmin, c => {
 });
 route('DELETE', '/api/admin/requests/:id', needAdmin, c => { R.deleteRequest(+c.params.id, c.user); return { ok: true }; });
 route('GET', '/api/admin/backups', needAdmin, () => ({ backups: listBackups(), dir: cfg.BACKUP_DIR }));
+route('GET', '/api/admin/backups/:file/download', needAdmin, c => {
+  const f = c.params.file;
+  if (!/^talabak-[A-Za-z0-9._-]+\.db$/.test(f)) throw new HttpError(400, 'اسم الملف غير صالح');
+  const full = path.join(cfg.BACKUP_DIR, f);
+  if (!fs.existsSync(full)) throw new HttpError(404, 'النسخة غير موجودة');
+  audit(c.user, 'backup_download', { file: f });
+  return { sendFile: full, type: 'application/octet-stream', headers: { 'Content-Disposition': `attachment; filename="${f}"` } };
+});
 route('POST', '/api/admin/backups', needAdmin, c => { const b = runBackup('manual'); audit(c.user, 'backup', b); c.status = 201; return b; });
 route('GET', '/api/admin/audit', needAdmin, c => {
   const limit = Math.min(500, parseInt(c.query.limit, 10) || 100);
@@ -392,6 +400,7 @@ async function handle(req, res) {
     const body = unsafe ? await readBody(req) : {};
     const c = { req, res, user, query, params, body, status: 200 };
     const out = matched.fn(c);
+    if (out && out.sendFile) { res.writeHead(200, { 'Content-Type': out.type, 'Cache-Control': 'no-store', ...out.headers }); fs.createReadStream(out.sendFile).pipe(res); return; }
     if (out && out.raw !== undefined) return send(res, 200, out.raw, { 'Content-Type': out.type, ...out.headers });
     return sendJson(res, c.status, out);
   } catch (e) {
