@@ -14,7 +14,7 @@ const PREF_TIMES = [o('any', 'أي وقت'), o('morning', 'صباحًا'), o('no
 // required: لازم للإرسال | ready: لازم لاكتمال المعلومات قبل الإحالة | unknownOk: يسمح بـ «غير محدد حاليًا»
 const DEFAULT_SERVICES = [
   {
-    id: 'subscriptions', label: 'اشتراكات النقل العام', icon: '🎫', active: true, dateField: 'start_date',
+    id: 'subscriptions', img: '/img/kbus-street.jpg', label: 'اشتراكات النقل العام', icon: '🎫', active: true, dateField: 'start_date',
     desc: 'اشتراك جديد أو تجديد أو استفسار',
     fields: [
       { key: 'kind', label: 'نوع الطلب', type: 'radio', required: true, options: [o('new', 'اشتراك جديد'), o('renew', 'تجديد'), o('inquiry', 'استفسار')] },
@@ -27,7 +27,7 @@ const DEFAULT_SERVICES = [
     ],
   },
   {
-    id: 'charter', label: 'تأجير الحافلات والنقل الخاص وVIP', icon: '🚌', active: true, dateField: 'trip_date',
+    id: 'charter', img: '/img/coach-1.jpg', label: 'تأجير الحافلات والنقل الخاص وVIP', icon: '🚌', active: true, dateField: 'trip_date',
     desc: 'رحلات، مناسبات، نقل موظفين أو طلبة، استقبال وفود',
     fields: [
       { key: 'purpose', label: 'الغرض', type: 'select', required: true, options: [o('trip', 'رحلة'), o('event', 'مناسبة'), o('staff', 'نقل موظفين'), o('students', 'نقل طلبة'), o('delegations', 'استقبال وفود'), o('other', 'غير ذلك')] },
@@ -49,7 +49,7 @@ const DEFAULT_SERVICES = [
     ],
   },
   {
-    id: 'ads', label: 'الإعلان على الحافلات', icon: '📢', active: true, dateField: 'start_date',
+    id: 'ads', img: '/img/kbus-side.jpg', label: 'الإعلان على الحافلات', icon: '📢', active: true, dateField: 'start_date',
     desc: 'حملات إعلانية على حافلات الشركة',
     fields: [
       { key: 'brand', label: 'اسم المنشأة أو العلامة التجارية', type: 'text', required: true },
@@ -64,7 +64,7 @@ const DEFAULT_SERVICES = [
     ],
   },
   {
-    id: 'towing', label: 'الأوناش ونقل المركبات', icon: '🚛', active: true, dateField: 'when_date',
+    id: 'towing', img: '/img/tow-1.jpg', label: 'الأوناش ونقل المركبات', icon: '🚛', active: true, dateField: 'when_date',
     desc: 'نقل مركبة بونش',
     notice: 'هذا النموذج ليس قناة للاستجابة الطارئة. في الحالات العاجلة تواصل مع الجهات المختصة بالطوارئ.',
     fields: [
@@ -78,7 +78,7 @@ const DEFAULT_SERVICES = [
     ],
   },
   {
-    id: 'workshop', label: 'خدمات الورش والإصلاح', icon: '🔧', active: true, dateField: 'visit_date',
+    id: 'workshop', img: '/img/workshop-1.jpg', label: 'خدمات الورش والإصلاح', icon: '🔧', active: true, dateField: 'visit_date',
     desc: 'فحص وإصلاح المركبات',
     fields: [
       { key: 'vehicle', label: 'نوع المركبة وموديلها', type: 'text', required: true, placeholder: 'مثال: تويوتا كامري' },
@@ -90,7 +90,7 @@ const DEFAULT_SERVICES = [
     ],
   },
   {
-    id: 'other', label: 'استفسار أو طلب آخر', icon: '💬', active: true, dateField: null,
+    id: 'other', img: '/img/hq.jpg', label: 'استفسار أو طلب آخر', icon: '💬', active: true, dateField: null,
     desc: 'أي طلب لا يندرج تحت الخدمات الأخرى',
     fields: [
       { key: 'title', label: 'عنوان الطلب', type: 'text', required: true },
@@ -122,7 +122,7 @@ const STATUSES = {
 };
 const FINAL_STATUSES = ['completed', 'closed'];
 
-const SOURCES = { qr_booth: 'QR الجناح', kiosk: 'الجهاز اللوحي', staff: 'جهاز الموظف', promo: 'قناة ترويجية', web: 'رابط مباشر' };
+const SOURCES = { qr_booth: 'QR الجناح', kiosk: 'الجهاز اللوحي', staff: 'جهاز الموظف', promo: 'قناة ترويجية', web: 'رابط مباشر', rep: 'رابط مندوب ميداني' };
 const PUBLIC_SOURCES = ['qr_booth', 'kiosk', 'promo', 'web'];
 
 // ---------- مساعدات ----------
@@ -256,6 +256,7 @@ function sanitizeServices(list, current) {
     const upd = list.find(s => s && s.id === cur.id);
     if (!upd) return cur;
     const out = { ...cur, active: upd.active !== false };
+    if (Number.isInteger(upd.dept_id)) out.dept_id = upd.dept_id;
     if (typeof upd.label === 'string' && upd.label.trim()) out.label = upd.label.trim().slice(0, 80);
     if (typeof upd.desc === 'string') out.desc = upd.desc.trim().slice(0, 160);
     if (typeof upd.notice === 'string') out.notice = upd.notice.trim().slice(0, 300);

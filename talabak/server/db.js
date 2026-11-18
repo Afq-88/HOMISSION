@@ -91,7 +91,35 @@ CREATE TABLE IF NOT EXISTS audit (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS ix_audit_req ON audit(request_id);
+CREATE TABLE IF NOT EXISTS departments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT UNIQUE,
+  name TEXT NOT NULL UNIQUE,
+  color TEXT NOT NULL DEFAULT '#2e2c78',
+  active INTEGER NOT NULL DEFAULT 1,
+  sort INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS kiosk_devices (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  first_seen TEXT NOT NULL,
+  last_seen TEXT NOT NULL,
+  screen TEXT,
+  paused INTEGER NOT NULL DEFAULT 0,
+  pause_msg TEXT,
+  banner TEXT,
+  pending TEXT NOT NULL DEFAULT '[]'
+);
 `);
+function ensureColumn(table, col, def) {
+  if (!db.prepare(`PRAGMA table_info(${table})`).all().some(c => c.name === col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
+}
+ensureColumn('requests', 'dept_id', 'INTEGER REFERENCES departments(id)');
+ensureColumn('requests', 'tag', 'TEXT');
+ensureColumn('users', 'dept_id', 'INTEGER REFERENCES departments(id)');
+ensureColumn('users', 'ref_code', 'TEXT');
+db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS ix_users_ref ON users(ref_code); CREATE INDEX IF NOT EXISTS ix_req_dept ON requests(dept_id);
+CREATE TRIGGER IF NOT EXISTS trg_users_ref AFTER INSERT ON users WHEN NEW.ref_code IS NULL BEGIN UPDATE users SET ref_code = lower(hex(randomblob(4))) WHERE id = NEW.id; END;`);
 
 // ---------- الإعدادات ----------
 const DEFAULT_SETTINGS = {
@@ -136,6 +164,30 @@ function getServices() {
 function setServices(list) { setStmts.put.run('services', JSON.stringify(list)); }
 if (!setStmts.get.get('services')) setServices(DEFAULT_SERVICES);
 
+// ---------- الإدارات (افتراضية قابلة للتعديل بالكامل من لوحة المدير) ----------
+const DEFAULT_DEPTS = [
+  ['customer', 'خدمة العملاء والاشتراكات', '#2e2c78'], ['ops', 'التشغيل والنقل الخاص', '#1b5a9a'], ['marketing', 'التسويق والعلاقات العامة', '#b07e12'],
+  ['towing', 'إدارة الأوناش', '#b3261e'], ['workshops', 'إدارة الورش', '#1e7f55'],
+];
+const SERVICE_DEPT = { subscriptions: 'customer', charter: 'ops', ads: 'marketing', towing: 'towing', workshop: 'workshops', other: 'customer' };
+if (!db.prepare('SELECT 1 FROM departments LIMIT 1').get()) {
+  DEFAULT_DEPTS.forEach(([k, n, c], i) => db.prepare('INSERT INTO departments(key,name,color,sort) VALUES(?,?,?,?)').run(k, n, c, i));
+}
+(function syncServices() {
+  const list = getServices(); let changed = false;
+  for (const sv of list) {
+    const def = DEFAULT_SERVICES.find(x => x.id === sv.id);
+    if (def && !sv.img && def.img) { sv.img = def.img; changed = true; }
+    if (!sv.dept_id) { const d = db.prepare('SELECT id FROM departments WHERE key=?').get(SERVICE_DEPT[sv.id] || 'customer'); if (d) { sv.dept_id = d.id; changed = true; } }
+  }
+  if (changed) setServices(list);
+  // ترحيل: الطلبات القديمة بلا إدارة تُسنَد إلى إدارة خدمتها
+  for (const sv of list) if (sv.dept_id) db.prepare('UPDATE requests SET dept_id=? WHERE dept_id IS NULL AND service=?').run(sv.dept_id, sv.id);
+})();
+// رمز رابط المندوب الميداني لكل مستخدم
+function newRefCode() { return require('crypto').randomBytes(5).toString('base64url').replace(/[-_]/g, 'x').slice(0, 7).toLowerCase(); }
+for (const u of db.prepare('SELECT id FROM users WHERE ref_code IS NULL').all()) db.prepare('UPDATE users SET ref_code=? WHERE id=?').run(newRefCode(), u.id);
+
 // ---------- معاملات ----------
 function tx(fn) {
   db.exec('BEGIN IMMEDIATE');
@@ -159,4 +211,4 @@ function backupTo(file) {
   return file;
 }
 
-module.exports = { db, tx, nextCounter, audit, getSettings, setSetting, getServices, setServices, DEFAULT_SETTINGS, backupTo };
+module.exports = { newRefCode, db, tx, nextCounter, audit, getSettings, setSetting, getServices, setServices, DEFAULT_SETTINGS, backupTo };

@@ -34,10 +34,12 @@ async function call(method, url, body, { cookie, headers } = {}) {
   const data = ct.includes('json') ? await res.json() : await res.text();
   return { status: res.status, data, res };
 }
+const sessions = {};
 async function loginAs(u) {
+  if (sessions[u]) return sessions[u];
   const r = await call('POST', '/api/auth/login', { username: u, password: 'Passw0rd-test1' });
   assert.equal(r.status, 200);
-  return r.res.headers.get('set-cookie').split(';')[0];
+  return (sessions[u] = r.res.headers.get('set-cookie').split(';')[0]);
 }
 const common = (o = {}) => ({ name: 'عميل تجريبي', phone_cc: '965', phone: '55512345', pref_channel: 'call', party_type: 'individual', ...o });
 const submit = (body, k = key()) => call('POST', '/api/public/requests', body, { headers: { 'idempotency-key': k } });
@@ -268,4 +270,100 @@ test('النسخ الاحتياطي والاستعادة: النسخة سليم�
 test('مسارات الملفات الثابتة لا تسمح بالخروج من المجلد', async () => {
   const r = await fetch(base + '/..%2f..%2fserver%2fconfig.js'); assert.notEqual(r.status, 200);
   const r2 = await fetch(base + '/server/config.js'); assert.equal(r2.status, 404);
+});
+
+// ================= الإصدار الثاني: الإدارات، التحكم عن بعد، المباشر، المندوبون =================
+test('الإدارات: تُسنَد تلقائيًا من الخدمة، وتُصنَّف التقارير بها، وتُعدَّل يدويًا', async () => {
+  const boss = await loginAs('boss');
+  const depts = (await call('GET', '/api/admin/departments', null, { cookie: boss })).data.departments;
+  assert.ok(depts.length >= 5);
+  const r = await submit({ ...common({ phone: '55570001' }), service: 'towing', fields: SAMPLES.towing });
+  const row = db.prepare('SELECT id, dept_id FROM requests WHERE ref=?').get(r.data.receipt.ref);
+  assert.equal(depts.find(d => d.id === row.dept_id).name, 'إدارة الأوناش');
+  const other = depts.find(d => d.name === 'التسويق والعلاقات العامة');
+  const up = await call('PATCH', `/api/staff/requests/${row.id}`, { dept_id: other.id }, { cookie: boss });
+  assert.equal(up.data.dept_name, 'التسويق والعلاقات العامة');
+  const piv = (await call('GET', '/api/admin/reports/pivot?by=department', null, { cookie: boss })).data;
+  const real = db.prepare('SELECT COUNT(*) n FROM requests WHERE is_test=0 AND is_dup=0').get().n;
+  assert.equal(piv.total.n, real); assert.equal(piv.rows.reduce((a, x) => a + x.n, 0), real);
+  for (const by of ['service', 'status', 'source', 'assignee', 'day', 'tag', 'outcome']) assert.equal((await call('GET', '/api/admin/reports/pivot?by=' + by, null, { cookie: boss })).data.total.n, real, by);
+  const sum = (await call('GET', `/api/admin/reports/summary?dept=${other.id}`, null, { cookie: boss })).data;
+  assert.equal(sum.totals.requests, db.prepare('SELECT COUNT(*) n FROM requests WHERE is_test=0 AND is_dup=0 AND dept_id=?').get(other.id).n);
+  const csv = await call('GET', '/api/admin/export/pivot.csv?by=department', null, { cookie: boss }); assert.equal(csv.status, 200);
+  const lst = (await call('GET', `/api/staff/requests?dept=${other.id}&size=200`, null, { cookie: boss })).data;
+  assert.ok(lst.rows.every(x => x.dept_id === other.id));
+  const sara = await loginAs('sara');
+  assert.equal((await call('POST', '/api/admin/departments', { name: 'س' }, { cookie: sara })).status, 403);
+  assert.equal((await call('GET', '/api/admin/reports/pivot', null, { cookie: sara })).status, 403);
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM requests WHERE dept_id IS NULL').get().n, 0, 'كل طلب مصنَّف إلى إدارة');
+  const piv0 = (await call('GET', '/api/admin/reports/pivot?by=department', null, { cookie: boss })).data;
+  assert.ok(piv0.rows.every(r => Object.values(r).every(v => v !== null)), 'لا قيم null في التقرير');
+  const nd = await call('POST', '/api/admin/departments', { name: 'إدارة جديدة', color: '#112233' }, { cookie: boss }); assert.equal(nd.status, 201);
+  assert.equal((await call('DELETE', `/api/admin/departments/${other.id}`, null, { cookie: boss })).status, 409, 'لا تُحذف إدارة مستخدمة');
+  assert.equal((await call('DELETE', `/api/admin/departments/${nd.data.id}`, null, { cookie: boss })).status, 200);
+});
+
+test('موظف مرتبط بإدارة يرى غير المسند لإدارته فقط', async () => {
+  const boss = await loginAs('boss');
+  const depts = (await call('GET', '/api/admin/departments', null, { cookie: boss })).data.departments;
+  const tow = depts.find(d => d.name === 'إدارة الأوناش'), ws = depts.find(d => d.name === 'إدارة الورش');
+  const mk = db.prepare('INSERT INTO users(username,display_name,role,pass_hash,created_at,dept_id) VALUES(?,?,?,?,?,?)');
+  mk.run('tow1', 'موظف أوناش', 'staff', U.hashPassword('Passw0rd-test1'), new Date().toISOString(), tow.id);
+  const t1 = await loginAs('tow1');
+  const a = (await submit({ ...common({ phone: '55571001' }), service: 'towing', fields: SAMPLES.towing })).data.receipt.ref;
+  const b = (await submit({ ...common({ phone: '55571002' }), service: 'workshop', fields: SAMPLES.workshop })).data.receipt.ref;
+  const ids = Object.fromEntries([a, b].map(x => [x, db.prepare('SELECT id FROM requests WHERE ref=?').get(x).id]));
+  assert.equal((await call('GET', `/api/staff/requests/${ids[a]}`, null, { cookie: t1 })).status, 200);
+  assert.equal((await call('GET', `/api/staff/requests/${ids[b]}`, null, { cookie: t1 })).status, 403);
+  assert.ok(!(await call('GET', '/api/staff/requests?size=200', null, { cookie: t1 })).data.rows.some(r => r.dept_id === ws.id && !r.assigned_to));
+});
+
+test('المباشر: الطلب الجديد يظهر لحظيًا عبر /live دون تسريب لغير المخوّل', async () => {
+  const boss = await loginAs('boss');
+  const init = (await call('GET', '/api/staff/live', null, { cookie: boss })).data;
+  assert.deepEqual(init.items, []);
+  const r = await submit({ ...common({ phone: '55572001' }), service: 'subscriptions', fields: SAMPLES.subscriptions });
+  const live = (await call('GET', `/api/staff/live?since=${init.latest}`, null, { cookie: boss })).data;
+  assert.equal(live.items.length, 1); assert.equal(live.items[0].ref, r.data.receipt.ref); assert.ok(live.stats && live.kiosks);
+  assert.equal((await call('GET', '/api/staff/live')).status, 401);
+});
+
+test('أجهزة الجناح: نبض، تسجيل تلقائي، وأوامر تحكم عن بعد (إيقاف/تعليم/مسح/تحديث)', async () => {
+  const boss = await loginAs('boss'), sara = await loginAs('sara');
+  const dev = 'dev-' + 'a1b2c3d4e5f6';
+  const ping = (extra = {}) => call('POST', '/api/public/kiosk/ping', { device: dev, screen: 'welcome', ...extra });
+  let p = await ping(); assert.equal(p.status, 200); assert.equal(p.data.paused, false);
+  assert.equal((await call('POST', '/api/public/kiosk/ping', { device: 'x' })).status, 400);
+  const list = (await call('GET', '/api/admin/kiosks', null, { cookie: boss })).data.kiosks;
+  assert.ok(list.find(k => k.id === dev && k.online));
+  assert.equal((await call('GET', '/api/admin/kiosks', null, { cookie: sara })).status, 403);
+  assert.equal((await call('POST', `/api/admin/kiosks/${dev}`, { action: 'reset' }, { cookie: sara })).status, 403);
+  await call('POST', `/api/admin/kiosks/${dev}`, { action: 'rename', name: 'لوحي المدخل' }, { cookie: boss });
+  await call('POST', `/api/admin/kiosks/${dev}`, { action: 'reset' }, { cookie: boss });
+  await call('POST', `/api/admin/kiosks/${dev}`, { action: 'banner', message: 'مرحبًا بكم' }, { cookie: boss });
+  p = await ping(); assert.deepEqual(p.data.commands, ['reset']); assert.equal(p.data.banner, 'مرحبًا بكم'); assert.equal(p.data.name, 'لوحي المدخل');
+  p = await ping(); assert.deepEqual(p.data.commands, [], 'الأمر يُنفَّذ مرة واحدة');
+  await call('POST', `/api/admin/kiosks/${dev}`, { action: 'pause', message: 'صيانة' }, { cookie: boss });
+  p = await ping(); assert.equal(p.data.paused, true); assert.equal(p.data.pause_msg, 'صيانة');
+  await call('POST', `/api/admin/kiosks/${dev}`, { action: 'resume' }, { cookie: boss });
+  assert.equal((await ping()).data.paused, false);
+  // طلب من الجهاز يحمل وسم الجهاز ويُحتسب له
+  const r = await call('POST', '/api/public/requests', { ...common({ phone: '55573001' }), service: 'other', fields: SAMPLES.other, source: 'kiosk', tag: dev }, { headers: { 'idempotency-key': key() } });
+  assert.equal(r.status, 201);
+  assert.equal((await call('GET', '/api/admin/kiosks', null, { cookie: boss })).data.kiosks.find(k => k.id === dev).requests, 1);
+});
+
+test('رابط المندوب الميداني يُسند الطلب له تلقائيًا ويُميَّز مصدره', async () => {
+  const boss = await loginAs('boss');
+  const omar = db.prepare("SELECT id, ref_code FROM users WHERE username='omar'").get();
+  assert.ok(omar.ref_code, 'تُولَّد رموز المندوبين تلقائيًا');
+  const r = await call('POST', '/api/public/requests', { ...common({ phone: '55574001' }), service: 'other', fields: SAMPLES.other, source: 'web', rep: omar.ref_code, tag: 'visit1' }, { headers: { 'idempotency-key': key() } });
+  const row = db.prepare('SELECT source, assigned_to, tag FROM requests WHERE ref=?').get(r.data.receipt.ref);
+  assert.equal(row.source, 'rep'); assert.equal(row.assigned_to, omar.id); assert.equal(row.tag, 'visit1');
+  const bad = await call('POST', '/api/public/requests', { ...common({ phone: '55574002' }), service: 'other', fields: SAMPLES.other, rep: 'nonexistent' }, { headers: { 'idempotency-key': key() } });
+  assert.equal(db.prepare('SELECT source, assigned_to FROM requests WHERE ref=?').get(bad.data.receipt.ref).assigned_to, null);
+  // بلا ادّعاء مصدر «rep» من العميل
+  const fake = await call('POST', '/api/public/requests', { ...common({ phone: '55574003' }), service: 'other', fields: SAMPLES.other, source: 'rep' }, { headers: { 'idempotency-key': key() } });
+  assert.equal(db.prepare('SELECT source FROM requests WHERE ref=?').get(fake.data.receipt.ref).source, 'web');
+  const rg = await call('POST', `/api/admin/users/${omar.id}/refcode`, {}, { cookie: boss }); assert.notEqual(rg.data.ref_code, omar.ref_code);
 });

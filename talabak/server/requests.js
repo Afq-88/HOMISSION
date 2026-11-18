@@ -5,9 +5,9 @@ const { clean, normDigits, HttpError, kuwaitToday, isDate, maskPhone } = require
 const cfg = require('./config');
 
 const OFF = `'+${cfg.TZ_OFFSET_HOURS} hours'`;
-const BASE = `SELECT r.*, a.display_name AS assignee_name, c.display_name AS creator_name,
+const BASE = `SELECT r.*, a.display_name AS assignee_name, c.display_name AS creator_name, d.name AS dept_name, d.color AS dept_color,
   (SELECT COUNT(*) FROM contact_log l WHERE l.request_id=r.id AND l.kind!='note') AS contacts
-  FROM requests r LEFT JOIN users a ON a.id=r.assigned_to LEFT JOIN users c ON c.id=r.created_by`;
+  FROM requests r LEFT JOIN users a ON a.id=r.assigned_to LEFT JOIN users c ON c.id=r.created_by LEFT JOIN departments d ON d.id=r.dept_id`;
 
 function dto(r) {
   if (!r) return null;
@@ -45,7 +45,7 @@ function svcDate(service, payload) {
 }
 
 // ---------- إنشاء ----------
-function createRequest(input, { source, createdBy = null, idemKey = null, isTest = false, actor = null }) {
+function createRequest(input, { source, createdBy = null, idemKey = null, isTest = false, actor = null, tag = null, assignTo = null }) {
   const settings = getSettings();
   const services = getServices();
   const v = S.validateRequest(services, input);
@@ -63,14 +63,14 @@ function createRequest(input, { source, createdBy = null, idemKey = null, isTest
     const date = svcDate(service, payload);
     const dup = db.prepare('SELECT MIN(id) AS id FROM requests WHERE phone_e164=? AND service=? AND svc_date=? AND is_dup=0').get(common.phone_e164, service.id, date);
     const now = new Date().toISOString();
-    const info = db.prepare(`INSERT INTO requests(ref,event_code,service,status,name,phone_cc,phone,phone_e164,pref_channel,email,party_type,org_name,pref_time,notes,payload,missing,missing_count,svc_date,source,created_by,assisted_by,dup_of,is_test,idem_key,received_at,updated_at)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+    const info = db.prepare(`INSERT INTO requests(ref,event_code,service,status,name,phone_cc,phone,phone_e164,pref_channel,email,party_type,org_name,pref_time,notes,payload,missing,missing_count,svc_date,source,created_by,assisted_by,dup_of,is_test,idem_key,received_at,updated_at,dept_id,tag,assigned_to)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       ref, settings.event_code, service.id, missing.length ? 'needs_info' : 'new', common.name, common.phone_cc, common.phone, common.phone_e164,
       common.pref_channel, common.email || null, common.party_type, common.org_name || null, common.pref_time || null, common.notes || null,
       JSON.stringify(payload), JSON.stringify(missing), missing.length, date, source, createdBy, common.assisted_by || null, dup.id || null,
-      isTest ? 1 : 0, idemKey, now, now);
+      isTest ? 1 : 0, idemKey, now, now, service.dept_id || null, tag, assignTo);
     const row = db.prepare('SELECT * FROM requests WHERE id=?').get(info.lastInsertRowid);
-    audit(actor || 'الزائر', 'create', { ref, source, service: service.id, dup_of: dup.id || null }, row.id);
+    audit(actor || 'الزائر', 'create', { ref, source, service: service.id, dup_of: dup.id || null, tag, assigned_to: assignTo }, row.id);
     return { row, replay: false, settings };
   });
 }
@@ -78,7 +78,9 @@ function createRequest(input, { source, createdBy = null, idemKey = null, isTest
 // ---------- الاستعلام ----------
 function filters(q, user) {
   const where = [], p = {};
-  if (user.role !== 'admin') { where.push('(r.assigned_to = :uid OR r.assigned_to IS NULL)'); p.uid = user.id; }
+  if (user.role !== 'admin') { where.push('(r.assigned_to = :uid OR (r.assigned_to IS NULL AND (:udept IS NULL OR r.dept_id = :udept)))'); p.uid = user.id; p.udept = user.dept_id || null; }
+  if (q.dept && /^\d+$/.test(q.dept)) { where.push('r.dept_id = :dept'); p.dept = +q.dept; }
+  if (q.tag) { where.push('r.tag = :tag'); p.tag = clean(q.tag, 30); }
   const s = clean(q.q, 80);
   if (s) {
     const like = '%' + s.replace(/[\\%_]/g, m => '\\' + m) + '%';
@@ -124,7 +126,7 @@ function listRequests(q, user, { forExport = false } = {}) {
   return { total, page, size, rows };
 }
 
-function canAccess(user, r) { return user.role === 'admin' || r.assigned_to == null || r.assigned_to === user.id; }
+function canAccess(user, r) { return user.role === 'admin' || r.assigned_to === user.id || (r.assigned_to == null && (!user.dept_id || r.dept_id === user.dept_id)); }
 
 function getRequest(id, user) {
   const r = db.prepare(`${BASE} WHERE r.id=?`).get(id);
@@ -236,6 +238,13 @@ function updateRequest(id, patch, user) {
       if (v !== (cur.follow_up_date || '')) { set.follow_up_date = v || null; changes.follow_up_date = [cur.follow_up_date, v]; }
     }
 
+    // --- الإدارة المختصة ---
+    if ('dept_id' in patch) {
+      const to = patch.dept_id === null || patch.dept_id === '' ? null : +patch.dept_id;
+      if (to !== null && !db.prepare('SELECT 1 FROM departments WHERE id=? AND active=1').get(to)) throw new HttpError(422, 'الإدارة غير موجودة أو معطلة');
+      if (to !== cur.dept_id) { set.dept_id = to; changes.dept_id = [cur.dept_id, to]; }
+    }
+
     // --- للمدير فقط ---
     if ('is_test' in patch) { if (!admin) throw new HttpError(403, 'للمدير فقط'); set.is_test = patch.is_test ? 1 : 0; changes.is_test = [cur.is_test, set.is_test]; }
     if ('archived' in patch) { if (!admin) throw new HttpError(403, 'للمدير فقط'); set.archived = patch.archived ? 1 : 0; changes.archived = [cur.archived, set.archived]; }
@@ -327,4 +336,25 @@ function deleteRequest(id, user) {
   audit(user, 'delete', { ref: cur.ref, service: cur.service, reason: cur.is_test ? 'test' : 'archived' });
 }
 
-module.exports = { createRequest, receiptFor, listRequests, getRequest, updateRequest, addContact, followupMessage, duplicateGroups, applyRetention, deleteRequest, filters, dto, OFF, serviceById };
+function statsFor(user) {
+  const today = kuwaitToday(cfg.TZ_OFFSET_HOURS), admin = user.role === 'admin';
+  const scope = admin ? '1=1' : '(assigned_to=@uid OR (assigned_to IS NULL AND (@udept IS NULL OR dept_id=@udept)))';
+  const mine = 'assigned_to=@uid', pick = admin ? scope : mine;
+  const q = w => {
+    const p = {}; if (w.includes('@uid')) p.uid = user.id; if (w.includes('@udept')) p.udept = user.dept_id || null; if (w.includes('@today')) p.today = today;
+    return db.prepare(`SELECT COUNT(*) n FROM requests WHERE archived=0 AND is_dup=0 AND is_test=0 AND status NOT IN ('completed','closed') AND ${w}`).get(p).n;
+  };
+  return { mine: q(mine), unassigned: q(`${scope} AND assigned_to IS NULL`), due_today: q(`${pick} AND follow_up_date=@today`), overdue: q(`${pick} AND follow_up_date<@today`),
+    needs_info: q(`${pick} AND missing_count>0`), uncontacted: q(`${scope} AND NOT EXISTS (SELECT 1 FROM contact_log l WHERE l.request_id=requests.id AND l.kind!='note')`) };
+}
+function liveFeed(user, since) {
+  const latest = db.prepare('SELECT COALESCE(MAX(id),0) m FROM requests').get().m;
+  let items = [];
+  if (since >= 0 && latest > since) {
+    const { where, p } = filters({ archived: 'all', real: '1' }, user);
+    items = db.prepare(`${BASE} ${where}${where ? ' AND' : 'WHERE'} r.id > :since ORDER BY r.id ASC LIMIT 20`).all({ ...p, since }).map(r => ({ id: r.id, ref: r.ref, service: r.service, name: r.name, source: r.source, dept_name: r.dept_name, received_at: r.received_at, tag: r.tag }));
+  }
+  return { latest, items, stats: statsFor(user) };
+}
+
+module.exports = { statsFor, liveFeed, createRequest, receiptFor, listRequests, getRequest, updateRequest, addContact, followupMessage, duplicateGroups, applyRetention, deleteRequest, filters, dto, OFF, serviceById };

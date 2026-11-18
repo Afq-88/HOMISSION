@@ -5,7 +5,7 @@
   const tbl = (head, rows) => `<div class="tbl-wrap"><table class="tbl"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('') || `<tr><td colspan="${head.length}">لا توجد بيانات</td></tr>`}</tbody></table></div>`;
 
   // ================= التقارير =================
-  let rep = { preset: 'today', from: '', to: '' };
+  let rep = { preset: 'today', from: '', to: '', dept: '', by: 'department', service: '' };
   const ymd = d => d.toISOString().slice(0, 10);
   function range() {
     const t = ST.today(), tt = new Date(t + 'T00:00:00Z');
@@ -17,27 +17,41 @@
   const bars = (list, total) => { const max = Math.max(1, ...list.map(x => x.n)); return list.length ? list.map(x => `<div class="barrow"><span>${esc(x.label)}</span><span><i style="width:${Math.round(x.n / max * 100)}%"></i></span><b>${x.n}</b></div>`).join('') : '<p class="lead">لا توجد بيانات.</p>'; };
   R['admin/reports'] = async function () {
     const rg = range();
-    const q = ST.qs({ from: rg.from, to: rg.to });
+    const q = ST.qs({ from: rg.from, to: rg.to, dept: rep.dept });
     const s = await ST.api('GET', '/api/admin/reports/summary?' + q);
     const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
     const tot = s.totals.requests;
     app.innerHTML = `<div class="row-actions noprint" style="justify-content:space-between"><h1 style="margin:0">التقارير</h1>
       <div class="row-actions"><button class="btn btn-ghost btn-sm" data-act="print">🖨 طباعة تقرير موجز</button><button class="btn btn-ghost btn-sm" data-act="sum">⬇ تصدير الملخص (Excel/CSV)</button><button class="btn btn-ghost btn-sm" data-act="exp">⬇ تصدير الطلبات بلا بيانات تواصل</button><button class="btn btn-ghost btn-sm" data-act="exppii">⬇ تصدير الطلبات مع بيانات التواصل</button></div></div>
-      <div class="card noprint" style="margin-top:12px"><div class="tabs">${[['today', 'اليوم'], ['week', 'آخر ٧ أيام'], ['event', 'الفعالية كاملة (ختامي)'], ['custom', 'فترة مخصصة']].map(([k, t]) => `<button class="chip" aria-pressed="${rep.preset === k}" data-preset="${k}">${t}</button>`).join('')}</div>
+      <div class="card noprint" style="margin-top:12px"><div class="field" style="max-width:340px"><label>الإدارة</label><select data-dept><option value="">كل الإدارات</option>${ST.cfg.departments.map(d => `<option value="${d.id}" ${rep.dept == d.id ? 'selected' : ''}>${esc(d.name)}</option>`).join('')}</select></div><div class="tabs">${[['today', 'اليوم'], ['week', 'آخر ٧ أيام'], ['event', 'الفعالية كاملة (ختامي)'], ['custom', 'فترة مخصصة']].map(([k, t]) => `<button class="chip" aria-pressed="${rep.preset === k}" data-preset="${k}">${t}</button>`).join('')}</div>
         ${rep.preset === 'custom' ? `<div class="filters" style="margin-top:12px;max-width:480px"><div class="field"><label>من</label><input type="date" data-rf="from" value="${rep.from}"></div><div class="field"><label>إلى</label><input type="date" data-rf="to" value="${rep.to}"></div><button class="btn btn-primary btn-sm" data-act="apply">عرض</button></div>` : ''}</div>
-      <div class="card" style="margin-top:12px"><h2>${esc(rg.title)} — ${esc(s.event)}</h2><p class="lead">${rg.from ? `الفترة: ${esc(rg.from)} إلى ${esc(rg.to || rg.from)}` : 'كل طلبات الفعالية'} · أُعد في ${esc(ST.fmtDate(s.generated_at))} (توقيت الكويت)</p>
+      <div class="card" style="margin-top:12px"><h2>${esc(rg.title)} — ${esc(s.event)}${s.dept_name ? ' — ' + esc(s.dept_name) : ''}</h2><p class="lead">${rg.from ? `الفترة: ${esc(rg.from)} إلى ${esc(rg.to || rg.from)}` : 'كل طلبات الفعالية'} · أُعد في ${esc(ST.fmtDate(s.generated_at))} (توقيت الكويت)</p>
         <div class="kpis"><div class="kpi"><b>${tot}</b><span>إجمالي الطلبات الفعلية</span></div><div class="kpi"><b>${s.totals.distinct_phones}</b><span>أرقام هاتف مختلفة (عملاء مسجلون)</span></div>
         <div class="kpi"><b>${s.completeness.complete || 0}</b><span>طلبات مكتملة المعلومات (${pct(s.completeness.complete || 0, tot)})</span></div><div class="kpi"><b>${s.completeness.incomplete || 0}</b><span>طلبات ناقصة المعلومات</span></div>
         <div class="kpi"><b>${s.contact.contacted || 0}</b><span>تمت متابعتها</span></div><div class="kpi"><b>${s.contact.not_contacted || 0}</b><span>لم يبدأ التواصل بشأنها</span></div>
         <div class="kpi"><b>${s.followups.due_today || 0}</b><span>متابعات مستحقة اليوم*</span></div><div class="kpi warn"><b>${s.followups.overdue || 0}</b><span>متابعات متأخرة*</span></div><div class="kpi"><b>${s.referred}</b><span>طلبات أُحيلت لجهة</span></div></div>
         <p class="def-note">* الحالة الراهنة للطلبات المفتوحة، لا تتأثر بالفترة المختارة. مستبعد من الأعداد: ${s.totals.excluded_tests} تجريبي، ${s.totals.excluded_duplicates} مكرر مصنّف.</p></div>
-      <div class="cols" style="margin-top:12px"><div class="card"><h2>الطلبات حسب الخدمة</h2>${bars(s.by_service)}<h2 style="margin-top:20px">الطلبات حسب المصدر</h2>${bars(s.by_source)}<h2 style="margin-top:20px">الحالات الحالية</h2>${bars(s.by_status)}</div>
+      <div class="cols" style="margin-top:12px"><div class="card"><h2>الطلبات حسب الإدارة</h2>${bars(s.by_department)}<h2 style="margin-top:20px">الطلبات حسب الخدمة</h2>${bars(s.by_service)}<h2 style="margin-top:20px">الطلبات حسب المصدر</h2>${bars(s.by_source)}${s.by_tag.length ? `<h2 style="margin-top:20px">حسب الوسم (جناح / جهاز / زيارة)</h2>${bars(s.by_tag.map(t => ({ ...t, label: (t.label || '').slice(0, 18) })))}` : ''}<h2 style="margin-top:20px">الحالات الحالية</h2>${bars(s.by_status)}</div>
         <div class="card"><h2>الطلبات حسب اليوم</h2>${bars(s.by_day)}<h2 style="margin-top:20px">نتائج الطلبات المغلقة والمكتملة</h2>${bars(s.outcomes)}</div></div>
+      <div class="card" style="margin-top:12px"><div class="sect-h"><h2>تقرير عمل مخصص</h2><button class="btn btn-ghost btn-sm noprint" data-act="pvcsv">⬇ تصدير الجدول</button></div>
+        <div class="filters noprint" style="max-width:640px"><div class="field"><label>تجميع حسب</label><select data-pv="by"></select></div><div class="field"><label>خدمة محددة</label><select data-pv="service"><option value="">كل الخدمات</option>${ST.cfg.all_services.map(x => `<option value="${x.id}" ${rep.service === x.id ? 'selected' : ''}>${esc(x.label)}</option>`).join('')}</select></div></div>
+        <div id="pvbox" class="tbl-wrap">جارٍ التحميل…</div></div>
       <div class="card" style="margin-top:12px"><h3 style="margin-top:0">تعريف المؤشرات</h3><ul class="def-note">${s.definitions.map(d => `<li>${esc(d)}</li>`).join('')}</ul><p class="def-note">التقرير الإداري التجميعي لا يتضمن بيانات التواصل الشخصية.</p></div>`;
+    const pvq = () => ST.qs({ from: rg.from, to: rg.to, dept: rep.dept, service: rep.service, by: rep.by });
+    async function loadPv() {
+      const p = await ST.api('GET', '/api/admin/reports/pivot?' + pvq());
+      const sel = app.querySelector('[data-pv=by]'); sel.innerHTML = p.dims.map(d => `<option value="${d.key}" ${p.by === d.key ? 'selected' : ''}>${esc(d.label)}</option>`).join('');
+      app.querySelector('#pvbox').innerHTML = `<table class="tbl"><thead><tr><th>${esc(p.by_label)}</th><th>الطلبات</th><th>مكتملة المعلومات</th><th>ناقصة</th><th>تمت متابعتها</th><th>لم يبدأ التواصل</th><th>مفتوحة</th><th>منتهية</th><th>أُحيلت</th><th>متابعة متأخرة</th></tr></thead><tbody>${p.rows.map(r => `<tr><td>${esc(r.label)}</td><td><b>${r.n}</b></td><td>${r.complete}</td><td>${r.incomplete}</td><td>${r.contacted}</td><td>${r.not_contacted}</td><td>${r.open}</td><td>${r.done}</td><td>${r.referred}</td><td class="${r.overdue ? 'req' : ''}">${r.overdue}</td></tr>`).join('')}<tr style="font-weight:800;background:var(--paper-2)"><td>الإجمالي</td><td>${p.total.n}</td><td>${p.total.complete}</td><td>${p.total.incomplete}</td><td>${p.total.contacted}</td><td>${p.total.not_contacted}</td><td>${p.total.open}</td><td>${p.total.done}</td><td>${p.total.referred}</td><td>${p.total.overdue}</td></tr></tbody></table>`;
+      app.querySelector('[data-pv=by]').onchange = e => { rep.by = e.target.value; loadPv(); };
+    }
+    app.querySelector('[data-pv=service]').onchange = e => { rep.service = e.target.value; loadPv(); };
+    app.querySelector('[data-dept]').onchange = e => { rep.dept = e.target.value; R['admin/reports'](); };
+    loadPv();
     app.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => { rep.preset = b.dataset.preset; R['admin/reports'](); });
     app.querySelectorAll('[data-rf]').forEach(i => i.onchange = () => { rep[i.dataset.rf] = i.value; });
     const dl = async (url, name) => { try { const r = await ST.api('GET', url, null, true); const blob = await r.blob(); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); ST.toast(`تم التنزيل — ${r.headers.get('x-row-count')} سطرًا`); } catch (e) { ST.toast(e.message, true); } };
     app.querySelector('[data-act=apply]') && (app.querySelector('[data-act=apply]').onclick = () => R['admin/reports']());
+    app.querySelector('[data-act=pvcsv]').onclick = () => dl('/api/admin/export/pivot.csv?' + pvq(), `talabak-report-${ST.today()}.csv`);
     app.querySelector('[data-act=print]').onclick = () => window.print();
     app.querySelector('[data-act=sum]').onclick = () => dl('/api/admin/export/summary.csv?' + q, `talabak-summary-${ST.today()}.csv`);
     app.querySelector('[data-act=exp]').onclick = () => dl('/api/admin/export/requests.csv?' + q, `talabak-requests-${ST.today()}.csv`);
@@ -56,14 +70,15 @@
   R['admin/users'] = async function () {
     const { users } = await ST.api('GET', '/api/admin/users');
     app.innerHTML = `<h1 style="margin-top:0">المستخدمون والصلاحيات</h1>
-      <div class="card"><h2>إضافة مستخدم</h2><p class="lead">تُولَّد كلمة مرور مؤقتة تُعرض مرة واحدة فقط، ويُطلب من المستخدم تغييرها عند أول دخول.</p>
+      <div class="card"><h2>إضافة مستخدم</h2><p class="lead">الموظف المرتبط بإدارة يرى الطلبات غير المسندة الخاصة بإدارته فقط (إضافة إلى المسندة إليه)؛ وغير المرتبط يرى كل غير المسندة. تُولَّد كلمة مرور مؤقتة تُعرض مرة واحدة فقط، ويُطلب من المستخدم تغييرها عند أول دخول.</p>
         <form id="uf" class="filters"><div class="field"><label>اسم المستخدم (إنجليزي)</label><input name="username" dir="ltr" required pattern="[A-Za-z0-9._\-]{3,32}" autocapitalize="off"></div><div class="field"><label>الاسم المعروض</label><input name="display_name" required></div>
         <div class="field"><label>الصلاحية</label><select name="role"><option value="staff">موظف</option><option value="admin">مدير النظام</option></select></div><button class="btn btn-primary">إنشاء</button></form></div>
-      <div class="card" style="margin-top:12px">${tbl(['المستخدم', 'الاسم', 'الصلاحية', 'الحالة', 'آخر دخول', ''], users.map(u => `<tr><td class="mono">${esc(u.username)}</td><td>${esc(u.display_name)}</td><td>${u.role === 'admin' ? 'مدير' : 'موظف'}</td><td>${u.active ? '<span class="badge s-ready">نشط</span>' : '<span class="badge red">معطل</span>'}${u.must_change ? ' <span class="badge gold">لم يغيّر كلمة المرور</span>' : ''}</td><td>${u.last_login ? esc(ST.fmtDate(u.last_login)) : '—'}</td>
+      <div class="card" style="margin-top:12px">${tbl(['المستخدم', 'الاسم', 'الصلاحية', 'الإدارة', 'الحالة', 'آخر دخول', ''], users.map(u => `<tr><td class="mono">${esc(u.username)}</td><td>${esc(u.display_name)}</td><td>${u.role === 'admin' ? 'مدير' : 'موظف'}</td><td><select data-udept="${u.id}" style="min-height:40px"><option value="">— كل الإدارات —</option>${ST.cfg.departments.map(d => `<option value="${d.id}" ${u.dept_id === d.id ? 'selected' : ''}>${esc(d.name)}</option>`).join('')}</select></td><td>${u.active ? '<span class="badge s-ready">نشط</span>' : '<span class="badge red">معطل</span>'}${u.must_change ? ' <span class="badge gold">لم يغيّر كلمة المرور</span>' : ''}</td><td>${u.last_login ? esc(ST.fmtDate(u.last_login)) : '—'}</td>
         <td><div class="row-actions"><button class="btn btn-ghost btn-sm" data-reset="${u.id}">إعادة تعيين كلمة المرور</button><button class="btn btn-ghost btn-sm" data-toggle="${u.id}" data-active="${u.active}">${u.active ? 'تعطيل' : 'تفعيل'}</button><button class="btn btn-ghost btn-sm" data-role="${u.id}" data-r="${u.role === 'admin' ? 'staff' : 'admin'}">${u.role === 'admin' ? 'تحويل لموظف' : 'ترقية لمدير'}</button></div></td></tr>`))}</div>`;
     const showPw = (title, user, pw) => { const m = ST.modal(`<h2>${esc(title)}</h2><p>المستخدم: <b class="mono">${esc(user)}</b></p><div class="receipt" style="padding:12px"><div class="ref" style="font-size:24px">${esc(pw)}</div></div><div class="notice warn">انسخ كلمة المرور الآن وسلّمها للمستخدم بصورة آمنة. لن تظهر مرة أخرى.</div><div class="actions"><button class="btn btn-primary" data-c>نسخ</button><button class="btn btn-ghost" data-close>تم</button></div>`); m.el.querySelector('[data-c]').onclick = () => ST.copy(pw); };
     app.querySelector('#uf').onsubmit = async e => { e.preventDefault(); const f = e.target; try { const r = await ST.api('POST', '/api/admin/users', { username: f.username.value, display_name: f.display_name.value, role: f.role.value }); showPw('تم إنشاء المستخدم', r.username, r.temp_password); R['admin/users'](); } catch (err) { ST.toast(err.message, true); } };
     app.querySelectorAll('[data-reset]').forEach(b => b.onclick = async () => { const u = users.find(x => x.id == b.dataset.reset); if (await ST.confirm(`إعادة تعيين كلمة مرور «${u.display_name}»؟ ستنتهي جلساته الحالية.`)) { try { const r = await ST.api('POST', `/api/admin/users/${u.id}/reset`); showPw('كلمة مرور مؤقتة جديدة', u.username, r.temp_password); } catch (err) { ST.toast(err.message, true); } } });
+    app.querySelectorAll('[data-udept]').forEach(sel => sel.onchange = async () => { try { await ST.api('PATCH', '/api/admin/users/' + sel.dataset.udept, { dept_id: sel.value === '' ? null : +sel.value }); ST.toast('تم حفظ إدارة المستخدم'); } catch (err) { ST.toast(err.message, true); } });
     app.querySelectorAll('[data-toggle]').forEach(b => b.onclick = async () => { try { await ST.api('PATCH', '/api/admin/users/' + b.dataset.toggle, { active: b.dataset.active !== '1' }); R['admin/users'](); } catch (err) { ST.toast(err.message, true); } });
     app.querySelectorAll('[data-role]').forEach(b => b.onclick = async () => { try { await ST.api('PATCH', '/api/admin/users/' + b.dataset.role, { role: b.dataset.r }); R['admin/users'](); } catch (err) { ST.toast(err.message, true); } });
   };
@@ -74,12 +89,13 @@
     app.innerHTML = `<h1 style="margin-top:0">الخدمات وحقولها</h1><p class="lead">فعّل الخدمات أو عطّلها، وعدّل أسماء الحقول، وحدّد الحقل «مطلوبًا للإرسال» أو «مطلوبًا للإحالة» (يُحتسب الطلب ناقصًا إن بقي فارغًا أو «غير محدد حاليًا»). تسري التعديلات على الطلبات الجديدة.</p>
       <form id="sf">${services.map((s, i) => `<div class="card" style="margin-bottom:12px"><div class="row-actions" style="justify-content:space-between"><h2 style="margin:0">${esc(s.icon || '')} ${esc(s.label)}</h2><label class="sw"><input type="checkbox" data-s="${i}" data-p="active" ${s.active !== false ? 'checked' : ''}> مفعّلة</label></div>
         <div class="field"><label>اسم الخدمة</label><input data-s="${i}" data-p="label" value="${esc(s.label)}"></div>
+        <div class="field"><label>الإدارة المسؤولة (تُصنَّف إليها طلباتها تلقائيًا)</label><select data-s="${i}" data-p="dept_id">${ST.cfg.departments.filter(d => d.active || d.id === s.dept_id).map(d => `<option value="${d.id}" ${s.dept_id === d.id ? 'selected' : ''}>${esc(d.name)}</option>`).join('')}</select></div>
         ${s.notice !== undefined ? `<div class="field"><label>التنبيه المعروض للزائر</label><input data-s="${i}" data-p="notice" value="${esc(s.notice)}"></div>` : ''}
         ${tbl(['الحقل', 'ظاهر', 'مطلوب للإرسال', 'مطلوب للإحالة (قائمة التحقق)'], s.fields.map((f, j) => `<tr><td><input data-s="${i}" data-f="${j}" data-p="label" value="${esc(f.label)}" style="min-height:40px"><small class="mono">${esc(f.key)}</small></td>
           <td><input type="checkbox" data-s="${i}" data-f="${j}" data-p="active" ${f.active !== false ? 'checked' : ''}></td><td><input type="checkbox" data-s="${i}" data-f="${j}" data-p="required" ${f.required ? 'checked' : ''} ${f.type === 'multicheck' ? 'disabled' : ''}></td><td><input type="checkbox" data-s="${i}" data-f="${j}" data-p="ready" ${f.ready || f.required ? 'checked' : ''}></td></tr>`))}</div>`).join('')}
         <div class="actions"><button class="btn btn-primary">حفظ التعديلات</button></div></form>`;
     app.querySelector('#sf').addEventListener('input', onEdit); app.querySelector('#sf').addEventListener('change', onEdit);
-    function onEdit(e) { const t = e.target, d = t.dataset; if (d.s === undefined) return; const v = t.type === 'checkbox' ? t.checked : t.value; const tgt = d.f !== undefined ? services[+d.s].fields[+d.f] : services[+d.s]; tgt[d.p] = v; }
+    function onEdit(e) { const t = e.target, d = t.dataset; if (d.s === undefined) return; const v = t.type === 'checkbox' ? t.checked : (d.p === 'dept_id' ? +t.value : t.value); const tgt = d.f !== undefined ? services[+d.s].fields[+d.f] : services[+d.s]; tgt[d.p] = v; }
     app.querySelector('#sf').onsubmit = async e => { e.preventDefault(); try { await ST.api('PUT', '/api/admin/services', { services }); ST.toast('تم حفظ الخدمات'); } catch (err) { ST.toast(err.message, true); } };
   };
 

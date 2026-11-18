@@ -7,12 +7,19 @@
 <meta name="robots" content="noindex, nofollow">
 <title>طلبك معنا — لوحة الموظفين</title>
 <link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="/theme.css">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/staff.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="طلبك معنا">
 </head>
 <body>
 <header class="top">
   <div class="wrap wide">
     <div class="brand"><span class="mark" aria-hidden="true">KPTC</span><span><b>طلبك معنا</b><small>لوحة المتابعة — للموظفين</small></span></div>
     <span class="grow"></span>
+    <button class="live off" id="livebtn" hidden title="حالة الاتصال المباشر"><i></i><span id="livetxt">غير متصل</span></button>
+    <button class="btn btn-sm btn-ghost" id="soundbtn" hidden style="color:#fff;border-color:rgba(255,255,255,.5)" title="تنبيه صوتي وإشعارات">🔕</button>
     <span class="who" id="who"></span>
     <button class="btn btn-sm btn-ghost" id="logout" style="color:#fff;border-color:rgba(255,255,255,.5)" hidden>خروج</button>
   </div>
@@ -23,6 +30,7 @@
 <script src="/form.js"></script>
 <script src="/staff.js"></script>
 <script src="/admin.js"></script>
+<script src="/admin2.js"></script>
 <script src="/staff-boot.js"></script>
 </body>
 </html>

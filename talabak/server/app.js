@@ -3,7 +3,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const cfg = require('./config');
-const { db, audit, getSettings, setSetting, getServices, setServices, DEFAULT_SETTINGS } = require('./db');
+const { db, audit, getSettings, setSetting, getServices, setServices, DEFAULT_SETTINGS, newRefCode } = require('./db');
 const S = require('./services');
 const U = require('./util');
 const R = require('./requests');
@@ -12,7 +12,7 @@ const { runBackup, listBackups } = require('./backup');
 const { HttpError } = U;
 
 const COOKIE = 'tsid';
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.webmanifest': 'application/manifest+json' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.webp': 'image/webp', '.webmanifest': 'application/manifest+json' };
 
 // ---------- تحديد المعدل (في الذاكرة) ----------
 const hits = new Map();
@@ -74,7 +74,7 @@ function sessionUser(req) {
   if (new Date(row.expires_at).getTime() - Date.now() < cfg.SESSION_HOURS * 1800e3) db.prepare('UPDATE sessions SET expires_at=? WHERE token_hash=?').run(exp, h);
   return row;
 }
-const publicUser = u => ({ id: u.id, username: u.username, display_name: u.display_name, role: u.role, must_change: !!u.must_change });
+const publicUser = u => ({ id: u.id, username: u.username, display_name: u.display_name, role: u.role, must_change: !!u.must_change, dept_id: u.dept_id || null });
 const DUMMY = U.hashPassword('dummy-password-1');
 
 function login(req, res, body) {
@@ -144,10 +144,30 @@ route('POST', '/api/public/requests', {}, (c) => {
   if (!rateLimit('submit:' + clientIp(c.req), s.rate_limit_per_10min, 600e3)) throw new HttpError(429, 'عدد المحاولات كبير. انتظر قليلًا ثم أعد المحاولة.');
   const key = String(c.req.headers['idempotency-key'] || '').trim();
   if (!/^[A-Za-z0-9_-]{16,64}$/.test(key)) throw new HttpError(400, 'مفتاح الإرسال مفقود');
-  const source = S.PUBLIC_SOURCES.includes(c.body.source) ? c.body.source : 'web';
-  const r = R.createRequest(c.body, { source, idemKey: key });
+  let source = S.PUBLIC_SOURCES.includes(c.body.source) ? c.body.source : 'web';
+  let tag = U.clean(c.body.tag, 30); if (!/^[A-Za-z0-9_-]{1,30}$/.test(tag)) tag = null;
+  let assignTo = null;
+  const repCode = U.clean(c.body.rep, 20).toLowerCase();
+  if (repCode) { const u = db.prepare('SELECT id FROM users WHERE ref_code=? AND active=1').get(repCode); if (u) { assignTo = u.id; source = 'rep'; } }
+  const r = R.createRequest(c.body, { source, idemKey: key, tag, assignTo });
   c.status = r.replay ? 200 : 201;
   return { ok: true, replay: r.replay, receipt: R.receiptFor(r.row, r.settings) };
+});
+
+// ----- الجهاز اللوحي: نبض + أوامر التحكم عن بعد (لا تحمل أي بيانات عملاء) -----
+route('POST', '/api/public/kiosk/ping', {}, c => {
+  const id = String(c.body.device || '');
+  if (!/^[A-Za-z0-9_-]{8,40}$/.test(id)) throw new HttpError(400, 'معرّف الجهاز غير صالح');
+  if (!rateLimit('ping:' + clientIp(c.req), 240, 60e3)) throw new HttpError(429, 'كثير');
+  const now = new Date().toISOString(), screen = U.clean(c.body.screen, 20);
+  let d = db.prepare('SELECT * FROM kiosk_devices WHERE id=?').get(id);
+  if (!d) {
+    if (db.prepare('SELECT COUNT(*) n FROM kiosk_devices').get().n >= 100) throw new HttpError(429, 'عدد الأجهزة كبير');
+    db.prepare('INSERT INTO kiosk_devices(id,name,first_seen,last_seen,screen) VALUES(?,?,?,?,?)').run(id, 'جهاز ' + id.slice(0, 4).toUpperCase(), now, now, screen);
+    d = db.prepare('SELECT * FROM kiosk_devices WHERE id=?').get(id);
+  } else db.prepare('UPDATE kiosk_devices SET last_seen=?, screen=?, pending=? WHERE id=?').run(now, screen, '[]', id);
+  const s = getSettings();
+  return { commands: JSON.parse(d.pending || '[]'), paused: !!d.paused, pause_msg: d.pause_msg || '', banner: d.banner || '', accepting: s.accepting, name: d.name };
 });
 
 route('POST', '/api/auth/login', {}, c => ({ user: login(c.req, c.res, c.body) }));
@@ -170,17 +190,15 @@ route('POST', '/api/auth/password', { auth: 'user', allowMustChange: true }, c =
 // ----- الموظف -----
 route('GET', '/api/staff/config', needUser, c => {
   const s = getSettings();
-  const users = c.user.role === 'admin' ? db.prepare('SELECT id, display_name, role FROM users WHERE active=1 ORDER BY display_name').all() : [{ id: c.user.id, display_name: c.user.display_name, role: c.user.role }];
-  return { ...publicConfig(), all_services: getServices(), statuses: S.STATUSES, outcomes: S.OUTCOMES, note_required: S.NOTE_REQUIRED_OUTCOMES, sources: S.SOURCES, users,
+  const users = c.user.role === 'admin' ? db.prepare('SELECT id, display_name, role, dept_id FROM users WHERE active=1 ORDER BY display_name').all() : [{ id: c.user.id, display_name: c.user.display_name, role: c.user.role, dept_id: c.user.dept_id || null }];
+  return { ...publicConfig(), departments: db.prepare('SELECT id,name,color,active FROM departments ORDER BY sort,id').all(), all_services: getServices(), statuses: S.STATUSES, outcomes: S.OUTCOMES, note_required: S.NOTE_REQUIRED_OUTCOMES, sources: S.SOURCES, users,
     settings: { event_code: s.event_code, whatsapp_link_enabled: s.whatsapp_link_enabled, public_base_url: s.public_base_url }, me: publicUser(c.user) };
 });
-route('GET', '/api/staff/stats', needUser, c => {
-  const user = c.user, today = U.kuwaitToday(cfg.TZ_OFFSET_HOURS);
-  const scope = user.role === 'admin' ? '1=1' : '(assigned_to=@uid OR assigned_to IS NULL)';
-  const mine = 'assigned_to=@uid';
-  const q = (w) => { const p = {}; if (w.includes('@uid')) p.uid = user.id; if (w.includes('@today')) p.today = today; return db.prepare(`SELECT COUNT(*) n FROM requests WHERE archived=0 AND is_dup=0 AND status NOT IN ('completed','closed') AND ${w}`).get(p).n; };
-  return { mine: q(mine), unassigned: q(`${scope} AND assigned_to IS NULL`), due_today: q(`${user.role === 'admin' ? scope : mine} AND follow_up_date=@today`), overdue: q(`${user.role === 'admin' ? scope : mine} AND follow_up_date<@today`),
-    needs_info: q(`${user.role === 'admin' ? scope : mine} AND missing_count>0`), uncontacted: q(`${scope} AND NOT EXISTS (SELECT 1 FROM contact_log l WHERE l.request_id=requests.id AND l.kind!='note')`) };
+route('GET', '/api/staff/stats', needUser, c => R.statsFor(c.user));
+route('GET', '/api/staff/live', needUser, c => {
+  const out = R.liveFeed(c.user, c.query.since === undefined ? -1 : parseInt(c.query.since, 10));
+  if (c.user.role === 'admin') { const cut = new Date(Date.now() - 25e3).toISOString(); const k = db.prepare('SELECT COUNT(*) total, SUM(last_seen>?) online FROM kiosk_devices').get(cut); out.kiosks = { total: k.total, online: k.online || 0 }; }
+  return out;
 });
 route('GET', '/api/staff/requests', needUser, c => R.listRequests(c.query, c.user));
 route('POST', '/api/staff/requests', needUser, c => {
@@ -197,7 +215,7 @@ route('POST', '/api/staff/requests/:id/contacts', needUser, c => R.addContact(+c
 route('GET', '/api/staff/requests/:id/message', needUser, c => R.followupMessage(+c.params.id, c.user));
 
 // ----- المدير -----
-route('GET', '/api/admin/users', needAdmin, () => ({ users: db.prepare('SELECT id,username,display_name,role,active,must_change,created_at,last_login FROM users ORDER BY id').all() }));
+route('GET', '/api/admin/users', needAdmin, () => ({ users: db.prepare('SELECT id,username,display_name,role,active,must_change,created_at,last_login,dept_id,ref_code FROM users ORDER BY id').all() }));
 route('POST', '/api/admin/users', needAdmin, c => {
   const username = U.clean(c.body.username, 32).toLowerCase(), display = U.clean(c.body.display_name, 80), role = c.body.role === 'admin' ? 'admin' : 'staff';
   if (!/^[a-z0-9._-]{3,32}$/.test(username)) throw new HttpError(422, 'اسم المستخدم: ٣–٣٢ حرفًا إنجليزيًا أو أرقامًا (. _ -)');
@@ -215,12 +233,18 @@ route('PATCH', '/api/admin/users/:id', needAdmin, c => {
   if (typeof c.body.display_name === 'string' && U.clean(c.body.display_name, 80).length >= 2) set.display_name = U.clean(c.body.display_name, 80);
   if (c.body.role && ['admin', 'staff'].includes(c.body.role)) set.role = c.body.role;
   if ('active' in c.body) set.active = c.body.active ? 1 : 0;
+  if ('dept_id' in c.body) {
+    const dv = c.body.dept_id === null || c.body.dept_id === '' ? null : +c.body.dept_id;
+    if (dv !== null && !db.prepare('SELECT 1 FROM departments WHERE id=?').get(dv)) throw new HttpError(422, 'الإدارة غير موجودة');
+    set.dept_id = dv;
+  }
   const admins = db.prepare("SELECT COUNT(*) n FROM users WHERE role='admin' AND active=1 AND id!=?").get(id).n;
   if (u.role === 'admin' && u.active && admins === 0 && ((set.role && set.role !== 'admin') || set.active === 0)) throw new HttpError(409, 'لا يمكن تعطيل أو تنزيل آخر مدير نشط');
   if (id === c.user.id && (set.active === 0 || (set.role && set.role !== 'admin'))) throw new HttpError(409, 'لا يمكنك تعطيل حسابك أو تغيير صلاحيتك بنفسك');
   if (!Object.keys(set).length) return { ok: true };
   db.prepare(`UPDATE users SET ${Object.keys(set).map(k => k + '=@' + k).join(',')} WHERE id=@id`).run({ ...set, id });
   if (set.active === 0 || set.role) db.prepare('DELETE FROM sessions WHERE user_id=?').run(id);
+  if (set.dept_id !== undefined && Object.keys(set).length === 1) { /* لا حاجة لإنهاء الجلسات */ }
   audit(c.user, 'user_update', { id, ...set }); return { ok: true };
 });
 route('POST', '/api/admin/users/:id/reset', needAdmin, c => {
@@ -229,6 +253,56 @@ route('POST', '/api/admin/users/:id/reset', needAdmin, c => {
   db.prepare('UPDATE users SET pass_hash=?, must_change=1 WHERE id=?').run(U.hashPassword(pw), id);
   db.prepare('DELETE FROM sessions WHERE user_id=?').run(id);
   audit(c.user, 'user_reset_password', { id }); return { temp_password: pw };
+});
+route('POST', '/api/admin/users/:id/refcode', needAdmin, c => {
+  const id = +c.params.id; if (!db.prepare('SELECT 1 FROM users WHERE id=?').get(id)) throw new HttpError(404, 'المستخدم غير موجود');
+  const code = newRefCode(); db.prepare('UPDATE users SET ref_code=? WHERE id=?').run(code, id); audit(c.user, 'refcode_regen', { id }); return { ref_code: code };
+});
+// ----- الإدارات -----
+route('GET', '/api/admin/departments', needAdmin, () => ({ departments: db.prepare(`SELECT d.*, (SELECT COUNT(*) FROM requests r WHERE r.dept_id=d.id) requests FROM departments d ORDER BY sort,id`).all() }));
+route('POST', '/api/admin/departments', needAdmin, c => {
+  const name = U.clean(c.body.name, 60), color = /^#[0-9a-fA-F]{6}$/.test(c.body.color || '') ? c.body.color : '#2e2c78';
+  if (name.length < 2) throw new HttpError(422, 'أدخل اسم الإدارة');
+  if (db.prepare('SELECT 1 FROM departments WHERE name=?').get(name)) throw new HttpError(409, 'الاسم مستخدم');
+  const max = db.prepare('SELECT COALESCE(MAX(sort),0)+1 n FROM departments').get().n;
+  const info = db.prepare('INSERT INTO departments(name,color,sort) VALUES(?,?,?)').run(name, color, max);
+  audit(c.user, 'dept_create', { name }); c.status = 201; return { id: info.lastInsertRowid };
+});
+route('PATCH', '/api/admin/departments/:id', needAdmin, c => {
+  const id = +c.params.id, d = db.prepare('SELECT * FROM departments WHERE id=?').get(id); if (!d) throw new HttpError(404, 'الإدارة غير موجودة');
+  const set = {};
+  if (typeof c.body.name === 'string' && U.clean(c.body.name, 60).length >= 2) set.name = U.clean(c.body.name, 60);
+  if (/^#[0-9a-fA-F]{6}$/.test(c.body.color || '')) set.color = c.body.color;
+  if ('active' in c.body) set.active = c.body.active ? 1 : 0;
+  if (Number.isInteger(c.body.sort)) set.sort = c.body.sort;
+  if (set.name && db.prepare('SELECT 1 FROM departments WHERE name=? AND id!=?').get(set.name, id)) throw new HttpError(409, 'الاسم مستخدم');
+  if (!Object.keys(set).length) return { ok: true };
+  db.prepare(`UPDATE departments SET ${Object.keys(set).map(k => k + '=@' + k).join(',')} WHERE id=@id`).run({ ...set, id });
+  audit(c.user, 'dept_update', { id, ...set }); return { ok: true };
+});
+route('DELETE', '/api/admin/departments/:id', needAdmin, c => {
+  const id = +c.params.id;
+  const used = db.prepare('SELECT (SELECT COUNT(*) FROM requests WHERE dept_id=@i)+(SELECT COUNT(*) FROM users WHERE dept_id=@i) n').get({ i: id }).n + getServices().filter(x => x.dept_id === id).length;
+  if (used) throw new HttpError(409, 'الإدارة مرتبطة بطلبات أو خدمات أو مستخدمين؛ عطّلها بدل حذفها.');
+  db.prepare('DELETE FROM departments WHERE id=?').run(id); audit(c.user, 'dept_delete', { id }); return { ok: true };
+});
+// ----- أجهزة الجناح والتحكم عن بعد -----
+route('GET', '/api/admin/kiosks', needAdmin, () => {
+  const cut = Date.now() - 25e3;
+  return { kiosks: db.prepare('SELECT * FROM kiosk_devices ORDER BY last_seen DESC').all().map(d => ({ ...d, pending: JSON.parse(d.pending || '[]'), online: new Date(d.last_seen).getTime() > cut,
+    requests: db.prepare("SELECT COUNT(*) n FROM requests WHERE tag=? AND is_test=0").get(d.id).n })) };
+});
+route('POST', '/api/admin/kiosks/:id', needAdmin, c => {
+  const id = c.params.id, d = db.prepare('SELECT * FROM kiosk_devices WHERE id=?').get(id); if (!d) throw new HttpError(404, 'الجهاز غير موجود');
+  const b = c.body, act = b.action;
+  if (act === 'rename') { const n = U.clean(b.name, 40); if (n.length < 2) throw new HttpError(422, 'اسم قصير'); db.prepare('UPDATE kiosk_devices SET name=? WHERE id=?').run(n, id); }
+  else if (act === 'pause') db.prepare('UPDATE kiosk_devices SET paused=1, pause_msg=? WHERE id=?').run(U.clean(b.message, 200) || 'الجهاز متوقف مؤقتًا، يرجى التوجه إلى موظف الجناح.', id);
+  else if (act === 'resume') db.prepare('UPDATE kiosk_devices SET paused=0, pause_msg=NULL WHERE id=?').run(id);
+  else if (act === 'banner') db.prepare('UPDATE kiosk_devices SET banner=? WHERE id=?').run(U.clean(b.message, 200) || null, id);
+  else if (act === 'reset' || act === 'reload') { const p = JSON.parse(d.pending || '[]'); if (!p.includes(act)) p.push(act); db.prepare('UPDATE kiosk_devices SET pending=? WHERE id=?').run(JSON.stringify(p), id); }
+  else if (act === 'forget') db.prepare('DELETE FROM kiosk_devices WHERE id=?').run(id);
+  else throw new HttpError(422, 'أمر غير معروف');
+  audit(c.user, 'kiosk_' + act, { id, name: d.name }); return { ok: true };
 });
 route('GET', '/api/admin/settings', needAdmin, () => ({ settings: getSettings(), defaults_note: Object.keys(DEFAULT_SETTINGS) }));
 route('PUT', '/api/admin/settings', needAdmin, c => {
@@ -241,9 +315,15 @@ route('GET', '/api/admin/services', needAdmin, () => ({ services: getServices() 
 route('PUT', '/api/admin/services', needAdmin, c => {
   const cur = getServices(); const next = S.sanitizeServices(c.body.services, cur);
   if (!next.some(s => s.active)) throw new HttpError(422, 'يجب إبقاء خدمة واحدة على الأقل مفعّلة');
+  for (const sv of next) if (sv.dept_id && !db.prepare('SELECT 1 FROM departments WHERE id=?').get(sv.dept_id)) throw new HttpError(422, 'إدارة غير موجودة في الخدمة: ' + sv.label);
   setServices(next); audit(c.user, 'services_update', null); return { services: next };
 });
 route('GET', '/api/admin/reports/summary', needAdmin, c => REP.summary(c.query));
+route('GET', '/api/admin/reports/pivot', needAdmin, c => REP.pivot(c.query));
+route('GET', '/api/admin/export/pivot.csv', needAdmin, c => {
+  const { csv, count } = REP.pivotCsv(c.query); audit(c.user, 'export', { kind: 'pivot', by: c.query.by });
+  return { raw: csv, type: 'text/csv; charset=utf-8', headers: { 'Content-Disposition': `attachment; filename="talabak-report-${U.kuwaitToday()}.csv"`, 'X-Row-Count': String(count) } };
+});
 route('GET', '/api/admin/export/requests.csv', needAdmin, c => {
   const pii = c.query.pii === '1';
   const { csv, count } = REP.requestsCsv(c.query, c.user, pii);
@@ -278,7 +358,7 @@ function serveStatic(req, res, pathname) {
   if (!file.startsWith(cfg.PUBLIC_DIR + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return false;
   const ext = path.extname(file);
   const isHtml = ext === '.html';
-  res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': isHtml ? 'no-cache' : 'public, max-age=300', ...(isHtml && rel === '/staff.html' ? { 'Cache-Control': 'no-store' } : {}) });
+  res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': isHtml || rel === '/sw.js' ? 'no-cache' : 'public, max-age=300', ...(isHtml && rel === '/staff.html' ? { 'Cache-Control': 'no-store' } : {}) });
   fs.createReadStream(file).pipe(res);
   return true;
 }

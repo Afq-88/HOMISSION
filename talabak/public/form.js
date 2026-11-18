@@ -5,7 +5,8 @@
   const AR = '٠١٢٣٤٥٦٧٨٩', FA = '۰۱۲۳۴۵۶۷۸۹';
   const nd = s => String(s ?? '').replace(/[٠-٩]/g, c => AR.indexOf(c)).replace(/[۰-۹]/g, c => FA.indexOf(c)).replace(/٫/g, '.');
   const UNK = '__unknown__';
-  const STEPS = ['الخدمة', 'تفاصيل الاحتياج', 'بيانات التواصل', 'المراجعة والإرسال'];
+  const STEPS = ['الخدمة', 'التفاصيل', 'التواصل', 'المراجعة'];
+  const BUS = cls => `<svg class="${cls}" viewBox="0 0 92 46" aria-hidden="true"><rect x="2" y="6" width="88" height="29" rx="8" fill="#2e2c78"/><rect x="2" y="24" width="88" height="5" fill="#ffc93c"/><rect x="7" y="10" width="15" height="14" rx="3" fill="#cfe6ff"/><rect x="26" y="11" width="14" height="10" rx="2" fill="#cfe6ff"/><rect x="44" y="11" width="14" height="10" rx="2" fill="#cfe6ff"/><rect x="62" y="11" width="14" height="10" rx="2" fill="#cfe6ff"/><circle cx="24" cy="37" r="7" fill="#14133a"/><circle cx="68" cy="37" r="7" fill="#14133a"/><circle cx="24" cy="37" r="3" fill="#ffc93c"/><circle cx="68" cy="37" r="3" fill="#ffc93c"/></svg>`;
   const empty = v => v === undefined || v === null || v === '' || (Array.isArray(v) && !v.length);
   const fmtDate = iso => { try { return new Date(iso).toLocaleString('ar-KW-u-nu-latn', { timeZone: 'Asia/Kuwait', dateStyle: 'long', timeStyle: 'short' }); } catch { return iso; } };
   const uuid = () => (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join(''));
@@ -116,16 +117,17 @@
 
     // ---------- الشاشات ----------
     function stepper() {
-      const pct = Math.round(((st.step - 1) / 4) * 100 + 5);
-      return `<ol class="steps" aria-label="خطوات التسجيل">${STEPS.map((t, i) => `<li data-n="${i + 1}" class="${i + 1 < st.step ? 'done' : ''} ${i + 1 === st.step ? 'cur' : ''}" ${i + 1 === st.step ? 'aria-current="step"' : ''}>${t}</li>`).join('')}</ol><div class="bar"><i style="width:${pct}%"></i></div>`;
+      const p = (st.step - 1) / 3;
+      return `<div class="route" style="--p:${p}" role="group" aria-label="خطوات التسجيل"><div class="line"></div><div class="fill"></div>${BUS('bus')}<ol>${STEPS.map((t, i) => `<li class="${i + 1 < st.step ? 'done' : ''} ${i + 1 === st.step ? 'cur' : ''}" ${i + 1 === st.step ? 'aria-current="step"' : ''}><i>${i + 1 < st.step ? '✓' : i + 1}</i><span>${t}</span></li>`).join('')}</ol></div>`;
     }
+    const hero = big => `<section class="hero ${big ? 'big' : ''}" style="--hero-img:url(/img/kbus-fleet.jpg)"><div class="in"><h1>${esc(cfg.event.name)} — طلبك معنا</h1><p>اختر ما تحتاجه واترك بياناتك، وسيتابع فريق الشركة طلبك.</p><div class="pills"><span class="pill gold">تعبئة سريعة</span><span class="pill">${cfg.services.length} خدمات</span><span class="pill">بلا مستندات شخصية</span></div></div></section>`;
     function errBanner() {
       const n = Object.keys(st.errors).length;
       return n ? `<div class="notice bad" role="alert"><b>يرجى استكمال ${n === 1 ? 'حقل واحد' : n + ' حقول'} مطلوبة</b> — الحقول المعلَّمة بالأحمر أدناه.</div>` : '';
     }
     function stepService() {
       return `<h1>ما الخدمة التي تهمّك؟</h1><p class="lead">اختر خدمة واحدة للبدء. لا تتطلب هذه المرحلة أي مستندات شخصية.</p>
-        <div class="tiles">${cfg.services.map(s => `<button type="button" class="tile" data-tile="${s.id}" aria-pressed="${st.service === s.id}"><span class="ic" aria-hidden="true">${s.icon || '•'}</span><span><b>${esc(s.label)}</b><small>${esc(s.desc || '')}</small></span></button>`).join('')}</div>${st.errors.service ? `<div class="err-msg" role="alert">${esc(st.errors.service)}</div>` : ''}`;
+        <div class="tiles">${cfg.services.map(s => `<button type="button" class="tile photo" data-tile="${s.id}" aria-pressed="${st.service === s.id}"><span class="phw"><span class="ph" style="--img:url(${esc(s.img || '')})"></span></span><span class="ic" aria-hidden="true">${s.icon || '•'}</span><span class="tb"><b>${esc(s.label)}</b><small>${esc(s.desc || '')}</small></span></button>`).join('')}</div>${st.errors.service ? `<div class="err-msg" role="alert">${esc(st.errors.service)}</div>` : ''}`;
     }
     function stepNeeds() {
       const s = svc();
@@ -163,23 +165,22 @@
     }
     function receiptHtml(r) {
       return `<div class="receipt" id="receipt">
-        <div style="text-align:center"><b style="font-size:20px">${esc(r.event_name)}</b><br><span class="lead">شركة النقل العام الكويتية — بطاقة استلام طلب</span></div>
-        <div class="ref" aria-label="رقم الطلب">${esc(r.ref)}</div>
-        <dl><dt>تاريخ الاستلام</dt><dd>${esc(fmtDate(r.received_at))}</dd><dt>نوع الخدمة</dt><dd>${esc(r.service)}</dd><dt>الاسم</dt><dd>${esc(r.customer)}</dd><dt>الهاتف</dt><dd><bdi dir="ltr">${esc(r.phone_masked)}</bdi></dd>
+        <div class="rt"><b>${esc(r.event_name)}</b><p class="lead">شركة النقل العام الكويتية — بطاقة استلام طلب</p><div class="ref" aria-label="رقم الطلب">${esc(r.ref)}</div></div>
+        <div class="rb"><dl><dt>تاريخ الاستلام</dt><dd>${esc(fmtDate(r.received_at))}</dd><dt>نوع الخدمة</dt><dd>${esc(r.service)}</dd><dt>الاسم</dt><dd>${esc(r.customer)}</dd><dt>الهاتف</dt><dd><bdi dir="ltr">${esc(r.phone_masked)}</bdi></dd>
         ${r.summary.map(x => `<dt>${esc(x.label)}</dt><dd>${esc(x.value)}</dd>`).join('')}</dl>
         ${r.incomplete ? '<div class="notice warn" style="margin-top:12px">بعض المعلومات غير مكتملة، وسنتواصل معك لاستكمالها.</div>' : ''}
         <h3>الخطوة التالية</h3><p style="margin:0">${esc(r.next_step)}</p>
         ${r.channel_text || r.channel_url ? `<h3>قناة المتابعة الرسمية</h3><p style="margin:0">${esc(r.channel_text)} ${r.channel_url ? `<bdi dir="ltr">${esc(r.channel_url)}</bdi>` : ''}</p>` : ''}
-        ${r.emergency_number ? `<div class="notice warn">هذا النموذج ليس للحالات الطارئة. رقم الطوارئ الرسمي: <b class="ltr">${esc(r.emergency_number)}</b></div>` : ''}
-        <div class="conf">${esc(r.confirmation)}</div></div>`;
+        ${r.emergency_number ? `<div class="notice warn">هذا النموذج ليس للحالات الطارئة. رقم الطوارئ الرسمي: <b class="ltr">${esc(r.emergency_number)}</b></div>` : ''}</div>
+        <div class="tear"></div><div class="rf"><div class="conf">${esc(r.confirmation)}</div><div class="barcode" aria-hidden="true"></div></div></div>`;
     }
     function screenReceipt() {
-      return `<div class="notice ok no-print" role="status"><b>تم حفظ طلبك بنجاح ✓</b> — احتفظ برقم الطلب أدناه.</div>${receiptHtml(st.receipt)}
+      return `<div class="drive no-print" aria-hidden="true">${BUS('')}</div><div class="notice ok no-print" role="status"><span class="okmark">✓</span><b>تم حفظ طلبك بنجاح</b> — احتفظ برقم الطلب أدناه.</div>${receiptHtml(st.receipt)}
         <div class="actions no-print"><button class="btn btn-primary" data-print>🖨 طباعة البطاقة</button><button class="btn btn-ghost" data-png>⬇ تنزيل كصورة</button>
         <span class="grow"></span>${mode === 'staff' ? '<button class="btn btn-sign" data-new>＋ طلب جديد</button>' + (opts.openUrl ? `<a class="btn btn-ghost" href="${opts.openUrl(st.receipt)}">فتح الطلب</a>` : '') : (mode === 'kiosk' ? '<button class="btn btn-sign" data-new>بدء طلب جديد</button>' : '<button class="btn btn-sign" data-new>تقديم طلب آخر</button>')}</div>`;
     }
     function screenWelcome() {
-      return `<div class="welcome"><div style="font-size:64px" aria-hidden="true">🚌</div><h1>أهلًا بكم في جناح شركة النقل العام الكويتية</h1><p class="lead">سجّل طلبك خلال دقيقتين، وسيتابعه فريقنا.</p><button class="btn btn-primary big" data-start>ابدأ طلبًا جديدًا</button></div>`;
+      return `<div class="welcome">${hero(true)}<div class="cta"><button class="btn btn-primary big" data-start>ابدأ طلبًا جديدًا ←</button><p class="hint" style="margin-top:14px">أي طلب أو استفسار — سجّله هنا وسيصل مباشرة إلى فريقنا.</p></div></div>`;
     }
     function screenEdit() {
       return `${errBanner()}<h3>الخدمة: ${esc(svc().label)}</h3>${[partyField, ...needFields()].map(fieldHtml).join('')}<h3>بيانات التواصل</h3>${contactFields().map(fieldHtml).join('')}
@@ -199,7 +200,7 @@
       if (st.screen === 'welcome') html = screenWelcome();
       else if (st.screen === 'receipt') html = screenReceipt();
       else if (st.screen === 'edit') html = screenEdit();
-      else html = stepper() + `<div class="card">${st.step === 1 ? stepService() : st.step === 2 ? stepNeeds() : st.step === 3 ? stepContact() : stepReview()}</div>` + actions();
+      else html = (st.step === 1 && (mode === 'public' || mode === 'kiosk') ? hero(false) : '') + stepper() + `<div class="card">${st.step === 1 ? stepService() : st.step === 2 ? stepNeeds() : st.step === 3 ? stepContact() : stepReview()}</div>` + actions();
       const hp = mode === 'public' || mode === 'kiosk' ? '<div class="hp" aria-hidden="true"><label>الموقع<input type="text" name="website" tabindex="-1" autocomplete="off" data-hp></label></div>' : '';
       root.innerHTML = html + hp;
       window.scrollTo(0, y);
@@ -225,7 +226,7 @@
       const body = { service: st.service, ...st.common, fields: f, is_test: st.isTest };
       body.phone = nd(body.phone); body.phone_cc = st.common.phone_cc;
       if (st.common.pref_time === UNK) delete body.pref_time;
-      if (mode !== 'staff') { body.source = opts.source || 'web'; const hp = root.querySelector('[data-hp]'); body.website = hp ? hp.value : ''; }
+      if (mode !== 'staff') { body.source = opts.source || 'web'; if (opts.tag) body.tag = opts.tag; if (opts.rep) body.rep = opts.rep; if (mode === 'kiosk') body.tag = devId; const hp = root.querySelector('[data-hp]'); body.website = hp ? hp.value : ''; }
       return body;
     }
     async function submit() {
@@ -323,6 +324,26 @@
       m.querySelector('#idle-clear').onclick = wipe;
       m.querySelector('#idle-stay').focus();
     }
+    // ---------- التحكم عن بعد: نبض كل ٥ ثوانٍ، أوامر (مسح/تحديث/إيقاف/لافتة) ----------
+    const devId = (function () { try { let d = localStorage.getItem('kiosk_dev'); if (!d) { d = 'k' + uuid().slice(0, 14); localStorage.setItem('kiosk_dev', d); } return d; } catch { return 'k' + uuid().slice(0, 14); } })();
+    function setBanner(t) { let b = document.getElementById('kbanner'); if (!t) { if (b) b.remove(); return; } if (!b) { b = document.createElement('div'); b.id = 'kbanner'; b.className = 'kbanner'; b.setAttribute('role', 'status'); document.body.prepend(b); } if (b.textContent !== t) b.textContent = t; }
+    function setPaused(on, msg) {
+      let o = document.getElementById('kpaused');
+      if (!on) { if (o) o.remove(); return; }
+      if (!o) { wipe(); o = document.createElement('div'); o.id = 'kpaused'; o.className = 'paused'; o.setAttribute('role', 'alert'); document.body.appendChild(o); }
+      const html = `<div><div class="ic" aria-hidden="true">🚧</div><h1>الجهاز متوقف مؤقتًا</h1><p style="font-size:20px">${esc(msg || '')}</p></div>`;
+      if (o.innerHTML !== html) o.innerHTML = html;
+    }
+    async function ping() {
+      try {
+        const r = await fetch('/api/public/kiosk/ping', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'talabak' }, body: JSON.stringify({ device: devId, screen: st.screen }), cache: 'no-store' });
+        if (!r.ok) return; const d = await r.json();
+        if ((d.commands || []).includes('reload')) return location.reload();
+        if ((d.commands || []).includes('reset')) wipe();
+        setBanner(d.banner); setPaused(d.paused, d.pause_msg);
+      } catch { /* بلا اتصال: يستمر الجهاز بعمله ويعيد المحاولة */ }
+    }
+    if (mode === 'kiosk') { ping(); setInterval(ping, 5000); }
     if (mode === 'kiosk') {
       const bump = () => { if (document.getElementById('idle-modal')) return; armIdle(); };
       ['pointerdown', 'keydown', 'input', 'scroll'].forEach(ev => window.addEventListener(ev, bump, { passive: true }));
