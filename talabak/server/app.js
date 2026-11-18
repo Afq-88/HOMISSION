@@ -80,7 +80,7 @@ const DUMMY = U.hashPassword('dummy-password-1');
 function login(req, res, body) {
   const username = U.clean(body.username, 40).toLowerCase(), password = typeof body.password === 'string' ? body.password : '';
   const ip = clientIp(req);
-  if (!rateLimit('login:' + ip + ':' + username, 6, 15 * 60e3) || !rateLimit('login:' + ip, 40, 15 * 60e3)) throw new HttpError(429, 'محاولات كثيرة. انتظر ١٥ دقيقة ثم حاول مجددًا.');
+  if (!rateLimit('login:' + ip + ':' + username, 6, 15 * 60e3) || !rateLimit('login:' + ip, 40, 15 * 60e3) || !rateLimit('loginuser:' + username, 25, 15 * 60e3)) throw new HttpError(429, 'محاولات كثيرة. انتظر ١٥ دقيقة ثم حاول مجددًا.');
   const u = db.prepare('SELECT * FROM users WHERE username=?').get(username);
   const ok = U.verifyPassword(password, u ? u.pass_hash : DUMMY);
   if (!u || !ok || !u.active) { audit('محاولة دخول', 'login_failed', { username, ip }); throw new HttpError(401, 'اسم المستخدم أو كلمة المرور غير صحيحة'); }

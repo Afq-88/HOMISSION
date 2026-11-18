@@ -3,6 +3,18 @@ const cfg = require('./config');
 const { db } = require('./db');
 const { createServer } = require('./app');
 const { runBackup } = require('./backup');
+const U = require('./util');
+
+// إنشاء المدير الأول من متغيرات البيئة (للاستضافات بلا سطر أوامر). يعمل فقط إن لم يوجد أي مدير،
+// وكلمة المرور مؤقتة: يُجبَر المدير على تغييرها عند أول دخول. احذف المتغير بعد ذلك.
+(function bootstrapAdmin() {
+  const user = String(process.env.BOOTSTRAP_ADMIN_USER || '').toLowerCase(), pw = process.env.BOOTSTRAP_ADMIN_PASSWORD;
+  if (!user || !pw || db.prepare("SELECT 1 FROM users WHERE role='admin' LIMIT 1").get()) return;
+  const bad = U.passwordProblem(pw);
+  if (bad || !/^[a-z0-9._-]{3,32}$/.test(user)) { console.error('تعذّر إنشاء المدير الأول:', bad || 'اسم المستخدم غير صالح'); return; }
+  db.prepare("INSERT INTO users(username,display_name,role,pass_hash,must_change,created_at) VALUES(?,?, 'admin',?,1,?)").run(user, 'مدير النظام', U.hashPassword(pw), new Date().toISOString());
+  console.log(`أُنشئ المدير الأول «${user}» (كلمة مرور مؤقتة — سيُطلب تغييرها عند أول دخول).`);
+})();
 
 const server = createServer();
 server.listen(cfg.PORT, cfg.HOST, () => {

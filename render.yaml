@@ -1,0 +1,32 @@
+# Blueprint لنشر «طلبك معنا» على Render — يُنشأ من: Dashboard → New → Blueprint
+# ملاحظة: القرص الدائم (disk) يتطلب نوع خدمة مدفوعًا؛ بدونه تضيع الطلبات عند كل إعادة تشغيل.
+services:
+  - type: web
+    name: talabak-maana
+    runtime: node
+    region: frankfurt            # الأقرب جغرافيًا للكويت بين مناطق Render
+    plan: starter
+    branch: claude/kptc-request-app-3t4trj   # غيّره إلى main بعد الدمج
+    rootDir: talabak
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: false            # لا نشر تلقائي أثناء المعرض؛ انشر يدويًا بعد الاختبار
+    disk:
+      name: talabak-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATA_DIR
+        value: /data
+      - key: TRUST_PROXY
+        value: "1"
+      - key: BACKUP_EVERY_HOURS
+        value: "6"
+      # إنشاء المدير الأول عند أول تشغيل (يُتجاهل بعد وجود مدير؛ احذفه بعد أول دخول)
+      - key: BOOTSTRAP_ADMIN_USER
+        value: admin
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false              # يُطلب منك إدخاله عند إنشاء الـBlueprint، ولا يُخزَّن في المستودع
