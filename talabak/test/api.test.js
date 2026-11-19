@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'talabak-'));
 process.env.DATA_DIR = tmp; process.env.DB_PATH = path.join(tmp, 't.db'); process.env.BACKUP_DIR = path.join(tmp, 'bk');
-process.env.PORT = '0'; process.env.BACKUP_EVERY_HOURS = '0'; process.env.TRUST_PROXY = '1';
+process.env.PORT = '0'; process.env.BACKUP_EVERY_HOURS = '0'; process.env.TRUST_PROXY = '1'; process.env.FUNNEL_PUBLIC_ONLY = '1';
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -520,4 +520,16 @@ test('حقن XSS/SQL في الحقول يُخزَّن كنص ولا يُنفَّ
   assert.equal(row.name, evil); assert.ok(db.prepare('SELECT COUNT(*) n FROM requests').get().n > 10, 'الجدول سليم');
   const boss = await loginAs('boss');
   const q = await call('GET', `/api/staff/requests?q=${encodeURIComponent("' OR 1=1 --")}`, null, { cookie: boss }); assert.equal(q.status, 200); assert.equal(q.data.total, 0);
+});
+
+test('وضع Funnel: لوحة الموظفين والإدارة مخفية عن الإنترنت العام، والنموذج العام يعمل', async () => {
+  const via = { 'tailscale-funnel-request': '?1' };
+  for (const u of ['/staff', '/staff.js', '/admin.js', '/admin2.js', '/staff-boot.js', '/api/staff/stats', '/api/admin/users', '/api/auth/me']) {
+    const r = await fetch(base + u, { headers: via }); assert.equal(r.status, 404, u);
+  }
+  assert.equal((await fetch(base + '/api/public/config', { headers: via })).status, 200);
+  assert.equal((await fetch(base + '/', { headers: via })).status, 200);
+  assert.equal((await fetch(base + '/theme.css', { headers: via })).status, 200);
+  const r2 = await fetch(base + '/api/staff/stats'); assert.equal(r2.status, 401, 'من الشبكة الخاصة (بلا الترويسة) تعمل اللوحة');
+  assert.equal((await fetch(base + '/staff')).status, 200);
 });

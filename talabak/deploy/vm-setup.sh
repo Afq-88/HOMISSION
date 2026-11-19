@@ -4,19 +4,25 @@
 #   sudo bash deploy/vm-setup.sh                               → رابط HTTPS تلقائي مجاني  https://1-2-3-4.sslip.io
 #   sudo bash deploy/vm-setup.sh talabak.example.com           → نطاقك الخاص
 #   sudo bash deploy/vm-setup.sh --staff-allow="203.0.113.5 198.51.100.0/24"   → حصر لوحة الموظفين/الإدارة بعناوين محددة (اختياري)
+# خادم منزلي/مكتبي (لابتوب) خلف راوتر بلا منافذ مفتوحة:
+#   sudo bash deploy/vm-setup.sh --mode=tailscale --laptop [--funnel-public-only]
 # آمن للتكرار: لا يعيد تعيين كلمة مرور مدير موجود، ولا يمس قاعدة البيانات ولا الأسرار المولَّدة.
 set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
 [ "$(id -u)" = 0 ] || { echo "شغّل السكربت بـ sudo"; exit 1; }
 
-DOMAIN=""; STAFF_ALLOW=""
+DOMAIN=""; STAFF_ALLOW=""; MODE="caddy"; LAPTOP=0; FUNNEL_ONLY=0
 for a in "$@"; do
   case "$a" in
     --staff-allow=*) STAFF_ALLOW="${a#*=}" ;;
+    --mode=*) MODE="${a#*=}" ;;
+    --laptop) LAPTOP=1 ;;
+    --funnel-public-only) FUNNEL_ONLY=1 ;;
     -*) echo "خيار غير معروف: $a"; exit 1 ;;
     *) DOMAIN="$a" ;;
   esac
 done
+[ "$MODE" = caddy ] || [ "$MODE" = tailscale ] || { echo "--mode يجب أن يكون caddy أو tailscale"; exit 1; }
 APP_SRC="$(cd "$(dirname "$0")/.." && pwd)"
 APP_DIR=/opt/talabak
 DATA_DIR=/var/lib/talabak
@@ -32,6 +38,10 @@ if ! command -v node >/dev/null || ! node -e 'process.exit(+process.versions.nod
   curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
   apt-get install -y nodejs
 fi
+if ! node -e "1" >/dev/null 2>&1; then
+  echo "✘ Node.js لا يعمل على معالج هذا الجهاز (غالبًا معالج قديم بلا SSE4.2، مثل Core 2 Duo). استخدم جهازًا أحدث أو أخبرني بالنموذج لأجد حلًّا."; exit 1
+fi
+if [ "$LAPTOP" = 1 ] && ! grep -q sse4_2 /proc/cpuinfo; then echo "تحذير: المعالج بلا SSE4.2 — قد تظهر أعطال غامضة."; fi
 node -v
 
 echo "▶ ٣/٩ نسخ التطبيق (الشيفرة للقراءة فقط على حساب الخدمة؛ البيانات وحدها قابلة للكتابة)"
@@ -81,6 +91,7 @@ Environment=DATA_DIR=$DATA_DIR
 Environment=TRUST_PROXY=1
 Environment=COOKIE_SECURE=1
 Environment=BACKUP_EVERY_HOURS=6
+$( [ "$FUNNEL_ONLY" = 1 ] && echo 'Environment=FUNNEL_PUBLIC_ONLY=1' )
 ExecStart=/usr/bin/node --no-warnings server/index.js
 Restart=always
 RestartSec=3
@@ -126,6 +137,7 @@ fi
 systemctl enable --now talabak
 systemctl restart talabak
 
+if [ "$MODE" = caddy ]; then
 echo "▶ ٦/٩ Caddy (HTTPS تلقائي) + ترويسات أمان + حد لحجم الطلب"
 if ! command -v caddy >/dev/null; then
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
@@ -164,7 +176,13 @@ CADDY
 caddy validate --config /etc/caddy/Caddyfile >/dev/null 2>&1 || { echo "تحذير: إعداد Caddy غير صالح"; caddy validate --config /etc/caddy/Caddyfile || true; }
 systemctl enable caddy
 systemctl restart caddy
+else
+echo "▶ ٦/٩ Tailscale (رابط HTTPS عام بلا فتح أي منفذ في الراوتر)"
+if ! command -v tailscale >/dev/null; then curl -fsSL https://tailscale.com/install.sh | sh; fi
+systemctl enable --now tailscaled
+fi
 
+if [ "$MODE" = caddy ]; then
 echo "▶ ٧/٩ جدار الحماية: المنفذان 80 و443 (+SSH فقط)"
 if command -v ufw >/dev/null && ufw status | grep -q "Status: active"; then
   ufw allow 80/tcp; ufw allow 443/tcp
@@ -173,6 +191,15 @@ if command -v iptables >/dev/null; then   # صور Oracle تحجب كل شيء �
   for p in 80 443; do iptables -C INPUT -p tcp --dport $p -j ACCEPT 2>/dev/null || iptables -I INPUT 1 -p tcp --dport $p -j ACCEPT; done
   apt-get install -y iptables-persistent netfilter-persistent >/dev/null 2>&1 || true
   netfilter-persistent save >/dev/null 2>&1 || true
+fi
+else
+echo "▶ ٧/٩ جدار الحماية: لا شيء مفتوح للإنترنت؛ SSH من الشبكة المحلية وTailscale فقط"
+apt-get install -y ufw
+ufw default deny incoming; ufw default allow outgoing
+ufw allow in on tailscale0
+ufw allow from 192.168.0.0/16 to any port 22 proto tcp
+ufw allow from 10.0.0.0/8 to any port 22 proto tcp
+ufw --force enable
 fi
 
 echo "▶ ٨/٩ تشديد SSH + fail2ban"
@@ -207,6 +234,21 @@ F2B
 systemctl enable --now fail2ban
 systemctl restart fail2ban
 
+if [ "$LAPTOP" = 1 ]; then
+echo "▶ إعدادات اللابتوب كخادم: لا نوم، يعمل والغطاء مغلق، تبريد، إيقاف آمن عند نفاد البطارية"
+systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+mkdir -p /etc/systemd/logind.conf.d
+printf '[Login]\nHandleLidSwitch=ignore\nHandleLidSwitchExternalPower=ignore\nHandleLidSwitchDocked=ignore\nIdleAction=ignore\n' > /etc/systemd/logind.conf.d/talabak-lid.conf
+apt-get install -y thermald upower lm-sensors || true
+apt-get install -y mbpfan 2>/dev/null && systemctl enable --now mbpfan || echo "ملاحظة: حزمة mbpfan (تحكم مراوح ماك) غير متاحة — راقب الحرارة بـ sensors"
+# عند بلوغ البطارية مستوى حرجًا: إيقاف تشغيل نظيف (يحمي قاعدة البيانات)
+if [ -f /etc/UPower/UPower.conf ]; then
+  sed -i 's/^CriticalPowerAction=.*/CriticalPowerAction=PowerOff/; s/^PercentageAction=.*/PercentageAction=8/; s/^PercentageCritical=.*/PercentageCritical=10/; s/^PercentageLow=.*/PercentageLow=20/' /etc/UPower/UPower.conf
+  systemctl restart upower || true
+fi
+systemctl restart systemd-logind || true
+fi
+
 echo "▶ ٩/٩ تحديثات الأمان التلقائية + سجلات محدودة الحجم"
 apt-get install -y unattended-upgrades
 cat > /etc/apt/apt.conf.d/20auto-upgrades <<'APT'
@@ -223,8 +265,17 @@ systemctl restart systemd-journald || true
 sleep 3
 echo
 echo "════════════════════════════════════════════════════════════"
-echo " تم. رابط التطبيق:  https://$DOMAIN"
-echo " لوحة الموظفين:     https://$DOMAIN/staff"
+if [ "$MODE" = caddy ]; then
+  echo " تم. رابط التطبيق:  https://$DOMAIN"
+  echo " لوحة الموظفين:     https://$DOMAIN/staff"
+else
+  echo " تم تثبيت التطبيق (يعمل محليًا على المنفذ 3000). الخطوات اليدوية المتبقية لإظهاره على الإنترنت:"
+  echo "   ١) sudo tailscale up            ← افتح الرابط الذي يظهر وسجّل الدخول بحسابك"
+  echo "   ٢) في https://login.tailscale.com/admin/dns فعّل MagicDNS وHTTPS Certificates"
+  echo "   ٣) فعّل Funnel للجهاز (Access Controls: nodeAttrs → funnel) ثم:"
+  echo "      sudo tailscale funnel --bg 3000"
+  echo "   ٤) الرابط العام: https://<اسم-الجهاز>.<شبكتك>.ts.net  (يظهر بالأمر: tailscale funnel status)"
+fi
 if [ -n "$ADMIN_PW" ]; then
   echo " المدير: admin    كلمة المرور المؤقتة (مرة واحدة): $ADMIN_PW"
   echo " عند أول دخول: غيّر كلمة المرور ثم فعّل المصادقة الثنائية (تطبيق Authenticator على جوالك)."
@@ -240,5 +291,5 @@ if [ "$NEW_SECRETS" = "1" ]; then
   echo "    • APP_SECRET: بدونه يُطلب من الجميع إعادة تفعيل المصادقة الثنائية بعد أي استعادة."
 fi
 echo "════════════════════════════════════════════════════════════"
-echo " مهم: افتح المنفذين 80 و443 في لوحة مزوّد السحابة (Security List / Firewall)، وقيّد المنفذ 22 بعنوانك فقط."
-echo " فحص: curl -s https://$DOMAIN/healthz     أوامر الإدارة: sudo talabak-admin <create-admin|reset-2fa|verify-audit|backup|restore>"
+[ "$MODE" = caddy ] && echo " مهم: افتح المنفذين 80 و443 في لوحة مزوّد السحابة (Security List / Firewall)، وقيّد المنفذ 22 بعنوانك فقط."
+echo " فحص: curl -s http://127.0.0.1:3000/healthz     أوامر الإدارة: sudo talabak-admin <create-admin|reset-2fa|verify-audit|backup|restore>"

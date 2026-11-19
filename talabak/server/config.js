@@ -17,6 +17,8 @@ module.exports = {
   BACKUP_KEEP: +process.env.BACKUP_KEEP || 40,
   // عبارة تشفير النسخ الاحتياطية (AES-256-GCM). بدونها تُحفظ النسخ غير مشفّرة (للتطوير فقط).
   BACKUP_PASSPHRASE: process.env.BACKUP_PASSPHRASE || '',
+  // خلف Tailscale Funnel: اجعل لوحة الموظفين/الإدارة غير متاحة للإنترنت العام (متاحة فقط عبر شبكتك الخاصة Tailscale)
+  FUNNEL_PUBLIC_ONLY: process.env.FUNNEL_PUBLIC_ONLY === '1',
   TZ_OFFSET_HOURS: 3, // توقيت الكويت UTC+3 بلا توقيت صيفي
   SESSION_HOURS: +process.env.SESSION_HOURS || 12, // مدة مطلقة للجلسة؛ لا تتجدد بالنشاط
 };

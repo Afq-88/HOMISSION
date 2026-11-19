@@ -434,6 +434,8 @@ async function handle(req, res) {
   for (const [k, v] of Object.entries(SEC_HEADERS)) res.setHeader(k, v);
   if (secure(req)) res.setHeader('Strict-Transport-Security', 'max-age=31536000');
   const pathname = decodeURIComponent(url.pathname);
+  // Tailscale Funnel يضيف الترويسة Tailscale-Funnel-Request لكل طلب قادم من الإنترنت العام (وليس من شبكتك الخاصة)
+  if (cfg.FUNNEL_PUBLIC_ONLY && req.headers['tailscale-funnel-request'] && /^\/(staff|admin2?\.js|staff[-.][\w.]+|api\/(staff|admin|auth))(\/|$|\.)?/.test(pathname)) return send(res, 404, 'غير موجود', { 'Content-Type': 'text/plain; charset=utf-8' });
   if (!pathname.startsWith('/api/') && pathname !== '/healthz') {
     if ((req.method === 'GET' || req.method === 'HEAD') && serveStatic(req, res, pathname)) return;
     return send(res, 404, 'غير موجود', { 'Content-Type': 'text/plain; charset=utf-8' });
