@@ -1,6 +1,7 @@
 'use strict';
 // اختبارات الخادم الفعلية: قاعدة SQLite مؤقتة + خادم حقيقي على منفذ عشوائي.
 const fs = require('fs');
+const http = require('node:http');
 const os = require('os');
 const path = require('path');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'talabak-'));
@@ -532,4 +533,32 @@ test('وضع Funnel: لوحة الموظفين والإدارة مخفية عن 
   assert.equal((await fetch(base + '/theme.css', { headers: via })).status, 200);
   const r2 = await fetch(base + '/api/staff/stats'); assert.equal(r2.status, 401, 'من الشبكة الخاصة (بلا الترويسة) تعمل اللوحة');
   assert.equal((await fetch(base + '/staff')).status, 200);
+});
+
+test('تنبيه الجوال ونبض الحياة: بلا بيانات شخصية، ولا يكسر الحفظ عند فشله', async () => {
+  const got = [];
+  const mock = http.createServer((req, res) => { let b = ''; req.on('data', d => { b += d; }); req.on('end', () => { got.push({ url: req.url, headers: req.headers, body: b }); res.end('ok'); }); });
+  await new Promise(r => mock.listen(0, '127.0.0.1', r));
+  const mport = mock.address().port, wait = ms => new Promise(r => setTimeout(r, ms));
+  process.env.NTFY_URL = `http://127.0.0.1:${mport}`; process.env.NTFY_TOPIC = 'abcdEFGH1234567890xyzQ';
+  try {
+    const k = key(), body = { ...common({ phone: '55599777', name: 'اسم حساس جدًا' }), service: 'towing', fields: SAMPLES.towing };
+    assert.equal((await submit(body, k)).status, 201);
+    assert.equal((await submit(body, k)).status, 200); // إعادة بنفس المفتاح: لا تنبيه ثانٍ
+    const boss = await loginAs('boss');
+    assert.equal((await call('POST', '/api/staff/requests', { ...common({ phone: '55599778' }), service: 'other', fields: SAMPLES.other, is_test: true }, { cookie: boss, headers: { 'idempotency-key': key() } })).status, 201); // تجريبي: لا تنبيه
+    await wait(300);
+    const hits = got.filter(g => g.url === '/abcdEFGH1234567890xyzQ');
+    assert.equal(hits.length, 1, 'تنبيه واحد فقط');
+    assert.match(hits[0].body, /KPTC-EX26-\d{6}/); assert.match(hits[0].body, /الأوناش/);
+    assert.ok(!hits[0].body.includes('اسم حساس') && !hits[0].body.includes('55599777') && !JSON.stringify(hits[0].headers).includes('55599777'), 'لا بيانات شخصية');
+    assert.match(hits[0].headers.title, /^=\?UTF-8\?B\?/);
+    // نبض الحياة
+    const N = require('../server/notify'); process.env.HEARTBEAT_URL = `http://127.0.0.1:${mport}/hb`;
+    assert.equal(N.startHeartbeat(60), true); await wait(350); N.stopHeartbeat();
+    assert.ok(got.filter(g => g.url === '/hb').length >= 3);
+    // فشل التنبيه (منفذ مغلق) لا يمنع حفظ الطلب
+    process.env.NTFY_URL = 'http://127.0.0.1:1';
+    assert.equal((await submit({ ...common({ phone: '55599779' }), service: 'other', fields: SAMPLES.other })).status, 201);
+  } finally { delete process.env.NTFY_URL; delete process.env.NTFY_TOPIC; delete process.env.HEARTBEAT_URL; mock.close(); }
 });

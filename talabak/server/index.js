@@ -4,6 +4,7 @@ const { db } = require('./db');
 const { createServer } = require('./app');
 const { runBackup } = require('./backup');
 const U = require('./util');
+const N = require('./notify');
 
 // إنشاء المدير الأول من متغيرات البيئة (للاستضافات بلا سطر أوامر). يعمل فقط إن لم يوجد أي مدير،
 // وكلمة المرور مؤقتة: يُجبَر المدير على تغييرها عند أول دخول. احذف المتغير بعد ذلك.
@@ -28,8 +29,11 @@ server.listen(cfg.PORT, cfg.HOST, () => {
   if (!cfg.COOKIE_SECURE && !cfg.TRUST_PROXY) console.log('تنبيه: للنشر الفعلي استخدم HTTPS وعيّن COOKIE_SECURE=1 (أو TRUST_PROXY=1 خلف وسيط HTTPS).');
 });
 
+N.startHeartbeat();
+if (N.enabled()) N.notify({ title: 'الخادم يعمل', message: 'بدأ تشغيل «طلبك معنا» (أو أُعيد تشغيله).', priority: 2, tags: 'white_check_mark' });
+
 if (cfg.BACKUP_EVERY_HOURS > 0) {
-  const t = setInterval(() => { try { const b = runBackup('auto'); console.log('نسخة احتياطية:', b.file); } catch (e) { console.error('فشل النسخ الاحتياطي', e.message); } }, cfg.BACKUP_EVERY_HOURS * 3600e3);
+  const t = setInterval(() => { try { const b = runBackup('auto'); console.log('نسخة احتياطية:', b.file); } catch (e) { console.error('فشل النسخ الاحتياطي', e.message); N.notify({ title: 'فشل النسخ الاحتياطي', message: 'تعذّر النسخ الاحتياطي التلقائي — افحص الخادم.', priority: 5, tags: 'warning' }); } }, cfg.BACKUP_EVERY_HOURS * 3600e3);
   t.unref();
 }
 function shutdown() { server.close(() => { try { db.exec('PRAGMA wal_checkpoint(TRUNCATE)'); db.close(); } catch { /* */ } process.exit(0); }); setTimeout(() => process.exit(0), 5000).unref(); }

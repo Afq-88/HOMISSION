@@ -5,7 +5,8 @@
 #   sudo bash deploy/vm-setup.sh talabak.example.com           → نطاقك الخاص
 #   sudo bash deploy/vm-setup.sh --staff-allow="203.0.113.5 198.51.100.0/24"   → حصر لوحة الموظفين/الإدارة بعناوين محددة (اختياري)
 # خادم منزلي/مكتبي (لابتوب) خلف راوتر بلا منافذ مفتوحة:
-#   sudo bash deploy/vm-setup.sh --mode=tailscale --laptop [--funnel-public-only]
+#   sudo bash deploy/vm-setup.sh --mode=tailscale --laptop [--funnel-public-only] [--heartbeat-url=https://hc-ping.com/xxxx]
+#   (اختياري) TS_AUTHKEY=tskey-... sudo -E bash deploy/vm-setup.sh ...   ← يربط Tailscale دون خطوة تسجيل دخول يدوية
 # آمن للتكرار: لا يعيد تعيين كلمة مرور مدير موجود، ولا يمس قاعدة البيانات ولا الأسرار المولَّدة.
 set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
@@ -13,13 +14,14 @@ export DEBIAN_FRONTEND=noninteractive
 # يحدث أن يمسك unattended-upgrades قفل apt بعد التثبيت الأول؛ ننتظره بدل الفشل
 echo 'DPkg::Lock::Timeout "900";' > /etc/apt/apt.conf.d/99-talabak-lock-timeout
 
-DOMAIN=""; STAFF_ALLOW=""; MODE="caddy"; LAPTOP=0; FUNNEL_ONLY=0
+DOMAIN=""; STAFF_ALLOW=""; MODE="caddy"; LAPTOP=0; FUNNEL_ONLY=0; HEARTBEAT=""
 for a in "$@"; do
   case "$a" in
     --staff-allow=*) STAFF_ALLOW="${a#*=}" ;;
     --mode=*) MODE="${a#*=}" ;;
     --laptop) LAPTOP=1 ;;
     --funnel-public-only) FUNNEL_ONLY=1 ;;
+    --heartbeat-url=*) HEARTBEAT="${a#*=}" ;;
     -*) echo "خيار غير معروف: $a"; exit 1 ;;
     *) DOMAIN="$a" ;;
   esac
@@ -33,7 +35,7 @@ SSH_USER="${SUDO_USER:-ubuntu}"
 
 echo "▶ ١/٩ تحديث الحزم"
 apt-get update -y
-apt-get install -y curl ca-certificates gnupg apt-transport-https debian-keyring debian-archive-keyring openssl
+apt-get install -y curl ca-certificates gnupg apt-transport-https openssl
 
 echo "▶ ٢/٩ Node.js 22"
 install_node_tarball() {   # احتياطي: النسخة الرسمية من nodejs.org بالتحقق من بصمة SHA-256
@@ -74,6 +76,9 @@ if [ ! -f "$ENV_FILE" ]; then
   { echo "APP_SECRET=$(openssl rand -hex 32)"; echo "BACKUP_PASSPHRASE=$(openssl rand -base64 24 | tr -d '/+=' | cut -c1-28)"; } > "$ENV_FILE"
   NEW_SECRETS=1
 fi
+NEW_TOPIC=0
+if ! grep -q '^NTFY_TOPIC=' "$ENV_FILE"; then echo "NTFY_TOPIC=$(openssl rand -hex 12)" >> "$ENV_FILE"; NEW_TOPIC=1; fi
+if [ -n "$HEARTBEAT" ]; then sed -i '/^HEARTBEAT_URL=/d' "$ENV_FILE"; echo "HEARTBEAT_URL=$HEARTBEAT" >> "$ENV_FILE"; fi
 chown root:root "$ENV_FILE"; chmod 600 "$ENV_FILE"
 
 # أداة إدارة تعمل بنفس بيئة الخدمة:  sudo talabak-admin create-admin | reset-2fa --username=x | verify-audit | backup | restore <ملف>
@@ -144,16 +149,53 @@ HAS_ADMIN=$(sudo -u talabak env DATA_DIR="$DATA_DIR" node --no-warnings -e "
 try { const {DatabaseSync}=require('node:sqlite'); const d=new DatabaseSync(process.env.DATA_DIR+'/talabak.db',{readOnly:true});
 console.log(d.prepare(\"select count(*) n from users where role='admin'\").get().n) } catch { console.log(0) }")
 ADMIN_PW=""
+FIRST_ADMIN_FILE=/root/talabak-first-admin.txt
 if [ "$HAS_ADMIN" = "0" ]; then
   OUT=$(talabak-admin create-admin --username=admin --name="مدير النظام")
   ADMIN_PW=$(echo "$OUT" | grep -E '^\s+\S{10,}$' | tr -d ' ')
+  # تُحفظ فورًا حتى لا تضيع إن انقطع التثبيت لاحقًا (ملف بصلاحية root فقط؛ احذفه بعد أول دخول)
+  ( umask 077; printf 'admin\n%s\n' "$ADMIN_PW" > "$FIRST_ADMIN_FILE" )
+  echo "   المدير الأول أُنشئ — كلمة المرور المؤقتة (احفظها الآن): $ADMIN_PW"
+elif [ -f "$FIRST_ADMIN_FILE" ]; then
+  ADMIN_PW="$(sed -n 2p "$FIRST_ADMIN_FILE")"
+  echo "   (استُعيدت كلمة المرور المؤقتة المحفوظة سابقًا في $FIRST_ADMIN_FILE)"
 fi
 systemctl enable --now talabak
 systemctl restart talabak
 
+# مراقب ذاتي: إن لم يستجب التطبيق (تجمّد) 3 مرات متتالية يُعاد تشغيله، ويصلك تنبيه إن كان ntfy مفعّلًا
+cat > /usr/local/bin/talabak-watchdog <<'WD'
+#!/usr/bin/env bash
+for i in 1 2 3; do curl -fsS --max-time 5 http://127.0.0.1:3000/healthz >/dev/null 2>&1 && exit 0; sleep 5; done
+logger -t talabak-watchdog "healthz فشل 3 مرات — إعادة تشغيل الخدمة"
+systemctl restart talabak
+set -a; . /etc/talabak.env; set +a
+[ -n "${NTFY_TOPIC:-}" ] && curl -fsS --max-time 8 -H "Title: talabak restarted" -H "Priority: 4" -d "Watchdog restarted the service (health check failed)" "https://ntfy.sh/$NTFY_TOPIC" >/dev/null 2>&1 || true
+WD
+chmod 750 /usr/local/bin/talabak-watchdog
+cat > /etc/systemd/system/talabak-watchdog.service <<'UNIT'
+[Unit]
+Description=Talabak health watchdog
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/talabak-watchdog
+UNIT
+cat > /etc/systemd/system/talabak-watchdog.timer <<'UNIT'
+[Unit]
+Description=Run Talabak health watchdog every minute
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+[Install]
+WantedBy=timers.target
+UNIT
+systemctl daemon-reload
+systemctl enable --now talabak-watchdog.timer
+
 if [ "$MODE" = caddy ]; then
 echo "▶ ٦/٩ Caddy (HTTPS تلقائي) + ترويسات أمان + حد لحجم الطلب"
 if ! command -v caddy >/dev/null; then
+  apt-get install -y debian-keyring debian-archive-keyring || true
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list
   apt-get update -y
@@ -194,6 +236,10 @@ else
 echo "▶ ٦/٩ Tailscale (رابط HTTPS عام بلا فتح أي منفذ في الراوتر)"
 if ! command -v tailscale >/dev/null; then curl -fsSL https://tailscale.com/install.sh | sh; fi
 systemctl enable --now tailscaled
+TS_OK=0
+if [ -n "${TS_AUTHKEY:-}" ]; then
+  if tailscale up --authkey="$TS_AUTHKEY" --ssh --hostname=talabak; then TS_OK=1; else echo "تعذّر tailscale up بالمفتاح — اتبع الخطوات اليدوية أدناه"; fi
+fi
 fi
 
 if [ "$MODE" = caddy ]; then
@@ -238,6 +284,7 @@ else
   echo "تحذير: لم أجد مفتاح SSH للمستخدم $SSH_USER — لم أعطّل كلمات المرور في SSH حتى لا أقفلك خارج الخادم."
 fi
 apt-get install -y fail2ban
+mkdir -p /etc/fail2ban/jail.d
 cat > /etc/fail2ban/jail.d/talabak.local <<'F2B'
 [sshd]
 enabled = true
@@ -288,7 +335,7 @@ if [ "$MODE" = caddy ]; then
   echo " لوحة الموظفين:     https://$DOMAIN/staff"
 else
   echo " تم تثبيت التطبيق (يعمل محليًا على المنفذ 3000). الخطوات اليدوية المتبقية لإظهاره على الإنترنت:"
-  echo "   ١) sudo tailscale up            ← افتح الرابط الذي يظهر وسجّل الدخول بحسابك"
+  if [ "${TS_OK:-0}" = 1 ]; then echo "   ١) تم ربط Tailscale تلقائيًا (الاسم: talabak)"; else echo "   ١) sudo tailscale up --ssh --hostname=talabak     ← افتح الرابط الذي يظهر وسجّل الدخول بحسابك"; fi
   echo "   ٢) في https://login.tailscale.com/admin/dns فعّل MagicDNS وHTTPS Certificates"
   echo "   ٣) فعّل Funnel للجهاز (Access Controls: nodeAttrs → funnel) ثم:"
   echo "      sudo tailscale funnel --bg 3000"
@@ -297,9 +344,16 @@ fi
 if [ -n "$ADMIN_PW" ]; then
   echo " المدير: admin    كلمة المرور المؤقتة (مرة واحدة): $ADMIN_PW"
   echo " عند أول دخول: غيّر كلمة المرور ثم فعّل المصادقة الثنائية (تطبيق Authenticator على جوالك)."
+  echo " (محفوظة أيضًا في $FIRST_ADMIN_FILE — احذفها بعد أول دخول: sudo shred -u $FIRST_ADMIN_FILE)"
 else
-  echo " (يوجد مدير مسبقًا — لم تُمسّ كلمة مروره)"
+  echo " (يوجد مدير مسبقًا — لم تُمسّ كلمة مروره. نسيتها؟ sudo talabak-admin create-admin --username=admin يعيد تعيينها)"
 fi
+TOPIC="$(grep ^NTFY_TOPIC= $ENV_FILE | cut -d= -f2)"
+echo
+echo " 🔔 تنبيهات الجوال (اختياري لكنه مفيد): ثبّت تطبيق ntfy على جوالك واشترك في الموضوع السري:"
+echo "    https://ntfy.sh/$TOPIC      (اسم الموضوع: $TOPIC — يعمل كأنه كلمة مرور فلا تشاركه)"
+echo "    تصلك رسالة بكل طلب جديد (بلا بيانات شخصية)، وعند إعادة تشغيل الخادم أو تعطّله."
+[ -z "$HEARTBEAT" ] && echo "    وللتنبيه عند انقطاع الكهرباء/الجهاز: أنشئ فحصًا مجانيًا في healthchecks.io ثم أعد التشغيل مع --heartbeat-url=<رابط النبض>"
 if [ "$NEW_SECRETS" = "1" ]; then
   echo
   echo " ⚠⚠ احفظ هذين السرّين الآن خارج الخادم (مدير كلمات مرور) — لا يمكن استرجاعهما إن ضاع الخادم:"

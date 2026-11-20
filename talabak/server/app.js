@@ -10,6 +10,7 @@ const R = require('./requests');
 const REP = require('./reports');
 const { runBackup, listBackups, FILE_RE } = require('./backup');
 const T = require('./totp');
+const N = require('./notify');
 const SECRETS = require('./secrets');
 const { HttpError } = U;
 
@@ -67,6 +68,15 @@ const SEC_HEADERS = {
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
 };
+
+// تنبيه الجوال بطلب جديد (بلا بيانات شخصية)، ولا يُرسل للتجريبي ولا للتكرار بنفس مفتاح الإرسال
+function announce(result, isTest) {
+  if (result.replay || isTest) return;
+  try {
+    const svc = R.serviceById(result.row.service), d = result.row.dept_id ? db.prepare('SELECT name FROM departments WHERE id=?').get(result.row.dept_id) : null;
+    N.notifyNewRequest(result.row, svc ? svc.label : result.row.service, d && d.name, result.settings);
+  } catch { /* التنبيه لا يعطّل الحفظ */ }
+}
 
 // ---------- المصادقة ----------
 function sessionUser(req) {
@@ -161,7 +171,8 @@ route('POST', '/api/public/requests', {}, (c) => {
   const s = getSettings();
   if (!s.accepting) throw new HttpError(403, s.closed_message || 'استقبال الطلبات متوقف حاليًا');
   if (c.body.website) throw new HttpError(400, 'طلب غير صالح');
-  if (!rateLimit('submit:' + clientIp(c.req), s.rate_limit_per_10min, 600e3)) throw new HttpError(429, 'عدد المحاولات كبير. انتظر قليلًا ثم أعد المحاولة.');
+  const sharedIp = cfg.TRUST_PROXY && !c.req.headers['x-forwarded-for']; // وسيط لا يمرر عنوان الزائر: الكل يبدو من عنوان واحد
+  if (!rateLimit('submit:' + clientIp(c.req), s.rate_limit_per_10min * (sharedIp ? 8 : 1), 600e3)) throw new HttpError(429, 'عدد المحاولات كبير. انتظر قليلًا ثم أعد المحاولة.');
   const key = String(c.req.headers['idempotency-key'] || '').trim();
   if (!/^[A-Za-z0-9_-]{16,64}$/.test(key)) throw new HttpError(400, 'مفتاح الإرسال مفقود');
   let source = S.PUBLIC_SOURCES.includes(c.body.source) ? c.body.source : 'web';
@@ -170,6 +181,7 @@ route('POST', '/api/public/requests', {}, (c) => {
   const repCode = U.clean(c.body.rep, 20).toLowerCase();
   if (repCode) { const u = db.prepare('SELECT id FROM users WHERE ref_code=? AND active=1').get(repCode); if (u) { assignTo = u.id; source = 'rep'; } }
   const r = R.createRequest(c.body, { source, idemKey: key, tag, assignTo });
+  announce(r, false);
   c.status = r.replay ? 200 : 201;
   return { ok: true, replay: r.replay, receipt: R.receiptFor(r.row, r.settings) };
 });
@@ -248,6 +260,7 @@ route('POST', '/api/staff/requests', needUser, c => {
   if (!/^[A-Za-z0-9_-]{16,64}$/.test(key)) throw new HttpError(400, 'مفتاح الإرسال مفقود');
   const body = { ...c.body, assisted_by: c.user.display_name };
   const r = R.createRequest(body, { source: 'staff', createdBy: c.user.id, idemKey: key, isTest: !!c.body.is_test, actor: c.user });
+  announce(r, !!c.body.is_test);
   c.status = r.replay ? 200 : 201;
   return { ok: true, replay: r.replay, id: r.row.id, receipt: R.receiptFor(r.row, r.settings) };
 });

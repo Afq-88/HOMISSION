@@ -11,17 +11,21 @@ sudo nmcli connection up "af.90"
 ping -c2 github.com        # يجب أن ينجح. إن فشل: echo -e "nameserver 1.1.1.1" | sudo tee /etc/resolv.conf  ثم راسلني
 ```
 **٢) SSH:** `sudo apt install -y openssh-server && sudo systemctl enable --now ssh` ثم `ip -4 -br addr` لمعرفة العنوان، وتصل من حاسوب آخر بـ `ssh afq@<العنوان>`.
-**٣) تشخيص قبل التثبيت** (لا يعدّل شيئًا؛ ألصق لي المخرجات):
+**٣) حدّث المشروع (فيه تحسينات جديدة) وثبّته بأمرين قصيرين فقط:**
 ```bash
-sudo apt-get install -y git curl
-git clone -b claude/kptc-request-app-3t4trj https://github.com/Afq-88/HOMISSION.git
-bash HOMISSION/talabak/deploy/server-check.sh
+git -C ~/HOMISSION pull
+sudo bash ~/HOMISSION/talabak/deploy/vm-setup.sh --mode=tailscale --laptop
 ```
-**٤) التثبيت** (إن كان `SSE4.2: نعم` وبقية الفحص سليمة):
-```bash
-sudo bash HOMISSION/talabak/deploy/vm-setup.sh --mode=tailscale --laptop
-```
-**٥)** نفّذ ما يطبعه السكربت في آخره (`tailscale up` ← MagicDNS/HTTPS ← Funnel). ثم افتح الرابط من جوالك على بيانات الهاتف.
+> **نصيحة تريحك:** اتصل بالماك من حاسوب أو جوال آخر عبر SSH (`ssh afq@192.168.0.240`) فتستطيع نسخ الأوامر ولصقها بدل كتابتها بيدك على الماك — هذا يمنع أخطاء الكتابة.
+> اختياري: لإظهار الرابط العام بلا خطوة تسجيل دخول يدوية، أنشئ **مفتاح Tailscale** (لوحة Tailscale ← Settings ← Keys ← Generate auth key) ثم: `TS_AUTHKEY=tskey-xxxx sudo -E bash ~/HOMISSION/talabak/deploy/vm-setup.sh --mode=tailscale --laptop`.
+
+**ماذا يفعل السكربت لك تلقائيًا (جُرِّب في بيئة معزولة مع محاكاة `apt`/`systemctl`/`tailscale`):**
+- يثبّت Node وTailscale ويشغّل التطبيق كخدمة معزولة تعمل تلقائيًا بعد أي إعادة تشغيل.
+- **مراقب ذاتي:** كل دقيقة يفحص التطبيق، فإن تجمّد يعيد تشغيله ويرسل لك تنبيهًا.
+- يحفظ كلمة مرور المدير المؤقتة فورًا في `/root/talabak-first-admin.txt` (حتى لا تضيع لو انقطع التثبيت)، ويطبعها.
+- يولّد سرّين للتشفير (`APP_SECRET`, `BACKUP_PASSPHRASE`) ويطبعهما **مرة واحدة** — احفظهما خارج الجهاز.
+- يولّد **موضوع تنبيهات ntfy** سريًّا: ثبّت تطبيق ntfy على جوالك واشترك به فتصلك رسالة بكل طلب جديد ولو كان التطبيق مغلقًا (الرسالة: الرقم المرجعي + الخدمة + الإدارة فقط، **بلا أي بيانات عميل**).
+- **انقطاع الكهرباء/الجهاز (بلا UPS):** أنشئ فحصًا مجانيًا في healthchecks.io ثم أعد التثبيت مع `--heartbeat-url=<رابط النبض>`؛ إن توقف الجهاز تصلك رسالة لأنه لم يعد يرسل النبض.
 
 ملاحظات من سجلك:
 - **كابل الشبكة أفضل من الواي فاي** لخادم يعمل باستمرار (تعريف `b43` يقطع أحيانًا). إن توفر كابل بين الماك والراوتر فاستخدمه؛ وإلا فالسكربت يوقف توفير طاقة الواي فاي لتخفيف القطع.
