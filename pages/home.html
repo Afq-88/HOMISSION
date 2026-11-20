@@ -65,6 +65,7 @@
         {id:'hr', name:'الموارد البشرية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','benefits.manage','benefits.claims','occasions.post','occasions.moderate','portal.admin','admin.staff']},
         {id:'content', name:'محرر الموقع', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','site.pages','site.texts','site.elements','site.home','site.news','site.tenders','site.jobs','site.sched']},
         {id:'fin', name:'الشؤون المالية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.invoice','ops.wallets','ops.bookings']},
+        {id:'asst', name:'مساعد مدير إدارة', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','approve.supplies','occasions.post']},
         {id:'admin', name:'مدير النظام', perms:['*']},
         {id:'owner', name:'مسؤول النظام', perms:['*']}
       ],
@@ -168,6 +169,7 @@
         var R = mem.roles = mem.roles || []; if (!R.some(function(r){ return r.id === 'owner'; })) R.push({id:'owner', name:'مسؤول النظام', perms:['*']});
         R.forEach(function(r){ if (r.id === 'admin'){ r.perms = ALL.filter(function(p){ return RESTRICT.indexOf(p) < 0; }); } });
         if (mem.staff && !mem.staff['KPTC-0001']) mem.staff['KPTC-0001'] = seed().staff['KPTC-0001']; } } catch(x){}
+    try { if (!mem.mig6){ mem.mig6 = 1; var RR = mem.roles = mem.roles || []; if (!RR.some(function(r){ return r.id === 'asst'; })) RR.splice(Math.max(0, RR.length - 2), 0, seed().roles.filter(function(r){ return r.id === 'asst'; })[0]); } } catch(x){}
     try { if (!mem.mig5){ mem.mig5 = 1; (mem.roles || []).forEach(function(r){ if ((r.id === 'admin' || r.id === 'content') && r.perms.indexOf('*') < 0 && r.perms.indexOf('site.marketing') < 0) r.perms.push('site.marketing'); }); } } catch(x){}
     try { if (!mem.mig3){ mem.mig3 = 1; var add = {sup:['approve.forms'], hr:['approve.hr'], fin:['approve.fin']}; (mem.roles || []).forEach(function(r){ (add[r.id] || []).forEach(function(p){ if (r.perms.indexOf(p) < 0) r.perms.push(p); }); }); if (mem.library && mem.library.length <= 4) mem.library = s.library; } } catch(x){}
     try { var EM = {'KPTC-4821':'a.alqattan','KPTC-2891':'dept.manager','KPTC-ENG':'engineer','KPTC-3310':'hr.staff','KPTC-5120':'web.editor','KPTC-1001':'sysadmin'}; for (var ek in EM) if (mem.staff && mem.staff[ek] && !mem.staff[ek].email) mem.staff[ek].email = EM[ek] + '@kptc.com.kw'; } catch(x){}
@@ -268,6 +270,8 @@
 
     /* ---- staff, roles, permissions ---- */
     DEPTS: ['التسويق والعلاقات العامة','شؤون النقل','الإدارة الهندسية','الورشة المركزية','الموارد البشرية','الشؤون المالية','تقنية المعلومات','المرافق والصيانة','المكتب الاستراتيجي وتطوير الأعمال'],
+    /* job grades: pick the position, and the system role that normally goes with it is suggested */
+    GRADES: [['gm','مدير عام','sup'],['dm','مدير إدارة','sup'],['adm','مساعد مدير إدارة','asst'],['head','رئيس قسم','sup'],['sv','مشرف','emp'],['eng','مهندس','eng'],['spec','أخصائي','emp'],['acc','محاسب','emp'],['tech','فني','emp'],['clerk','موظف','emp'],['driver','سائق','emp'],['other','أخرى (اكتبها)','emp']],
     PERMS: [
       ['البوابة الداخلية', [['portal.leave','طلب الإجازات'],['portal.supplies','طلب المستلزمات'],['portal.invoice','صرف الفواتير'],['portal.payslip','كشف الراتب'],['portal.benefits','المزايا والعروض'],['portal.directory','دليل الموظفين'],['portal.news','أخبار الشركة'],['portal.policies','سياسات الموارد البشرية'],['portal.occasions','واجب الزملاء (المناسبات)']]],
       ['الاعتمادات', [['approve.leave','اعتماد الإجازات'],['approve.supplies','اعتماد المستلزمات'],['approve.invoice','اعتماد صرف الفواتير'],['approve.forms','اعتماد نماذج موظفي الإدارة (المسؤول المباشر)'],['approve.hr','اعتماد الشؤون الإدارية والموارد البشرية'],['approve.fin','اعتماد الشؤون المالية والمراجعة'],['approve.exec','اعتماد الإدارة التنفيذية']]],
