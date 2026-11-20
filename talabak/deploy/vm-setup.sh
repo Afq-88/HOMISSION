@@ -10,6 +10,8 @@
 set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
 [ "$(id -u)" = 0 ] || { echo "شغّل السكربت بـ sudo"; exit 1; }
+# يحدث أن يمسك unattended-upgrades قفل apt بعد التثبيت الأول؛ ننتظره بدل الفشل
+echo 'DPkg::Lock::Timeout "900";' > /etc/apt/apt.conf.d/99-talabak-lock-timeout
 
 DOMAIN=""; STAFF_ALLOW=""; MODE="caddy"; LAPTOP=0; FUNNEL_ONLY=0
 for a in "$@"; do
@@ -34,10 +36,22 @@ apt-get update -y
 apt-get install -y curl ca-certificates gnupg apt-transport-https debian-keyring debian-archive-keyring openssl
 
 echo "▶ ٢/٩ Node.js 22"
+install_node_tarball() {   # احتياطي: النسخة الرسمية من nodejs.org بالتحقق من بصمة SHA-256
+  echo "NodeSource غير متاح لهذا الإصدار — أنزّل Node 22 من nodejs.org"
+  local base="https://nodejs.org/dist/latest-v22.x" tmp; tmp="$(mktemp -d)"
+  local line; line="$(curl -fsSL "$base/SHASUMS256.txt" | grep 'linux-x64.tar.xz$' | head -1)"
+  [ -n "$line" ] || { echo "تعذّر قراءة بصمات nodejs.org"; return 1; }
+  local sum="${line%% *}" file="${line##* }"
+  curl -fsSL "$base/$file" -o "$tmp/$file"
+  echo "$sum  $tmp/$file" | sha256sum -c - >/dev/null || { echo "فشل التحقق من بصمة Node — أُلغي التثبيت"; return 1; }
+  apt-get install -y xz-utils
+  tar -xJf "$tmp/$file" -C /usr/local --strip-components=1
+  rm -rf "$tmp"
+}
 if ! command -v node >/dev/null || ! node -e 'process.exit(+process.versions.node.split(".")[0] >= 22 ? 0 : 1)'; then
-  curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-  apt-get install -y nodejs
+  if ! { curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs; }; then install_node_tarball; fi
 fi
+NODE_BIN="$(command -v node)"
 if ! node -e "1" >/dev/null 2>&1; then
   echo "✘ Node.js لا يعمل على معالج هذا الجهاز (غالبًا معالج قديم بلا SSE4.2، مثل Core 2 Duo). استخدم جهازًا أحدث أو أخبرني بالنموذج لأجد حلًّا."; exit 1
 fi
@@ -92,7 +106,7 @@ Environment=TRUST_PROXY=1
 Environment=COOKIE_SECURE=1
 Environment=BACKUP_EVERY_HOURS=6
 $( [ "$FUNNEL_ONLY" = 1 ] && echo 'Environment=FUNNEL_PUBLIC_ONLY=1' )
-ExecStart=/usr/bin/node --no-warnings server/index.js
+ExecStart=$NODE_BIN --no-warnings server/index.js
 Restart=always
 RestartSec=3
 # --- عزل ---
@@ -240,6 +254,10 @@ systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
 mkdir -p /etc/systemd/logind.conf.d
 printf '[Login]\nHandleLidSwitch=ignore\nHandleLidSwitchExternalPower=ignore\nHandleLidSwitchDocked=ignore\nIdleAction=ignore\n' > /etc/systemd/logind.conf.d/talabak-lid.conf
 apt-get install -y thermald upower lm-sensors || true
+# الواي فاي: إيقاف توفير الطاقة (يقطع الاتصال كثيرًا مع تعريفات Broadcom) — يفضَّل كابل الشبكة إن أمكن
+mkdir -p /etc/NetworkManager/conf.d
+printf '[connection]\nwifi.powersave = 2\n' > /etc/NetworkManager/conf.d/99-talabak-wifi.conf
+systemctl restart NetworkManager 2>/dev/null || true
 apt-get install -y mbpfan 2>/dev/null && systemctl enable --now mbpfan || echo "ملاحظة: حزمة mbpfan (تحكم مراوح ماك) غير متاحة — راقب الحرارة بـ sensors"
 # عند بلوغ البطارية مستوى حرجًا: إيقاف تشغيل نظيف (يحمي قاعدة البيانات)
 if [ -f /etc/UPower/UPower.conf ]; then

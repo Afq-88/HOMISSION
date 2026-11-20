@@ -1,5 +1,34 @@
 # خادم منزلي/مكتبي (ماك بوك برو ٢٠١٠) — دليل مخصص
 
+## حالتك الآن (Ubuntu 26.04 على الماك + واي فاي af.90) — الخطوات التالية
+بناءً على سجل إعدادك مع Gemini، نفّذ هذه الكتل بالترتيب من لوحة المفاتيح أو عبر SSH، وألصق لي المخرجات عند أي توقف.
+
+**١) أعد DNS إلى وضعه الصحيح** (فصلتَ `resolv.conf` عن systemd-resolved، وهذا سيعطّل Tailscale لاحقًا):
+```bash
+sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+sudo nmcli connection modify "af.90" ipv4.dns "1.1.1.1 8.8.8.8" ipv4.ignore-auto-dns yes
+sudo nmcli connection up "af.90"
+ping -c2 github.com        # يجب أن ينجح. إن فشل: echo -e "nameserver 1.1.1.1" | sudo tee /etc/resolv.conf  ثم راسلني
+```
+**٢) SSH:** `sudo apt install -y openssh-server && sudo systemctl enable --now ssh` ثم `ip -4 -br addr` لمعرفة العنوان، وتصل من حاسوب آخر بـ `ssh afq@<العنوان>`.
+**٣) تشخيص قبل التثبيت** (لا يعدّل شيئًا؛ ألصق لي المخرجات):
+```bash
+sudo apt-get install -y git curl
+git clone -b claude/kptc-request-app-3t4trj https://github.com/Afq-88/HOMISSION.git
+bash HOMISSION/talabak/deploy/server-check.sh
+```
+**٤) التثبيت** (إن كان `SSE4.2: نعم` وبقية الفحص سليمة):
+```bash
+sudo bash HOMISSION/talabak/deploy/vm-setup.sh --mode=tailscale --laptop
+```
+**٥)** نفّذ ما يطبعه السكربت في آخره (`tailscale up` ← MagicDNS/HTTPS ← Funnel). ثم افتح الرابط من جوالك على بيانات الهاتف.
+
+ملاحظات من سجلك:
+- **كابل الشبكة أفضل من الواي فاي** لخادم يعمل باستمرار (تعريف `b43` يقطع أحيانًا). إن توفر كابل بين الماك والراوتر فاستخدمه؛ وإلا فالسكربت يوقف توفير طاقة الواي فاي لتخفيف القطع.
+- **كلمة مرور الواي فاي** ظهرت في ملف سجل الإعداد. لا تشاركه مع أحد، وبدّل كلمة المرور إن خرج من يدك.
+- **المستودع عام:** لا توجد فيه أسرار (تُولَّد على الخادم)، لكن شيفرة النظام وصور الحافلات ظاهرة للجميع. اجعله Private من إعدادات GitHub إن أردت (ثم تحتاج رمز وصول عند `git clone`).
+- ظاهرة «قفل apt» التي واجهتها طبيعية بعد التثبيت الأول (تحديثات تلقائية تعمل)؛ السكربت الآن ينتظر القفل ولا يفشل.
+
 ## الخلاصة
 جهازك يصلح كخادم **بعد تثبيت Ubuntu Server عليه** (وليس macOS). النظام خفيف جدًا: ذاكرة ٤GB وقرص ٥١٢GB أكثر من كافيين. لا تشتري شيئًا.
 
