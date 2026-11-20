@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مجلس الإدارة — KPTC</title>
+<!--kptc:head-js--><script id="kptc-store">
+/* KPTC shared data layer (runs in <head>, before any page script).
+   - Latin digits everywhere: date/number formatting and anything typed.
+   - One small database shared by every page, kept in the browser (localStorage).
+     The same shape maps 1:1 onto Firestore collections when the site is connected
+     to Firebase (see FIREBASE.txt): users, wallets, bookings, news, tenders, jobs,
+     applications, settings/pages. */
+(function(){
+  if (window.KPTC) return;
+
+  /* ---- 1) digits: always 0-9 ------------------------------------------- */
+  var AR = /[٠-٩۰-۹]/g;
+  function latin(s){ return String(s).replace(AR, function(c){ var n = c.charCodeAt(0); return String(n >= 0x06F0 ? n - 0x06F0 : n - 0x0660); }); }
+  function loc(l){ if (typeof l !== 'string' || !/^(ar|fa|ur)/i.test(l) || /-u-.*nu-/.test(l)) return l; return l + (l.indexOf('-u-') > -1 ? '-nu-latn' : '-u-nu-latn'); }
+  ['toLocaleString','toLocaleDateString','toLocaleTimeString'].forEach(function(m){
+    var o = Date.prototype[m]; Date.prototype[m] = function(l, opt){ return latin(o.call(this, Array.isArray(l) ? l.map(loc) : loc(l), opt)); };
+  });
+  var nl = Number.prototype.toLocaleString; Number.prototype.toLocaleString = function(l, opt){ return latin(nl.call(this, Array.isArray(l) ? l.map(loc) : loc(l), opt)); };
+  ['DateTimeFormat','NumberFormat'].forEach(function(k){
+    if (!window.Intl || !Intl[k]) return; var O = Intl[k];
+    var W = function(l, opt){ return new O(Array.isArray(l) ? l.map(loc) : loc(l), opt); };
+    W.prototype = O.prototype; W.supportedLocalesOf = O.supportedLocalesOf; Intl[k] = W;
+  });
+  // whatever keyboard is used, typed digits are stored and shown as 0-9
+  document.addEventListener('input', function(e){
+    var t = e.target; if (!t || e.isComposing) return;
+    if ((t.tagName === 'INPUT' && !/^(checkbox|radio|file|range|color|date|time|datetime-local|month|week)$/.test(t.type)) || t.tagName === 'TEXTAREA'){
+      var v = t.value; AR.lastIndex = 0;
+      if (AR.test(v)){ var s = null, en = null; try { s = t.selectionStart; en = t.selectionEnd; } catch(x){} t.value = latin(v); try { if (s !== null) t.setSelectionRange(s, en); } catch(x){} }
+    }
+  }, true);
+
+  /* ---- 2) database ------------------------------------------------------ */
+  var KEY = 'kptc.db.v2', mem = null, subs = [];
+  function today(off){ var d = new Date(Date.now() + (off||0)*864e5); return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2); }
+  function seed(){
+    return {
+      pages: {},                                   // id -> false when hidden from visitors
+      notice: {on:false, text:'', tone:'yellow', link:''},   // site-wide announcement bar
+      site: {                                      // everything the site studio controls
+        pages: {},                                 // id -> {status:'on'|'maint'|'off', nav, label, badge, from, until, msg}
+        navOrder: ['routes','subs','umrah','vip','winch','ads','reclient'],
+        home: {},                                  // section key -> false when switched off
+        ticker: [],                                // custom ticker lines (empty = the built-in ones)
+        maintenance: {on:false, text:''},
+        assistant: true,
+        wallet: {worker: ''},                      // address of the free wallet-signing service (worker/wallet-worker.js), for customer passes
+        texts: {},                                 // page id (or '*') -> {original text: replacement}
+        hidden: {},                                // page id -> [css selectors hidden from visitors]
+        required: {},                              // page id -> {field key: true (mandatory) | false (optional)}
+        sched: {}                                  // line number (or '*') -> {work:{first,last,peak,off,bands}, rest:{...}}
+      },
+      /* staff directory, roles and permissions (internal portal + studio) */
+      roles: [
+        {id:'emp', name:'موظف', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions']},
+        {id:'sup', name:'مدير إدارة', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','approve.supplies','approve.invoice','benefits.manage','occasions.post']},
+        {id:'eng', name:'مهندس', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','ops.winch','ops.bookings']},
+        {id:'hr', name:'الموارد البشرية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','benefits.manage','benefits.claims','occasions.post','occasions.moderate','portal.admin','admin.staff']},
+        {id:'content', name:'محرر الموقع', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','site.pages','site.texts','site.elements','site.home','site.news','site.tenders','site.jobs','site.sched']},
+        {id:'fin', name:'الشؤون المالية', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.invoice','ops.wallets','ops.bookings']},
+        {id:'asst', name:'مساعد مدير إدارة', perms:['portal.leave','portal.supplies','portal.invoice','portal.payslip','portal.benefits','portal.directory','portal.news','portal.policies','portal.occasions','approve.leave','approve.supplies','occasions.post']},
+        {id:'admin', name:'مدير النظام', perms:['*']},
+        {id:'owner', name:'مسؤول النظام', perms:['*']}
+      ],
+      staff: {
+        'KPTC-4821': {id:'KPTC-4821', email:'a.alqattan@kptc.com.kw', name:'أحمد القطان', title:'مدير التسويق والعلاقات العامة', dept:'التسويق والعلاقات العامة', role:'emp', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-900)},
+        'KPTC-2891': {id:'KPTC-2891', email:'dept.manager@kptc.com.kw', name:'مدير الإدارة', title:'مشرف التسويق', dept:'التسويق والعلاقات العامة', role:'sup', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-1400)},
+        'KPTC-ENG':  {id:'KPTC-ENG', email:'engineer@kptc.com.kw', name:'مهندس الصيانة', title:'مهندس أول', dept:'الإدارة الهندسية', role:'eng', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2100)},
+        'KPTC-3310': {id:'KPTC-3310', email:'hr.staff@kptc.com.kw', name:'موظف الموارد البشرية', title:'أخصائي شؤون الموظفين', dept:'الموارد البشرية', role:'hr', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-700)},
+        'KPTC-5120': {id:'KPTC-5120', email:'web.editor@kptc.com.kw', name:'محرر الموقع', title:'أخصائي محتوى رقمي', dept:'التسويق والعلاقات العامة', role:'content', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-300)},
+        'KPTC-0001': {id:'KPTC-0001', email:'owner@kptc.com.kw', name:'مسؤول النظام', title:'مسؤول أنظمة المعلومات', dept:'تقنية المعلومات', role:'owner', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2900)},
+        'KPTC-1001': {id:'KPTC-1001', email:'sysadmin@kptc.com.kw', name:'مدير النظام', title:'مدير تقنية المعلومات', dept:'تقنية المعلومات', role:'admin', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2600)}
+      },
+      staffSession: null, staffFails: {},
+      /* benefits and offers: internal or external, for everyone, departments, or named people */
+      benefits: [
+        {id:'B-103', title:'اشتراك مخفّض في نادٍ صحي', desc:'خصم على الاشتراك السنوي عند إبراز رمز العرض. (عرض تجريبي للتوضيح)', type:'external', partner:'نادٍ صحي شريك', value:'خصم 40%', cat:'صحة ولياقة', aud:{mode:'all'}, approve:false, from:today(-5), until:today(60), limit:0, on:true, by:'KPTC-3310'},
+        {id:'B-102', title:'بدل وجبة للمناوبين ليلاً', desc:'قسيمة وجبة لكل مناوبة ليلية خلال الشهر الحالي. (عرض تجريبي للتوضيح)', type:'internal', partner:'', value:'قسيمة وجبة', cat:'دعم المناوبين', aud:{mode:'depts', depts:['شؤون النقل','الورشة المركزية']}, approve:false, from:today(-2), until:today(28), limit:0, on:true, by:'KPTC-3310'},
+        {id:'B-101', title:'دورة التسويق الرقمي المتقدم', desc:'مقعد تدريبي مدفوع من الشركة، خمسة أيام. يحتاج اعتماد مديرك. (عرض تجريبي للتوضيح)', type:'internal', partner:'مركز التدريب', value:'مقعد مدفوع', cat:'تدريب وتطوير', aud:{mode:'staff', staff:['KPTC-4821']}, approve:true, from:today(-1), until:today(14), limit:1, on:true, by:'KPTC-2891'}
+      ],
+      /* sections handed over by the system admin to the departments that run them */
+      sections: [
+        {id:'transport', name:'الخطوط والاشتراكات', pages:['routes','subs'], perms:['site.sched','ops.bookings','ops.wallets'], dept:'شؤون النقل'},
+        {id:'trips', name:'العمرة وتأجير VIP', pages:['umrah','vip'], perms:['ops.bookings'], dept:'التسويق والعلاقات العامة'},
+        {id:'eng', name:'الونش والورشة وفحص PDI', pages:['winch','pdi'], perms:['ops.winch','ops.pdi','ops.bookings'], dept:'الإدارة الهندسية'},
+        {id:'ads', name:'الإعلان على الحافلات', pages:['ads'], perms:['ops.bookings'], dept:'التسويق والعلاقات العامة'},
+        {id:'media', name:'المركز الإعلامي والأخبار', pages:['media'], perms:['site.news'], dept:'التسويق والعلاقات العامة'},
+        {id:'tenders', name:'المناقصات', pages:['tenders'], perms:['site.tenders'], dept:'الشؤون المالية'},
+        {id:'hr', name:'الوظائف والبوابة الداخلية', pages:['careers','portal'], perms:['site.jobs','benefits.manage','benefits.claims','occasions.post','occasions.moderate','portal.admin'], dept:'الموارد البشرية'},
+        {id:'estate', name:'الأصول العقارية', pages:['reclient'], perms:['ops.bookings'], dept:'المرافق والصيانة'},
+        {id:'care', name:'خدمة العملاء والمفقودات', pages:['lost','assistant','account'], perms:['ops.bookings','ops.wallets'], dept:'التسويق والعلاقات العامة'}
+      ].map(function(x){ x.owner = ''; x.team = []; x.status = 'لم يُسلَّم'; x.note = ''; return x; }),
+      deptInfo: {},        // contact details a department publishes in the staff directory: {dept:{p:phone, e:email}}
+      tickets: [],         // support requests from a section to the system admin: {id, sec, from, text, d, status, replies:[{from,text,d}]}
+      pdi: [               // pre-delivery inspection requests (engineering)
+        {id:'PDI-10412', d:today(-6), name:'شركة تجريبية للسيارات', phone:'55500000', org:'وكالة مركبات', kind:'حافلة متوسطة', make:'مثال — موديل 2026', count:3, vin:'', where:'ورشة KPTC', date:today(-3), note:'(طلب تجريبي للتوضيح)', status:'مكتمل', result:'مطابق بملاحظات', remarks:'ضبط ضغط الإطارات وتحديث برمجية شاشة السائق قبل التسليم.', inspector:'KPTC-ENG', checks:{}}
+      ],
+      /* internal portal content (from the structure of the company's existing intranet) */
+      circulars: [
+        {id:'C-3', title:'تعميم: مواعيد الدوام الرسمي', body:'يُرجى الالتزام بمواعيد الحضور والانصراف المعتمدة وتسجيل البصمة عند الدخول والخروج. (مثال توضيحي)', tone:'indigo', on:true, must:true},
+        {id:'C-2', title:'تنبيه أمن المعلومات', body:'لا تشارك كلمة مرورك مع أحد، وأبلغ الدعم الفني عن أي رسالة مشبوهة. (مثال توضيحي)', tone:'yellow', on:true},
+        {id:'C-1', title:'عرض للعاملين', body:'عروض جديدة وصلت إلى صفحة «المزايا والعروض». راجعها قبل انتهاء مدتها. (مثال توضيحي)', tone:'green', on:true}
+      ],
+      decisions: [['تثبيت موظف بوظيفة مساعد مدير إدارة','شؤون وظيفية'],['تشكيل لجنة جرد المخازن الفنية','لجان'],['تعديل مسمى قسم بإدارة شؤون النقل','تنظيم إداري'],['ندب موظف للعمل بإدارة أخرى','شؤون وظيفية'],['اعتماد جدول المناوبات للربع القادم','تشغيل'],['تكليف رئيس قسم بالإنابة','شؤون وظيفية'],['تعميم بشأن استخدام المركبات الرسمية','تعاميم'],['تعميم بشأن إجراءات السلامة في الورش','تعاميم'],['اعتماد خطة التدريب السنوية','تدريب'],['تشكيل فريق التحول الرقمي','لجان'],['تعميم بشأن الإجازات الدورية','تعاميم'],['تحديث دليل الصلاحيات المالية','تنظيم إداري']].map(function(x, i){ return {id:String(4072897 - i).padStart(9, '0'), title:'قرار بشأن ' + x[0].replace(/^تعميم بشأن /, ''), cat:x[1], d:today(-i * 3 - 1), body:'نص توضيحي لحين ربط البوابة بأرشيف القرارات. يظهر هنا نص القرار ومرفقاته.'}; }),
+      events: [{id:'E-2', d:today(6), title:'اجتماع مديري الإدارات'}, {id:'E-1', d:today(13), title:'دورة السلامة المهنية'}],
+      ittickets: [],       // {id, from, cat, pri, sub, text, d, status, replies:[{from,text,d}]}
+      library: [['دليل قواعد الحوكمة (الإصدار السادس)','الحوكمة'],['قواعد الحوكمة بالشركة','الحوكمة'],['سياسات الحوكمة','الحوكمة'],['وثيقة قواعد ممارسات العمل','الحوكمة'],['لوائح شركة النقل العام','لوائح'],['نماذج المراسلات المعتمدة 2025','لوائح'],['أرشيف الإعلانات','مراجع'],['الإجراءات الأولية لمواجهة الكوارث الطبيعية','السلامة'],['إرشادات استخدام الهاتف الرقمي','إرشادات'],['دليل السياسات والإجراءات — إدارة التسويق والعلاقات العامة وخدمة العملاء','السياسات والإجراءات'],['دليل الصلاحيات المالية','السياسات والإجراءات']].map(function(x, i){ return {id:'L-' + (i + 1), title:x[0], cat:x[1], kind:'PDF'}; }),
+      requests: [],        // e-forms submitted by staff: {id, form, staff, d, data, steps:[{who, perm, status, by, at, note}], status}
+      /* lost-and-found: items waiting at the Mirqab office (no personal names are kept) */
+      found: [['محفظة جلد بنية','محفظة','#8B4513','77','السالمية ← حولي','تحتوي على بطاقات'],['محفظة سوداء صغيرة','محفظة','#1a1a1a','18','الشويخ ← خيطان','محفظة سوداء بسحّاب'],['شنطة تسوق','حقيبة','#2E5AAC','X1','كارفور ← حولي','أكياس تسوق من كارفور'],['شنطة ظهر بنية','حقيبة','#92400E','66','حولي ← خيطان','شنطة بنية'],['هاتف Samsung','هاتف','#1a1a1a','15','خيطان ← السالمية','هاتف Galaxy — شاشة مكسورة قليلاً'],['نقود','أخرى','#16A34A','77','السالمية ← حولي','مبلغ نقدي صغير مع باقي تذكرة'],['مفاتيح مع كيتشين','مفاتيح','#5D5C80','40','الفروانية ← القرين','مجموعة مفاتيح مع كيتشين معدني'],['نظارة طبية','نظارة','#1a1a1a','92','الجليب ← حولي','نظارة بإطار أسود'],['حقيبة مدرسية','حقيبة','#C2352E','66','حولي ← خيطان','حقيبة مدرسية حمراء'],['محفظة جلدية','محفظة','#8B4513','106','الجليب ← الشويخ','محفظة بنية بدون بطاقات'],['هاتف iPhone','هاتف','#5D5C80','15','المالية ← السالمية','iPhone بكفر شفاف'],['مفاتيح سيارة','مفاتيح','#C77A12','99','السالمية ← الكويت سيتي','مفاتيح مع ريموت سيارة ذهبي اللون']].map(function(x, i){ return {id:'F-' + (101 + i), name:x[0], type:x[1], color:x[2], bus:x[3], route:x[4], desc:x[5], d:today(-(i % 9) - (i > 8 ? 3 : 1)), status:i === 8 ? 'claimed' : i % 3 === 1 ? 'new' : 'found'}; }),
+      claims: [],          // {id, bid, staff, d, status:'بانتظار الاعتماد'|'مقبول'|'مرفوض'|'مستخدم', code, msgs:[{from, text, d}]}
+      /* colleagues' occasions (condolences and celebrations) */
+      occasions: [
+        {id:'O-3', kind:'عزاء', name:'زميل من شؤون النقل', dept:'شؤون النقل', text:'انتقل إلى رحمة الله تعالى والد زميلنا. إنا لله وإنا إليه راجعون. (مثال تجريبي)', date:today(0), time:'بعد صلاة العصر', place:'ديوان العائلة — يُحدَّث العنوان', status:'منشور', by:'KPTC-3310', marks:{}, book:[]},
+        {id:'O-2', kind:'مولود', name:'زميلة من الشؤون المالية', dept:'الشؤون المالية', text:'رُزقت زميلتنا بمولود جديد، جعله الله من الصالحين. (مثال تجريبي)', date:today(-1), time:'', place:'', status:'منشور', by:'KPTC-3310', marks:{}, book:[]},
+        {id:'O-1', kind:'ترقية', name:'زميل من الورشة المركزية', dept:'الورشة المركزية', text:'ترقية مستحقة إلى رئيس قسم. بالتوفيق في المهمة الجديدة. (مثال تجريبي)', date:today(-3), time:'', place:'', status:'منشور', by:'KPTC-2891', marks:{}, book:[]}
+      ],
+      users: { 'u-demo': {id:'u-demo', name:'أحمد العلي', phone:'55501234', email:'demo@kptc.com.kw', pass:'123456', civil:'', joined:today(-190)} },
+      session: null,
+      wallets: { 'u-demo': {balance:20, frozen:false, tx:[
+        {id:'TX-1002', d:today(-9),  t:'خصم',  a:-10, note:'بطاقة التوفير — 31 يوماً', by:'النظام'},
+        {id:'TX-1001', d:today(-10), t:'تعبئة', a:30,  note:'تعبئة عبر كي نت', by:'العميل'}
+      ]}},
+      bookings: [
+        {id:'SUB-240611', uid:'u-demo', type:'اشتراك', page:'subs',  title:'بطاقة التوفير — 31 يوماً', d:today(-9),  status:'فعّال', amount:10,  until:today(22)},
+        {id:'UMR-58213',  uid:'u-demo', type:'عمرة',  page:'umrah', title:'مكة المكرمة + المدينة (11 يوماً) — مقعدان', d:today(-4), status:'مؤكد', amount:170},
+        {id:'LF-30418',   uid:'u-demo', type:'مفقودات', page:'lost', title:'محفظة جلد بنية — خط 21', d:today(-16), status:'وُجد الغرض', amount:0}
+      ],
+      news: [
+        {id:'N-5', d:today(-3),  cat:'أخبار الشركة', title:'حافلات K-eBus الكهربائية عديمة الانبعاثات', body:'تضم صور الأسطول الرسمي حافلات K-eBus الكهربائية بشعار «Zero Emission»، ضمن توجه الشركة نحو بيئة صحية.', img:'kbus-ev.jpg', pub:true},
+        {id:'N-4', d:today(-12), cat:'أخبار الشركة', title:'بطاقة التوفير: 10 د.ك لـ 31 يوماً و25 د.ك لـ 91 يوماً', body:'بطاقة شخصية تتيح التنقل بلا حدود على جميع الخطوط. للاستفسار: 1880001.', img:'kbus-fleet.jpg', pub:true},
+        {id:'N-3', d:today(-25), cat:'المسؤولية الاجتماعية', title:'السلامة أولاً: معاً نعود بنقل آمن', body:'حملة توعوية تحمل شعار «السلامة أولاً» لتوعية الركاب والسائقين بقواعد السلامة.', img:'kbus-street.jpg', pub:true},
+        {id:'N-2', d:today(-40), cat:'أخبار الشركة', title:'رحلات العمرة بأسعار مميزة للمجموعات والشركات', body:'رحلة 6 أيام بـ 60 د.ك ورحلة 11 يوماً بـ 85 د.ك، والسعر يشمل السكن والمواصلات والتأشيرة.', img:'umrah-art.jpg', pub:true},
+        {id:'N-1', d:today(-61), cat:'بيانات صحفية', title:'مركز الأوناش يعمل على مدار الساعة', body:'خدمة سحب ونقل المركبات متاحة 24 ساعة، 7 أيام في الأسبوع، وخلال الإجازات الرسمية والعطلات.', img:'tow-1.jpg', pub:true}
+      ],
+      tenders: [
+        {id:'T-2026-7', no:'2026/7', kind:'مناقصة',  title:'توريد وتركيب مظلات انتظار في محطات الحافلات', meet:today(6),  place:'مكتب مساعد المدير لشؤون المرافق والصيانة — صبحان الصناعية', close:today(21), box:'3', fee:75,  status:'مفتوحة'},
+        {id:'T-2026-6', no:'2026/6', kind:'ممارسة',  title:'صيانة وإصلاح شبكات الإنذار والحريق في مواقع الشركة', meet:today(3),  place:'المبنى الرئيسي — إدارة المشتريات', close:today(12), box:'2', fee:75,  status:'مفتوحة'},
+        {id:'T-2026-5', no:'2026/5', kind:'مزايدة',  title:'بيع حافلات خارجة عن الخدمة', meet:today(-2), place:'كراج صبحان', close:today(9),  box:'5', fee:100, status:'مفتوحة'},
+        {id:'T-2026-4', no:'2026/4', kind:'مناقصة',  title:'توريد زي موحد للسائقين والفنيين', meet:today(-30), place:'المبنى الرئيسي — إدارة المشتريات', close:today(-12), box:'1', fee:50, status:'مغلقة'}
+      ],
+      bids: [],
+      jobs: [
+        {id:'J-104', title:'سائق حافلة نقل عام', dept:'شؤون النقل', loc:'جميع المحافظات', type:'دوام كامل', close:today(18), open:true, req:'رخصة قيادة حافلات سارية · خبرة سنتين · إجادة العربية أو الإنجليزية'},
+        {id:'J-103', title:'فني ميكانيكا حافلات', dept:'الورشة المركزية', loc:'صبحان', type:'دوام كامل', close:today(25), open:true, req:'دبلوم ميكانيكا · خبرة 3 سنوات في المركبات الثقيلة'},
+        {id:'J-102', title:'موظف خدمة عملاء', dept:'التسويق وخدمة العملاء', loc:'المبنى الرئيسي', type:'دوام كامل', close:today(10), open:true, req:'شهادة جامعية أو دبلوم · مهارات تواصل · العمل بنظام الورديات'},
+        {id:'J-101', title:'محلل بيانات تشغيلية', dept:'المكتب الاستراتيجي وتطوير الأعمال', loc:'المبنى الرئيسي', type:'دوام كامل', close:today(30), open:true, req:'بكالوريوس في الإحصاء أو علوم الحاسب · خبرة في أدوات التحليل'}
+      ],
+      applications: [
+        {id:'AP-9001', job:'J-102', name:'خالد المطيري', phone:'66012345', email:'k.m@example.com', exp:'4', note:'خبرة في مراكز الاتصال', d:today(-2), status:'قيد المراجعة'}
+      ],
+      log: []
+    };
+  }
+  function load(){
+    if (mem) return mem;
+    try { var raw = localStorage.getItem(KEY); if (raw) mem = JSON.parse(raw); } catch(x){}
+    if (!mem) { mem = seed(); }
+    var s = seed(); for (var k in s) if (!(k in mem)) mem[k] = s[k];   // forward-compatible
+    try { if (!mem.mig4){ mem.mig4 = 1;   /* two top roles: the system owner (everything) and the system manager (the site, not the accounts) */
+        var RESTRICT = ['admin.staff','admin.roles','admin.accounts','admin.backup','admin.photos'], ALL = []; K.PERMS.forEach(function(g){ g[1].forEach(function(p){ ALL.push(p[0]); }); });
+        var R = mem.roles = mem.roles || []; if (!R.some(function(r){ return r.id === 'owner'; })) R.push({id:'owner', name:'مسؤول النظام', perms:['*']});
+        R.forEach(function(r){ if (r.id === 'admin'){ r.perms = ALL.filter(function(p){ return RESTRICT.indexOf(p) < 0; }); } });
+        if (mem.staff && !mem.staff['KPTC-0001']) mem.staff['KPTC-0001'] = seed().staff['KPTC-0001']; } } catch(x){}
+    try { if (!mem.mig6){ mem.mig6 = 1; var RR = mem.roles = mem.roles || []; if (!RR.some(function(r){ return r.id === 'asst'; })) RR.splice(Math.max(0, RR.length - 2), 0, seed().roles.filter(function(r){ return r.id === 'asst'; })[0]); } } catch(x){}
+    try { if (!mem.mig5){ mem.mig5 = 1; (mem.roles || []).forEach(function(r){ if ((r.id === 'admin' || r.id === 'content') && r.perms.indexOf('*') < 0 && r.perms.indexOf('site.marketing') < 0) r.perms.push('site.marketing'); }); } } catch(x){}
+    try { if (!mem.mig3){ mem.mig3 = 1; var add = {sup:['approve.forms'], hr:['approve.hr'], fin:['approve.fin']}; (mem.roles || []).forEach(function(r){ (add[r.id] || []).forEach(function(p){ if (r.perms.indexOf(p) < 0) r.perms.push(p); }); }); if (mem.library && mem.library.length <= 4) mem.library = s.library; } } catch(x){}
+    try { var EM = {'KPTC-4821':'a.alqattan','KPTC-2891':'dept.manager','KPTC-ENG':'engineer','KPTC-3310':'hr.staff','KPTC-5120':'web.editor','KPTC-1001':'sysadmin'}; for (var ek in EM) if (mem.staff && mem.staff[ek] && !mem.staff[ek].email) mem.staff[ek].email = EM[ek] + '@kptc.com.kw'; } catch(x){}
+    try { for (var sk in mem.staff) if (/\u0623\u0648\u0631\u0627\u062f/.test(mem.staff[sk].name)) mem.staff[sk].name = 'مدير الإدارة'; } catch(x){}   // a name removed at the owner's request
+    return mem;
+  }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch(x){} subs.forEach(function(f){ try { f(mem); } catch(x){} }); }
+  window.addEventListener('storage', function(e){ if (e.key === KEY){ mem = null; load(); subs.forEach(function(f){ try { f(mem); } catch(x){} }); } });
+
+  function id(p){ return p + '-' + String(Date.now()).slice(-6) + Math.floor(Math.random()*90+10); }
+  function money(n){ return (Math.round(n*1000)/1000).toFixed(3) + ' د.ك'; }
+  function fdate(s){ if (!s) return '—'; var p = String(s).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : s; }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function log(msg, sec){ var d = load(), u = d.staffSession && d.staff && d.staff[d.staffSession]; d.log.unshift({d:new Date().toISOString(), msg:msg, sec:sec || '', by:u ? u.name : ''}); d.log = d.log.slice(0, 200); }
+
+  var K = window.KPTC = {
+    db: load, save: save, seed: seed, id: id, money: money, date: fdate, esc: esc, latin: latin, today: today,
+    onChange: function(f){ subs.push(f); },
+    reset: function(){ mem = seed(); save(); },
+
+    /* accounts (demo: stored in this browser; Firebase Auth replaces this) */
+    user: function(){ var d = load(), u = d.session && d.users[d.session] || null; return u && !u.suspended ? u : null; },
+    register: function(o){
+      var d = load(), phone = latin(o.phone||'').replace(/\D/g,'');
+      if (!o.name || phone.length < 8 || !o.pass || o.pass.length < 6) return {error:'أكمل الاسم ورقم الهاتف (8 أرقام) وكلمة مرور من 6 أحرف على الأقل.'};
+      for (var k in d.users) if (d.users[k].phone === phone) return {error:'هذا الرقم مسجّل من قبل. سجّل الدخول.'};
+      var u = {id:id('u'), name:o.name.trim(), phone:phone, email:(o.email||'').trim(), pass:o.pass, civil:'', joined:today()};
+      d.users[u.id] = u; d.wallets[u.id] = {balance:0, frozen:false, tx:[]}; d.session = u.id; log('حساب جديد: ' + u.name); save(); return {user:u};
+    },
+    login: function(phone, pass){
+      var d = load(); phone = latin(phone||'').replace(/\D/g,'');
+      for (var k in d.users) if (d.users[k].phone === phone && d.users[k].pass === pass){ if (d.users[k].suspended) return {error:'هذا الحساب موقوف. تواصل مع خدمة العملاء 1880001.'}; d.session = k; save(); return {user:d.users[k]}; }
+      return {error:'رقم الهاتف أو كلمة المرور غير صحيحة.'};
+    },
+    logout: function(){ load().session = null; save(); },
+
+    /* wallet */
+    wallet: function(uid){ var d = load(); uid = uid || d.session; if (!uid) return null; if (!d.wallets[uid]) d.wallets[uid] = {balance:0, frozen:false, tx:[]}; return d.wallets[uid]; },
+    walletTx: function(uid, amount, type, note, by){
+      var w = K.wallet(uid); if (!w) return {error:'لا يوجد حساب.'};
+      amount = Math.round(Number(amount)*1000)/1000; if (!amount) return {error:'أدخل مبلغاً صحيحاً.'};
+      if (w.frozen && by !== 'الإدارة') return {error:'المحفظة موقوفة مؤقتاً. تواصل مع خدمة العملاء.'};
+      if (amount < 0 && w.balance + amount < 0) return {error:'الرصيد غير كافٍ.'};
+      w.balance = Math.round((w.balance + amount)*1000)/1000;
+      var tx = {id:id('TX'), d:today(), t:type, a:amount, note:note||'', by:by||'العميل'}; w.tx.unshift(tx);
+      log((by||'العميل') + ': ' + type + ' ' + money(Math.abs(amount)) + ' — ' + (load().users[uid]||{}).name); save(); return {tx:tx, balance:w.balance};
+    },
+
+    /* bookings made on the service pages */
+    addBooking: function(b){ var d = load(); b.uid = b.uid || d.session || 'guest'; b.d = b.d || today(); b.status = b.status || 'قيد المعالجة'; d.bookings.unshift(b); log('طلب جديد ' + b.id + ' — ' + b.type); save(); return b; },
+
+    /* site studio */
+    site: function(){ var d = load(), def = seed().site, s = d.site || (d.site = def); for (var k in def) if (!(k in s)) s[k] = def[k]; return s; },
+    page: function(pid){ var s = K.site(); return s.pages[pid] || (s.pages[pid] = {status: load().pages[pid] === false ? 'off' : 'on'}); },
+    /* 'on' | 'maint' | 'off' as a visitor sees it now (schedule and site-wide maintenance included) */
+    pageState: function(pid){
+      var s = K.site(), p = s.pages[pid] || {}, st = p.status || (load().pages[pid] === false ? 'off' : 'on'), t = today();
+      if (st === 'on' && ((p.from && t < p.from) || (p.until && t > p.until))) st = 'off';
+      if (st === 'on' && s.maintenance.on && ['siteadmin','adminai','realestate','reai','exec','portal'].indexOf(pid) < 0) st = 'maint';
+      return st;
+    },
+    isHidden: function(pid){ return K.pageState(pid) === 'off'; },
+
+    /* ---- profile photos: customers (users) and employees (staff) ---- */
+    person: function(kind, id){ var d = load(); return kind === 'staff' ? d.staff[id] : d.users[id]; },
+    photo: function(kind, id){ var o = K.person(kind, id); return o && o.photo || ''; },
+    setPhoto: function(kind, id, url){ var o = K.person(kind, id); if (!o) return; if (kind === 'staff' && !K.canPhoto()) return; if (url) o.photo = url; else delete o.photo; log((url ? 'تحديث' : 'إزالة') + ' صورة ' + o.name); save(); },
+    /* a round avatar: the photo when there is one, otherwise the first letter */
+    avatar: function(kind, id, cls){ var o = K.person(kind, id) || {}, ph = o.photo; return ph ? '<img class="kp-av ' + (cls || '') + '" src="' + ph + '" alt="">' : '<span class="kp-av ' + (cls || '') + '">' + esc((o.name || '?').trim().charAt(0)) + '</span>'; },
+    /* opens the picker, crops the picture to a centred square, shrinks it and saves it */
+    /* an employee's picture is changed only by the system administrator, or by a department the administrator has authorised (admin.photos) */
+    /* the system owner is the one account class nobody else may change */
+    isOwner: function(u){ u = u || K.staffUser(); return !!u && u.role === 'owner'; },
+    /* may the signed-in staff member act on this staff account? (owners are untouchable by anyone but owners) */
+    canTouch: function(target){ var me = K.staffUser(); if (!me || !target) return false; if (target.role === 'owner' && me.role !== 'owner') return false; return true; },
+    /* picture of a news item: an uploaded one (kept as a small JPEG in the data), otherwise one of the library's */
+    newsImg: function(n){ return (n && n.imgData) || '../assets/' + ((n && n.img) || 'kbus-fleet.jpg'); },
+    /* shrink a picture the user picked and hand back a JPEG data URL: done(err, dataUrl, w, h) */
+    compressImage: function(file, max, q, done){
+      if (!file || !/^image\//.test(file.type)) return done('الملف ليس صورة.');
+      var r = new FileReader(); r.onerror = function(){ done('تعذّرت قراءة الملف.'); };
+      r.onload = function(){ var im = new Image(); im.onerror = function(){ done('تعذّرت قراءة الصورة.'); }; im.onload = function(){
+        var k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height); done(null, c.toDataURL('image/jpeg', q), c.width, c.height); }; im.src = r.result; };
+      r.readAsDataURL(file); },
+    canPhoto: function(){ var u = K.staffUser(); return !!u && K.can('admin.photos', u); },
+    pickPhoto: function(kind, id, done){
+      if (kind === 'staff' && !K.canPhoto()){ if (done) done('تغيير صور الموظفين لمسؤول النظام أو للإدارة المخوّلة بذلك.'); return; }
+      var f = document.createElement('input'); f.type = 'file'; f.accept = 'image/*'; f.style.display = 'none'; document.body.appendChild(f);
+      f.onchange = function(){ var file = f.files && f.files[0]; f.remove(); if (!file) return;
+        if (!/^image\//.test(file.type)){ if (done) done('الملف ليس صورة.'); return; }
+        var r = new FileReader(); r.onload = function(){ var im = new Image(); im.onload = function(){
+          var side = Math.min(im.width, im.height), c = document.createElement('canvas'); c.width = c.height = 320; c.getContext('2d').drawImage(im, (im.width - side) / 2, (im.height - side) / 2, side, side, 0, 0, 320, 320);
+          K.setPhoto(kind, id, c.toDataURL('image/jpeg', .82)); if (done) done(null); };
+          im.onerror = function(){ if (done) done('تعذّرت قراءة الصورة.'); }; im.src = r.result; };
+        r.readAsDataURL(file); };
+      f.click(); },
+
+    /* ---- staff, roles, permissions ---- */
+    DEPTS: ['التسويق والعلاقات العامة','شؤون النقل','الإدارة الهندسية','الورشة المركزية','الموارد البشرية','الشؤون المالية','تقنية المعلومات','المرافق والصيانة','المكتب الاستراتيجي وتطوير الأعمال'],
+    /* job grades: pick the position, and the system role that normally goes with it is suggested */
+    GRADES: [['gm','مدير عام','sup'],['dm','مدير إدارة','sup'],['adm','مساعد مدير إدارة','asst'],['head','رئيس قسم','sup'],['sv','مشرف','emp'],['eng','مهندس','eng'],['spec','أخصائي','emp'],['acc','محاسب','emp'],['tech','فني','emp'],['clerk','موظف','emp'],['driver','سائق','emp'],['other','أخرى (اكتبها)','emp']],
+    PERMS: [
+      ['البوابة الداخلية', [['portal.leave','طلب الإجازات'],['portal.supplies','طلب المستلزمات'],['portal.invoice','صرف الفواتير'],['portal.payslip','كشف الراتب'],['portal.benefits','المزايا والعروض'],['portal.directory','دليل الموظفين'],['portal.news','أخبار الشركة'],['portal.policies','سياسات الموارد البشرية'],['portal.occasions','واجب الزملاء (المناسبات)']]],
+      ['الاعتمادات', [['approve.leave','اعتماد الإجازات'],['approve.supplies','اعتماد المستلزمات'],['approve.invoice','اعتماد صرف الفواتير'],['approve.forms','اعتماد نماذج موظفي الإدارة (المسؤول المباشر)'],['approve.hr','اعتماد الشؤون الإدارية والموارد البشرية'],['approve.fin','اعتماد الشؤون المالية والمراجعة'],['approve.exec','اعتماد الإدارة التنفيذية']]],
+      ['المزايا والمناسبات', [['benefits.manage','إنشاء العروض وتخصيصها'],['benefits.claims','اعتماد طلبات الاستفادة'],['occasions.post','نشر مناسبة مباشرة'],['occasions.moderate','مراجعة المناسبات المقترحة'],['portal.admin','التعاميم والقرارات والتقويم ومركز المعلومات'],['it.support','الرد على بلاغات الدعم الفني']]],
+      ['محتوى الموقع', [['site.pages','إظهار الصفحات وإخفاؤها وترتيبها'],['site.marketing','كاتب المحتوى والخبير التسويقي'],['site.texts','تحرير نصوص الصفحات'],['site.elements','إخفاء عناصر الصفحات وحقولها'],['site.home','أقسام الصفحة الرئيسية والتنبيهات'],['site.news','الأخبار والمركز الإعلامي'],['site.tenders','المناقصات'],['site.jobs','الوظائف وطلبات التوظيف'],['site.sched','مواعيد الخطوط']]],
+      ['العمليات', [['ops.bookings','الحجوزات والطلبات'],['ops.wallets','محافظ العملاء'],['ops.winch','طلبات الونش والورشة'],['ops.pdi','طلبات فحص PDI']]],
+      ['إدارة النظام', [['admin.staff','حسابات الموظفين'],['admin.roles','الأدوار والصلاحيات'],['admin.log','سجل النشاط'],['admin.backup','النسخ والاستعادة'],['admin.sections','تسليم الأقسام والإشراف عليها'],['admin.support','الرد على طلبات الدعم'],['admin.photos','تغيير صور الموظفين'],['admin.accounts','الحسابات: البحث والتحكم بحسابات الموظفين والعملاء'],['studio.access','دخول مركز التحكم']]]
+    ],
+    staffUser: function(){ var d = load(); return d.staffSession && d.staff[d.staffSession] || null; },
+    role: function(rid){ return load().roles.filter(function(r){ return r.id === rid; })[0] || {id:rid, name:rid, perms:[]}; },
+    permsOf: function(u){
+      u = u || K.staffUser(); if (!u) return [];
+      var all = []; K.PERMS.forEach(function(g){ g[1].forEach(function(p){ all.push(p[0]); }); });
+      var base = K.role(u.role).perms, set = base.indexOf('*') > -1 ? all.slice() : base.slice();
+      (u.grant || []).forEach(function(p){ if (set.indexOf(p) < 0) set.push(p); });
+      K.sectionsOf(u).forEach(function(sc){ sc.perms.forEach(function(p){ if (set.indexOf(p) < 0) set.push(p); }); });
+      return set.filter(function(p){ return (u.deny || []).indexOf(p) < 0; });
+    },
+    /* sections this person runs (received owner, or a member of the owner's team) */
+    sectionsOf: function(u){ u = u || K.staffUser(); if (!u) return []; return (load().sections || []).filter(function(sc){ return sc.status === 'مُستلم' && (sc.owner === u.id || (sc.team || []).indexOf(u.id) > -1); }); },
+    /* pages this person may edit: everything with the role permission, otherwise the pages of their sections */
+    pagesFor: function(u){ u = u || K.staffUser(); if (!u) return []; var base = K.role(u.role).perms; if (base.indexOf('*') > -1 || base.indexOf('site.texts') > -1 || (u.grant || []).indexOf('site.texts') > -1) return null; var out = []; K.sectionsOf(u).forEach(function(sc){ sc.pages.forEach(function(p){ if (out.indexOf(p) < 0) out.push(p); }); }); return out; },
+    can: function(perm, u){ return K.permsOf(u).indexOf(perm) > -1; },
+    /* the employee may sign in with the employee number, the official e-mail, the mobile or the civil number */
+    findStaff: function(q){
+      q = latin(q || '').trim(); if (!q) return null; var d = load(), low = q.toLowerCase(), digits = q.replace(/\D/g, '');
+      for (var k in d.staff){ var u = d.staff[k];
+        if (k.toUpperCase() === q.toUpperCase() || (u.email && u.email.toLowerCase() === low) || (digits.length >= 8 && ((u.phone && u.phone === digits) || (u.civil && u.civil === digits)))) return u;
+        if (/^\d{3,6}$/.test(q) && k.toUpperCase() === 'KPTC-' + q) return u; }   // the number without the prefix
+      return null; },
+    staffLogin: function(who, pass){
+      var d = load(), now = Date.now(), u = K.findStaff(who), sid = u ? u.id : (latin(who || '').trim().toUpperCase() || '-'), f = d.staffFails[sid] || (d.staffFails[sid] = {n:0, until:0});
+      if (f.until > now) return {error:'الحساب مقفل مؤقتاً بعد محاولات خاطئة. حاول بعد ' + Math.ceil((f.until - now) / 1000) + ' ثانية.', locked:true};
+      if (!u || u.pass !== pass){ f.n++; if (f.n >= 5){ f.until = now + 30000; f.n = 0; log('قفل مؤقت لحساب ' + sid); } save(); return {error:'بيانات الدخول غير صحيحة. استعمل الرقم الوظيفي أو البريد الرسمي أو رقم الجوال.' + (u && f.n >= 3 ? ' بقيت ' + (5 - f.n) + ' محاولة قبل القفل المؤقت.' : '')}; }
+      if (u.status !== 'active') return {error:'هذا الحساب موقوف. راجع الموارد البشرية.'};
+      f.n = 0; u.prev = u.last || null; u.last = new Date().toISOString(); d.staffSession = u.id; log('دخول موظف: ' + u.name); save(); return {user:u};
+    },
+    staffLogout: function(){ load().staffSession = null; save(); },
+    /* ---- benefits ---- */
+    benefitFor: function(b, u){ if (!b.on || !u) return false; var t = today(); if ((b.from && t < b.from) || (b.until && t > b.until)) return false; var a = b.aud || {mode:'all'}; return a.mode === 'all' || (a.mode === 'depts' && (a.depts || []).indexOf(u.dept) > -1) || (a.mode === 'staff' && (a.staff || []).indexOf(u.id) > -1); },
+    benefitsFor: function(u){ u = u || K.staffUser(); return load().benefits.filter(function(b){ return K.benefitFor(b, u); }); },
+    claim: function(bid, note){
+      var d = load(), u = K.staffUser(), b = d.benefits.filter(function(x){ return x.id === bid; })[0]; if (!u || !b) return {error:'سجّل الدخول أولاً.'};
+      if (d.claims.some(function(c){ return c.bid === bid && c.staff === u.id && c.status !== 'مرفوض'; })) return {error:'سبق أن طلبت هذا العرض.'};
+      if (b.limit && d.claims.filter(function(c){ return c.bid === bid && c.status !== 'مرفوض'; }).length >= b.limit) return {error:'اكتمل العدد المتاح لهذا العرض.'};
+      var c = {id:id('CL'), bid:bid, staff:u.id, d:today(), status:b.approve ? 'بانتظار الاعتماد' : 'مقبول', code:b.approve ? '' : 'KP-' + Math.random().toString(36).slice(2, 8).toUpperCase(), msgs:note ? [{from:u.id, text:note, d:new Date().toISOString()}] : []};
+      d.claims.unshift(c); log('طلب استفادة من عرض: ' + b.title + ' — ' + u.name); save(); return {claim:c};
+    },
+    log: log
+  };
+})();
+</script><!--/kptc:head-js-->
+<!--kptc:core-css--><style id="kptc-core">
+/* ==========================================================================
+   KPTC — Design system core  ·  "لغة المحطّة" (Station Language)
+   Official palette: KPTC indigo #2E2C78 · signal yellow #FFC93C
+   Shared by every page; injected by tools/build.py between kptc:core markers.
+   ========================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap");
+
+:root{
+  /* identity */
+  --kp-indigo:#2E2C78;      /* KPTC official */
+  --kp-indigo-2:#3D3B95;
+  --kp-deep:#1F1D5C;
+  --kp-ink:#14133A;
+  --kp-sign:#FFC93C;        /* KPTC signal yellow */
+  --kp-sign-2:#F2B705;
+  --kp-gold:#C9971A;
+  /* surfaces — warm "ticket paper" rather than cold app-grey */
+  --kp-paper:#F3F2EC;
+  --kp-paper-2:#FAF9F5;
+  --kp-card:#FFFFFF;
+  --kp-line:#E0DED4;
+  --kp-line-2:#CFCCBF;
+  --kp-muted:#5F5E78;
+  /* status */
+  --kp-ok:#1E7F55; --kp-warn:#C77A12; --kp-bad:#C2352E; --kp-info:#2E5AAC;
+  /* type */
+  --f-display:"Noto Kufi Arabic","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Arabic",-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif;
+  /* elevation — crisp, printed, never glowing */
+  --sh-1:0 1px 0 rgba(20,19,58,.06);
+  --sh-2:0 1px 0 rgba(20,19,58,.05),0 6px 18px -10px rgba(20,19,58,.28);
+  --sh-3:0 2px 0 rgba(20,19,58,.04),0 24px 48px -24px rgba(20,19,58,.45);
+  /* motifs */
+  --kp-route:repeating-linear-gradient(90deg,var(--kp-sign) 0 22px,transparent 22px 30px);
+}
+
+html,body{overflow-x:clip}
+body{font-family:var(--f-body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-feature-settings:"kern"}
+h1,h2,h3{font-family:var(--f-display);letter-spacing:0}
+h1{line-height:1.25}
+:where(button,input,select,textarea){font-family:inherit}
+::selection{background:var(--kp-sign);color:var(--kp-ink)}
+:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid var(--kp-sign);outline-offset:2px}
+:where(.num,time){font-variant-numeric:tabular-nums}
+*{scrollbar-width:thin;scrollbar-color:#B9B6A8 transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#C9C6B8;border-radius:10px;border:3px solid transparent;background-clip:content-box}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* --------------------------------------------------------------------------
+   Icons (emoji are swapped for these by core.js)
+   -------------------------------------------------------------------------- */
+.ki{display:inline-flex;width:1.1em;height:1.1em;vertical-align:-.17em;flex-shrink:0;line-height:1}
+.ki svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.ki.ki-ok{color:var(--kp-ok)} .ki.ki-bad{color:var(--kp-bad)} .ki.ki-warn{color:var(--kp-warn)}
+.ki-dot{display:inline-block;width:.62em;height:.62em;border-radius:50%;background:currentColor;vertical-align:.05em;flex-shrink:0}
+.ki-dot.d-bad{color:var(--kp-bad)} .ki-dot.d-warn{color:var(--kp-sign-2)} .ki-dot.d-ok{color:var(--kp-ok)} .ki-dot.d-info{color:var(--kp-info)}
+.ki + *:not(.ki){margin-inline-start:0}
+
+/* --------------------------------------------------------------------------
+   Public-site chrome (k2-*) — rebuilt
+   -------------------------------------------------------------------------- */
+.k2-w{max-width:1240px;margin:0 auto;padding:0 28px;box-sizing:border-box}
+
+.k2-util{background:var(--kp-ink);color:#B7B5D6;font:500 12.5px/1 var(--f-body)}
+.k2-util .k2-w{display:flex;align-items:center;justify-content:space-between;gap:16px;height:36px}
+.k2-util .k2-ul{display:flex;gap:0;white-space:nowrap}
+.k2-util .k2-ul>*{padding-inline:14px;border-inline-start:1px solid rgba(255,255,255,.12)}
+.k2-util .k2-ul>*:first-child{padding-inline-start:0;border:0}
+.k2-util a{color:inherit;text-decoration:none}
+.k2-util a:hover{color:var(--kp-sign)}
+.k2-lang{background:transparent;border:0;border-inline-start:1px solid rgba(255,255,255,.14);border-radius:0;padding:4px 12px;color:#fff;font:500 12.5px var(--f-body);cursor:pointer}
+.k2-lang option{color:#000}
+
+.k2-head{background:#fff;color:var(--kp-ink);position:sticky;top:0;z-index:400;border-bottom:1px solid var(--kp-line);font-family:var(--f-body)}
+.k2-head::after{content:"";position:absolute;inset-inline:0;bottom:-1px;height:3px;background:var(--kp-indigo);transform:scaleX(0);transform-origin:right}
+.k2-head .k2-w{display:flex;align-items:center;gap:32px;height:76px}
+.k2-brand{display:flex;align-items:center;gap:12px;flex-shrink:0;color:var(--kp-ink);text-decoration:none}
+.k2-brand svg{width:44px;height:44px;padding:8px 10px;background:var(--kp-indigo);border-radius:4px;box-sizing:border-box}
+.k2-brand b{font:800 22px/1.05 var(--f-body);letter-spacing:.12em;direction:ltr;display:block;color:var(--kp-indigo)}
+.k2-brand small{display:block;font-size:11.5px;color:var(--kp-muted);font-weight:500;line-height:1.4;margin-top:2px}
+.k2-nav{display:flex;gap:2px;flex:1;margin:0;padding:0;background:none;position:static;border:0;height:100%}
+.k2-nav a{white-space:nowrap;display:flex;align-items:center;padding:0 14px;font-size:15px;color:var(--kp-ink);font-weight:500;text-decoration:none;position:relative;height:100%}
+.k2-nav a::after{content:"";position:absolute;inset-inline:14px;bottom:0;height:4px;background:var(--kp-sign);transform:scaleY(0);transform-origin:bottom;transition:transform .18s}
+.k2-nav a:hover{color:var(--kp-indigo)}
+.k2-nav a:hover::after{transform:scaleY(.5)}
+.k2-nav a[aria-current]{color:var(--kp-indigo);font-weight:700;background:none;box-shadow:none}
+.k2-nav a[aria-current]::after{transform:none}
+.k2-act{display:flex;gap:10px;align-items:center}
+.k2-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:4px;font:700 14.5px var(--f-body);padding:11px 18px;border:0;cursor:pointer;text-decoration:none;position:relative;line-height:1.3;transition:background .15s,color .15s,border-color .15s}
+.k2-btn-sign{background:var(--kp-sign);color:var(--kp-ink)}
+.k2-btn-sign:hover{background:var(--kp-ink);color:var(--kp-sign)}
+.k2-btn-ghost{background:transparent;color:var(--kp-indigo);border:1.5px solid var(--kp-line-2)}
+.k2-btn-ghost:hover{border-color:var(--kp-indigo)}
+.k2-cnt{position:absolute;top:-8px;left:-8px;min-width:20px;height:20px;border-radius:10px;background:var(--kp-bad);color:#fff;font:700 11px/20px var(--f-body);text-align:center;padding:0 5px;box-shadow:0 0 0 2px #fff}
+.k2-menu{display:none;background:none;border:0;color:var(--kp-indigo);padding:8px;cursor:pointer}
+.k2-menu svg{width:26px;height:26px}
+
+.k2-drawer{position:fixed;inset:0;z-index:1000;display:none;font-family:var(--f-body)}
+.k2-drawer.open{display:block}
+.k2-scrim{position:absolute;inset:0;background:rgba(20,19,58,.6)}
+.k2-panel{position:absolute;top:0;bottom:0;right:0;width:min(340px,88vw);background:var(--kp-paper-2);padding:22px 22px 30px;display:flex;flex-direction:column;overflow:auto;counter-reset:stop;animation:k2in .22s ease-out}
+@keyframes k2in{from{transform:translateX(30px);opacity:0}}
+.k2-panel::before{content:"";position:absolute;top:84px;bottom:34px;right:33px;width:3px;background:var(--kp-indigo)}
+.k2-panel a{position:relative;padding:12px 40px 12px 8px;font-weight:600;font-size:16.5px;color:var(--kp-ink);text-decoration:none;border:0}
+.k2-panel a::before{content:"";position:absolute;right:5px;top:50%;width:11px;height:11px;margin-top:-7px;border-radius:50%;background:#fff;border:3px solid var(--kp-indigo)}
+.k2-panel a:hover{color:var(--kp-indigo)}
+.k2-panel a[aria-current]{color:var(--kp-indigo);background:none;font-weight:800}
+.k2-panel a[aria-current]::before{background:var(--kp-sign);border-color:var(--kp-ink);transform:scale(1.25)}
+.k2-close{align-self:flex-start;background:none;border:1.5px solid var(--kp-line-2);border-radius:4px;font-size:22px;line-height:1;cursor:pointer;color:var(--kp-indigo);padding:6px 12px;margin-bottom:22px}
+
+.k2-foot{background:var(--kp-ink);color:#A9A7C9;font:14px/1.8 var(--f-body);padding:0 0 26px;margin-top:0;position:relative}
+.k2-foot .k2-w{position:relative}
+.kp-strip{display:flex;justify-content:space-between;position:relative;margin:0 0 48px;padding-top:52px}
+.kp-strip::before{content:"";position:absolute;top:58px;inset-inline:0;height:4px;background:var(--kp-sign)}
+.kp-strip span{position:relative;font-size:12px;color:#CFCDEA;padding-top:22px;text-align:center;min-width:0}
+.kp-strip span::before{content:"";position:absolute;top:0;left:50%;width:10px;height:10px;margin-left:-8px;border-radius:50%;background:var(--kp-ink);border:3px solid var(--kp-sign)}
+.k2-fg{display:grid;grid-template-columns:1.5fr repeat(3,1fr);gap:44px;margin-bottom:44px}
+.k2-fg h4{color:#fff;font:700 14px var(--f-display);margin:0 0 16px;display:flex;align-items:center;gap:10px}
+.k2-fg h4::before{content:"";width:8px;height:8px;background:var(--kp-sign)}
+.k2-fg ul{list-style:none;display:grid;gap:9px;margin:0;padding:0}
+.k2-fg a{color:inherit;text-decoration:none}
+.k2-fg a:hover{color:var(--kp-sign)}
+.k2-fg .k2-brand{color:#fff}
+.k2-fg .k2-brand b{color:#fff}
+.k2-fg .k2-brand svg{background:transparent;border:1.5px solid rgba(255,201,60,.5)}
+.k2-fg p{margin:16px 0 0;max-width:26em;line-height:1.9}
+.k2-fb{border-top:1px solid rgba(255,255,255,.1);padding-top:22px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12.5px}
+.k2-head :focus-visible,.k2-foot :focus-visible,.k2-util :focus-visible{outline:3px solid var(--kp-sign);outline-offset:2px}
+
+@media(max-width:1100px){.k2-nav a{padding:0 10px;font-size:14px}.k2-nav a::after{inset-inline:10px}.k2-head .k2-w{gap:20px}}
+@media(max-width:920px){
+  .k2-nav,.k2-act .k2-btn-ghost{display:none}
+  .k2-menu{display:block}
+  .k2-head .k2-w{justify-content:space-between;height:66px}
+  .k2-fg{grid-template-columns:1fr 1fr}
+  .kp-strip span{font-size:10.5px}
+}
+@media(max-width:560px){
+  .k2-w{padding:0 16px}
+  .k2-util .k2-ul>*:not(:first-child){display:none}
+  .k2-act .k2-hide-m{display:none}
+  .k2-fg{grid-template-columns:1fr;gap:28px}
+  .k2-brand small{display:none}
+  .kp-strip span{font-size:0;padding-top:0}
+}
+
+/* --------------------------------------------------------------------------
+   Shared page furniture — low specificity so page styles always win
+   -------------------------------------------------------------------------- */
+:where(table){border-collapse:collapse}
+:where(input,select,textarea){accent-color:var(--kp-indigo)}
+
+/* toasts: one quiet signage style everywhere */
+.toast{font-family:var(--f-body)!important}
+
+/* the standalone-preview ribbon (shown when a page is opened directly) */
+.kp-solo{position:fixed;left:16px;bottom:16px;z-index:9000;display:flex;align-items:center;gap:8px;background:var(--kp-ink);color:#fff;font:600 12.5px var(--f-body);padding:9px 14px;border-radius:4px;text-decoration:none;box-shadow:var(--sh-2);border-inline-start:4px solid var(--kp-sign)}
+.kp-solo:hover{background:var(--kp-indigo)}
+
+/* --------------------------------------------------------------------------
+   Public page hero kit — classes added to each page's existing hero markup
+   kp-hero  : the band          kp-tag   : the kicker line
+   kp-deco  : ornamental layers (glows, orbs, stars) — retired
+   kp-stats : figures row        kp-pulse : status dot (steady, not pulsing)
+   -------------------------------------------------------------------------- */
+.kp-hero{background-color:var(--kp-indigo)!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='420' viewBox='0 0 900 420' fill='none' stroke='%23ffffff' stroke-opacity='.055' stroke-width='9'%3E%3Cpath d='M-20 90h260l70 70h240l60-60h310'/%3E%3Cpath d='M160 -20v150l80 80v230'/%3E%3Cpath d='M-20 330h340l60-60h540'/%3E%3Cpath d='M640 -20v110l-60 60v290'/%3E%3Cg stroke-opacity='.1' stroke-width='5'%3E%3Ccircle cx='240' cy='90' r='12'/%3E%3Ccircle cx='550' cy='160' r='12'/%3E%3Ccircle cx='240' cy='210' r='12'/%3E%3Ccircle cx='380' cy='270' r='12'/%3E%3Ccircle cx='580' cy='330' r='12'/%3E%3C/g%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat!important;background-position:left -60px top!important;background-size:900px auto!important;
+  position:relative;border-bottom:6px solid var(--kp-sign)!important;box-shadow:none!important}
+.kp-hero::before,.kp-hero::after{content:none!important;display:none!important}
+.kp-hero.kp-ink{background-color:var(--kp-ink)!important}
+.kp-hero.kp-alert{background-color:var(--kp-ink)!important;border-bottom:0!important}
+.kp-hero.kp-alert::after{content:""!important;display:block!important;position:absolute;left:0;right:0;bottom:0;height:12px;background:repeating-linear-gradient(-45deg,var(--kp-sign) 0 14px,var(--kp-ink) 14px 28px);font-size:0}
+.kp-hero h1{font-family:var(--f-display)!important;font-weight:700!important;letter-spacing:0!important;text-shadow:none!important}
+.kp-hero h1 span,.kp-hero h1 em{color:var(--kp-sign)!important;-webkit-text-fill-color:currentColor!important;background:none!important;text-shadow:none!important}
+.kp-deco{display:none!important}
+.kp-tag{display:inline-flex!important;align-items:center;gap:10px;background:none!important;border:0!important;padding:0!important;border-radius:0!important;box-shadow:none!important;color:#D7D5F0!important;font:600 .82rem/1.4 var(--f-body)!important;letter-spacing:0!important;text-transform:none!important}
+.kp-tag::before{content:"";width:10px;height:10px;background:var(--kp-sign);flex-shrink:0}
+.kp-tag .ki{color:var(--kp-sign)}
+.kp-pulse{animation:none!important;box-shadow:none!important;border-radius:0!important;width:8px!important;height:8px!important;background:var(--kp-sign)!important}
+.kp-stats{border-top:1px solid rgba(255,255,255,.22)!important;background:none!important;border-radius:0!important;box-shadow:none!important;gap:0!important}
+.kp-stats>*{padding-inline:22px!important;background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+.kp-stats>*:first-child{padding-inline-start:0!important}
+.kp-stats>*+*{border-inline-start:1px solid rgba(255,255,255,.18)!important}
+.kp-stats b,.kp-stats [class*="num"],.kp-stats [class*="val"]{font-family:var(--f-display)!important;color:var(--kp-sign)!important;text-shadow:none!important;-webkit-text-fill-color:currentColor!important}
+
+/* buttons placed on a hero */
+.kp-hero .kp-cta{background:var(--kp-sign)!important;color:var(--kp-ink)!important;border:0!important;border-radius:4px!important;box-shadow:none!important;font-weight:700!important;transition:background .15s,color .15s}
+.kp-hero .kp-cta:hover{background:#fff!important;transform:none!important}
+.kp-hero .kp-cta2{background:transparent!important;color:#fff!important;border:1.5px solid rgba(255,255,255,.4)!important;border-radius:4px!important;box-shadow:none!important}
+.kp-hero .kp-cta2:hover{border-color:#fff!important;transform:none!important}
+
+/* floating assistant launcher used on several pages */
+.kp-fab{border-radius:6px!important;background:var(--kp-ink)!important;color:var(--kp-sign)!important;border:2px solid var(--kp-sign)!important;box-shadow:var(--sh-2)!important;animation:none!important}
+.kp-fab::before,.kp-fab::after{display:none!important;animation:none!important}
+.kp-fab:hover{transform:none!important;background:var(--kp-indigo)!important}
+.kp-fab [class*="label"]{color:#fff!important}
+
+/* The official KPTC pin replaces generic letter monograms */
+.kp-mark{font-size:0!important;color:transparent!important;text-shadow:none!important;box-shadow:none!important;border-radius:4px!important;
+  background:var(--kp-indigo) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 38'%3E%3Cpath d='M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z' fill='none' stroke='%23FFC93C' stroke-width='2.8'/%3E%3Ccircle cx='15' cy='14.5' r='5' fill='%23FFC93C'/%3E%3C/svg%3E") center/auto 58% no-repeat!important}
+.kp-mark::before,.kp-mark::after{display:none!important}
+
+/* Admin shell — operations room: ink rail, yellow position marker */
+.kp-rail{background:var(--kp-ink)!important;box-shadow:none!important}
+.kp-rail-item.active,.kp-rail-item.on{background:rgba(255,201,60,.1)!important;color:#fff!important;box-shadow:inset -4px 0 0 var(--kp-sign)!important;border-color:transparent!important}
+.kp-kpi{border-radius:4px!important;box-shadow:none!important;border:1px solid var(--kp-line)!important;border-top:3px solid var(--kp-indigo)!important}
+.kp-kpi b,.kp-kpi [class*="val"],.kp-kpi [class*="num"]{font-family:var(--f-display)!important;letter-spacing:0!important}
+.kp-panel{border-radius:4px!important;box-shadow:none!important;border:1px solid var(--kp-line)!important}
+@media(max-width:700px){.kp-stats{flex-wrap:wrap;row-gap:16px}.kp-stats>*{padding-inline:14px!important}}
+
+/* ==========================================================================
+   Motion & delight layer — "الحركة على الخط"
+   Everything here is progressive: without support (or with reduced motion)
+   the page is simply still and complete.
+   ========================================================================== */
+:root{
+  --kp-ease:cubic-bezier(.2,.7,.2,1);
+  --kp-bus:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 24'%3E%3Crect x='1' y='1.5' width='44' height='17' rx='4.5' fill='%232E2C78'/%3E%3Cpath d='M1 9.5V6a4.5 4.5 0 0 1 4.5-4.5H9v8z' fill='%23BFD4FF'/%3E%3Crect x='12' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='21' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='30' y='4.5' width='7' height='5.5' rx='1' fill='%23FFC93C'/%3E%3Crect x='1' y='13' width='44' height='2' fill='%23FFC93C'/%3E%3Ccircle cx='11' cy='19' r='3.6' fill='%2314133A' stroke='%23fff' stroke-width='1.4'/%3E%3Ccircle cx='34' cy='19' r='3.6' fill='%2314133A' stroke='%23fff' stroke-width='1.4'/%3E%3C/svg%3E");
+}
+
+/* tactile press — uses the independent `scale` property so it never fights a page's own transform */
+:where(button,.k2-btn,.btn,[role="button"]){transition-property:background,color,border-color,box-shadow,scale;transition-duration:.15s}
+:where(button,.k2-btn,.btn,[role="button"]):active{scale:.96}
+
+/* reading progress: the header's bottom edge is a route, and a bus rides it as you scroll */
+@supports (animation-timeline:scroll()){
+  .k2-head::after,body>header::after{content:"";position:absolute;inset-inline:0;bottom:-1px;height:3px;background:var(--kp-sign);transform-origin:right;transform:scaleX(0);animation:kp-prog linear both;animation-timeline:scroll(root)}
+  .k2-head::before,body>header::before{content:"";position:absolute;bottom:-3px;inset-inline-start:0;width:30px;height:16px;margin-inline-start:-4px;background:var(--kp-bus) center/contain no-repeat;z-index:2;opacity:0;animation:kp-ride linear both;animation-timeline:scroll(root);pointer-events:none}
+}
+@keyframes kp-prog{to{transform:scaleX(1)}}
+@keyframes kp-ride{0%{inset-inline-start:0;opacity:0}3%{opacity:1}100%{inset-inline-start:calc(100% - 26px);opacity:1}}
+
+/* sections arrive as they enter the viewport (only a `from` state, so resting styles always win) */
+@supports (animation-timeline:view()){
+  :where(.kp-rise,.sec-head,.net-line,.fares,.contact-grid,.sub-card,.trip-card,.unit-card,.why-card,.demo-card,.impact-card,.faq-item,.route-card,.pkg-card,.pos-card,.feat-card,.loc-card,.kpi-c,.k2-fg>*){animation:kp-rise linear both;animation-timeline:view();animation-range:entry 0% entry 42%}
+  .kp-strip::after{content:"";position:absolute;top:44px;width:34px;height:18px;background:var(--kp-bus) center/contain no-repeat;animation:kp-strip-bus linear both;animation-timeline:view();animation-range:entry 20% cover 70%}
+}
+@keyframes kp-rise{from{opacity:0;translate:0 22px}}
+@keyframes kp-strip-bus{from{right:0}to{right:calc(100% - 34px)}}
+
+/* heroes: staged arrival on load */
+.kp-hero h1{animation:kp-in .7s var(--kp-ease) both}
+.kp-hero .kp-tag{animation:kp-in .6s var(--kp-ease) both}
+.kp-hero p{animation:kp-in .7s .08s var(--kp-ease) both}
+.kp-hero h1 span,.kp-hero h1 em{background:linear-gradient(var(--kp-sign),var(--kp-sign)) right 100%/0 .09em no-repeat!important;animation:kp-under .6s .55s var(--kp-ease) forwards;padding-bottom:.04em}
+.kp-stats>*{animation:kp-in .6s var(--kp-ease) both}
+.kp-stats>*:nth-child(2){animation-delay:.07s}.kp-stats>*:nth-child(3){animation-delay:.14s}.kp-stats>*:nth-child(4){animation-delay:.21s}.kp-stats>*:nth-child(n+5){animation-delay:.28s}
+@keyframes kp-in{from{opacity:0;translate:0 16px}}
+@keyframes kp-under{to{background-size:100% .09em}}
+
+/* switching a tab / step / dashboard page: content slides in from the direction of travel */
+:where(.tab-page.active,.step-page.active,.tab-content.active,.page.on,.pg.on,.pg.active,.section.active){animation:kp-swap .34s var(--kp-ease) both}
+@keyframes kp-swap{from{opacity:0;translate:-14px 0}}
+
+/* dialogs settle like a card placed on a counter */
+:where(.modal-overlay.show,.modal-bg.open,.success-overlay.show,.overlay.show)>*{animation:kp-pop .32s var(--kp-ease) both}
+@keyframes kp-pop{from{opacity:0;scale:.94;translate:0 14px}}
+
+/* toasts: a departure slip with a countdown edge */
+.toast{background:var(--kp-ink)!important;color:#fff!important;border-radius:4px!important;border-inline-start:5px solid var(--kp-sign)!important;box-shadow:var(--sh-3)!important;overflow:hidden;display:flex;align-items:center;gap:8px}
+.toast .ki{color:var(--kp-sign)}
+.toast .ki.ki-ok{color:#5FD3A2}.toast .ki.ki-bad{color:#FF8A84}
+.toast::after{content:"";position:absolute;inset-inline:0;bottom:0;height:2px;background:var(--kp-sign);transform-origin:right;transform:scaleX(0)}
+.toast.show::after{animation:kp-count 2.8s linear both}
+@keyframes kp-count{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+
+/* icons respond when their control is hovered */
+:where(button,a,.card,[onclick]):hover>.ki{animation:kp-nudge .45s var(--kp-ease)}
+@keyframes kp-nudge{40%{translate:0 -3px}}
+
+/* form focus: the underline travels in */
+:where(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){transition:border-color .2s,box-shadow .2s,background-color .2s}
+
+/* footer stops light up in sequence when hovered */
+.kp-strip span::before{transition:background .2s,scale .2s}
+.kp-strip span:hover::before{background:var(--kp-sign);scale:1.3}
+
+/* back-to-top: a small lift at the end of the line */
+.kp-top{border:1px solid rgba(255,201,60,.55)!important;position:fixed;inset-inline-end:max(16px,env(safe-area-inset-right,0px));bottom:88px;z-index:350;width:44px;height:44px;border-radius:4px;background:var(--kp-ink);color:var(--kp-sign);cursor:pointer;display:grid;place-items:center;box-shadow:var(--sh-2);opacity:0;translate:0 12px;pointer-events:none;transition:opacity .25s,translate .25s,background .15s}
+.kp-top.on{opacity:1;translate:0 0;pointer-events:auto}
+.kp-top:hover{background:var(--kp-indigo)}
+.kp-top svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* a bus that glides along a stop list to the hovered stop */
+.kp-linebus{position:absolute;inset-inline-start:-6px;top:0;width:30px;height:16px;background:var(--kp-bus) center/contain no-repeat;rotate:-90deg;opacity:0;transition:top .45s var(--kp-ease),opacity .25s;pointer-events:none;z-index:2}
+
+/* --------------------------------------------------------------------------
+   Site sections added in v4: account button, util links, visibility, notices
+   -------------------------------------------------------------------------- */
+.kp-off{display:none!important}
+.kp-acct{gap:8px!important}
+.kp-acct b{font-weight:700;font-size:12px;background:var(--kp-sign);color:var(--kp-ink);padding:2px 7px;border-radius:2px;font-variant-numeric:tabular-nums;direction:rtl}
+.kp-acct .ki{width:18px;height:18px}
+.kp-notice{background:var(--kp-sign);color:var(--kp-ink);font:600 13.5px/1.6 var(--f-body);text-align:center;padding:8px 16px}
+.kp-closed{position:fixed;inset:0;z-index:5000;background:var(--kp-paper);display:grid;place-items:center;padding:24px;text-align:center;font-family:var(--f-body)}
+.kp-closed>div{display:grid;gap:12px;justify-items:center;max-width:420px}
+.kp-closed .kp-mark{width:64px;height:64px}
+.kp-closed h2{font:700 24px/1.4 var(--f-display);color:var(--kp-ink)}
+.kp-closed p{color:var(--kp-muted)}
+.kp-saved{position:fixed;inset-inline-start:16px;bottom:16px;z-index:4000;display:grid;gap:1px;background:#fff;color:var(--kp-ink);border:1px solid var(--kp-line);border-inline-start:5px solid var(--kp-ok);border-radius:4px;padding:11px 16px;box-shadow:var(--sh-3);text-decoration:none;font-family:var(--f-body);translate:0 20px;opacity:0;transition:translate .35s var(--kp-ease),opacity .3s}
+.kp-saved.on{translate:0 0;opacity:1}
+.kp-saved b{font-size:14px}.kp-saved span{font-size:12.5px;color:var(--kp-indigo);font-weight:600}
+@media(max-width:920px){.kp-acct b{display:none}.k2-act .kp-acct{display:inline-flex!important;padding:9px 12px}}
+@media(max-width:560px){.k2-util .k2-ul>.kp-xl,.util-l>.kp-xl{display:none!important}}
+/* real-photo ad stage */
+.kp-stagebox{position:relative;width:100%;overflow:hidden;border-radius:6px;background:#8D8F92}
+.kp-stage{position:absolute;top:0;left:0;width:650px;height:364px;transform-origin:0 0;direction:ltr}
+
+/* --------------------------------------------------------------------------
+   v6 — balance pass: brand lockup, utility bar, assistant entry
+   -------------------------------------------------------------------------- */
+/* brand: KPTC and the Arabic name sit side by side on one optical line */
+.k2-brand>span{display:flex;align-items:center;gap:12px}
+.k2-brand b{margin:0;line-height:1;letter-spacing:.1em;margin-left:-.1em}
+.k2-brand small{margin:0;max-width:6.6em;line-height:1.35;font-size:11.5px;padding-inline-start:12px;border-inline-start:1.5px solid var(--kp-line-2);text-align:right}
+.k2-foot .k2-brand small{display:none}
+
+/* utility bar: light strip — hotline, three quiet links, staff door, language */
+.k2-util{background:var(--kp-paper);color:var(--kp-ink);border-bottom:1px solid var(--kp-line);font:500 13px/1 var(--f-body)}
+.k2-util .k2-w{height:40px;gap:18px}
+.k2-util .k2-ul,.util .util-l{display:flex;align-items:center;gap:22px;flex:1;min-width:0}
+.k2-util .k2-ul>*,.util .util-l>*{padding:0;border:0}
+.kp-hot{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--kp-ink)!important;text-decoration:none;white-space:nowrap}
+.kp-hot .ki{width:15px;height:15px;color:var(--kp-indigo)}
+.kp-hot b{font:800 14px var(--f-display);letter-spacing:.04em;background:var(--kp-ink);color:var(--kp-sign);padding:3px 9px;border-radius:3px;direction:ltr}
+.kp-hot:hover b{background:var(--kp-indigo)}
+.kp-ulinks{display:flex;align-items:center;gap:20px;margin-inline-start:auto;background:none!important;position:static!important;height:auto!important;width:auto!important;padding:0!important;box-shadow:none!important;border:0!important;z-index:auto!important}
+.kp-ulinks a{position:relative;color:var(--kp-muted)!important;font-weight:600;text-decoration:none;padding:4px 0;white-space:nowrap}
+.kp-ulinks a::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:var(--kp-sign);transform:scaleX(0);transform-origin:right;transition:transform .2s var(--kp-ease)}
+.kp-ulinks a:hover{color:var(--kp-ink)!important}
+.kp-ulinks a:hover::after{transform:scaleX(1)}
+/* staff portal: a door that looks different from every public link */
+.kp-staff{display:inline-flex;align-items:center;gap:7px;height:26px;padding:0 11px 0 12px;border-radius:3px;background:var(--kp-indigo);color:#fff!important;font-weight:700;font-size:12.5px;text-decoration:none;white-space:nowrap;position:relative;transition:background .15s}
+.kp-staff::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--kp-sign)}
+.kp-staff .ki{width:14px;height:14px;color:var(--kp-sign)}
+.kp-staff:hover{background:var(--kp-ink)}
+.k2-lang,.lang{color:var(--kp-ink)!important;border-inline-start:1px solid var(--kp-line-2)!important;font-weight:600}
+.k2-panel .kp-staff{align-self:flex-start;height:38px;margin:14px 8px 0;font-size:14px;padding:0 16px}
+.k2-panel .kp-staff::before{position:static;border:0;margin:0;width:6px;height:6px}
+@media(max-width:920px){.kp-ulinks{display:none}.kp-staff{margin-inline-start:auto}}
+@media(max-width:560px){.kp-hot>span{display:none}.k2-util .k2-w{gap:10px}}
+
+/* assistant launcher: a labelled pill, not a bare icon */
+.kp-fab{width:auto!important;height:52px!important;padding:0 16px 0 20px!important;display:inline-flex!important;align-items:center;gap:10px;font:700 14.5px var(--f-body)!important;border-radius:26px!important}
+.kp-fab>[class*="label"]{display:none!important}
+.kp-fab.hidden{display:none!important}
+.kp-fab-t{color:#fff;white-space:nowrap}
+.kp-fab .ki{width:22px;height:22px}
+.kp-ask{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:16px;z-index:340;display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 20px 0 16px;border-radius:26px;background:var(--kp-ink);color:#fff;border:2px solid var(--kp-sign);font:700 14.5px var(--f-body);text-decoration:none;box-shadow:var(--sh-2);animation:kp-in .6s 1.2s var(--kp-ease) both;transition:background .15s,translate .25s var(--kp-ease)}
+.kp-ask:hover{background:var(--kp-indigo);translate:0 -3px}
+.kp-ask .ki{width:22px;height:22px;color:var(--kp-sign)}
+.kp-ask i.kp-on{width:8px;height:8px;border-radius:50%;background:#5FD3A2;box-shadow:0 0 0 3px rgba(95,211,162,.25)}
+.kp-top{bottom:80px}
+@media(max-width:560px){.kp-ask span,.kp-fab-t{display:none}.kp-ask{padding:0 15px}.kp-fab{padding:0 15px!important}}
+/* assistant page: start row */
+.kp-askrow{display:grid;gap:16px;justify-items:start;margin-top:26px!important}
+.kp-askbtn{display:inline-flex;align-items:center;gap:12px;background:var(--kp-sign);color:var(--kp-ink);border:0;border-radius:4px;padding:16px 26px;font:800 17px var(--f-display);cursor:pointer;animation:kp-in .7s .15s var(--kp-ease) both}
+.kp-askbtn:hover{background:#fff}
+.kp-askdot{width:10px;height:10px;border-radius:50%;background:var(--kp-ok);box-shadow:0 0 0 4px rgba(30,127,85,.25)}
+.kp-askchips{display:flex;flex-wrap:wrap;gap:8px}
+.kp-askchips button{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.35);border-radius:3px;padding:8px 14px;font:600 13.5px var(--f-body);cursor:pointer}
+.kp-askchips button:hover{border-color:var(--kp-sign);color:var(--kp-sign)}
+
+/* alignment: hero content shares the header's 1240 column on wide screens */
+@media(min-width:1300px){
+  .kp-hero>*:not(.kp-deco):not(.kp-stagebox){max-width:1240px;margin-inline:auto!important;width:100%;box-sizing:border-box}
+}
+.kp-notice{display:block;text-decoration:none}
+.kp-notice[data-tone="ink"]{background:var(--kp-ink);color:#fff}
+.kp-notice[data-tone="red"]{background:var(--kp-bad);color:#fff}
+.kp-notice[href]:hover{text-decoration:underline}
+.kp-navb{font-style:normal;font-size:10.5px;font-weight:700;background:var(--kp-sign);color:var(--kp-ink);padding:1px 6px;border-radius:2px;margin-inline-start:6px}
+
+/* profile pictures */
+.kp-av{border-radius:50%;object-fit:cover;display:inline-grid;place-items:center;flex:none;background:var(--kp-sign);color:var(--kp-ink);font:700 14px var(--f-display)}
+.kp-av-s{width:26px;height:26px;border:2px solid var(--kp-ink)}
+
+/* ===== form controls that line up everywhere (iPad Safari, Chrome, folding phones) ===== */
+input[type=date],input[type=time],input[type=datetime-local],input[type=month]{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;min-height:46px;line-height:1.4;text-align:start;font-family:inherit;background-color:#fff}
+input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:start;min-height:1.4em;margin:0}
+input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-calendar-picker-indicator{margin-inline-start:6px;cursor:pointer;opacity:.7}
+select{max-width:100%;min-width:0;box-sizing:border-box}
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea{max-width:100%;box-sizing:border-box}
+.date-row,.field-row,.fg,.fg2{min-width:0}.date-row>*,.field-row>*,.fg>*,.fg2>*{min-width:0}
+
+/* «المزيد»: the overflow menu of the main bar */
+.k2-nav{min-width:0}
+.kp-more{position:relative;display:flex;align-items:stretch;height:100%}
+.kp-more-b{display:flex;align-items:center;gap:6px;padding:0 14px;border:0;background:none;font:500 15px var(--f-body);color:var(--kp-ink);cursor:pointer;white-space:nowrap;position:relative}
+.kp-more-b i{width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;rotate:45deg;translate:0 -2px;transition:rotate .2s}
+.kp-more.open .kp-more-b i{rotate:-135deg;translate:0 2px}.kp-more-b:hover,.kp-more-b.cur{color:var(--kp-indigo);font-weight:700}
+.kp-more-p{position:absolute;top:calc(100% - 6px);inset-inline-start:0;min-width:210px;max-width:min(80vw,300px);background:#fff;border:2px solid var(--kp-ink);border-radius:10px;box-shadow:6px 6px 0 rgba(20,19,58,.16);padding:6px;display:none;z-index:300;direction:rtl}
+.kp-more.open .kp-more-p{display:grid;gap:2px;animation:kp-pop .2s var(--kp-ease) both}
+.kp-more-p a{display:flex!important;align-items:center;height:auto!important;padding:10px 12px!important;border-radius:6px;font-size:14.5px!important;white-space:nowrap}
+.kp-more-p a::after{display:none!important}.kp-more-p a:hover{background:var(--kp-paper-2)}.kp-more-p a[aria-current]{background:#FFF8E1;font-weight:700;color:var(--kp-indigo)}
+
+/* numbers keep their Latin digits but sit on the reading side: right in Arabic / RTL, left in LTR */
+html[dir="rtl"] :where(b,strong,div,p,td,th,li,dd,h1,h2,h3,h4).num{text-align:right}
+</style><!--/kptc:core-css-->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--kp-paper);color:var(--kp-ink);line-height:1.75;font-size:15.5px}
+a{color:inherit}
+.w{max-width:1240px;margin:0 auto;padding:0 28px}
+.ph{padding:46px 0 34px}
+.ph h1{font-size:clamp(30px,4.2vw,48px);color:#fff}
+.ph p{color:#D7D5F0;max-width:40em;margin-top:8px;font-size:17px}
+.ph .kp-tag{margin-bottom:12px}
+.sub{background:#fff;border-bottom:1px solid var(--kp-line);position:sticky;top:76px;z-index:300}
+.sub .w{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.sub button,.sub a{background:none;border:0;padding:14px 16px;font:600 14.5px var(--f-body);color:var(--kp-muted);cursor:pointer;white-space:nowrap;border-bottom:4px solid transparent;text-decoration:none}
+.sub button:hover,.sub a:hover{color:var(--kp-indigo)}
+.sub .on{color:var(--kp-indigo);border-bottom-color:var(--kp-sign)}
+main{padding:34px 0 80px;min-height:50vh}
+h2.st{font-size:24px;margin:0 0 6px}
+p.sd{color:var(--kp-muted);margin-bottom:22px}
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.box{background:#fff;border:1px solid var(--kp-line);border-radius:6px;padding:22px}
+.box h3{font-size:17px;margin-bottom:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:4px;padding:11px 18px;font:700 14.5px var(--f-body);cursor:pointer;text-decoration:none;background:var(--kp-indigo);color:#fff}
+.btn:hover{background:var(--kp-ink)}
+.btn.y{background:var(--kp-sign);color:var(--kp-ink)}.btn.y:hover{background:var(--kp-ink);color:var(--kp-sign)}
+.btn.o{background:#fff;color:var(--kp-indigo);border:1.5px solid var(--kp-line-2)}.btn.o:hover{border-color:var(--kp-indigo);background:#fff}
+.btn.r{background:var(--kp-bad)}.btn.sm{padding:6px 11px;font-size:13px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+label.f{display:grid;gap:5px;font-size:13px;font-weight:600;color:var(--kp-muted)}
+label.f input,label.f select,label.f textarea{border:1.5px solid var(--kp-line-2);border-radius:4px;padding:10px 12px;font:500 15px var(--f-body);color:var(--kp-ink);background:#fff;width:100%}
+label.f input:focus,label.f select:focus,label.f textarea:focus{outline:0;border-color:var(--kp-indigo);box-shadow:0 0 0 3px rgba(46,44,120,.12)}
+.form{display:grid;gap:14px}
+.err{color:var(--kp-bad);font-size:13.5px;font-weight:600;min-height:1.4em}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:2px;background:var(--kp-paper);color:var(--kp-ink);white-space:nowrap}
+.tag.ok{background:#E3F3EB;color:var(--kp-ok)}.tag.warn{background:#FBEFD9;color:#8A5407}.tag.bad{background:#F9E2E0;color:var(--kp-bad)}.tag.in{background:#E4E3F5;color:var(--kp-indigo)}
+table.t{width:100%;border-collapse:collapse;background:#fff;font-size:14.5px}
+table.t th{text-align:start;background:var(--kp-ink);color:#fff;font-size:12.5px;font-weight:600;padding:10px 14px;white-space:nowrap}
+table.t td{padding:13px 14px;border-bottom:1px solid var(--kp-line);vertical-align:middle}
+table.t tr:hover td{background:var(--kp-paper-2)}
+.tw{overflow-x:auto;border:1px solid var(--kp-line);border-radius:6px}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.empty{padding:34px;text-align:center;color:var(--kp-muted)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chips button{background:#fff;border:1.5px solid var(--kp-line-2);border-radius:3px;padding:6px 13px;font:600 13.5px var(--f-body);color:var(--kp-muted);cursor:pointer}
+.chips button.on{background:var(--kp-ink);color:var(--kp-sign);border-color:var(--kp-ink)}
+.dlg{position:fixed;inset:0;z-index:900;background:rgba(20,19,58,.6);display:none;align-items:flex-start;justify-content:center;padding:8vh 16px;overflow:auto}
+.dlg.on{display:flex}
+.dlg>div{background:#fff;border-radius:6px;border-top:6px solid var(--kp-sign);width:min(560px,100%);padding:26px;animation:kp-pop .3s var(--kp-ease) both}
+.dlg h3{font-size:20px;margin-bottom:4px}
+.dlg .x{float:left;background:none;border:1.5px solid var(--kp-line-2);border-radius:4px;width:34px;height:34px;font-size:18px;cursor:pointer;color:var(--kp-indigo)}
+.pane{display:none}.pane.on{display:block;animation:kp-swap .34s var(--kp-ease) both}
+.flash{position:fixed;bottom:24px;left:50%;translate:-50% 30px;background:var(--kp-ink);color:#fff;border-inline-start:5px solid var(--kp-sign);border-radius:4px;padding:12px 20px;font-weight:600;font-size:14px;opacity:0;transition:.3s var(--kp-ease);z-index:2000;pointer-events:none;box-shadow:var(--sh-3)}
+.flash.on{opacity:1;translate:-50% 0}
+@media(max-width:920px){.g2,.g3,.g4{grid-template-columns:1fr}.sub{top:66px}.w{padding:0 16px}}
+
+.bd-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.bd-nav a{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#fff;border:1.5px solid rgba(255,255,255,.35);border-radius:22px;padding:7px 18px;font:700 14px var(--f-body);transition:.2s}
+.bd-nav a:hover,.bd-nav a.on{background:var(--kp-sign);border-color:var(--kp-sign);color:var(--kp-ink)}
+.bd-sec{padding:6px 0 52px;scroll-margin-top:90px}
+.bd-h{display:flex;align-items:center;gap:16px;margin-bottom:34px}
+.bd-h h2{font:800 clamp(24px,3vw,32px)/1.3 var(--f-display);color:var(--kp-indigo)}
+.bd-h i{width:46px;height:46px;border-radius:14px;background:var(--kp-ink);color:var(--kp-sign);display:grid;place-items:center;flex:none}.bd-h i svg{width:24px;height:24px}
+.bd-h::after{content:"";flex:1;height:2px;background:linear-gradient(90deg,var(--kp-line-2),transparent)}
+.bd-top{display:grid;grid-template-columns:1fr 1fr;gap:34px;max-width:760px;margin:0 auto 44px;position:relative}
+.bd-top::before{content:"";position:absolute;inset-inline:25%;bottom:-24px;height:24px;border:2px solid var(--kp-line-2);border-top:0;border-radius:0 0 14px 14px;opacity:.7}
+.bd-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:30px;max-width:900px;margin:0 auto}
+.bd-ex{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px}
+.bd-ceo{max-width:300px;margin:0 auto 38px;position:relative}
+.bd-ceo::after{content:"";position:absolute;inset-inline:0;margin-inline:auto;bottom:-22px;width:2px;height:22px;background:var(--kp-line-2)}
+.pc{position:relative;text-align:center;cursor:pointer;background:none;border:0;padding:0;font:inherit;color:inherit;width:100%;opacity:0;translate:0 24px;transition:opacity .6s,translate .6s cubic-bezier(.2,.8,.2,1)}
+.pc.in{opacity:1;translate:0 0}
+.pc .pic{position:relative;width:min(100%,220px);aspect-ratio:4/5;margin:0 auto 18px;border-radius:999px 999px 22px 22px;background:var(--kp-indigo)}
+.pc .pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 15%;border-radius:inherit;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.pc .pic::before{content:"";position:absolute;inset:-9px;border:3px solid var(--kp-sign);border-radius:999px 999px 28px 28px;transition:.35s}
+.pc .pic::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 -60px 50px -40px rgba(20,19,58,.55);pointer-events:none}
+.pc:hover .ph::before{inset:-14px;border-color:var(--kp-ink)}.pc:hover .ph img{transform:scale(1.05)}
+.pc.big .pic{width:min(100%,280px)}.pc.mid .pic{width:min(100%,240px)}
+.pc h3{font:800 clamp(16px,1.6vw,19px)/1.5 var(--f-display);color:var(--kp-ink);overflow-wrap:anywhere}
+.pc p{display:inline-block;margin-top:6px;font:700 13px/1.5 var(--f-body);color:var(--kp-indigo);background:#fff;border:1px solid var(--kp-line);border-radius:14px;padding:3px 14px;box-shadow:0 6px 14px -10px rgba(31,29,92,.5)}
+.pc.big p{background:var(--kp-ink);color:var(--kp-sign);border-color:var(--kp-ink)}
+.bd-cta{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;background:linear-gradient(120deg,var(--kp-indigo),#3d3a96);color:#fff;border-radius:22px;padding:26px 30px;position:relative;overflow:hidden}
+.bd-cta::after{content:"";position:absolute;inset-inline-start:-60px;bottom:-110px;width:240px;height:240px;border-radius:50%;border:40px solid rgba(255,201,60,.14)}
+.bd-cta h3{font:800 22px var(--f-display)}.bd-cta p{color:#D7D5F0;max-width:36em}.bd-cta .btn{position:relative;z-index:1}
+.lb{position:fixed;inset:0;z-index:3000;background:rgba(14,13,44,.72);display:none;place-items:center;padding:20px;backdrop-filter:blur(4px)}.lb.on{display:grid;animation:lbf .25s}@keyframes lbf{from{opacity:0}}
+.lb-c{background:#fff;border-radius:24px;max-width:760px;width:100%;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);overflow:hidden;position:relative;animation:lbu .35s cubic-bezier(.2,.9,.25,1)}@keyframes lbu{from{translate:0 30px;opacity:0}}
+.lb-c img{width:100%;height:100%;object-fit:cover;object-position:center 15%;display:block;min-height:320px}
+.lb-t{padding:34px 30px;display:grid;align-content:center;gap:10px}.lb-t small{color:var(--kp-muted);font-weight:700}.lb-t h3{font:800 26px/1.4 var(--f-display);color:var(--kp-indigo)}.lb-t p{font:700 15px var(--f-body);background:var(--kp-sign);color:var(--kp-ink);border-radius:14px;padding:4px 16px;justify-self:start}
+.lb-x{position:absolute;top:12px;inset-inline-start:12px;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.92);font-size:22px;cursor:pointer;z-index:2}
+@media(max-width:1000px){.bd-ex{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.bd-top{grid-template-columns:1fr 1fr;gap:18px}.bd-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.bd-ex{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.lb-c{grid-template-columns:1fr}.lb-c img{min-height:0;aspect-ratio:4/3}.pc .pic{width:min(100%,170px)}.pc.big .pic{width:min(100%,200px)}}
+@media(prefers-reduced-motion:reduce){.pc{opacity:1;translate:0 0;transition:none}}
+</style>
+</head>
+<body>
+<div class="k2-util"><div class="k2-w"><div class="k2-ul"><a href="tel:1880001">خدمة العملاء <span dir="ltr">1880001</span></a><a href="mailto:info@kptc.com.kw">info@kptc.com.kw</a><span>المقر الرئيسي — المرقاب</span></div><select class="k2-lang" aria-label="اللغة"><option>العربية</option><option>English</option><option>हिन्दी</option><option>বাংলা</option><option>اردو</option><option>Filipino</option></select></div></div>
+<header class="k2-head"><div class="k2-w"><a class="k2-brand" href="KPTC_Home.html" aria-label="KPTC — الرئيسية"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b><small>شركة النقل العام الكويتية</small></span></a>
+<div class="k2-nav" role="navigation" aria-label="القائمة الرئيسية"><a href="KPTC_Home.html">الرئيسية</a><a href="KPTC_Routes.html">الخطوط</a><a href="KPTC_Subscriptions.html">الاشتراكات</a><a href="KPTC_Umrah.html">العمرة</a><a href="KPTC_VIP.html">VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_Advertising.html">أعلن معنا</a><a href="KPTC_RE_Client.html">العقارات</a></div>
+<div class="k2-act"><a class="k2-btn k2-btn-ghost" href="KPTC_Portal.html">بوابة الموظفين</a><a class="k2-btn k2-btn-sign k2-hide-m" href="KPTC_Subscriptions.html">اشترك الآن</a><button class="k2-menu" aria-label="فتح القائمة" aria-expanded="false" onclick="k2Drawer(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
+<div class="k2-drawer" id="k2Drawer" aria-hidden="true"><div class="k2-scrim" onclick="k2Drawer(0)"></div><div class="k2-panel" role="dialog" aria-label="القائمة"><button class="k2-close" onclick="k2Drawer(0)" aria-label="إغلاق">×</button><a href="KPTC_Home.html">الرئيسية</a><a href="KPTC_Routes.html">الخطوط والمسارات</a><a href="KPTC_Subscriptions.html">الاشتراكات والتذاكر</a><a href="KPTC_Umrah.html">رحلات العمرة</a><a href="KPTC_VIP.html">باصات VIP</a><a href="KPTC_Winch.html">الونش</a><a href="KPTC_LostFound.html">المفقودات</a><a href="KPTC_Advertising.html">أعلن معنا</a><a href="KPTC_RE_Client.html">مساحات للإيجار</a><a href="KPTC_Portal.html">بوابة الموظفين</a></div></div>
+<script>function k2Drawer(o){var d=document.getElementById('k2Drawer');d.classList.toggle('open',!!o);d.setAttribute('aria-hidden',o?'false':'true');var b=document.querySelector('.k2-menu');if(b)b.setAttribute('aria-expanded',o?'true':'false')}document.addEventListener('keydown',function(e){if(e.key==='Escape')k2Drawer(0)});</script>
+<div class="kp-hero"><div class="w ph">
+  <div class="kp-tag">عن الشركة</div>
+  <h1>مجلس الإدارة</h1>
+  <p>أعضاء مجلس إدارة شركة النقل العام الكويتية، والإدارة التنفيذية التي تقود تشغيل الشركة وخدماتها.</p>
+  <div class="bd-nav"><a href="#board" class="on">مجلس الإدارة</a><a href="#exec">الإدارة التنفيذية</a><a href="KPTC_OrgStructure.html">الهيكل التنظيمي</a></div>
+</div></div>
+
+<main><div class="w">
+  <section class="bd-sec" id="board">
+    <div class="bd-h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v5c0 4.500 3.200 7.600 8 9 4.800-1.400 8-4.500 8-9V7z"/><path d="m9 12 2 2 4-4"/></svg></i><h2>مجلس الإدارة</h2></div>
+    <div class="bd-top" id="bdTop"></div>
+    <div class="bd-row" id="bdRow"></div>
+  </section>
+
+  <section class="bd-sec" id="exec">
+    <div class="bd-h"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.500"/><path d="M3 20a6 6 0 0 1 12 0M16 4.500a3.500 3.500 0 0 1 0 7M18 20a5 5 0 0 0-2.500-4.300"/></svg></i><h2>الإدارة التنفيذية</h2></div>
+    <div class="bd-ceo" id="bdCeo"></div>
+    <div class="bd-ex" id="bdEx"></div>
+  </section>
+
+  <div class="bd-cta"><div><h3>كيف تتوزع الإدارات والمهام؟</h3><p>اطّلع على الهيكل التنظيمي للشركة: من يتبع من، والإدارات التابعة لكل نائب ومدير تنفيذي.</p></div><a class="btn y" href="KPTC_OrgStructure.html">عرض الهيكل التنظيمي</a></div>
+</div></main>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="بطاقة العضو"><div class="lb-c"><button class="lb-x" type="button" data-close aria-label="إغلاق">×</button><img id="lbI" alt=""><div class="lb-t"><small id="lbS"></small><h3 id="lbN"></h3><p id="lbT"></p><a class="btn o sm" href="KPTC_OrgStructure.html" style="justify-self:start;margin-top:8px">الهيكل التنظيمي</a></div></div></div>
+
+<script>
+(function(){
+  /* as published on the company's official website (kptc.com.kw), names cleaned of decorative letter stretching */
+  var BOARD = [
+    ['742b03c3-463f-48a1-9b53-1563fe755626', 'السيد/ عيسى الوقيان', 'رئيس مجلس الإدارة'],
+    ['d43b3c8e-d377-4c1a-9dec-2692904c35d0', 'السيد/ خالد العصفور', 'نائب رئيس مجلس الإدارة'],
+    ['70228d24-9388-45d9-b3cf-3e2ba58fd339', 'السيد/ نزار العواد', 'عضو مجلس الإدارة'],
+    ['d8df04e6-b579-4ffe-be53-401d9244bac9', 'السيدة/ لولوه الذربان', 'عضو مجلس الإدارة'],
+    ['6930a97a-65bf-4915-8f7d-74a1206e61ff', 'السيد/ جاسم الهاجري', 'عضو مجلس الإدارة']
+  ], EXEC = [
+    ['d9405575-38cc-41e4-9320-a3f0a16784f1', 'المهندس/ منصور السعد', 'الرئيس التنفيذي'],
+    ['02ba90d0-fc1b-47fd-96ba-34205b2b6393', 'السيد/ محمد المزيدي', 'نائب الرئيس التنفيذي لشئون الخدمات المساندة'],
+    ['75f24b90-dcf2-43c2-8c28-09bc47b1d38f', 'المهندس/ عبدالله ناصر', 'رئيس المكتب الاستراتيجي وتطوير الأعمال'],
+    ['54b8bb27-ba8c-4342-9b8d-4304aad84952', 'السيد/ محمد الفهيد', 'مدير تنفيذي لشئون النقل'],
+    ['43db1d7b-3772-4508-b757-7cf858a7563e', 'المهندس/ عايد السعيدي', 'مدير تنفيذي لشئون المشاريع والخدمات اللوجستية'],
+    ['9863df3b-1be0-4435-92ea-887a0beb2039', 'السيد/ حمد البدر', 'مدير تنفيذي لشئون الموارد البشرية والإدارية']
+  ];
+  var E = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+  function card(p, cls, grp){ return '<button type="button" class="pc ' + cls + '" data-g="' + grp + '" data-i="' + p.i + '"><div class="pic"><img src="../assets/board/' + p[0] + '.jpg" alt="' + E(p[1]) + '" loading="lazy"></div><h3>' + E(p[1]) + '</h3><p>' + E(p[2]) + '</p></button>'; }
+  document.getElementById('bdTop').innerHTML = [0, 1].map(function(i){ var p = BOARD[i]; p.i = i; return card(p, i ? 'mid' : 'big', 'b'); }).join('');
+  document.getElementById('bdRow').innerHTML = [2, 3, 4].map(function(i){ var p = BOARD[i]; p.i = i; return card(p, '', 'b'); }).join('');
+  EXEC[0].i = 0; document.getElementById('bdCeo').innerHTML = card(EXEC[0], 'big', 'e');
+  document.getElementById('bdEx').innerHTML = EXEC.slice(1).map(function(p, k){ p.i = k + 1; return card(p, '', 'e'); }).join('');
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ setTimeout(function(){ e.target.classList.add('in'); }, (e.target.__d || 0)); io.unobserve(e.target); } }); }, {threshold: .15}) : null;
+  [].forEach.call(document.querySelectorAll('.pc'), function(c, k){ if (io){ c.__d = (k % 5) * 90; io.observe(c); } else c.classList.add('in'); });
+  var lb = document.getElementById('lb');
+  document.addEventListener('click', function(e){
+    var c = e.target.closest('.pc');
+    if (c){ var p = (c.getAttribute('data-g') === 'b' ? BOARD : EXEC)[+c.getAttribute('data-i')]; document.getElementById('lbI').src = '../assets/board/' + p[0] + '.jpg'; document.getElementById('lbI').alt = p[1]; document.getElementById('lbN').textContent = p[1]; document.getElementById('lbT').textContent = p[2]; document.getElementById('lbS').textContent = c.getAttribute('data-g') === 'b' ? 'مجلس الإدارة' : 'الإدارة التنفيذية'; lb.classList.add('on'); return; }
+    if (e.target === lb || e.target.closest('[data-close]')) lb.classList.remove('on');
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('on'); });
+  var links = [].slice.call(document.querySelectorAll('.bd-nav a[href^="#"]'));
+  window.addEventListener('scroll', function(){ var y = window.scrollY + 160, cur = links[0]; links.forEach(function(a){ var t = document.querySelector(a.getAttribute('href')); if (t && t.offsetTop <= y) cur = a; }); links.forEach(function(a){ a.classList.toggle('on', a === cur); }); }, {passive: true});
+})();
+</script>
+<footer class="k2-foot"><div class="k2-w"><div class="k2-fg">
+<div><a class="k2-brand" href="KPTC_Home.html"><svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.3 15 37 15 37s14-11.7 14-22.1C29 7.2 22.7 1 15 1z" fill="none" stroke="#FFC93C" stroke-width="2.4"/><circle cx="15" cy="14.5" r="5" fill="#FFC93C"/></svg><span><b>KPTC</b></span></a><p>شركة النقل العام الكويتية، أول وأكبر مشغّل للنقل العام في الكويت منذ 1962، مملوكة بالكامل للدولة.</p></div>
+<div><h4>خدماتنا</h4><ul><li><a href="KPTC_Routes.html">الخطوط والمسارات</a></li><li><a href="KPTC_Subscriptions.html">الاشتراكات</a></li><li><a href="KPTC_Umrah.html">رحلات العمرة</a></li><li><a href="KPTC_VIP.html">باصات VIP</a></li><li><a href="KPTC_Winch.html">الونش</a></li></ul></div>
+<div><h4>خدمة العملاء</h4><ul><li><a href="KPTC_LostFound.html">المفقودات</a></li><li><a href="KPTC_AI_Assistant.html">كابتن K</a></li><li><a href="KPTC_Home.html#contact">الشكاوى</a></li><li><a href="KPTC_Home.html#contact">تواصل معنا</a></li></ul></div>
+<div><h4>الشركة</h4><ul><li><a href="KPTC_Home.html#about">عن KPTC</a></li><li><a href="KPTC_Advertising.html">أعلن معنا</a></li><li><a href="KPTC_RE_Client.html">مساحات للإيجار</a></li><li><a href="KPTC_Portal.html">بوابة الموظفين</a></li></ul></div>
+</div><div class="k2-fb"><span>© 2026 شركة النقل العام الكويتية. جميع الحقوق محفوظة.</span><span>kptc.com.kw</span></div></div></footer>
+<!--kptc:core-js--><script id="kptc-core-js">
+/* KPTC design-system runtime.
+   1) Replaces emoji pictographs with one consistent line-icon set (presentation only:
+      no ids, handlers or data are touched; form values/options are left as data).
+   2) Adds the governorate route strip to the public footer.
+   3) When a page is opened on its own (outside the gateway), internal links still work. */
+(function(){
+  if (window.__kptcCore) return; window.__kptcCore = 1;
+
+  var P = {
+    check:'<path d="M20 6 9 17l-5-5"/>',
+    x:'<path d="M18 6 6 18M6 6l12 12"/>',
+    alert:'<path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5M12 17.3v.2"/>',
+    clip:'<rect x="8" y="2.5" width="8" height="4" rx="1"/><path d="M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2M8.5 12h7M8.5 16h5"/>',
+    bus:'<rect x="4" y="3" width="16" height="14.5" rx="2.5"/><path d="M4 10.5h16M8 3v7.5M16 3v7.5M7.5 14h1M15.5 14h1M6.5 17.5V20M17.5 17.5V20"/>',
+    chart:'<path d="M3.5 20.5h17M6.5 20.5V12M11 20.5V5M15.5 20.5v-6M20 20.5V9"/>',
+    money:'<rect x="2.5" y="6" width="19" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.8"/><path d="M6 9.5v5M18 9.5v5"/>',
+    card:'<rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 10h19M6 15h4"/>',
+    wrench:'<path d="M14.7 6.3a4.5 4.5 0 0 0-5.6 5.6L3 18l3 3 6.1-6.1a4.5 4.5 0 0 0 5.6-5.6l-2.7 2.7-2.5-.5-.5-2.5z"/>',
+    download:'<path d="M12 3v12M7 10l5 5 5-5M4 20.5h16"/>',
+    upload:'<path d="M12 20V8M7 13l5-5 5 5M4 3.5h16"/>',
+    phone:'<path d="M21.5 16.6v3a2 2 0 0 1-2.2 2A19.5 19.5 0 0 1 2.4 4.7 2 2 0 0 1 4.4 2.5h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.4 10.3a16 16 0 0 0 5.3 5.3l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+    search:'<circle cx="11" cy="11" r="6.5"/><path d="m20.5 20.5-4.8-4.8"/>',
+    pin:'<path d="M12 21.5s-7-6.3-7-11.8a7 7 0 0 1 14 0c0 5.5-7 11.8-7 11.8z"/><circle cx="12" cy="9.6" r="2.5"/>',
+    mail:'<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/>',
+    cal:'<rect x="3" y="4.5" width="18" height="16.5" rx="1.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 17h2M11 17h2"/>',
+    map:'<path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
+    user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M18 13.8a6.5 6.5 0 0 1 3.5 6.2"/>',
+    mobile:'<rect x="6.5" y="2.5" width="11" height="19" rx="2"/><path d="M11 18h2"/>',
+    edit:'<path d="M4 20h4.5L19.5 9 15 4.5 4 15.5z"/><path d="m13 6.5 4.5 4.5"/>',
+    building:'<path d="M4.5 21V4.5A1.5 1.5 0 0 1 6 3h8a1.5 1.5 0 0 1 1.5 1.5V21M15.5 9h3a1.5 1.5 0 0 1 1.5 1.5V21M3 21h18M8 7h4M8 11h4M8 15h4"/>',
+    eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    mega:'<path d="M3.5 10v4a1 1 0 0 0 1 1H7l7 4.5v-15L7 9H4.5a1 1 0 0 0-1 1zM7 15l1 5h2.5M18 8.5a5 5 0 0 1 0 7"/>',
+    doc:'<path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z"/><path d="M14 2.5V8h5.5M8.5 13h7M8.5 17h5"/>',
+    crown:'<path d="M3 7.5 7 12l5-7 5 7 4-4.5-1.8 11H4.8z"/><path d="M5 21h14"/>',
+    refresh:'<path d="M20 11.5A8 8 0 0 0 5.4 7M4 3.5V8h4.5M4 12.5A8 8 0 0 0 18.6 17M20 20.5V16h-4.5"/>',
+    bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.1V16h5v-.1c0-.8.4-1.6 1.1-2.1A6 6 0 0 0 12 3z"/>',
+    bolt:'<path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11H12z"/>',
+    mosque:'<path d="M12 2.5v2M7.5 11.5C7.5 8 12 6.5 12 4.5c0 2 4.5 3.5 4.5 7M6 11.5h12M4 21V9.5M20 21V9.5M3 21h18M6 11.5V21M18 11.5V21M10 21v-3.5a2 2 0 0 1 4 0V21"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>',
+    trend:'<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    timer:'<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 1.5M9 2.5h6"/>',
+    store:'<path d="M4 10.5V21h16V10.5M2.8 10.5 4.5 4h15l1.7 6.5zM9.5 21v-5.5h5V21"/>',
+    chat:'<path d="M20.5 12a8.5 8.5 0 0 1-12.3 7.6L3.5 21l1.4-4.6A8.5 8.5 0 1 1 20.5 12z"/>',
+    bell:'<path d="M6 9a6 6 0 0 1 12 0c0 6.5 2.5 8.5 2.5 8.5h-17S6 15.5 6 9M10 21a2.2 2.2 0 0 0 4 0"/>',
+    home:'<path d="m3 11 9-7.5 9 7.5"/><path d="M5.5 9V21h13V9M10 21v-6h4v6"/>',
+    cpu:'<rect x="5.5" y="5.5" width="13" height="13" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2.5v3M15 2.5v3M9 18.5v3M15 18.5v3M2.5 9h3M2.5 15h3M18.5 9h3M18.5 15h3"/>',
+    truck:'<path d="M2.5 17V6h11v11M13.5 9.5h4L21 13v4h-2"/><circle cx="6.5" cy="17.5" r="2"/><circle cx="16.5" cy="17.5" r="2"/><path d="M8.5 17.5h6"/>',
+    gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+    box:'<path d="M21 7.5 12 3 3 7.5v9L12 21l9-4.5z"/><path d="m3 7.5 9 4.5 9-4.5M12 12v9"/>',
+    lock:'<rect x="4.5" y="10.5" width="15" height="10.5" rx="1.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5M12 14.5v2.5"/>',
+    unlock:'<rect x="4.5" y="10.5" width="15" height="10.5" rx="1.5"/><path d="M8 10.5V7a4 4 0 0 1 7.6-1.7M12 14.5v2.5"/>',
+    star:'<path d="m12 3 2.8 5.8 6.2.9-4.5 4.4 1.1 6.2L12 17.4l-5.6 2.9 1.1-6.2L3 9.7l6.2-.9z"/>',
+    save:'<path d="M5 3h11.5L20 6.5V21H5z"/><path d="M8 3v5h7M8 21v-7h8v7"/>',
+    plane:'<path d="M21 3.5 3 10.5l6.5 2.5L12 20l3-6 6-10.5zM9.5 13 21 3.5"/>',
+    bank:'<path d="m3 9.5 9-6 9 6zM5 9.5V18M9.5 9.5V18M14.5 9.5V18M19 9.5V18M3 21h18M4 18h16"/>',
+    trash:'<path d="M4 6.5h16M9.5 6.5V3.5h5v3M6 6.5 7 21h10l1-14.5M10 11v6M14 11v6"/>',
+    ticket:'<path d="M3 6h18v3.5a2.5 2.5 0 0 0 0 5V18H3v-3.5a2.5 2.5 0 0 0 0-5z"/><path d="M14.5 6v12" stroke-dasharray="2 2"/>',
+    siren:'<path d="M7 18v-5.5a5 5 0 0 1 10 0V18M4.5 21h15v-3h-15zM12 2.5v2M4.5 6.5l1.5 1M19.5 6.5 18 7.5"/>',
+    globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    seat:'<path d="M7 3.5v9.5h9.5M7 13l-1.5 7.5M16.5 13l1.5 7.5M7 17h10"/>',
+    target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+    food:'<path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3M17 21V3c-2.2 1-3.5 4-3.5 8.5H17"/>',
+    shield:'<path d="M12 3 4.5 6v5.5c0 5 3.3 8.3 7.5 9.5 4.2-1.2 7.5-4.5 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/>',
+    crane:'<path d="M5 21V5.5l10-3V21M5 5.5h15V9M18 9v4.5M3 21h14M8.5 9h3M8.5 13h3"/>',
+    brush:'<path d="M14 4 20 10l-9.5 9.5H4.5v-6z"/><path d="m12 6 6 6"/>',
+    car:'<path d="M4.5 16.5h15V12l-2-5.5h-11L4.5 12zM3 12h18"/><circle cx="8" cy="16.5" r="1.8"/><circle cx="16" cy="16.5" r="1.8"/>',
+    book:'<path d="M3.5 4.5h6a2.5 2.5 0 0 1 2.5 2.5v13.5a2 2 0 0 0-2-2H3.5zM20.5 4.5h-6A2.5 2.5 0 0 0 12 7v13.5a2 2 0 0 1 2-2h6.5z"/>',
+    hourglass:'<path d="M6 2.5h12M6 21.5h12M7 2.5c0 5 10 5.5 10 9.5s-10 4.5-10 9.5M17 2.5c0 5-10 5.5-10 9.5s10 4.5 10 9.5"/>',
+    bag:'<path d="M5 8h14l-1.2 13H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
+    down:'<path d="M12 4v16M6 14l6 6 6-6"/>',
+    up:'<path d="M12 20V4M6 10l6-6 6 6"/>',
+    stop:'<path d="M12 21.5V10M7.5 2.5h9v7.5h-9zM9 21.5h6M10 5.5h4"/>',
+    folder:'<path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.2l2 2h8.8A1.5 1.5 0 0 1 21 8.5v10a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/>',
+    medical:'<path d="M4.5 21V5h15v16M3 21h18M12 8.5v6M9 11.5h6"/>',
+    medal:'<circle cx="12" cy="15" r="5.5"/><path d="M8.5 10.5 6 3h4l2 5 2-5h4l-2.5 7.5M12 12.8v4.4"/>',
+    school:'<path d="M3 21V10l9-6 9 6v11M3 21h18M9.5 21v-5h5v5M12 4v3"/>',
+    tire:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 3v5.5M12 15.5V21M3 12h5.5M15.5 12H21"/>',
+    receipt:'<path d="M5.5 2.5h13v19l-2.6-1.8-2.2 1.8-2.2-1.8-2.2 1.8-2.2-1.8-1.6 1.8z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+    key:'<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.8 12.2 9.7-9.7M17 6l3 3M14.5 8.5l2 2"/>',
+    flag:'<path d="M5 21.5V3.5M5 4h13l-2.5 4.5L18 13H5"/>',
+    camera:'<path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13.5" r="3.8"/>',
+    attach:'<path d="m20.5 11.5-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/>',
+    coffee:'<path d="M4 8.5h13V14a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10.5h1.5a2.5 2.5 0 0 1 0 5H17M8 2.5v3M12 2.5v3"/>',
+    bed:'<path d="M3 20V5.5M3 14.5h18V20M3 10.5h6.5v4M21 14.5v-1.5a3.5 3.5 0 0 0-3.5-3.5h-8"/>',
+    cart:'<circle cx="9" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/><path d="M2.5 3.5h3l2.3 11.5h11l2-8H6.3"/>',
+    battery:'<rect x="2.5" y="7" width="16.5" height="10" rx="1.5"/><path d="M21.5 10.5v3M6 10v4M9.5 10v4"/>',
+    moon:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>',
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+    door:'<path d="M5.5 21V3h11v18M3 21h16.5M13 12.5v.5"/>',
+    snow:'<path d="M12 2.5v19M3.8 7.2l16.4 9.6M20.2 7.2 3.8 16.8M9.5 4.5 12 7l2.5-2.5M9.5 19.5 12 17l2.5 2.5"/>',
+    idcard:'<rect x="2.5" y="5" width="19" height="14" rx="1.5"/><circle cx="8.5" cy="11" r="2"/><path d="M5.5 16a3 3 0 0 1 6 0M14 10h4.5M14 13.5h3"/>',
+    signal:'<path d="M4.5 11.5a11 11 0 0 1 15 0M7.8 14.8a6.4 6.4 0 0 1 8.4 0M12 18.5v.3"/>',
+    screen:'<rect x="2.5" y="4" width="19" height="12.5" rx="1.5"/><path d="M8 20.5h8M12 16.5v4"/>',
+    fuel:'<path d="M4 21V4.5A1.5 1.5 0 0 1 5.5 3h6A1.5 1.5 0 0 1 13 4.5V21M3 21h11.5M4 9.5h9M13 10.5h2a2 2 0 0 1 2 2V16a1.5 1.5 0 0 0 3 0V8l-3-3"/>',
+    link:'<path d="M10 14a4.2 4.2 0 0 0 6 0l3-3a4.2 4.2 0 0 0-6-6l-1 1M14 10a4.2 4.2 0 0 0-6 0l-3 3a4.2 4.2 0 0 0 6 6l1-1"/>',
+    pause:'<path d="M9 5v14M15 5v14"/>',
+    glasses:'<circle cx="6.5" cy="15" r="3.5"/><circle cx="17.5" cy="15" r="3.5"/><path d="M10 15h4M3 15l1.5-7M21 15l-1.5-7"/>',
+    drop:'<path d="M12 3s6.5 7 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10 12 3 12 3z"/>',
+    compass:'<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
+    image:'<rect x="3" y="4" width="18" height="16" rx="1.5"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9.5 9"/>',
+    gift:'<rect x="3" y="8" width="18" height="4.5"/><path d="M5 12.5V21h14v-8.5M12 8v13M12 8C10 4 6.5 4 6.5 6.3S10 8 12 8c2 0 5.5 0 5.5-1.7S14 4 12 8z"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>',
+    tag:'<path d="M3 3h8.5l9.5 9.5-8.5 8.5L3 11.5z"/><circle cx="7.5" cy="7.5" r="1.4"/>',
+    diamond:'<path d="M6.5 3.5h11l3.5 5.5-9 12-9-12z"/><path d="M3 9h18M9.5 3.5 12 9l2.5-5.5M12 9v12"/>',
+    help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 0 1 4.8.8c0 1.7-2.4 2.2-2.4 4M12 17v.3"/>',
+    send:'<path d="M20.5 3.5 3.5 10.5l7 3 3 7z"/><path d="m10.5 13.5 4-4"/>',
+    flagkw:'<path d="M5 21.5V3.5M5 4h14v9H5"/><path d="M5 4l3.5 4.5L5 13"/>',
+    square:'<rect x="4.5" y="4.5" width="15" height="15" rx="1"/>'
+  };
+
+  // emoji → icon name ; null = decorative, removed ; "dot:x" = coloured status dot
+  var E = {
+    '✅':'check|ok','📠':'doc','☎':'phone','🗓':'cal','💱':'money','❌':'x|bad','⚠':'alert|warn','📋':'clip','🚌':'bus','🚍':'bus','🚐':'bus','📊':'chart','💰':'money','💵':'money','💸':'money',
+    '💳':'card','🔧':'wrench','🔩':'wrench','🛠':'wrench','📥':'download','📤':'upload','📞':'phone','🔍':'search','🔎':'search','📍':'pin','📌':'pin',
+    '📧':'mail','📬':'mail','📭':'mail','📅':'cal','📆':'cal','🗺':'map','👤':'user','👥':'users','🧑':'user','👔':'user','👷':'user','👶':'user','📱':'mobile','🍎':'mobile',
+    '✏':'edit','📝':'doc','📄':'doc','🏢':'building','🏙':'building','🏭':'building','🏨':'building','🏬':'store','👁':'eye','📢':'mega','👑':'crown',
+    '🔄':'refresh','🔁':'refresh','💡':'bulb','⚡':'bolt','🔥':'bolt','🕌':'mosque','☪':'mosque','🕐':'clock','⏰':'clock','📈':'trend','🚀':'trend','⏱':'timer',
+    '🏪':'store','💬':'chat','🔔':'bell','🏠':'home','🧠':'cpu','🤖':'cpu','🚛':'truck','⚙':'gear','📦':'box','🔒':'lock','🔐':'lock','🔓':'unlock',
+    '⭐':'star','🌟':'star','🆕':'star','💾':'save','✈':'plane','🏦':'bank','🏛':'bank','🗑':'trash','🎫':'ticket','🎟':'ticket','🚨':'siren',
+    '🌐':'globe','🌍':'globe','💺':'seat','🪑':'seat','🎯':'target','🍽':'food','🍔':'food','🥧':'food','🥤':'food','🛡':'shield','🏗':'crane','🎨':'brush',
+    '🚗':'car','🚙':'car','🛻':'car','📖':'book','📚':'book','⏳':'hourglass','⌛':'hourglass','🛍':'bag','👜':'bag','🎒':'bag','👛':'bag','⬇':'down','👇':'down',
+    '⬆':'up','🔝':'up','🚉':'stop','🚏':'stop','📁':'folder','🏥':'medical','💊':'medical','🦷':'medical','🏆':'medal','🥇':'medal','🥈':'medal','🥉':'medal',
+    '🏫':'school','🎓':'school','🛞':'tire','🧾':'receipt','🔑':'key','🗝':'key','🏁':'flag','📸':'camera','📷':'camera','🎥':'camera','📎':'attach',
+    '☕':'coffee','🛏':'bed','🛒':'cart','🔋':'battery','🌙':'moon','☀':'sun','🏖':'sun','🚪':'door','❄':'snow','🛂':'idcard','📡':'signal','📶':'signal',
+    '🖥':'screen','💻':'screen','📺':'screen','⛽':'fuel','🛢':'fuel','🔗':'link','⏸':'pause','👓':'glasses','🚿':'drop','🧭':'compass','🖼':'image',
+    '🎁':'gift','➕':'plus','🏷':'tag','💎':'diamond','❓':'help','💥':'alert','📐':'square','🔲':'square','🅿':'square',
+    '🔴':'dot:bad','🟥':'dot:bad','🟡':'dot:warn','🟢':'dot:ok','🟩':'dot:ok','🔵':'dot:info','🟦':'dot:info',
+    '👋':null,'😊':null,'😔':null,'🤔':null,'🎉':null,'✨':null,'💛':null,'🌸':null,'💐':null,'🙏':null,'👆':null,'💪':null,'💨':null
+  };
+  var FLAG = /(?:\uD83C[\uDDE6-\uDDFF]){2}/;
+  var RX = /(?:\uD83C[\uDDE6-\uDDFF]){2}|(?:[⌀-⏿☀-✒✔✖✘-➣➥-➿⬀-⯿]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|\uD83E[\uDD00-\uDEFF])️?/g;
+  var SKIP = {SCRIPT:1,STYLE:1,TEXTAREA:1,OPTION:1,TITLE:1,NOSCRIPT:1,svg:1,SVG:1,CODE:1,PRE:1};
+
+  function icon(ch){
+    var k = FLAG.test(ch) ? 'flagkw' : E[ch.replace('️','')];
+    if (k === null) return null;
+    if (k === undefined) return document.createTextNode(ch);
+    if (k.indexOf('dot:') === 0){ var d=document.createElement('i'); d.className='ki-dot d-'+k.slice(4); d.setAttribute('aria-hidden','true'); return d; }
+    var p = k.split('|'), i = document.createElement('i');
+    i.className = 'ki' + (p[1] ? ' ki-'+p[1] : '');
+    i.setAttribute('aria-hidden','true');
+    i.innerHTML = '<svg viewBox="0 0 24 24">' + (P[p[0]]||P.square) + '</svg>';
+    return i;
+  }
+  var ARD = /[\u0660-\u0669\u06F0-\u06F9]/;
+  function swapText(t){
+    var v = t.nodeValue;
+    if (v && ARD.test(v) && window.KPTC && t.parentNode && !SKIP[t.parentNode.nodeName]) { v = KPTC.latin(v); t.nodeValue = v; }
+    RX.lastIndex = 0;
+    if (!v || !RX.test(v)) return;
+    var par = t.parentNode; if (!par || SKIP[par.nodeName] || (par.closest && par.closest('svg,textarea,[contenteditable],.ki'))) return;
+    var f = document.createDocumentFragment(), last = 0, changed = false; RX.lastIndex = 0; var m;
+    while ((m = RX.exec(v))){
+      if (m.index > last) f.appendChild(document.createTextNode(v.slice(last, m.index)));
+      var n = icon(m[0]);
+      if (n && n.nodeType === 1){ f.appendChild(n); changed = true; }
+      else if (n) f.appendChild(n);                       // unmapped pictograph: left as it is
+      else { changed = true; if (v.charAt(m.index + m[0].length) === ' ') RX.lastIndex++; }   // decoration removed, with its trailing space
+      last = RX.lastIndex;
+    }
+    if (!changed) return;   // nothing to swap: never re-insert identical text (it would re-trigger the observer forever)
+    if (last < v.length) f.appendChild(document.createTextNode(v.slice(last)));
+    par.replaceChild(f, t);
+  }
+  function walk(root){
+    if (root.nodeType === 3) return swapText(root);
+    if (root.nodeType !== 1 || SKIP[root.nodeName]) return;
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), list = [], n;
+    while ((n = w.nextNode())) list.push(n);
+    list.forEach(swapText);
+    // presentation-only attributes
+    root.querySelectorAll && root.querySelectorAll('[placeholder],[title]').forEach(function(el){
+      ['placeholder','title'].forEach(function(a){ var v = el.getAttribute(a); if (v){ RX.lastIndex=0; if (RX.test(v)) el.setAttribute(a, v.replace(RX,'').replace(/^\s+/,'')); } });
+    });
+    root.querySelectorAll && root.querySelectorAll('option').forEach(function(o){ RX.lastIndex=0; if (RX.test(o.text) && !o.hasAttribute('value')) { o.value = o.value; o.text = o.text.replace(RX,'').replace(/^\s+/,''); } });
+  }
+
+  function footerStrip(){
+    var f = document.querySelector('.k2-foot .k2-w, body > footer > .wrap');
+    if (!f || f.querySelector('.kp-strip')) return;
+    var s = document.createElement('div'); s.className = 'kp-strip'; s.setAttribute('aria-hidden','true');
+    ['العاصمة','حولي','الفروانية','مبارك الكبير','الأحمدي','الجهراء'].forEach(function(g){ var e=document.createElement('span'); e.textContent=g; s.appendChild(e); });
+    f.insertBefore(s, f.firstChild);
+  }
+
+  var MAP = {"KPTC_Executive_Landing.html":"exec","KPTC_Home.html":"home","KPTC_Routes.html":"routes","KPTC_Subscriptions.html":"subs","KPTC_Umrah.html":"umrah","KPTC_VIP.html":"vip","KPTC_Winch.html":"winch","KPTC_LostFound.html":"lost","KPTC_Advertising.html":"ads","KPTC_AI_Assistant.html":"assistant","KPTC_Admin_Dashboard_v3.html":"siteadmin","KPTC_Board.html":"board","KPTC_OrgStructure.html":"org","KPTC_Admin_AI.html":"adminai","KPTC_Portal.html":"portal","KPTC_RealEstate.html":"realestate","KPTC_RE_AI.html":"reai","KPTC_RE_Client.html":"reclient","KPTC_Client_Portal.html":"tenant","KPTC_Website_Prototype.html":"home","KPTC_Subscriptions_v2.html":"subs","KPTC_Account.html":"account","KPTC_Media.html":"media","KPTC_Tenders.html":"tenders","KPTC_Careers.html":"careers","KPTC_SiteAdmin.html":"siteadmin","KPTC_PDI.html":"pdi"};
+  function standalone(){
+    if (window.parent !== window){
+      document.addEventListener('click', function(e){
+        var a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
+        var h = a.getAttribute('href').split('#')[0].split('/').pop();
+        if (MAP[h]){ e.preventDefault(); try { parent.postMessage({kptcNav: MAP[h]}, '*'); } catch(x){} }
+      });
+      return;
+    }
+    // inside the gateway, the page posts kptcNav to the parent; on its own, go through the gateway
+    document.addEventListener('click', function(e){
+      var a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
+      var raw = a.getAttribute('href'), h = raw.split('#')[0].split('/').pop(), hash = raw.split('#')[1];
+      if (!MAP[h]) return;
+      e.preventDefault();
+      var own = location.pathname.split('/').pop().replace('.html','');
+      if (MAP[h] === own && hash){ var t = document.getElementById(hash); if (t) t.scrollIntoView({behavior:'smooth'}); return; }
+      location.href = '../index.html#/' + MAP[h];
+    });
+  }
+
+
+  /* ---- motion & workflow helpers ---------------------------------------- */
+  function countUp(){
+    // only static display figures that no page script reads back
+    var els = document.querySelectorAll('.fx-line b, .kp-stats .hstat-num, .kp-stats .hnum-val, .kp-stats .hstat-val');
+    if (!els.length || !('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (!e.isIntersecting) return; io.unobserve(e.target); run(e.target); }); }, {threshold:.6});
+    function run(el){
+      var txt = el.textContent, m = txt.match(/^(\D*)([\d,]+)(.*)$/); if (!m || el.children.length) return;
+      var end = parseInt(m[2].replace(/,/g,''),10); if (!(end > 9) || /^(19|20)\d\d$/.test(m[2])) return;   // never count a year
+      var comma = m[2].indexOf(',') > -1, t0 = performance.now(), dur = 900;
+      (function tick(t){
+        var k = Math.min(1,(t - t0)/dur), v = Math.round(end * (1 - Math.pow(1-k,3)));
+        el.textContent = m[1] + (comma ? v.toLocaleString('en-US') : v) + m[3];
+        if (k < 1) requestAnimationFrame(tick); else el.textContent = txt;
+      })(t0);
+    }
+    els.forEach(function(el){ io.observe(el); });
+  }
+  function backToTop(){
+    if (!document.querySelector('.k2-foot, body > footer')) return;
+    var b = document.createElement('button'); b.className = 'kp-top'; b.type = 'button'; b.setAttribute('aria-label','العودة إلى أعلى الصفحة');
+    b.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
+    b.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+    document.body.appendChild(b);
+    var tick = false;
+    window.addEventListener('scroll', function(){ if (tick) return; tick = true; requestAnimationFrame(function(){ b.classList.toggle('on', window.scrollY > 700); tick = false; }); }, {passive:true});
+  }
+  function lineBus(){
+    document.querySelectorAll('.network .stops').forEach(function(list){
+      var bus = document.createElement('i'); bus.className = 'kp-linebus'; bus.setAttribute('aria-hidden','true'); list.appendChild(bus);
+      list.querySelectorAll('li').forEach(function(li){
+        li.addEventListener('mouseenter', function(){ bus.style.top = (li.offsetTop - 8) + 'px'; bus.style.opacity = 1; });
+      });
+      list.addEventListener('mouseleave', function(){ bus.style.opacity = 0; });
+    });
+  }
+  function gatewayKeys(){
+    // inside the gateway the page has keyboard focus; hand presentation shortcuts up to it
+    if (window.parent === window) return;
+    document.addEventListener('keydown', function(e){
+      var msg = null;
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) msg = {kptcPalette:1};
+      else if (e.altKey && e.key === 'ArrowLeft') msg = {kptcStep:1};
+      else if (e.altKey && e.key === 'ArrowRight') msg = {kptcStep:-1};
+      if (!msg) return;
+      e.preventDefault(); try { parent.postMessage(msg, '*'); } catch(x){}
+    });
+  }
+
+
+  function homeExtras(){
+    var hero = document.querySelector('main > section.hero'); if (!hero) return;
+    var road = document.createElement('div'); road.className = 'hero-road'; road.setAttribute('aria-hidden','true'); road.innerHTML = '<i></i>'; hero.appendChild(road);
+    var sw = document.getElementById('swap'), f = document.getElementById('finder');
+    if (sw && f) sw.addEventListener('click', function(){ f.classList.remove('swapped'); void f.offsetWidth; f.classList.add('swapped'); });
+  }
+
+
+  function forms(){
+    // forms that point at another page (the home trip finder) go through the same routing as links
+    document.addEventListener('submit', function(e){
+      var f = e.target, act = (f.getAttribute && f.getAttribute('action') || '').split('/').pop().split('#')[0];
+      if (!MAP[act]) return;
+      e.preventDefault();
+      f.classList.add('kp-punched');
+      setTimeout(function(){
+        f.classList.remove('kp-punched');
+        if (window.parent !== window) { try { parent.postMessage({kptcNav: MAP[act]}, '*'); } catch(x){} }
+        else location.href = '../index.html#/' + MAP[act];
+      }, 420);
+    });
+  }
+
+
+  /* ---- site chrome: links to the new sections, account button, page visibility ---- */
+  var OWN = location.pathname.split('/').pop().replace('.html','');
+  function link(href, text, cls){ var a = document.createElement('a'); a.href = href; a.textContent = text; if (cls) a.className = cls; return a; }
+  function chrome(){
+    var K = window.KPTC; if (!K) return;
+    var util = document.querySelector('.k2-util .k2-ul, .util .util-l');
+    if (util && !util.querySelector('.kp-hot')){
+      // rebuilt utility bar: hotline · quiet links · staff door (the language switch stays where it is)
+      util.innerHTML = '<a class="kp-hot" href="tel:1880001"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + P.phone + '</svg></i><span>الخط الساخن</span><b>1880001</b></a>' +
+        '<nav class="kp-ulinks" aria-label="روابط الشركة"><a class="kp-xl" href="KPTC_Media.html">المركز الإعلامي</a><a class="kp-xl" href="KPTC_Tenders.html">المناقصات</a><a class="kp-xl" href="KPTC_Careers.html">الوظائف</a></nav>';
+      var staff = link('KPTC_Portal.html', 'بوابة الموظفين', 'kp-staff');
+      staff.insertAdjacentHTML('afterbegin', '<i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + P.idcard + '</svg></i>');
+      util.parentNode.insertBefore(staff, util.nextSibling);
+    }
+    var act = document.querySelector('.k2-act, header .h-actions');
+    if (act && !act.querySelector('.kp-acct')){
+      var ghost = act.querySelector('.k2-btn-ghost, .btn-ghost'), u = K.user(), w = u && K.wallet();
+      var b = link('KPTC_Account.html', '', (ghost ? ghost.className : 'k2-btn k2-btn-ghost') + ' kp-acct');
+      var paint = function(){ var u = K.user(), w = u && K.wallet(), h = (u && u.photo ? K.avatar('user', u.id, 'kp-av-s') : '<i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></i>') + (u ? '<span>' + K.esc(u.name.split(' ')[0]) + '</span><b>' + K.money(w.balance) + '</b>' : '<span>حسابي</span>'); if (b.getAttribute('data-h') !== h){ b.setAttribute('data-h', h); b.innerHTML = h; } };
+      paint(); K.onChange(paint);
+      if (ghost && /Portal/.test(ghost.getAttribute('href')||'')) ghost.replaceWith(b); else act.insertBefore(b, act.firstChild);
+    }
+    var panel = document.querySelector('.k2-panel, .drawer .panel');
+    if (panel && !panel.querySelector('.kp-xl')){
+      [['KPTC_Account.html','حسابي ومحفظتي'],['KPTC_Board.html','مجلس الإدارة'],['KPTC_OrgStructure.html','الهيكل التنظيمي'],['KPTC_PDI.html','فحص PDI'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ panel.appendChild(link(x[0], x[1], 'kp-xl')); });
+      panel.querySelectorAll('a[href="KPTC_Portal.html"]').forEach(function(x){ x.remove(); });
+      var st2 = link('KPTC_Portal.html', 'بوابة الموظفين', 'kp-staff'); panel.appendChild(st2);
+    }
+    var cols = document.querySelectorAll('.k2-fg > div ul, .f-grid > div ul'), last = cols[cols.length-1];
+    if (last && !last.querySelector('.kp-xl')){
+      [['KPTC_Board.html','مجلس الإدارة'],['KPTC_OrgStructure.html','الهيكل التنظيمي'],['KPTC_PDI.html','فحص ما قبل التسليم PDI'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ var li = document.createElement('li'); li.appendChild(link(x[0], x[1], 'kp-xl')); last.appendChild(li); });
+    }
+    visibility();
+    fitNav();
+  }
+  /* the main menu always fits: whatever does not fit the bar (and the pages that never had a slot) go under «المزيد» */
+  var EXTRA_NAV = [['KPTC_LostFound.html','المفقودات','lost'],['KPTC_PDI.html','فحص PDI','pdi'],['KPTC_Board.html','مجلس الإدارة','board'],['KPTC_OrgStructure.html','الهيكل التنظيمي','org']];
+  function fitNav(){
+    var nav = document.querySelector('.k2-nav'); if (!nav) return;
+    var K = window.KPTC, hide = function(id){ try { return K && K.pageState(id) === 'off'; } catch(x){ return false; } };
+    var old = nav.querySelector('.kp-more'); if (old){ [].slice.call(old.querySelectorAll('.kp-more-p a[data-own]')).forEach(function(a){ a.removeAttribute('data-own'); nav.insertBefore(a, old); }); old.remove(); }
+    if (getComputedStyle(nav).display === 'none') return;
+    var here = (location.pathname.split('/').pop() || '').replace('.html', '');
+    var more = document.createElement('div'); more.className = 'kp-more'; more.innerHTML = '<button type="button" class="kp-more-b" aria-haspopup="true" aria-expanded="false">المزيد <i aria-hidden="true"></i></button><div class="kp-more-p" role="menu"></div>';
+    var panel = more.querySelector('.kp-more-p'), pagesIn = [].map.call(nav.querySelectorAll(':scope > a'), function(a){ return a.getAttribute('href'); });
+    EXTRA_NAV.forEach(function(x){ if (hide(x[2]) || pagesIn.indexOf(x[0]) > -1) return; var a = document.createElement('a'); a.href = x[0]; a.textContent = x[1]; if (x[2] === here) a.setAttribute('aria-current', 'page'); panel.appendChild(a); });
+    nav.appendChild(more);
+    var items = [].slice.call(nav.querySelectorAll(':scope > a')), guard = 40;
+    while (nav.scrollWidth > nav.clientWidth + 1 && items.length > 1 && guard--){ var it = items.pop(); if (it.hasAttribute('aria-current')){ if (!items.length) break; var prev = items.pop(); items.push(it); it = prev; } it.setAttribute('data-own', '1'); panel.insertBefore(it, panel.firstChild); }
+    if (!panel.children.length){ more.remove(); return; }
+    if (panel.querySelector('[aria-current]')) more.querySelector('.kp-more-b').classList.add('cur');
+    var btn = more.querySelector('.kp-more-b');
+    btn.addEventListener('click', function(e){ e.stopPropagation(); var o = more.classList.toggle('open'); btn.setAttribute('aria-expanded', o); });
+    document.addEventListener('click', function(e){ if (!more.contains(e.target)){ more.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); } });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape'){ more.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); } });
+  }
+  var fitT = null; window.addEventListener('resize', function(){ clearTimeout(fitT); fitT = setTimeout(fitNav, 120); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ setTimeout(fitNav, 50); });
+  var HOME_SECTIONS = {ticker:'.kx-ticker', tasks:'.kx-tasks', facts:'.facts', services:'#services', calc:'#calc', fares:'#fares', steps:'.kx-steps-sec', umrah:'.kx-umrah', sos:'.sos', biz:'#business', app:'.block.app', close:'.kx-close', contact:'#contact'};
+  var tickerDefault = null;
+  function visibility(){
+    var K = window.KPTC, S = K.site(), preview = /[?&]preview=1/.test(location.search);
+    // links to hidden pages disappear everywhere
+    document.querySelectorAll('a[href]').forEach(function(a){
+      var id = MAP[a.getAttribute('href').split('#')[0].split('/').pop()]; if (!id) return;
+      var off = K.pageState(id) === 'off';
+      a.classList.toggle('kp-off', off);
+      var li = a.parentNode && a.parentNode.tagName === 'LI' && a.parentNode.children.length === 1 ? a.parentNode : null;
+      if (li) li.classList.toggle('kp-off', off);
+    });
+    // main navigation: order, presence, label and badge come from the studio
+    var nav = document.querySelector('.k2-nav, header nav.main');
+    if (nav){
+      var items = {}; nav.querySelectorAll('a[href]').forEach(function(a){ var id = MAP[a.getAttribute('href').split('#')[0].split('/').pop()]; if (id){ items[id] = a; if (!a.hasAttribute('data-label')) a.setAttribute('data-label', a.textContent.trim()); } });
+      var anchor = nav.querySelector('a[href^="#"]');
+      var want = (S.navOrder || []).map(function(id){ return items[id]; }).filter(Boolean), kidsA = [].slice.call(nav.children), ix = anchor ? kidsA.indexOf(anchor) : kidsA.length, curSeq = kidsA.slice(Math.max(0, ix - want.length), ix);
+      if (want.length && !(curSeq.length === want.length && curSeq.every(function(n, i){ return n === want[i]; }))) want.forEach(function(a){ if (anchor) nav.insertBefore(a, anchor); else nav.appendChild(a); });
+      Object.keys(items).forEach(function(id){
+        var a = items[id], p = S.pages[id] || {};
+        if (p.nav === false) a.classList.add('kp-off');
+        var b = a.querySelector('.kp-navb'), lab = p.label || a.getAttribute('data-label');
+        if (a.firstChild.nodeValue !== lab) a.firstChild.nodeValue = lab;
+        if (p.badge){ if (!b){ b = document.createElement('em'); b.className = 'kp-navb'; a.appendChild(b); } if (b.textContent !== p.badge) b.textContent = p.badge; } else if (b) b.remove();
+      });
+    }
+    // home sections and ticker
+    if (OWN === 'home'){
+      Object.keys(HOME_SECTIONS).forEach(function(k){ var el = document.querySelector(HOME_SECTIONS[k]); if (el) el.classList.toggle('kp-off', S.home[k] === false); });
+      var run = document.getElementById('kxRun');
+      if (run){
+        if (tickerDefault === null) tickerDefault = run.innerHTML;
+        var want = S.ticker && S.ticker.length ? S.ticker.map(function(t){ return '<a href="#contact">' + K.esc(t) + '</a>'; }).join('') : null, html = want ? want + want : tickerDefault;
+        if (run.getAttribute('data-src') !== (want || 'default')){ run.innerHTML = html; run.setAttribute('data-src', want || 'default'); }
+      }
+    }
+    document.querySelectorAll('.kp-ask, .kp-fab').forEach(function(e){ e.classList.toggle('kp-off', S.assistant === false); });
+    // notice bar
+    var n = K.db().notice, bar = document.querySelector('.kp-notice'), chrome = document.querySelector('.k2-head, body > header');
+    if (n && n.on && n.text && chrome){
+      if (!bar){ bar = document.createElement('a'); bar.className = 'kp-notice'; document.body.insertBefore(bar, document.body.firstChild); }
+      bar.textContent = n.text; bar.setAttribute('data-tone', n.tone || 'yellow');
+      if (n.link) bar.setAttribute('href', n.link); else bar.removeAttribute('href');
+    } else if (bar) bar.remove();
+    // the page itself
+    var st = K.pageState(OWN), gate = document.querySelector('.kp-closed'), p = S.pages[OWN] || {};
+    if (st !== 'on' && !preview && MAP_IDS[OWN]){
+      if (!gate){ gate = document.createElement('div'); gate.className = 'kp-closed'; document.body.appendChild(gate); }
+      var msg = st === 'maint' ? (p.msg || S.maintenance.text || 'نعمل على تحسين هذه الصفحة. عُد إلينا قريباً، أو اتصل بالخط الساخن 1880001.') : 'أوقفتها إدارة الموقع مؤقتاً. يمكنك العودة إلى الصفحة الرئيسية.';
+      gate.innerHTML = '<div><div class="kp-mark"></div><h2>' + (st === 'maint' ? 'الصفحة تحت الصيانة' : 'هذه الصفحة غير متاحة حالياً') + '</h2><p>' + K.esc(msg) + '</p>' + (OWN === 'home' ? '' : '<a href="KPTC_Home.html" class="k2-btn k2-btn-sign">الصفحة الرئيسية</a>') + '</div>';
+    } else if (gate) gate.remove();
+  }
+  var MAP_IDS = {}; Object.keys(MAP).forEach(function(k){ MAP_IDS[MAP[k]] = 1; });
+
+  /* ---- bookings made on service pages are saved to the visitor's account ---- */
+  function capture(){
+    var K = window.KPTC; if (!K) return;
+    var RXID = /\b(UMR|VIP|TOW|WS|LF|AD|SUB|TKT|CL)-[A-Z0-9-]{3,}/;
+    var defs = {
+      subs:{fn:['confirmPayment'], type:'اشتراك', title:'اشتراك / تذاكر', pre:'SUB'},
+      umrah:{fn:['processPayment'], type:'عمرة', title:'حجز رحلة عمرة', pre:'UMR'},
+      vip:{fn:['confirmBooking'], type:'VIP', title:'حجز حافلة VIP', pre:'VIP'},
+      winch:{fn:['submitWinch','submitWorkshop'], type:'ونش وورشة', title:'طلب ونش / ورشة', pre:'TOW'},
+      lost:{fn:['submitReport','submitClaim'], type:'مفقودات', title:'بلاغ مفقودات', pre:'LF'},
+      ads:{fn:['submitOrder'], type:'إعلان', title:'طلب حملة إعلانية', pre:'AD'}
+    }, def = defs[OWN]; if (!def) return;
+    function refs(){ var m = {}, t = document.body.innerText || ''; (t.match(new RegExp(RXID.source, 'g')) || []).forEach(function(x){ m[x] = 1; }); return m; }
+    function successShown(){ return !!document.querySelector('.success-overlay.show, .modal-overlay.show, .modal-bg.open, .success-screen.show, .step-page.active .success, #successModal.show, .done-screen'); }
+    def.fn.forEach(function(name){
+      var orig = window[name]; if (typeof orig !== 'function') return;
+      window[name] = function(){
+        var before = refs(), hadSuccess = successShown(), r = orig.apply(this, arguments), tries = 0;
+        var timer = setInterval(function(){
+          tries++;
+          var now = refs(), fresh = Object.keys(now).filter(function(k){ return !before[k]; })[0];
+          if (fresh || (!hadSuccess && successShown())){
+            clearInterval(timer);
+            var h = document.querySelector('.summary-title, .order-title, .bs-title'), sum = document.querySelector('#summaryTotal, #orderTotal, .total-val, #totalPrice, #bsTotal');
+            var amt = sum ? parseFloat(K.latin(sum.textContent).replace(/[^\d.]/g,'')) || 0 : 0;
+            K.addBooking({id: fresh || K.id(def.pre), type: def.type, page: OWN, title: def.title, amount: amt});
+            toastSaved();
+          } else if (tries > 24) clearInterval(timer);
+        }, 250);
+        return r;
+      };
+    });
+  }
+  function toastSaved(){
+    var t = document.createElement('a'); t.className = 'kp-saved'; t.href = 'KPTC_Account.html';
+    t.innerHTML = '<b>حُفظ الطلب في حسابك</b><span>' + (KPTC.user() ? 'تابعه من «حسابي»' : 'سجّل الدخول لمتابعته') + '</span>';
+    document.body.appendChild(t); setTimeout(function(){ t.classList.add('on'); }, 30); setTimeout(function(){ t.classList.remove('on'); setTimeout(function(){ t.remove(); }, 400); }, 6000);
+  }
+
+  /* ---- the ad preview sits on the real bus photo; keep the perspective stage scaled ---- */
+  function stages(){
+    var list = document.querySelectorAll('.kp-stage'); if (!list.length) return;
+    function fit(){ list.forEach(function(st){ var w = st.parentNode.clientWidth; st.style.transform = 'scale(' + (w / 650) + ')'; st.parentNode.style.height = (w * 364 / 650) + 'px'; }); }
+    fit(); window.addEventListener('resize', fit);
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(list[0].parentNode);
+  }
+
+
+  /* ---- routes: a real map (Leaflet + OpenStreetMap, both free) ---- */
+  var GEO = {'المرقاب':[29.3698,47.9792],'الفحيحيل':[29.0825,48.1303],'دوار الأمم المتحدة':[29.3560,47.9270],'جليب الشيوخ':[29.2680,47.9130],'مطار الكويت':[29.2266,47.9689],'السليبية':[29.2990,47.7500],'أمغرة':[29.3250,47.7900],'صبحان':[29.2975,48.0600],'الكويت سيتي':[29.3759,47.9774],'الشرق':[29.3835,47.9925],'المالية':[29.3722,47.9860],'حولي':[29.3375,48.0286],'السالمية':[29.3339,48.0761],'خيطان':[29.2890,47.9790],'الجابرية':[29.3170,48.0280],'الرميثية':[29.3140,48.0780],'الفروانية':[29.2775,47.9586],'قرطبة':[29.3130,47.9870],'أسواق القرين':[29.2010,48.0700],'الفحاحيل':[29.0825,48.1303],'الشويخ':[29.3500,47.9300],'الصليبية':[29.2880,47.8200],'الجهراء':[29.3375,47.6581],'مشرف':[29.2780,48.0660],'أبو حليفة':[29.1300,48.1260],'بيان':[29.2990,48.0450],'المسيلة':[29.2440,48.0880],'حبيبة':[29.3010,47.9930],'جمعية':[29.2950,47.9720],'جروزة':[29.3200,47.7000],'دوار الإسمنت':[29.2300,47.9500]};
+  function routesMap(){
+    var box = document.getElementById('mapView'); if (!box || OWN !== 'routes') return;
+      window.kpOfficialMap = function(){
+        var lb = document.getElementById('kpNetMap');
+        if (!lb){
+          var T = [['المالية',.428,.066,'15 · 16 · 18 · 102A · 102X · 999'],['الشرق',.732,.058,'11 · 12 · 507'],['دوار الأمم المتحدة',.13,.05,'34 · 39 · 41'],['المرقاب',.501,.224,'13 · 21 · 23 · 51 · 59 · 103'],['السالمية',.964,.424,'77'],['جليب الشيوخ',.039,.921,'40 · 66 · 66X · 105 · 106 · 106X'],['خيطان',.478,.588,'محطة خيطان'],['صبحان',.525,.857,'محطة صبحان'],['الفحيحيل',.876,.958,'محطة الفحيحيل'],['المطار',.338,.9,'مطار الكويت']];
+          lb = document.createElement('div'); lb.id = 'kpNetMap'; lb.className = 'kp-netmap';
+          lb.innerHTML = '<div class="kp-nm"><header><div><b>مستكشف شبكة K-Bus</b><span>الخريطة الرسمية · اسحب للتنقل، وكبّر بالعجلة أو بإصبعين</span></div><div class="kp-nm-z"><button type="button" data-z="1.35" aria-label="تكبير">+</button><button type="button" data-z=".74" aria-label="تصغير">−</button><button type="button" data-z="0" aria-label="الخريطة كاملة">⤢</button><button type="button" data-x aria-label="إغلاق">×</button></div></header>' +
+            '<div class="kp-nm-b"><aside><h4>المحطات الرئيسية</h4>' + T.map(function(t, i){ return '<button type="button" data-t="' + i + '"><b>' + t[0] + '</b><small>' + t[3] + '</small></button>'; }).join('') + '</aside><div class="kp-nm-v"><div class="kp-nm-c"><img src="../assets/kbus-network-map.jpg" alt="خريطة شبكة K-Bus الرسمية" draggable="false"><i class="kp-nm-pin"></i></div></div></div></div>';
+          document.body.appendChild(lb);
+          var view = lb.querySelector('.kp-nm-v'), c = lb.querySelector('.kp-nm-c'), pin = lb.querySelector('.kp-nm-pin'), img = c.querySelector('img'), sc = 1, x = 0, y = 0, min = 1, IW = 2400, IH = 1696;
+          function apply(anim){ var vw = view.clientWidth, vh = view.clientHeight, w = IW * sc, h = IH * sc; x = w <= vw ? (vw - w) / 2 : Math.min(0, Math.max(vw - w, x)); y = h <= vh ? (vh - h) / 2 : Math.min(0, Math.max(vh - h, y)); c.style.transition = anim ? 'transform .7s cubic-bezier(.2,.7,.2,1)' : 'none'; c.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + sc + ')'; }
+          function fitAll(anim){ min = Math.min(view.clientWidth / IW, view.clientHeight / IH); sc = min; x = y = 0; pin.style.display = 'none'; apply(anim); }
+          function zoom(f, cx, cy, anim){ var n = Math.max(min, Math.min(2.2, sc * f)); cx = cx == null ? view.clientWidth / 2 : cx; cy = cy == null ? view.clientHeight / 2 : cy; x = cx - (cx - x) * (n / sc); y = cy - (cy - y) * (n / sc); sc = n; apply(anim); }
+          lb.addEventListener('click', function(e){
+            if (e.target === lb || e.target.closest('[data-x]')) return lb.classList.remove('on');
+            var z = e.target.closest('[data-z]'); if (z){ var f = +z.getAttribute('data-z'); return f ? zoom(f, null, null, true) : fitAll(true); }
+            var t = e.target.closest('[data-t]'); if (t){ var d = T[+t.getAttribute('data-t')]; sc = Math.max(min, .95); x = view.clientWidth / 2 - d[1] * IW * sc; y = view.clientHeight / 2 - d[2] * IH * sc; pin.style.display = 'block'; pin.style.left = (d[1] * IW) + 'px'; pin.style.top = (d[2] * IH) + 'px'; apply(true); lb.querySelectorAll('[data-t]').forEach(function(b){ b.classList.toggle('on', b === t); }); }
+          });
+          view.addEventListener('wheel', function(e){ e.preventDefault(); var r = view.getBoundingClientRect(); zoom(e.deltaY < 0 ? 1.15 : .87, e.clientX - r.left, e.clientY - r.top); }, {passive:false});
+          var pts = {}, pd = 0;
+          view.addEventListener('pointerdown', function(e){ pts[e.pointerId] = [e.clientX, e.clientY]; view.setPointerCapture(e.pointerId); });
+          view.addEventListener('pointermove', function(e){ if (!pts[e.pointerId]) return; var ids = Object.keys(pts), p0 = pts[e.pointerId];
+            if (ids.length === 1){ x += e.clientX - p0[0]; y += e.clientY - p0[1]; apply(); }
+            else { var o = pts[ids[0] == e.pointerId ? ids[1] : ids[0]], d = Math.hypot(e.clientX - o[0], e.clientY - o[1]), r = view.getBoundingClientRect(); if (pd) zoom(d / pd, (e.clientX + o[0]) / 2 - r.left, (e.clientY + o[1]) / 2 - r.top); pd = d; }
+            pts[e.pointerId] = [e.clientX, e.clientY]; });
+          var end = function(e){ delete pts[e.pointerId]; pd = 0; }; view.addEventListener('pointerup', end); view.addEventListener('pointercancel', end);
+          window.addEventListener('resize', function(){ if (lb.classList.contains('on')) fitAll(); });
+          lb._fit = fitAll;
+        }
+        lb.classList.add('on'); setTimeout(function(){ lb._fit(false); }, 30);
+      };
+    // the map, the 3D network and the timetable board live in assets/network.js
+    var sc = document.createElement('script'); sc.src = '../assets/leaflet.min.js';
+    var next = function(){ var n = document.createElement('script'); n.src = '../assets/network.js'; document.head.appendChild(n); };
+    sc.onload = next; sc.onerror = next;
+    document.head.appendChild(sc);
+  }
+
+
+  /* ---- umrah + vip: seat map and the PDF e-ticket (assets/booking.js) ---- */
+  function bookingKit(){
+    if (OWN !== 'umrah' && OWN !== 'vip' && OWN !== 'pdi') return;
+    var q = document.createElement('script'); q.src = '../assets/qrcode.min.js';
+    var next = function(){ var n = document.createElement('script'); n.src = '../assets/booking.js'; document.head.appendChild(n); };
+    q.onload = next; q.onerror = next; document.head.appendChild(q);
+  }
+
+  /* ---- winch: tab bar + guided workshop booking (assets/winch.js) ---- */
+  function winchKit(){ if (OWN !== 'winch') return; var n = document.createElement('script'); n.src = '../assets/winch.js'; document.head.appendChild(n); }
+
+  /* ---- studio edits: any text, placeholder or element on any page (existing or future) ---- */
+  function selPath(e){ var parts = []; while (e && e !== document.body && e.nodeType === 1){ if (e.id && !/^\d/.test(e.id)){ parts.unshift('#' + (window.CSS && CSS.escape ? CSS.escape(e.id) : e.id)); break; } var i = 1, sib = e; while ((sib = sib.previousElementSibling)) if (sib.nodeName === e.nodeName) i++; parts.unshift(e.nodeName.toLowerCase() + ':nth-of-type(' + i + ')'); e = e.parentElement; } if (parts[0] && parts[0].charAt(0) !== '#') parts.unshift('body'); return parts.join('>'); }
+  function siteEdits(){
+    var K = window.KPTC; if (!K || !K.site) return;
+    var pid = OWN || 'home', EDIT = /kpedit/.test(location.hash), browse = /browse/.test(location.hash), busy = false, st = document.createElement('style'); document.head.appendChild(st);
+    function maps(){ var S = K.site(), T = S.texts || {}, H = S.hidden || {}, m = {}, k; for (k in (T['*'] || {})) m[k] = T['*'][k]; for (k in (T[pid] || {})) m[k] = T[pid][k]; return {t:m, h:(H['*'] || []).concat(H[pid] || [])}; }
+    function skip(n){ var p = n.parentNode; return !p || /^(SCRIPT|STYLE|NOSCRIPT|TEXTAREA|OPTION)$/.test(p.nodeName) || (p.closest && p.closest('.kp-ed,[contenteditable],.leaflet-container')); }
+    function apply(root){
+      var M = maps(); busy = true;
+      try {
+        st.textContent = M.h.length ? M.h.join(',') + (EDIT ? '{opacity:.35!important;outline:2px dashed #C2352E!important;outline-offset:-2px}' : '{display:none!important}') : '';
+        var w = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT, null), n, list = [];
+        while ((n = w.nextNode())) list.push(n);
+        list.forEach(function(n){ if (skip(n)) return; if (n.__kpo != null && n.nodeValue !== n.__kpr) n.__kpo = null; var raw = n.__kpo != null ? n.__kpo : n.nodeValue, key = raw.replace(/\s+/g, ' ').trim(); if (!key) return;
+          if (M.t[key] != null){ var v = raw.replace(raw.trim(), M.t[key]); if (n.nodeValue !== v){ if (n.__kpo == null) n.__kpo = raw; n.nodeValue = v; n.__kpr = v; } }
+          else if (n.__kpo != null){ n.nodeValue = n.__kpo; n.__kpo = null; } });
+        (root && root.querySelectorAll ? root : document).querySelectorAll('[placeholder]').forEach(function(e){ var o = e.getAttribute('data-kpo') || e.getAttribute('placeholder'), v = M.t['ph:' + o]; if (v != null){ e.setAttribute('data-kpo', o); if (e.placeholder !== v) e.placeholder = v; } else if (e.hasAttribute('data-kpo')){ e.placeholder = o; e.removeAttribute('data-kpo'); } });
+      } catch(x){}
+      busy = false;
+    }
+    apply(); var q = 0;
+    new MutationObserver(function(ms){ if (busy || q) return; q = requestAnimationFrame(function(){ q = 0; apply(); }); }).observe(document.body, {childList:true, subtree:true, characterData:true});
+    K.onChange(function(){ apply(); });
+    if (!EDIT) return;
+    /* edit mode (opened from the studio): click anything to rewrite or hide it */
+    var css = document.createElement('style');
+    css.textContent = '.kp-edh{outline:2px solid #FFC93C!important;outline-offset:2px;cursor:pointer!important}.kp-ed{position:fixed;z-index:99999;width:min(340px,92vw);background:#fff;border:2px solid #14133A;border-radius:8px;box-shadow:6px 6px 0 rgba(20,19,58,.25);padding:12px;display:grid;gap:8px;font:500 13px var(--f-body);direction:rtl;text-align:right}.kp-ed b{font:700 14px var(--f-display);color:#14133A}.kp-ed textarea{width:100%;min-height:64px;border:1.5px solid #cfcde6;border-radius:5px;padding:8px;font:500 14px var(--f-body);resize:vertical;box-sizing:border-box}.kp-ed .r{display:flex;flex-wrap:wrap;gap:6px}.kp-ed button{border:2px solid #14133A;background:#fff;border-radius:4px;padding:5px 10px;font:700 12px var(--f-display);cursor:pointer;color:#14133A}.kp-ed button.y{background:#FFC93C}.kp-ed button.d{border-color:#C2352E;color:#C2352E}.kp-ed label{display:flex;gap:6px;align-items:center;font-size:12px;color:#55537a}.kp-ed small{color:#77759A}.kp-edbar{position:fixed;z-index:99998;bottom:10px;left:50%;transform:translateX(-50%);background:#14133A;color:#fff;border-radius:20px;padding:6px 16px;font:600 12.5px var(--f-body);white-space:nowrap;pointer-events:none}';
+    document.head.appendChild(css);
+    var box = null, hov = null;
+    var bar = document.createElement('div'); bar.className = 'kp-edbar'; bar.innerHTML = '<span class="kp-edhint"></span><button type="button" data-m="edit">تحرير</button><button type="button" data-m="browse">تصفّح</button>'; document.body.appendChild(bar);
+    var bcss = document.createElement('style'); bcss.textContent = '.kp-edbar{display:flex!important;align-items:center;gap:6px;padding:5px 6px 5px 14px!important}.kp-edbar button{border:0;border-radius:14px;padding:3px 12px;font:700 12px "Noto Kufi Arabic",sans-serif;cursor:pointer;background:rgba(255,255,255,.14);color:#fff}.kp-edbar button.on{background:#FFC93C;color:#14133A}.kp-edhint{margin-inline-end:6px}'; document.head.appendChild(bcss);
+    function setMode(m){ browse = m === 'browse'; bar.querySelector('.kp-edhint').textContent = browse ? 'وضع التصفّح: تنقّل بين الصفحات الداخلية' : 'وضع التحرير: اضغط أي نص أو عنصر'; [].forEach.call(bar.querySelectorAll('button'), function(b){ b.classList.toggle('on', b.getAttribute('data-m') === m); }); if (browse){ close(); if (hov){ hov.classList.remove('kp-edh'); hov = null; } } }
+    bar.addEventListener('click', function(e){ var b = e.target.closest('[data-m]'); if (!b) return; setMode(b.getAttribute('data-m')); try { parent.postMessage({kpMode: browse ? 'browse' : 'edit'}, '*'); } catch(x){} });
+    window.addEventListener('message', function(e){ if (e.data && e.data.kpMode) setMode(e.data.kpMode); });
+    setMode(browse ? 'browse' : 'edit');
+    function sel(e){ var parts = []; while (e && e !== document.body && e.nodeType === 1){ if (e.id && !/^\d/.test(e.id)){ parts.unshift('#' + (window.CSS && CSS.escape ? CSS.escape(e.id) : e.id)); break; } var i = 1, sib = e; while ((sib = sib.previousElementSibling)) if (sib.nodeName === e.nodeName) i++; parts.unshift(e.nodeName.toLowerCase() + ':nth-of-type(' + i + ')'); e = e.parentElement; } if (parts[0] && parts[0].charAt(0) !== '#') parts.unshift('body'); return parts.join('>'); }
+    function tnode(e){ var w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT, null), n; while ((n = w.nextNode())) if (!skip(n) && n.nodeValue.trim()) return n; return null; }
+    function close(){ if (box){ box.remove(); box = null; } }
+    document.addEventListener('mouseover', function(e){ if (browse || e.target.closest('.kp-ed') || e.target.closest('.kp-edbar')) return; if (hov) hov.classList.remove('kp-edh'); hov = e.target; hov.classList.add('kp-edh'); }, true);
+    ['click','mousedown','mouseup','submit','pointerdown'].forEach(function(ev){ document.addEventListener(ev, function(e){
+      if (browse || (e.target.closest && (e.target.closest('.kp-ed') || e.target.closest('.kp-edbar')))) return; e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (ev !== 'click') return;
+      var t = e.target, S = K.site(), isPh = t.hasAttribute && t.hasAttribute('placeholder'), n = isPh ? null : tnode(t), orig = isPh ? (t.getAttribute('data-kpo') || t.placeholder) : n ? (n.__kpo != null ? n.__kpo : n.nodeValue).replace(/\s+/g, ' ').trim() : '', key = (isPh ? 'ph:' : '') + orig, curv = isPh ? t.placeholder : n ? n.nodeValue.trim() : '', path = sel(t), hid = ((S.hidden || {})[pid] || []).indexOf(path) > -1;
+      var isFld = !!(window.KPReq && t.matches && t.matches('input,select,textarea') && !/^(checkbox|radio|hidden|file|range|button|submit)$/.test(t.type)), rk = isFld ? KPReq.key(t) : null, rEff = isFld && rk ? KPReq.isReq(t) : false, rOv = rk ? ((S.required || {})[pid] || {})[rk] : undefined;
+      close(); box = document.createElement('div'); box.className = 'kp-ed';
+      box.innerHTML = '<b>' + (isPh ? 'نص الحقل الإرشادي' : orig ? 'تعديل النص' : 'عنصر بلا نص') + '</b>' + (orig ? '<textarea></textarea><small>الأصل: ' + K.esc(orig.slice(0, 90)) + '</small><label><input type="checkbox" data-all> طبّق على كل الصفحات (للنصوص المشتركة كالرأس والتذييل)</label>' : '') +
+        (rk ? '<div class="r"><b>هذا الحقل:</b><button data-a="rq1"' + (rOv === true ? ' class="y"' : '') + '>إلزامي</button><button data-a="rq0"' + (rOv === false ? ' class="y"' : '') + '>اختياري</button><button data-a="rqd">حسب الافتراضي</button></div><small>الآن: ' + (rEff ? 'إلزامي' : 'اختياري') + (rOv === undefined ? ' (افتراضي)' : ' (معدّل)') + '</small>' : '') + '<div class="r">' + (orig ? '<button class="y" data-a="save">حفظ النص</button><button data-a="orig">استرجاع الأصل</button>' : '') + '<button class="d" data-a="hide">' + (hid ? 'إظهار العنصر' : 'إخفاء العنصر') + '</button><button data-a="up">تحديد العنصر الأب</button><button data-a="x">إغلاق</button></div>';
+      document.body.appendChild(box); var ta = box.querySelector('textarea'); if (ta){ ta.value = curv; ta.focus(); }
+      var r = t.getBoundingClientRect(); box.style.top = Math.max(8, Math.min(window.innerHeight - box.offsetHeight - 8, r.bottom + 8)) + 'px'; box.style.left = Math.max(8, Math.min(window.innerWidth - box.offsetWidth - 8, r.left)) + 'px';
+      box.addEventListener('click', function(ev2){ var b = ev2.target.closest('[data-a]'); if (!b) return; var a = b.getAttribute('data-a'), S2 = K.site(); S2.texts = S2.texts || {}; S2.hidden = S2.hidden || {};
+        if (a === 'x') return close();
+        if (a === 'up'){ close(); if (t.parentElement && t.parentElement !== document.body) t.parentElement.click(); return; }
+        if (a === 'save' || a === 'orig'){ var scope = box.querySelector('[data-all]').checked ? '*' : pid; ['*', pid].forEach(function(sc){ if (S2.texts[sc]) delete S2.texts[sc][key]; });
+          if (a === 'save' && ta.value.trim() && ta.value.trim() !== orig){ (S2.texts[scope] = S2.texts[scope] || {})[key] = ta.value.trim(); K.log('تعديل نص في ' + pid); } }
+        if (a === 'rq1' || a === 'rq0' || a === 'rqd'){ S2.required = S2.required || {}; var RQ = S2.required[pid] = S2.required[pid] || {}; if (a === 'rqd') delete RQ[rk]; else RQ[rk] = a === 'rq1'; K.log('تعديل إلزامية حقل في ' + pid, pid); K.save(); try { KPReq.mark(); } catch(z){} return close(); }
+        if (a === 'hide'){ var L = S2.hidden[pid] = S2.hidden[pid] || [], i = L.indexOf(path); if (i > -1) L.splice(i, 1); else { L.push(path); K.log('إخفاء عنصر في ' + pid); } }
+        K.save(); close(); });
+    }, true); });
+  }
+
+  /* ---- staff portal: real sign-in, permissions, offers, colleagues' occasions (assets/portal.js) ---- */
+  function portalKit(){ if (OWN !== 'portal') return; var n = document.createElement('script'); n.src = '../assets/portal.js'; n.onload = function(){ var m = document.createElement('script'); m.src = '../assets/intranet.js'; m.onload = function(){ var f = document.createElement('script'); f.src = '../assets/forms.js'; document.head.appendChild(f); }; document.head.appendChild(m); }; document.head.appendChild(n); }
+
+  /* ---- languages: the whole page through the free Google website translator, with a built-in
+          dictionary for the menus when the translator cannot be reached ---- */
+  function i18n(){
+    var LANGS = [['ar','العربية'],['en','English'],['hi','हिन्दी'],['bn','বাংলা'],['ur','اردو'],['tl','Filipino']], RTL = {ar:1, ur:1}, KEY = 'kptc.lang';
+    var cur = 'ar'; try { cur = localStorage.getItem(KEY) || 'ar'; } catch(x){}
+    var D = {
+      'الخطوط':['Routes','रूट','রুট','روٹس','Mga Ruta'], 'الاشتراكات':['Passes','पास','পাস','پاس','Mga Pass'], 'العمرة':['Umrah','उमरा','উমরাহ','عمرہ','Umrah'], 'الونش':['Towing','टोइंग','টোয়িং','ٹوئنگ','Towing'],
+      'أعلن معنا':['Advertise','विज्ञापन दें','বিজ্ঞাপন দিন','اشتہار دیں','Mag-advertise'], 'العقارات':['Properties','संपत्तियाँ','সম্পত্তি','جائیدادیں','Mga Ari-arian'], 'حسابي':['My account','मेरा खाता','আমার অ্যাকাউন্ট','میرا اکاؤنٹ','Aking account'],
+      'اشترك الآن':['Subscribe now','अभी सदस्यता लें','এখনই সাবস্ক্রাইব করুন','ابھی سبسکرائب کریں','Mag-subscribe'], 'الخط الساخن':['Hotline','हॉटलाइन','হটলাইন','ہاٹ لائن','Hotline'], 'المركز الإعلامي':['Media centre','मीडिया केंद्र','মিডিয়া সেন্টার','میڈیا سینٹر','Media center'],
+      'المناقصات':['Tenders','निविदाएँ','টেন্ডার','ٹینڈرز','Mga Tender'], 'الوظائف':['Careers','नौकरियाँ','চাকরি','ملازمتیں','Trabaho'], 'بوابة الموظفين':['Staff portal','कर्मचारी पोर्टल','কর্মী পোর্টাল','اسٹاف پورٹل','Staff portal'],
+      'اسأل كابتن K':['Ask Captain-K','कैप्टन-K से पूछें','ক্যাপ্টেন-K কে জিজ্ঞাসা করুন','کیپٹن-K سے پوچھیں','Tanungin si Captain-K'], 'كابتن K':['Captain-K','कैप्टन-K','ক্যাপ্টেন-K','کیپٹن-K','Captain-K'],
+      'خدماتنا':['Our services','हमारी सेवाएँ','আমাদের সেবা','ہماری خدمات','Mga serbisyo'], 'خدمة العملاء':['Customer care','ग्राहक सेवा','গ্রাহক সেবা','کسٹمر کیئر','Customer care'], 'الشركة':['Company','कंपनी','কোম্পানি','کمپنی','Kumpanya'],
+      'الخطوط والمسارات':['Routes and lines','रूट और लाइनें','রুট ও লাইন','روٹس اور لائنیں','Mga ruta at linya'], 'رحلات العمرة':['Umrah trips','उमरा यात्राएँ','উমরাহ সফর','عمرہ کے سفر','Biyaheng Umrah'], 'باصات VIP':['VIP coaches','VIP बसें','VIP বাস','VIP بسیں','Mga VIP bus'],
+      'المفقودات':['Lost and found','खोया-पाया','হারানো ও প্রাপ্তি','گمشدہ اشیاء','Lost and found'], 'الشكاوى':['Complaints','शिकायतें','অভিযোগ','شکایات','Mga reklamo'], 'تواصل معنا':['Contact us','संपर्क करें','যোগাযোগ করুন','رابطہ کریں','Makipag-ugnayan'],
+      'عن KPTC':['About KPTC','KPTC के बारे में','KPTC সম্পর্কে','KPTC کے بارے میں','Tungkol sa KPTC'], 'مساحات للإيجار':['Spaces for rent','किराये की जगहें','ভাড়ার জায়গা','کرائے کی جگہیں','Mga paupahan'], 'فحص ما قبل التسليم PDI':['Pre-delivery inspection (PDI)','डिलीवरी-पूर्व जाँच (PDI)','ডেলিভারি-পূর্ব পরিদর্শন (PDI)','ڈیلیوری سے پہلے معائنہ (PDI)','Pre-delivery inspection (PDI)'],
+      'فحص PDI':['PDI inspection','PDI जाँच','PDI পরিদর্শন','PDI معائنہ','PDI inspection'], 'حسابي ومحفظتي':['My account and wallet','मेरा खाता और वॉलेट','আমার অ্যাকাউন্ট ও ওয়ালেট','میرا اکاؤنٹ اور والیٹ','Account at wallet'],
+      'شركة النقل':['Kuwait Public','कुवैत पब्लिक','কুয়েত পাবলিক','کویت پبلک','Kuwait Public'], 'العام الكويتية':['Transport Company','ट्रांसपोर्ट कंपनी','ট্রান্সপোর্ট কোম্পানি','ٹرانسپورٹ کمپنی','Transport Company'],
+      'العاصمة':['Capital','कैपिटल','ক্যাপিটাল','دارالحکومت','Capital'], 'حولي':['Hawalli','हवल्ली','হাওয়াল্লি','حولی','Hawalli'], 'الفروانية':['Farwaniya','फरवानिया','ফারওয়ানিয়া','فروانیہ','Farwaniya'], 'مبارك الكبير':['Mubarak Al-Kabeer','मुबारक अल-कबीर','মুবারক আল-কাবীর','مبارک الکبیر','Mubarak Al-Kabeer'], 'الأحمدي':['Ahmadi','अहमदी','আহমাদি','احمدی','Ahmadi'], 'الجهراء':['Jahra','जहरा','জাহরা','جہراء','Jahra'],
+      'السلة':['Cart','कार्ट','কার্ট','ٹوکری','Cart'], 'ابحث':['Search','खोजें','খুঁজুন','تلاش','Maghanap'], 'إغلاق':['Close','बंद करें','বন্ধ করুন','بند کریں','Isara'], 'التالي':['Next','आगे','পরবর্তী','اگلا','Susunod']
+    };
+    var sels = [].slice.call(document.querySelectorAll('select.lang, select.k2-lang'));
+    sels.forEach(function(s){ s.innerHTML = LANGS.map(function(l){ return '<option value="' + l[0] + '">' + l[1] + '</option>'; }).join(''); s.value = cur; s.classList.add('notranslate'); s.setAttribute('translate', 'no');
+      s.addEventListener('change', function(){ try { localStorage.setItem(KEY, s.value); } catch(x){} set(s.value, true); }); });
+    document.querySelectorAll('.num, .rc-num, .nw-chip, .cs-s, .kp-hot b, [dir="ltr"]').forEach(function(e){ e.classList.add('notranslate'); });
+    var css = document.createElement('style'); css.textContent = '.goog-te-banner-frame,.skiptranslate>iframe,#goog-gt-tt,.goog-te-balloon-frame,.VIpgJd-ZVi9od-ORHb-OEVmcd,.VIpgJd-ZVi9od-aZ2wEe-wOHMyf{display:none!important}body{top:0!important;position:static!important}#kpGT{position:absolute;left:-9999px;top:-9999px}.goog-text-highlight{background:none!important;box-shadow:none!important}html[data-kplang] body{font-family:"IBM Plex Sans Arabic","Noto Sans",system-ui,sans-serif}'; document.head.appendChild(css);
+    function cookie(v){ var h = location.hostname, exp = v ? '' : ';expires=Thu, 01 Jan 1970 00:00:00 GMT'; ['', ';domain=' + h, ';domain=.' + h.split('.').slice(-2).join('.')].forEach(function(dm){ try { document.cookie = 'googtrans=' + (v || '') + exp + ';path=/' + dm; } catch(x){} }); }
+    function local(code){ // menus only, from the built-in dictionary
+      var i = ['en','hi','bn','ur','tl'].indexOf(code); if (i < 0) return;
+      var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), n, list = []; while ((n = w.nextNode())) list.push(n);
+      list.forEach(function(n){ var p = n.parentNode; if (!p || /^(SCRIPT|STYLE|OPTION|TEXTAREA)$/.test(p.nodeName)) return; var k = n.nodeValue.replace(/\s+/g, ' ').trim(); if (D[k]){ n.__kpar = n.__kpar || n.nodeValue; n.nodeValue = n.nodeValue.replace(n.nodeValue.trim(), D[k][i]); } });
+    }
+    function combo(code, tries){ var c = document.querySelector('select.goog-te-combo'); if (c && c.options.length > 1){ document.documentElement.dir = RTL[code] ? 'rtl' : 'ltr'; c.value = code; c.dispatchEvent(new Event('change')); return; } if (tries > 0) setTimeout(function(){ combo(code, tries - 1); }, 250); else fallback(code); }
+    var failed = false;
+    function fallback(code){ if (failed) return; failed = true; local(code); document.documentElement.dir = 'rtl'; if (window.self === window.top || OWN === 'home'){ var t = document.getElementById('toast'); try { showToast('تُرجمت القوائم. الترجمة الكاملة للصفحة تعمل عند الاتصال بخدمة الترجمة.'); } catch(x){} } }
+    function set(code, user){
+      var h = document.documentElement;
+      if (code === 'ar'){ cookie(''); h.lang = 'ar'; h.dir = 'rtl'; h.removeAttribute('data-kplang'); if (user) location.reload(); return; }
+      h.setAttribute('data-kplang', code); cookie('/ar/' + code); local(code);
+      if (window.google && google.translate && document.querySelector('select.goog-te-combo')) return combo(code, 20);
+      if (document.getElementById('kpGTs')){ if (failed) { location.reload(); } return; }
+      var box = document.createElement('div'); box.id = 'kpGT'; document.body.appendChild(box);
+      window.kpGTinit = function(){ try { new google.translate.TranslateElement({pageLanguage:'ar', includedLanguages:'en,hi,bn,ur,tl', autoDisplay:false}, 'kpGT'); combo(code, 40); } catch(x){ fallback(code); } };
+      var sc = document.createElement('script'); sc.id = 'kpGTs'; sc.src = 'https://translate.google.com/translate_a/element.js?cb=kpGTinit'; sc.onerror = function(){ fallback(code); }; document.head.appendChild(sc);
+      setTimeout(function(){ if (!document.querySelector('select.goog-te-combo')) fallback(code); }, 6000);
+    }
+    window.addEventListener('storage', function(e){ if (e.key === KEY && e.newValue !== cur) location.reload(); });
+    if (cur !== 'ar') set(cur, false);
+  }
+
+  /* ---- studio preview: show exactly what a change touched ---- */
+  function spotlight(){
+    if (location.hash !== '#kpprev' || window.parent === window || !window.KPTC) return;
+    var armed = 0, armT = null, tm = null, buf = new Map(), W = {hide:'أُخفي', show:'ظهر', text:'نص جديد', change:'تغيّر'}, RANK = {hide:4, show:4, text:3, change:1};
+    var st = document.createElement('style');
+    st.textContent = '[data-kp-spot]{position:absolute;z-index:2147483000;pointer-events:none;border:3px solid #FFC93C;border-radius:8px;box-shadow:0 0 0 4px rgba(46,44,120,.6),0 0 26px 6px rgba(255,201,60,.55);animation:kpspot 3s ease-out forwards}[data-kp-spot] b{position:absolute;top:-15px;inset-inline-start:8px;background:#2E2C78;color:#FFC93C;font:700 12px "Noto Kufi Arabic",sans-serif;padding:2px 10px;border-radius:10px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3)}[data-kp-spot].k-hide b{background:#C2352E;color:#fff}[data-kp-spot].k-show b{background:#16A36A;color:#fff}@keyframes kpspot{0%{opacity:0;transform:scale(1.04)}8%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0}}.kp-spot-chip{position:fixed;top:10px;inset-inline:0;margin-inline:auto;width:max-content;max-width:90vw;z-index:2147483001;pointer-events:none;background:#14133A;color:#fff;border:2px solid #FFC93C;border-radius:20px;padding:6px 16px;font:700 13px "Noto Kufi Arabic",sans-serif;animation:kpspot 3.2s ease-out forwards}';
+    document.head.appendChild(st);
+    function own(n){ var e = n.nodeType === 1 ? n : n.parentElement; return !e || e.closest('[data-kp-spot],.kp-spot-chip,script,style,svg title'); }
+    function note(el, kind){ if (el && /^(INPUT|SELECT|TEXTAREA|LABEL|OPTION)$/.test(el.tagName) && kind === 'change') return; if (!el || el === document.body || el === document.documentElement || own(el)) return; var o = buf.get(el); if (!o || RANK[kind] > RANK[o]) buf.set(el, kind); }
+    new MutationObserver(function(list){
+      if (!armed) return;
+      list.forEach(function(m){
+        var t = m.target;
+        if (m.type === 'attributes'){
+          var cur = t.getAttribute(m.attributeName) || '', old = m.oldValue || ''; if (cur === old) return;
+          if (m.attributeName === 'class'){ var a = old.split(/\s+/), b = cur.split(/\s+/), add = b.filter(function(x){ return x && a.indexOf(x) < 0; }), rem = a.filter(function(x){ return x && b.indexOf(x) < 0; }); if (!add.length && !rem.length) return;
+            if (add.indexOf('kp-off') > -1) note(t, 'hide'); else if (rem.indexOf('kp-off') > -1) note(t, 'show'); else if (add.concat(rem).every(function(x){ return /^(on|sel|selected|active|open|bump|tilt)$/.test(x); })) return; else note(t, 'change'); }
+          else note(t, 'change');
+        } else if (m.type === 'characterData'){ if (t.nodeValue !== m.oldValue) note(t.parentElement, 'text'); }
+        else { var real = [].slice.call(m.addedNodes).concat([].slice.call(m.removedNodes)).filter(function(n){ return n.nodeType === 1 || (n.nodeValue || '').trim(); }); if (real.length) note(t, 'text'); }
+      });
+      clearTimeout(tm); tm = setTimeout(flush, 180);
+    }).observe(document.body, {subtree:true, childList:true, characterData:true, characterDataOldValue:true, attributes:true, attributeOldValue:true, attributeFilter:['class','style','hidden','href','src']});
+    function nameOf(el){ var a = el.getAttribute('aria-label') || el.getAttribute('data-label'); if (a) return a; var h = el.querySelector && el.querySelector('h1,h2,h3,h4'); var t = ((h && h.textContent) || el.textContent || '').replace(/\s+/g, ' ').trim(); return t ? t.slice(0, 28) : '<' + el.tagName.toLowerCase() + '>'; }
+    function flush(){
+      var items = []; buf.forEach(function(kind, el){ items.push({el: el, kind: kind}); }); buf.clear(); if (!items.length) return;
+      items.forEach(function(it){ var e = it.el, g = 0; if (it.kind !== 'hide'){ while (e.parentElement && g < 4){ var r = e.getBoundingClientRect(), cs = getComputedStyle(e); if (r.width >= 60 && r.height >= 18 && cs.display !== 'inline') break; e = e.parentElement; g++; } } it.el = e; });
+      items = items.filter(function(it, i){ return !items.some(function(o, j){ return j !== i && o.el !== it.el && it.el.contains(o.el) && it.kind !== 'hide' && it.kind !== 'show'; }); });
+      var seen = new Set(); items = items.filter(function(it){ if (seen.has(it.el)) return false; seen.add(it.el); return true; }).slice(0, 8);
+      var out = [], first = null, sx = window.scrollX, sy = window.scrollY;
+      document.querySelectorAll('[data-kp-spot],.kp-spot-chip').forEach(function(n){ n.remove(); });
+      items.forEach(function(it){
+        var name = nameOf(it.el); out.push({k: it.kind, n: name});
+        var r = it.el.getBoundingClientRect(), shown = r.width > 2 && r.height > 2 && getComputedStyle(it.el).display !== 'none';
+        if (it.kind === 'hide' || !shown){ var c = document.createElement('div'); c.className = 'kp-spot-chip'; c.style.top = (10 + document.querySelectorAll('.kp-spot-chip').length * 38) + 'px'; c.textContent = (it.kind === 'hide' || !shown ? 'أُخفي: ' : '') + name; document.body.appendChild(c); setTimeout(function(){ c.remove(); }, 3300); return; }
+        var d = document.createElement('div'); d.setAttribute('data-kp-spot', ''); d.className = 'k-' + it.kind; d.style.cssText = 'left:' + (r.left + sx - 4) + 'px;top:' + (r.top + sy - 4) + 'px;width:' + (r.width + 8) + 'px;height:' + (r.height + 8) + 'px'; d.innerHTML = '<b>' + W[it.kind] + '</b>'; document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 3100);
+        if (!first) first = it.el;
+      });
+      if (first){ var fr = first.getBoundingClientRect(); if (fr.top < 60 || fr.bottom > window.innerHeight - 20) first.scrollIntoView({behavior:'smooth', block:'center'}); }
+      try { parent.postMessage({kpSpot: out}, '*'); } catch(x){}
+    }
+    KPTC.onChange(function(){ armed = 1; clearTimeout(armT); armT = setTimeout(function(){ armed = 0; }, 1000); });
+  }
+
+  /* ---- studio link: lets the studio list a page's sections, point at one, and follow which page is open ---- */
+  function studioLink(){
+    if (window.parent === window || !/kpprev|kpedit/.test(location.hash) || !window.KPTC) return;
+    var pid = OWN || 'home', SKIP = '.k2-util,.util,header,.k2-head,.k2-drawer,.drawer,nav.sub,footer,.k2-foot,.kp-ask,.kp-top,.kp-fab,.floating-call,.dlg,.toast,#toast,#toastEl,.flash,.kp-notice,.kp-closed,.kx-rail,.kp-edbar,.kp-ed,.kp-spot-chip,[data-kp-spot],[data-kp-peek],.success-overlay,.success-page,.overlay,.modal-overlay,.modal-bg,.mbg,#kpGT,.skiptranslate,script,style,link,noscript,iframe,canvas.kp-hidden';
+    function blocks(root, depth){
+      var out = [];
+      [].slice.call(root.children).forEach(function(e){
+        if (e.matches(SKIP) || /^(ASIDE)$/.test(e.tagName)) return;
+        var cs = getComputedStyle(e); if (cs.display === 'none' || cs.position === 'fixed') return;
+        var h = e.getBoundingClientRect().height; if (h < 40) return;
+        var inner = (e.tagName === 'MAIN' || (h > 700 && depth < 3)) ? blocks(e, depth + 1) : [];
+        if (inner.length >= 2) out = out.concat(inner); else out.push(e);
+      });
+      return out;
+    }
+    function labelOf(e){
+      var a = e.getAttribute('aria-label') || e.getAttribute('data-label'); if (a) return a.slice(0, 40);
+      var h = e.querySelector('h1,h2,h3,h4,.kp-tag,.sec-title,.block-title'); var t = (h && h.textContent || '').replace(/\s+/g, ' ').trim();
+      if (!t){ var tx = (e.innerText || '').replace(/\s+/g, ' ').trim(); t = tx.slice(0, 34); }
+      return t || (e.id ? '#' + e.id : e.tagName.toLowerCase());
+    }
+    function list(){
+      var S = KPTC.site(), H = (S.hidden || {})[pid] || [], lab = (S.hiddenLabels || {})[pid] || {}, L = blocks(document.body, 0).map(function(e, i){ return {sel: selPath(e), label: labelOf(e), on: true, h: Math.round(e.getBoundingClientRect().height)}; });
+      H.forEach(function(sel){ if (L.some(function(x){ return x.sel === sel; })) return; var m = lab[sel] || {}; L.splice(Math.min(m.i == null ? L.length : m.i, L.length), 0, {sel: sel, label: m.l || 'قسم مخفي', on: false}); });
+      return L;
+    }
+    function post(){ try { parent.postMessage({kpSec: {page: pid, list: list()}}, '*'); } catch(x){} }
+    var st = document.createElement('style'); st.textContent = '[data-kp-peek]{position:absolute;z-index:2147483000;pointer-events:none;border:3px solid #FFC93C;background:rgba(255,201,60,.14);border-radius:6px;box-shadow:0 0 0 4px rgba(46,44,120,.65)}[data-kp-peek] b{position:absolute;top:8px;inset-inline-start:8px;background:#2E2C78;color:#FFC93C;font:700 12px "Noto Kufi Arabic",sans-serif;padding:3px 11px;border-radius:10px}'; document.head.appendChild(st);
+    function peek(sel, label){
+      document.querySelectorAll('[data-kp-peek]').forEach(function(n){ n.remove(); }); if (!sel) return;
+      var el; try { el = document.querySelector(sel); } catch(x){} if (!el) return;
+      var r = el.getBoundingClientRect(); if (r.height < 4) return;
+      if (r.top < 0 || r.top > window.innerHeight * .6) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+      setTimeout(function(){ var r2 = el.getBoundingClientRect(), d = document.createElement('div'); d.setAttribute('data-kp-peek', ''); d.style.cssText = 'left:' + (r2.left + scrollX) + 'px;top:' + (r2.top + scrollY) + 'px;width:' + r2.width + 'px;height:' + r2.height + 'px'; d.innerHTML = '<b>' + (label ? K2.esc(label) : 'هذا القسم') + '</b>'; document.body.appendChild(d); }, 380);
+    }
+    var K2 = KPTC;
+    window.addEventListener('message', function(e){ var d = e.data || {}; if (d.kpAsk === 'sections') post(); if ('kpPeek' in d) peek(d.kpPeek, d.label); });
+    var t = null; KPTC.onChange(function(){ clearTimeout(t); t = setTimeout(post, 500); });
+    window.addEventListener('load', function(){ setTimeout(post, 700); try { parent.postMessage({kpPage: pid}, '*'); } catch(x){} });
+  }
+
+  /* ---- required fields: one engine for every page; the studio decides which fields are mandatory ---- */
+  var REQ_DEFAULT = {
+    umrah:['fn-ar','ln-ar','fn-en','ln-en','passport','passport-exp','l:رقم الجوال','l:الجنسية','l:رقم البطاقة','cardName','l:تاريخ الانتهاء','l:رمز الحماية CVV'],
+    vip:['d-from','d-to','d-date','d-time','d-pax','l:الاسم','l:رقم الجوال','l:تاريخ المغادرة','l:عدد الركاب','l:ليلة الديوانية','l:موقع الديوانية','l:عدد الضيوف','intl-dest'],
+    winch:['winchName','winchPhone','winchPlate','govSelect','l:الاسم','l:رقم الجوال','l:رقم اللوحة','l:الموديل والسنة','trackInput'],
+    ads:['brandName','adMessage','adContact','startDate','endDate'],
+    subs:['tk-from','tk-to','tk-date','tk-time'],
+    lost:['lfDesc','lfDate','lfName','lfPhone','lfcProof','lfcName','lfcPhone']
+  };
+  function reqEngine(){
+    var K = window.KPTC; if (!K || !K.site) return; var pid = OWN || 'home';
+    function labelOf(el){
+      var w = el.closest('.f,.ff,.field,.pax-field,.mf,.s-field,.cf-field,.date-field,.field-row>div') || el.parentNode, lb = w && w.querySelector('label,.pax-label,.f-label,.date-label'); if (!lb) return '';
+      return lb.textContent.replace(/\(\s*اختياري\s*\)/g, '').replace(/[*✱]/g, '').replace(/^[^\p{L}\p{N}]+/u, '').replace(/\s+/g, ' ').trim();
+    }
+    function keyOf(el){ if (el.id) return el.id; if (el.name) return 'n:' + el.name; var l = labelOf(el); return l ? 'l:' + l : null; }
+    function over(){ var S = K.site(); return (S.required || {})[pid] || {}; }
+    function isReq(el){ var k = keyOf(el); if (!k) return false; var o = over(); if (k in o) return !!o[k]; if (el.getAttribute('data-req') === '0') return false; if (el.getAttribute('data-req') === '1') return true; return (REQ_DEFAULT[pid] || []).indexOf(k) > -1; }
+    function empty(el){
+      var v = (el.value || '').trim(); if (el.tagName === 'SELECT'){ var o0 = el.options[0]; return !v || (el.selectedIndex === 0 && o0 && o0.value === ''); }
+      if (/tel/.test(el.type) || /phone|tel|جوال|هاتف/i.test(keyOf(el) || '')) return K.latin(v).replace(/\D/g, '').length < 8;
+      if (el.type === 'email' && v) return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      return !v;
+    }
+    function fields(root){ return [].filter.call(root.querySelectorAll('input,select,textarea'), function(e){ return !/^(checkbox|radio|hidden|file|range|button|submit)$/.test(e.type) && !e.disabled && !e.readOnly && e.offsetParent !== null; }); }
+    var css = document.createElement('style');
+    css.textContent = '.kp-bad{border-color:#C2352E!important;box-shadow:0 0 0 3px rgba(194,53,46,.18)!important;animation:kp-shake .35s}@keyframes kp-shake{25%{translate:5px 0}75%{translate:-5px 0}}.kp-reqm::after{content:" *";color:#C2352E;font-weight:700}.kp-errt{display:block;color:#C2352E;font:600 12px var(--f-body);margin-top:4px}';
+    document.head.appendChild(css);
+    function clear(e){ e.classList.remove('kp-bad'); e.removeAttribute('aria-invalid'); var n = e.nextElementSibling; if (n && n.classList && n.classList.contains('kp-errt')) n.remove(); }
+    /* returns true when every required field inside root is filled; otherwise marks them, scrolls to the first and says why */
+    function check(root){
+      if (typeof root === 'string') root = document.querySelector(root); if (!root) return true;
+      var bad = [], names = []; fields(root).forEach(function(e){ clear(e); if (isReq(e) && empty(e)){ bad.push(e); var n = labelOf(e) || e.placeholder || ''; if (n && names.indexOf(n) < 0) names.push(n); } });
+      if (!bad.length) return true;
+      bad.forEach(function(e){ e.classList.add('kp-bad'); e.setAttribute('aria-invalid', 'true'); e.addEventListener('input', function f(){ clear(e); e.removeEventListener('input', f); }); e.addEventListener('change', function f2(){ clear(e); e.removeEventListener('change', f2); }); });
+      try { bad[0].scrollIntoView({behavior:'smooth', block:'center'}); bad[0].focus({preventScroll:true}); } catch(x){}
+      try { showToast('أكمل الحقول الإلزامية: ' + names.slice(0, 3).join('، ') + (names.length > 3 ? ' …' : '')); } catch(x){}
+      return false;
+    }
+    /* a red star on every mandatory field's label, kept current when the studio changes the rule */
+    function mark(){ document.querySelectorAll('input,select,textarea').forEach(function(e){ if (/^(checkbox|radio|hidden|file|range|button|submit)$/.test(e.type)) return; var w = e.closest('.f,.ff,.field,.pax-field,.mf,.s-field,.cf-field,.date-field'), lb = w && w.querySelector('label,.pax-label,.f-label,.date-label'); if (lb) lb.classList.toggle('kp-reqm', isReq(e)); }); }
+    window.KPReq = {key:keyOf, label:labelOf, isReq:isReq, check:check, mark:mark, over:over};
+    var G = {
+      umrah:[['nextStep', function(){ try { return '#step' + currentStep; } catch(x){ return null; } }], ['processPayment', function(){ return '#step5'; }]],
+      vip:[['confirmBooking', function(){ return '#tab-domestic'; }], ['showSuccess', function(t){ return t === 'international' ? '#tab-international' : t === 'diwaniya' ? '#tab-diwaniya' : null; }]],
+      winch:[['submitWinch', function(){ return '#pane-winch'; }], ['submitWorkshop', function(){ return '#pane-workshop'; }], ['doTrack', function(){ return '#pane-track'; }]],
+      ads:[['submitOrder', function(){ return '.page-body'; }]],
+      subs:[['addTicketToCart', function(){ return '.route-sel-box'; }]]
+    };
+    (G[pid] || []).forEach(function(g){ var o = window[g[0]]; if (typeof o !== 'function') return; window[g[0]] = function(){ var sc = g[1].apply(this, arguments); if (sc && !check(sc)) return; return o.apply(this, arguments); }; });
+    // umrah: every passenger needs a seat before moving on
+    if (pid === 'umrah' && typeof window.canAdvance === 'function'){ var ca = window.canAdvance; window.canAdvance = function(){ try { if (currentStep === 3) return selectedSeats.length === paxCounts.adult + paxCounts.child; } catch(x){} return ca.apply(this, arguments); }; }
+    mark(); K.onChange(mark); new MutationObserver(function(){ clearTimeout(mark.t); mark.t = setTimeout(mark, 200); }).observe(document.body, {childList:true, subtree:true});
+  }
+
+  /* ---- small page fill-ins: Captain-K topics ---- */
+  function polish(){
+    if (OWN === 'assistant'){
+      var host = document.querySelector('.demo-content'); if (!host || host.querySelector('.ck-topics')) return;
+      var T = [['الخطوط والمحطات','من أي محطة ينطلق خط 15؟','route'],['بطاقة التوفير','كم سعر بطاقة التوفير؟','card'],['رحلات العمرة','ما أسعار رحلات العمرة؟','star'],['تأجير الحافلات','كم سعر تأجير حافلة VIP؟','bus'],['الونش والورشة','كم سعر الونش؟','wrench'],['المفقودات','أريد أن أبلّغ عن مفقودات','search'],['الإعلان على الحافلات','كيف أعلن على الحافلات؟','megaphone'],['التواصل','ما رقم الخط الساخن؟','phone']];
+      var box = document.createElement('div'); box.className = 'ck-topics';
+      box.innerHTML = '<div class="ck-h"><h2>بماذا يساعدك كابتن K؟</h2><p>اختر موضوعاً فيفتح المحادثة ويجيبك فوراً، أو اكتب سؤالك بكلماتك.</p></div><div class="ck-g">' + T.map(function(t, i){ return '<button type="button" data-q="' + t[1] + '" style="--i:' + i + '"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + (P[t[2]] || P.chat) + '</svg></i><b>' + t[0] + '</b><span>«' + t[1] + '»</span></button>'; }).join('') + '</div>';
+      host.insertBefore(box, host.firstChild);
+      box.addEventListener('click', function(e){ var b = e.target.closest('[data-q]'); if (!b) return; try { openChat(); setTimeout(function(){ quickAsk(b.getAttribute('data-q')); }, 350); } catch(x){} });
+    }
+  }
+
+  /* ---- lost and found: the radar page (assets/lost.js) ---- */
+  function lostKit(){
+    if (OWN !== 'lost') return;
+    var q = document.createElement('script'); q.src = '../assets/qrcode.min.js';
+    var next = function(){ var n = document.createElement('script'); n.src = '../assets/lost.js'; document.head.appendChild(n); };
+    q.onload = next; q.onerror = next; document.head.appendChild(q);
+  }
+
+  /* ---- subs: the ticket's QR code is a real, scannable code (it opens the site on the subscriptions page) ---- */
+  function ticketQR(){
+    if (OWN !== 'subs') return;
+    var q = document.createElement('script'); q.src = '../assets/qrcode.min.js';
+    q.onload = function(){
+      window.generateQR = function(){
+        var box = document.getElementById('qrCode'); if (!box || !window.qrcode) return;
+        var num = (document.getElementById('tkNum') || {}).textContent || 'KPTC', base = new URL('../index.html', location.href).href.split('#')[0].split('?')[0];
+        try { var qr = window.qrcode(0, 'M'); qr.addData(base + '?ticket=' + encodeURIComponent(num.trim()) + '#/subs'); qr.make(); box.innerHTML = qr.createSvgTag({cellSize:4, margin:0, scalable:true}); box.classList.add('real'); box.setAttribute('role', 'img'); box.setAttribute('aria-label', 'رمز QR للتذكرة ' + num.trim()); } catch(e){}
+      };
+      try { window.generateQR(); } catch(e){}
+    };
+    document.head.appendChild(q);
+  }
+
+  /* ---- ads: a 3D K-Bus the visitor can spin, with the campaign on the faces they picked ---- */
+  function bus3d(fallback){
+    var host = document.getElementById('lpBus'); if (!host) return;
+    function val(id){ var e = document.getElementById(id); return e ? e.value.trim() : ''; }
+    function state(){
+      var sel = []; try { sel = selectedPositions.map(function(p){ return p.id; }); } catch(x){}
+      var col = '#2E2C78'; try { col = adColor; } catch(x){}
+      var has = function(k){ return sel.indexOf(k) > -1; }, wrap = has('wrap'), side = wrap || has('side-full') || has('side-half');
+      var faces = {right: side, left: side, rear: wrap || has('rear'), front: wrap || has('front'), roof: wrap || has('roof')};
+      var IMG = window.kpAdImages || {}; Object.keys(IMG).forEach(function(k){ if (IMG[k]) faces[k] = true; });   // a picture is always shown on its own face
+      var any = faces.right || faces.rear || faces.front || faces.roof, demo = !any;
+      if (demo) faces.right = faces.left = true;                      // nothing chosen yet: show a sample on the sides
+      return {color: col, brand: val('brandName') || 'علامتك التجارية', message: val('adMessage') || 'رسالتك الإعلانية هنا', contact: val('adContact'), faces: faces,
+              mode: wrap ? 'wrap' : has('side-full') ? 'full' : has('side-half') ? 'half' : (IMG.right || IMG.left) ? 'full' : 'half', demo: demo, inside: has('interior') || has('digital'), images: IMG};
+    }
+    function load(src, cb){ var sc = document.createElement('script'); sc.src = src; sc.onload = cb; sc.onerror = fallback; document.head.appendChild(sc); }
+    function begin(M){
+      var wrap = document.createElement('div'); wrap.className = 'kp-3d';
+      wrap.innerHTML = '<div class="kp-3d-view"></div><div class="kp-3d-bar"><span class="kp-3d-hint"><i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + P.refresh + '</svg></i>اسحب لتدوير الحافلة</span><div class="kp-3d-views" role="group" aria-label="زاوية العرض">' +
+        [['right','الجانب الأيمن'],['left','الجانب الأيسر'],['rear','الخلف'],['front','المقدمة'],['roof','السقف']].map(function(v){ return '<button type="button" data-v="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div></div><p class="kp-3d-note" aria-live="polite"></p>';
+      host.parentNode.insertBefore(wrap, host);
+      var api = M.mount(wrap.querySelector('.kp-3d-view'), state);
+      if (!api){ wrap.remove(); return fallback(); }
+      host.style.display = 'none'; window.__kpGLM = M.gl ? M : null;
+      if (window.__kpHero3d){ var hf = window.__kpHero3d; window.__kpHero3d = null; hf(true); }
+      var note = wrap.querySelector('.kp-3d-note');
+      function sync(){ api.refresh(); var s = state(); note.textContent = s.demo ? 'معاينة تجريبية على الجانبين. اختر مواضع الإعلان من البطاقات أعلاه لتراها على الحافلة.' : (s.inside ? 'المواضع الداخلية والشاشات الرقمية لا تظهر على هيكل الحافلة الخارجي.' : 'هذا شكل إعلانك على المواضع التي اخترتها.'); }
+      wrap.querySelector('.kp-3d-views').addEventListener('click', function(e){ var b = e.target.closest('[data-v]'); if (!b) return; api.look(b.getAttribute('data-v')); wrap.querySelectorAll('[data-v]').forEach(function(x){ x.classList.toggle('on', x === b); }); });
+      var up = window.updatePreview; if (typeof up === 'function') window.updatePreview = function(){ var r = up.apply(this, arguments); try { sync(); } catch(x){} return r; };
+      var tg = window.togglePosition; if (typeof tg === 'function') window.togglePosition = function(el, id){ var r = tg.apply(this, arguments); var v = {'side-full':'right','side-half':'right','rear':'rear','front':'front','roof':'roof','wrap':'hero'}[id]; if (v && el.classList.contains('selected')) api.look(v); return r; };
+      /* ---- real pictures on any face of the bus, at their true size ---- */
+      var IM = window.kpAdImages = {}, FACES = [['right','الجانب الأيمن'],['left','الجانب الأيسر'],['rear','الخلف'],['front','المقدمة'],['roof','السقف']];
+      var upBox = document.createElement('div'); upBox.className = 'kp-up'; wrap.appendChild(upBox);
+      var sym = true;
+      function cm(v){ return Math.round(v * 100); }
+      function pos(id){ return document.querySelector('[onclick*="togglePosition(this,\'' + id + '\'"]'); }
+      function ensure(face){
+        var want = {right:'side-full', left:'side-full', rear:'rear', front:'front', roof:'roof'}[face], el, sel = [];
+        try { sel = selectedPositions.map(function(p){ return p.id; }); } catch(x){}
+        if ((face === 'right' || face === 'left') && (sel.indexOf('side-full') > -1 || sel.indexOf('side-half') > -1 || sel.indexOf('wrap') > -1)) return;
+        if (sel.indexOf(want) > -1 || sel.indexOf('wrap') > -1) return; el = pos(want); if (el && !el.classList.contains('selected')) el.click();
+      }
+      function paintUp(){
+        var z = M.zones(state().mode);
+        upBox.innerHTML = '<div class="kp-up-h"><b>ارفع تصميم إعلانك</b><small>اختر الجهة وارفع الصورة، وتظهر على الحافلة بمقاسها الحقيقي. تُختار المواضع والأسعار من البطاقات أعلاه.</small></div><div class="kp-up-g">' + FACES.map(function(f){
+          var k = f[0], im = IM[k], zz = z[k], ratio = zz.w / zz.h, warn = '', ctl = '';
+          if (im){ var ir = im.el.width / im.el.height, off = Math.abs(Math.log(ir / ratio));
+            if (off > .15) warn = '<em>نسبة صورتك ' + ir.toFixed(1) + ':1 غير نسبة المساحة ' + ratio.toFixed(1) + ':1. ' + (im.fit === 'contain' ? 'تظهر كاملة بهوامش من لون الحملة.' : 'تُقصّ الأطراف الزائدة، حرّك موضع القص أو اختر «احتواء».') + '</em>';
+            ctl = '<div class="ac"><button type="button" data-a="fit">' + (im.fit === 'contain' ? 'ملء المساحة' : 'احتواء كامل') + '</button><button type="button" data-a="rm">إزالة</button></div>' + (im.fit !== 'contain' && off > .05 ? '<label class="rg">موضع القص<input type="range" min="0" max="100" value="' + Math.round((ir > ratio ? (im.ox == null ? .5 : im.ox) : (im.oy == null ? .5 : im.oy)) * 100) + '" data-a="pos" data-h="' + (ir > ratio ? 1 : 0) + '"></label>' : ''); }
+          return '<div class="kp-up-c' + (im ? ' has' : '') + '" data-f="' + k + '"><button type="button" class="th" data-a="up" aria-label="رفع صورة ' + f[1] + '">' + (im ? '<img src="' + im.thumb + '" alt="">' : '<span>+</span>') + '</button><b>' + f[1] + '</b><small>' + cm(zz.w) + '×' + cm(zz.h) + ' سم · ' + ratio.toFixed(1) + ':1<br>الأفضل ' + Math.round(zz.w * 250) + '×' + Math.round(zz.h * 250) + ' بكسل</small>' + warn + (im ? '' : '<button type="button" class="up" data-a="up">رفع صورة</button>') + ctl + '</div>'; }).join('') + '</div>' +
+          '<label class="kp-up-s"><input type="checkbox" id="kpSym"' + (sym ? ' checked' : '') + '> الجانبان بالصورة نفسها (الأيمن والأيسر)</label>';
+      }
+      upBox.addEventListener('click', function(e){
+        var b = e.target.closest('[data-a]'); if (!b) return; var f = b.closest('[data-f]').getAttribute('data-f'), a = b.getAttribute('data-a');
+        if (a === 'up'){ var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none'; document.body.appendChild(inp);
+          inp.onchange = function(){ var file = inp.files && inp.files[0]; inp.remove(); if (!file) return; if (!/^image\//.test(file.type)) return toast('الملف ليس صورة');
+            var r = new FileReader(); r.onload = function(){ var im = new Image(); im.onload = function(){
+              var k = Math.min(1, 2600 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+              var t = document.createElement('canvas'), tk = 120 / Math.max(c.width, c.height); t.width = Math.round(c.width * tk); t.height = Math.round(c.height * tk); t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
+              var rec = {el:c, fit:'cover', ox:.5, oy:.5, name:file.name, thumb:t.toDataURL('image/jpeg', .7)};
+              IM[f] = rec; var twin = f === 'right' ? 'left' : f === 'left' ? 'right' : null; if (twin && sym) IM[twin] = Object.assign({}, rec);
+              ensure(f); if (twin && sym) ensure(twin); sync(); api.look(f); toast('رُفعت الصورة على ' + FACES.filter(function(x){ return x[0] === f; })[0][1]); };
+              im.onerror = function(){ toast('تعذّرت قراءة الصورة'); }; im.src = r.result; };
+            r.readAsDataURL(file); };
+          inp.click(); }
+        else if (a === 'rm'){ delete IM[f]; if (sym && (f === 'right' || f === 'left')) delete IM[f === 'right' ? 'left' : 'right']; sync(); }
+        else if (a === 'fit'){ var cur = IM[f].fit === 'contain' ? 'cover' : 'contain'; IM[f].fit = cur; if (sym && IM[f === 'right' ? 'left' : f === 'left' ? 'right' : '']) IM[f === 'right' ? 'left' : 'right'].fit = cur; sync(); }
+      });
+      upBox.addEventListener('input', function(e){ var b = e.target.closest('[data-a="pos"]'); if (!b) return; var f = b.closest('[data-f]').getAttribute('data-f'), v = b.value / 100, key = b.getAttribute('data-h') === '1' ? 'ox' : 'oy'; IM[f][key] = v; if (sym && (f === 'right' || f === 'left') && IM[f === 'right' ? 'left' : 'right']) IM[f === 'right' ? 'left' : 'right'][key] = v; api.refresh(); });
+      upBox.addEventListener('change', function(e){ if (e.target.id === 'kpSym') sym = e.target.checked; });
+      var syncBase = sync; sync = function(){ syncBase(); if (!upBox.contains(document.activeElement) || !document.activeElement.matches('input[type=range]')) paintUp(); };
+      function toast(t){ try { showToast(t); } catch(x){} }
+      sync();
+    }
+    /* the real 3D K-Bus model (glTF) when the browser can do WebGL2/ES modules; otherwise the lighter built-in one */
+    function classic(){ load('../assets/three.min.js', function(){ load('../assets/bus3d.js', function(){ begin(window.KPBus3D); }); }); }
+    try {
+      var dyn = new Function('u', 'return import(u)');
+      dyn('../assets/busgl.js').then(function(M){ return M.ready().then(function(g){ if (g) begin({mount: M.mount, zones: M.zones, gl: true}); else classic(); }); }).catch(classic);
+    } catch(e){ classic(); }
+  }
+
+  /* ---- ads: the campaign preview is painted onto a real K-Bus photo ---- */
+  function adsStage(){
+    if (OWN !== 'ads') return;
+    function stage(host, ad, cls){
+      if (!host || !ad) return;
+      var box = document.createElement('div'); box.className = 'kp-stagebox ' + cls;
+      var st = document.createElement('div'); st.className = 'kp-stage'; st.style.backgroundImage = 'url(../assets/kbus-side.jpg)';
+      st.appendChild(ad); ad.classList.add('kp-onbus'); box.appendChild(st);
+      var cap = document.createElement('span'); cap.className = 'kp-stagecap'; cap.textContent = 'حافلة K-Bus الرسمية — صورة حقيقية'; box.appendChild(cap);
+      host.parentNode.insertBefore(box, host); host.style.display = 'none';
+      return st;
+    }
+    bus3d(function(){   // no WebGL: fall back to the photo stage
+      if (window.__kpHero3d){ var hf = window.__kpHero3d; window.__kpHero3d = null; hf(false); }
+      var st = stage(document.getElementById('lpBus'), document.getElementById('lpSideAd'), 'kp-live');
+      var rear = document.getElementById('lpRearAd'); if (st && rear){ st.appendChild(rear); rear.classList.add('kp-rearflag'); }
+    });
+    // hero: the same 3D K-Bus, turning slowly and trying on sample campaigns
+    var hero = document.querySelector('.bus-svg-wrap');
+    if (hero){
+      var SAMPLES = [{n:'أصفر جريء', color:'#FFC93C', brand:'علامتك التجارية', message:'إعلانك يجوب الكويت كل يوم'}, {n:'أخضر هادئ', color:'#1E7F55', brand:'افتتاح قريباً', message:'يراك الركاب والمارة في كل شارع'}, {n:'أحمر لافت', color:'#DC2626', brand:'عرض الموسم', message:'أكثر من 400 حافلة · 26 مساراً'}], si = 0, api = null, timer = null;
+      var h3 = document.createElement('div'); h3.className = 'kp-hero3d';
+      h3.innerHTML = '<div class="kp-hero3d-v"></div><div class="kp-hero3d-b"><span>اسحب الحافلة لتدويرها</span><div>' + SAMPLES.map(function(x, i){ return '<button type="button" data-s="' + i + '" class="' + (i ? '' : 'on') + '" title="' + x.n + '" aria-label="' + x.n + '" style="--c:' + (x.color.match(/#[0-9a-f]{6}/i) || ['#FFC93C'])[0] + '"></button>'; }).join('') + '</div><a href="#livePreview" class="kp-hero3d-go">جرّب تصميمك</a></div>';
+      hero.parentNode.insertBefore(h3, hero); hero.style.display = 'none';
+      var pick = function(i){ si = i; h3.querySelectorAll('[data-s]').forEach(function(x, k){ x.classList.toggle('on', k === i); }); if (api) api.refresh(); };
+      // the sample the visitor likes becomes the real campaign in the builder, and the page scrolls to the live preview
+      function tryDesign(i){
+        var x = SAMPLES[i], set = function(id, v){ var e = document.getElementById(id); if (e){ e.value = v; e.dispatchEvent(new Event('input', {bubbles:true})); } };
+        try { adColor = x.color; } catch(z){}
+        document.querySelectorAll('.color-opt').forEach(function(c){ c.classList.toggle('selected', (c.getAttribute('style') || '').toLowerCase().indexOf(x.color.toLowerCase()) > -1); });
+        set('brandName', x.brand); set('adMessage', x.message);
+        try { var sel = selectedPositions.map(function(p){ return p.id; }); if (!sel.length){ var card = document.querySelector('[onclick*="togglePosition(this,\'side-full\'"]'); if (card) card.click(); } } catch(z){}
+        try { updatePreview(); } catch(z){}
+        var t = document.querySelector('.kp-3d') || document.querySelector('.builder-card'); if (t) t.scrollIntoView({behavior:'smooth', block:'center'});
+        try { showToast('نمط «' + x.n + '» جاهز. عدّل النصوص وارفع صورتك وشاهد النتيجة على الحافلة.'); } catch(z){}
+      }
+      h3.addEventListener('click', function(e){ var b2 = e.target.closest('[data-s]'); if (b2){ clearInterval(timer); pick(+b2.getAttribute('data-s')); try { showToast('نمط «' + SAMPLES[si].n + '» — اضغط «جرّب تصميمك» لتطبيقه على حملتك'); } catch(z){} } var g = e.target.closest('.kp-hero3d-go'); if (g){ e.preventDefault(); clearInterval(timer); tryDesign(si); } });
+      window.__kpHero3d = function(ok){
+        if (ok && (window.__kpGLM || window.KPBus3D)) api = (window.__kpGLM || KPBus3D).mount(h3.querySelector('.kp-hero3d-v'), function(){ var x = SAMPLES[si]; return {color:x.color, brand:x.brand, message:x.message, contact:'1880001', faces:{right:true, left:true, rear:true}, mode:'full'}; });
+        if (api){ timer = setInterval(function(){ if (!document.hidden) pick((si + 1) % SAMPLES.length); }, 4500); h3.querySelector('.kp-hero3d-v').addEventListener('pointerdown', function(){ clearInterval(timer); }); }
+        else { h3.remove(); hero.style.display = ''; stage(hero, document.getElementById('heroBusAd'), 'kp-herobus'); }   // no WebGL: the official photo
+      };
+    }
+  }
+
+  /* ---- VIP: see the coach before you book ---- */
+  function vipGallery(){
+    if (OWN !== 'vip') return;
+    var hero = document.querySelector('.hero.kp-hero'); if (!hero) return;
+    var shots = [['coach-2.jpg','الخلف والجانب','حافلة VIP بهوية KPTC'],['coach-1.jpg','المنظر الجانبي','نوافذ بانورامية على طول الحافلة'],['coach-door.jpg','باب الصعود','درجات واسعة ومدخل مريح'],['coach-interior.jpg','المقصورة','مقاعد وثيرة مع طاولة للجلسات'],['coach-3.jpg','الواجهة الأمامية','زجاج أمامي بانورامي']];
+    var sec = document.createElement('section'); sec.className = 'kp-vipg';
+    sec.innerHTML = '<div class="kp-vipg-in"><div class="kp-vipg-view"><img id="kpVipImg" src="../assets/' + shots[0][0] + '" alt="' + shots[0][2] + '"><span id="kpVipCap">' + shots[0][2] + '</span><em>حرّك المؤشر للتكبير</em></div>' +
+      '<div class="kp-vipg-side"><small>صور حقيقية من أسطول KPTC</small><h2>شاهد حافلتك قبل أن تحجز</h2><p>هذه هي الحافلة التي ستصل إلى باب ضيوفك: حافلة VIP تتسع حتى <b>45</b> راكباً، بمقصورة هادئة وسائق معتمد.</p>' +
+      '<ul><li><b>45</b><span>راكباً في حافلة VIP</span></li><li><b>1962</b><span>خبرة في النقل منذ</span></li><li><b>6</b><span>محافظات ورحلات إقليمية</span></li></ul>' +
+      '<div class="kp-vipg-th">' + shots.map(function(s, i){ return '<button type="button" class="' + (i ? '' : 'on') + '" data-i="' + i + '" aria-label="' + s[1] + '"><img src="../assets/' + s[0] + '" alt=""><span>' + s[1] + '</span></button>'; }).join('') + '</div>' +
+      '<div class="kp-vipg-cta"><button type="button" class="k2-btn k2-btn-sign" id="kpVipGo">احجز هذه الحافلة</button><span>أو اتصل <b dir="ltr">1880001</b></span></div></div></div>';
+    hero.parentNode.insertBefore(sec, hero.nextSibling);
+    var img = sec.querySelector('#kpVipImg'), view = sec.querySelector('.kp-vipg-view'), cur = 0, auto;
+    function show(i){ cur = i; img.classList.add('out'); setTimeout(function(){ img.src = '../assets/' + shots[i][0]; img.alt = shots[i][2]; sec.querySelector('#kpVipCap').textContent = shots[i][2]; img.classList.remove('out'); }, 180); sec.querySelectorAll('.kp-vipg-th button').forEach(function(b, k){ b.classList.toggle('on', k === i); }); }
+    sec.querySelector('.kp-vipg-th').addEventListener('click', function(e){ var b = e.target.closest('[data-i]'); if (b){ clearInterval(auto); show(+b.getAttribute('data-i')); } });
+    view.addEventListener('mousemove', function(e){ var r = view.getBoundingClientRect(); img.style.transformOrigin = ((e.clientX - r.left)/r.width*100) + '% ' + ((e.clientY - r.top)/r.height*100) + '%'; view.classList.add('zoom'); clearInterval(auto); });
+    view.addEventListener('mouseleave', function(){ view.classList.remove('zoom'); });
+    sec.querySelector('#kpVipGo').addEventListener('click', function(){ var t = sec.nextElementSibling; if (t) t.scrollIntoView({behavior:'smooth', block:'start'}); });
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) auto = setInterval(function(){ show((cur + 1) % shots.length); }, 4200);
+  }
+
+
+  /* ---- the assistant is always one obvious tap away ---- */
+  function assistantEntry(){
+    var fab = document.querySelector('.kp-fab');
+    if (fab && !fab.querySelector('.kp-fab-t')){ var t = document.createElement('span'); t.className = 'kp-fab-t'; t.textContent = OWN === 'assistant' || OWN === 'reclient' ? 'كابتن K' : 'كابتن K'; fab.appendChild(t); }
+    if (OWN === 'assistant'){ try { if (sessionStorage.getItem('kptc.chat')){ sessionStorage.removeItem('kptc.chat'); setTimeout(function(){ if (typeof openChat === 'function') openChat(); }, 500); } } catch(x){} return; }
+    if (fab || !document.querySelector('.k2-head, body > header') || document.querySelector('.floating-call')) return;
+    var a = link('KPTC_AI_Assistant.html', '', 'kp-ask'); a.setAttribute('aria-label', 'اسأل كابتن K');
+    a.innerHTML = '<i class="ki" aria-hidden="true"><svg viewBox="0 0 24 24">' + P.chat + '</svg></i><span>اسأل كابتن K</span><i class="kp-on" aria-hidden="true"></i>';
+    a.addEventListener('click', function(){ try { sessionStorage.setItem('kptc.chat', '1'); } catch(x){} });
+    document.body.appendChild(a);
+  }
+
+  function init(){
+    chrome(); assistantEntry(); capture(); routesMap(); adsStage(); vipGallery(); bookingKit(); winchKit(); portalKit(); polish(); ticketQR(); lostKit(); reqEngine(); siteEdits(); spotlight(); studioLink(); i18n();
+    walk(document.body);
+    stages();
+    if (window.KPTC) KPTC.onChange(function(){ visibility(); });
+    forms();
+    homeExtras();
+    footerStrip();
+    standalone();
+    countUp(); backToTop(); lineBus(); gatewayKeys();
+    new MutationObserver(function(ms){
+      ms.forEach(function(m){
+        if (m.type === 'characterData') return swapText(m.target);
+        m.addedNodes.forEach(function(n){ if (!(n.nodeType===1 && n.classList && (n.classList.contains('ki')||n.classList.contains('ki-dot')))) walk(n); });
+      });
+    }).observe(document.body, {childList:true, subtree:true, characterData:true});
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script><!--/kptc:core-js-->
+</body>
+</html>

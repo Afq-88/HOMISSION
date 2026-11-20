@@ -1050,7 +1050,7 @@ dl.d dt{color:var(--kp-muted)}dl.d dd{font-weight:600}
     f.insertBefore(s, f.firstChild);
   }
 
-  var MAP = {"KPTC_Executive_Landing.html":"exec","KPTC_Home.html":"home","KPTC_Routes.html":"routes","KPTC_Subscriptions.html":"subs","KPTC_Umrah.html":"umrah","KPTC_VIP.html":"vip","KPTC_Winch.html":"winch","KPTC_LostFound.html":"lost","KPTC_Advertising.html":"ads","KPTC_AI_Assistant.html":"assistant","KPTC_Admin_Dashboard_v3.html":"siteadmin","KPTC_Admin_AI.html":"adminai","KPTC_Portal.html":"portal","KPTC_RealEstate.html":"realestate","KPTC_RE_AI.html":"reai","KPTC_RE_Client.html":"reclient","KPTC_Client_Portal.html":"tenant","KPTC_Website_Prototype.html":"home","KPTC_Subscriptions_v2.html":"subs","KPTC_Account.html":"account","KPTC_Media.html":"media","KPTC_Tenders.html":"tenders","KPTC_Careers.html":"careers","KPTC_SiteAdmin.html":"siteadmin","KPTC_PDI.html":"pdi"};
+  var MAP = {"KPTC_Executive_Landing.html":"exec","KPTC_Home.html":"home","KPTC_Routes.html":"routes","KPTC_Subscriptions.html":"subs","KPTC_Umrah.html":"umrah","KPTC_VIP.html":"vip","KPTC_Winch.html":"winch","KPTC_LostFound.html":"lost","KPTC_Advertising.html":"ads","KPTC_AI_Assistant.html":"assistant","KPTC_Admin_Dashboard_v3.html":"siteadmin","KPTC_Board.html":"board","KPTC_OrgStructure.html":"org","KPTC_Admin_AI.html":"adminai","KPTC_Portal.html":"portal","KPTC_RealEstate.html":"realestate","KPTC_RE_AI.html":"reai","KPTC_RE_Client.html":"reclient","KPTC_Client_Portal.html":"tenant","KPTC_Website_Prototype.html":"home","KPTC_Subscriptions_v2.html":"subs","KPTC_Account.html":"account","KPTC_Media.html":"media","KPTC_Tenders.html":"tenders","KPTC_Careers.html":"careers","KPTC_SiteAdmin.html":"siteadmin","KPTC_PDI.html":"pdi"};
   function standalone(){
     if (window.parent !== window){
       document.addEventListener('click', function(e){
@@ -1171,19 +1171,19 @@ dl.d dt{color:var(--kp-muted)}dl.d dd{font-weight:600}
     }
     var panel = document.querySelector('.k2-panel, .drawer .panel');
     if (panel && !panel.querySelector('.kp-xl')){
-      [['KPTC_Account.html','حسابي ومحفظتي'],['KPTC_PDI.html','فحص PDI'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ panel.appendChild(link(x[0], x[1], 'kp-xl')); });
+      [['KPTC_Account.html','حسابي ومحفظتي'],['KPTC_Board.html','مجلس الإدارة'],['KPTC_OrgStructure.html','الهيكل التنظيمي'],['KPTC_PDI.html','فحص PDI'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ panel.appendChild(link(x[0], x[1], 'kp-xl')); });
       panel.querySelectorAll('a[href="KPTC_Portal.html"]').forEach(function(x){ x.remove(); });
       var st2 = link('KPTC_Portal.html', 'بوابة الموظفين', 'kp-staff'); panel.appendChild(st2);
     }
     var cols = document.querySelectorAll('.k2-fg > div ul, .f-grid > div ul'), last = cols[cols.length-1];
     if (last && !last.querySelector('.kp-xl')){
-      [['KPTC_PDI.html','فحص ما قبل التسليم PDI'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ var li = document.createElement('li'); li.appendChild(link(x[0], x[1], 'kp-xl')); last.appendChild(li); });
+      [['KPTC_Board.html','مجلس الإدارة'],['KPTC_OrgStructure.html','الهيكل التنظيمي'],['KPTC_PDI.html','فحص ما قبل التسليم PDI'],['KPTC_Media.html','المركز الإعلامي'],['KPTC_Tenders.html','المناقصات'],['KPTC_Careers.html','الوظائف']].forEach(function(x){ var li = document.createElement('li'); li.appendChild(link(x[0], x[1], 'kp-xl')); last.appendChild(li); });
     }
     visibility();
     fitNav();
   }
   /* the main menu always fits: whatever does not fit the bar (and the pages that never had a slot) go under «المزيد» */
-  var EXTRA_NAV = [['KPTC_LostFound.html','المفقودات','lost'],['KPTC_PDI.html','فحص PDI','pdi']];
+  var EXTRA_NAV = [['KPTC_LostFound.html','المفقودات','lost'],['KPTC_PDI.html','فحص PDI','pdi'],['KPTC_Board.html','مجلس الإدارة','board'],['KPTC_OrgStructure.html','الهيكل التنظيمي','org']];
   function fitNav(){
     var nav = document.querySelector('.k2-nav'); if (!nav) return;
     var K = window.KPTC, hide = function(id){ try { return K && K.pageState(id) === 'off'; } catch(x){ return false; } };
