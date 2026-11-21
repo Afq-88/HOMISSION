@@ -6,15 +6,24 @@
   const nd = s => String(s ?? '').replace(/[٠-٩]/g, c => AR.indexOf(c)).replace(/[۰-۹]/g, c => FA.indexOf(c)).replace(/٫/g, '.');
   const UNK = '__unknown__';
   const STEPS = ['الخدمة', 'التفاصيل', 'التواصل', 'المراجعة'];
-  const BUS = cls => `<svg class="${cls}" viewBox="0 0 92 46" aria-hidden="true"><rect x="2" y="6" width="88" height="29" rx="8" fill="#2e2c78"/><rect x="2" y="24" width="88" height="5" fill="#ffc93c"/><rect x="7" y="10" width="15" height="14" rx="3" fill="#cfe6ff"/><rect x="26" y="11" width="14" height="10" rx="2" fill="#cfe6ff"/><rect x="44" y="11" width="14" height="10" rx="2" fill="#cfe6ff"/><rect x="62" y="11" width="14" height="10" rx="2" fill="#cfe6ff"/><circle cx="24" cy="37" r="7" fill="#14133a"/><circle cx="68" cy="37" r="7" fill="#14133a"/><circle cx="24" cy="37" r="3" fill="#ffc93c"/><circle cx="68" cy="37" r="3" fill="#ffc93c"/></svg>`;
+  const BUS = cls => `<svg class="${cls}" viewBox="0 0 92 46" aria-hidden="true"><rect x="2" y="6" width="88" height="29" rx="8" fill="#2b338c"/><rect x="2" y="24" width="88" height="5" fill="#ffc93c"/><rect x="7" y="10" width="15" height="14" rx="3" fill="#cfe6ff"/><rect x="26" y="11" width="14" height="10" rx="2" fill="#cfe6ff"/><rect x="44" y="11" width="14" height="10" rx="2" fill="#cfe6ff"/><rect x="62" y="11" width="14" height="10" rx="2" fill="#cfe6ff"/><circle cx="24" cy="37" r="7" fill="#14173f"/><circle cx="68" cy="37" r="7" fill="#14173f"/><circle cx="24" cy="37" r="3" fill="#ffc93c"/><circle cx="68" cy="37" r="3" fill="#ffc93c"/></svg>`;
   const empty = v => v === undefined || v === null || v === '' || (Array.isArray(v) && !v.length);
-  const fmtDate = iso => { try { return new Date(iso).toLocaleString('ar-KW-u-nu-latn', { timeZone: 'Asia/Kuwait', dateStyle: 'long', timeStyle: 'short' }); } catch { return iso; } };
+  const fmtDate = iso => { try { return new Date(iso).toLocaleString((window.I18N && document.body.classList.contains('visitor') && I18N.lang() !== 'ar') ? I18N.loc() + '-u-nu-latn' : 'ar-KW-u-nu-latn', { timeZone: 'Asia/Kuwait', dateStyle: 'long', timeStyle: 'short' }); } catch { return iso; } };
   const uuid = () => (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join(''));
 
   function mount(root, opts) {
     const cfg = opts.config, mode = opts.mode; // public | kiosk | staff | edit
     const K = window.KArt, fancy = (mode === 'public' || mode === 'kiosk') && !!K; // «محطة الجناح»: واجهة الزائر فقط (الموظف يبقى بمظهره)
     let wordsTimer = null;
+    // الترجمة: النص العربي هو المفتاح (واجهة الزائر فقط؛ الموظف والتعديل عربي دائمًا)
+    const T = (str, p) => { const r = (fancy && window.I18N) ? I18N.t(str) : str; return p ? r.replace(/\{(\w+)\}/g, (m, k) => (p[k] != null ? p[k] : m)) : r; };
+    const NUM = n => (L() === 'ar' ? K.num(n) : String(n));
+    const L = () => (fancy && window.I18N ? I18N.lang() : 'ar');
+    const countryName = c => { if (c.cc === '0') return T(c.name); if (L() === 'ar') return c.name; try { return new Intl.DisplayNames([I18N.loc()], { type: 'region' }).of(c.iso) || c.name; } catch { return c.name; } };
+    const trVal = v => String(v).split('، ').map(x => T(x)).join(L() === 'ar' ? '، ' : ', ');
+    const NEXT_BASE = 'سيتم مراجعة طلبكم ومتابعته مع الجهة المختصة، وتحديد الخطوات التالية بعد المراجعة.';
+    const trNext = str => (str.startsWith(NEXT_BASE) ? T(NEXT_BASE) + str.slice(NEXT_BASE.length) : str);
+    const CONFIRM = 'شكرًا لزيارتكم جناح شركة النقل العام الكويتية. تم استلام طلبكم برقم ({ref}) لمراجعته ومتابعته. تسجيل الطلب لا يُعد تأكيدًا للحجز أو تفعيلًا للخدمة، وتخضع الأسعار والتوافر للتأكيد من الجهة المختصة.';
     let st, idleTimer, warnTimer, countTimer;
     const fresh = () => ({
       screen: mode === 'kiosk' ? 'welcome' : (mode === 'edit' ? 'edit' : 'form'), step: 1, service: opts.service || null,
@@ -50,25 +59,25 @@
     function phoneError() {
       const cc = st.common.phone_cc, c = cfg.countries.find(x => x.cc === cc);
       let d = nd(st.common.phone || '').replace(/[^\d+]/g, '');
-      if (!d) return 'أدخل رقم الهاتف';
+      if (!d) return T('أدخل رقم الهاتف');
       if (c && c.cc !== '0') { if (d.startsWith('+' + c.cc)) d = d.slice(c.cc.length + 1); else if (d.startsWith('00' + c.cc)) d = d.slice(c.cc.length + 2); }
       d = d.replace(/\D/g, '').replace(/^0+/, '');
-      if (!c) return 'اختر رمز الدولة';
-      if (!c.len.includes(d.length)) return `رقم ${c.name} يجب أن يكون ${c.len.join(' أو ')} أرقام`;
-      if (!new RegExp(c.first).test(d)) return `رقم الهاتف غير صحيح لدولة ${c.name}`;
+      if (!c) return T('اختر رمز الدولة');
+      if (!c.len.includes(d.length)) return T('رقم {c} يجب أن يكون {n} أرقام', { c: countryName(c), n: c.len.join(L() === 'ar' ? ' أو ' : ' / ') });
+      if (!new RegExp(c.first).test(d)) return T('رقم الهاتف غير صحيح لدولة {c}', { c: countryName(c) });
       return '';
     }
     function fieldError(f) {
       const v = store(f)[f.key];
       if (f.type === 'phone') return phoneError();
-      if (v === UNK) return f.required ? 'هذا الحقل مطلوب' : '';
-      if (f.required && empty(v)) return f.type === 'radio' || f.type === 'select' ? 'اختر أحد الخيارات' : 'هذا الحقل مطلوب';
+      if (v === UNK) return f.required ? T('هذا الحقل مطلوب') : '';
+      if (f.required && empty(v)) return f.type === 'radio' || f.type === 'select' ? T('اختر أحد الخيارات') : T('هذا الحقل مطلوب');
       if (empty(v)) return '';
-      if (f.type === 'email' && !/^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/.test(v)) return 'صيغة البريد الإلكتروني غير صحيحة';
+      if (f.type === 'email' && !/^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/.test(v)) return T('صيغة البريد الإلكتروني غير صحيحة');
       if (f.type === 'number') {
         const s = nd(v).replace(/,/g, '');
-        if (!/^\d+$/.test(s)) return 'أدخل رقمًا صحيحًا';
-        const n = +s; if ((f.min != null && n < f.min) || (f.max != null && n > f.max)) return `القيمة بين ${f.min ?? 0} و${f.max}`;
+        if (!/^\d+$/.test(s)) return T('أدخل رقمًا صحيحًا');
+        const n = +s; if ((f.min != null && n < f.min) || (f.max != null && n > f.max)) return T('القيمة بين {a} و{b}', { a: f.min ?? 0, b: f.max });
       }
       return '';
     }
@@ -91,123 +100,127 @@
       const k = f.scope + '.' + f.key, v = store(f)[f.key], err = st.errors[k];
       const unk = v === UNK;
       const id = 'fld-' + f.scope + '-' + f.key;
-      const tag = f.required ? '<span class="req" aria-label="مطلوب">*</span>' : '<span class="opt">اختياري</span>';
+      const tag = f.required ? `<span class="req" aria-label="${esc(T('مطلوب'))}">*</span>` : `<span class="opt">${esc(T('اختياري'))}</span>`;
       let ctl = '';
       const a = `data-s="${f.scope}" data-k="${esc(f.key)}"`;
+      const ph = f.placeholder ? `placeholder="${esc(T(f.placeholder))}"` : '';
       switch (f.type) {
         case 'text': case 'email':
-          ctl = `<input id="${id}" type="${f.type === 'email' ? 'email' : 'text'}" ${a} value="${esc(unk ? '' : v)}" ${unk ? 'disabled' : ''} ${f.placeholder ? `placeholder="${esc(f.placeholder)}"` : ''} autocomplete="${opts.mode === 'kiosk' ? 'off' : (f.auto || 'off')}" ${f.type === 'email' ? 'dir="ltr" inputmode="email"' : ''} ${f.max ? `maxlength="${f.max}"` : ''}>`; break;
+          ctl = `<input id="${id}" type="${f.type === 'email' ? 'email' : 'text'}" ${a} value="${esc(unk ? '' : v)}" ${unk ? 'disabled' : ''} ${ph} autocomplete="${opts.mode === 'kiosk' ? 'off' : (f.auto || 'off')}" ${f.type === 'email' ? 'dir="ltr" inputmode="email"' : ''} ${f.max ? `maxlength="${f.max}"` : ''}>`; break;
         case 'number':
           ctl = `<input id="${id}" type="text" inputmode="numeric" ${a} data-num="1" value="${esc(unk ? '' : v)}" ${unk ? 'disabled' : ''} autocomplete="off">`; break;
         case 'date': case 'time':
           ctl = `<input id="${id}" type="${f.type}" ${a} value="${esc(unk ? '' : v)}" ${unk ? 'disabled' : ''}>`; break;
         case 'textarea':
-          ctl = `<textarea id="${id}" ${a} ${unk ? 'disabled' : ''} ${f.placeholder ? `placeholder="${esc(f.placeholder)}"` : ''}>${esc(unk ? '' : v)}</textarea>`; break;
+          ctl = `<textarea id="${id}" ${a} ${unk ? 'disabled' : ''} ${ph}>${esc(unk ? '' : v)}</textarea>`; break;
         case 'select':
-          ctl = `<select id="${id}" ${a}><option value="">— اختر —</option>${f.options.map(o => `<option value="${esc(o.v)}" ${v === o.v ? 'selected' : ''}>${esc(o.l)}</option>`).join('')}${f.unknownOk ? `<option value="${UNK}" ${unk ? 'selected' : ''}>غير محدد حاليًا</option>` : ''}</select>`; break;
+          ctl = `<select id="${id}" ${a}><option value="">${esc(T('— اختر —'))}</option>${f.options.map(o => `<option value="${esc(o.v)}" ${v === o.v ? 'selected' : ''}>${esc(T(o.l))}</option>`).join('')}${f.unknownOk ? `<option value="${UNK}" ${unk ? 'selected' : ''}>${esc(T('غير محدد حاليًا'))}</option>` : ''}</select>`; break;
         case 'radio':
-          ctl = `<div class="chips" role="radiogroup" aria-labelledby="${id}-l">${f.options.map(o => `<button type="button" class="chip" role="radio" aria-checked="${v === o.v}" aria-pressed="${v === o.v}" data-radio="1" ${a} data-v="${esc(o.v)}">${esc(o.l)}</button>`).join('')}</div>`; break;
+          ctl = `<div class="chips" role="radiogroup" aria-labelledby="${id}-l">${f.options.map(o => `<button type="button" class="chip" role="radio" aria-checked="${v === o.v}" aria-pressed="${v === o.v}" data-radio="1" ${a} data-v="${esc(o.v)}">${esc(T(o.l))}</button>`).join('')}</div>`; break;
         case 'multicheck':
-          ctl = `<div class="chips" role="group" aria-labelledby="${id}-l">${f.options.map(o => `<button type="button" class="chip" aria-pressed="${(v || []).includes(o.v)}" data-multi="1" ${a} data-v="${esc(o.v)}">${esc(o.l)}</button>`).join('')}</div>`; break;
+          ctl = `<div class="chips" role="group" aria-labelledby="${id}-l">${f.options.map(o => `<button type="button" class="chip" aria-pressed="${(v || []).includes(o.v)}" data-multi="1" ${a} data-v="${esc(o.v)}">${esc(T(o.l))}</button>`).join('')}</div>`; break;
         case 'phone':
-          ctl = `<div class="phone-row"><select aria-label="رمز الدولة" data-s="c" data-k="phone_cc">${cfg.countries.map(c => `<option value="${c.cc}" ${st.common.phone_cc === c.cc ? 'selected' : ''}>${c.cc === '0' ? esc(c.name) : `+${c.cc} ${esc(c.name)}`}</option>`).join('')}</select>
-            <input id="${id}" type="tel" inputmode="tel" ${a} data-num="1" value="${esc(v)}" placeholder="مثال: 5XXXXXXX" autocomplete="${opts.mode === 'kiosk' ? 'off' : 'tel-national'}"></div>`; break;
+          ctl = `<div class="phone-row"><select aria-label="${esc(T('رمز الدولة'))}" data-s="c" data-k="phone_cc">${cfg.countries.map(c => `<option value="${c.cc}" ${st.common.phone_cc === c.cc ? 'selected' : ''}>${c.cc === '0' ? esc(countryName(c)) : `+${c.cc} ${esc(countryName(c))}`}</option>`).join('')}</select>
+            <input id="${id}" type="tel" inputmode="tel" ${a} data-num="1" value="${esc(v)}" placeholder="${esc(T('مثال: 5XXXXXXX'))}" autocomplete="${opts.mode === 'kiosk' ? 'off' : 'tel-national'}" dir="ltr"></div>`; break;
       }
-      const unkBtn = f.unknownOk && f.type !== 'select' ? `<button type="button" class="unk" data-unk="1" ${a} aria-pressed="${unk}">${unk ? '✓ ' : ''}غير محدد حاليًا</button>` : '';
-      return `<div class="field ${err ? 'invalid' : ''}" data-fk="${k}"><label id="${id}-l" for="${id}">${esc(f.label)} ${tag}</label>${ctl}${unkBtn}${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ''}${err ? `<div class="err-msg" role="alert">${esc(err)}</div>` : ''}</div>`;
+      const unkBtn = f.unknownOk && f.type !== 'select' ? `<button type="button" class="unk" data-unk="1" ${a} aria-pressed="${unk}">${unk ? '✓ ' : ''}${esc(T('غير محدد حاليًا'))}</button>` : '';
+      return `<div class="field ${err ? 'invalid' : ''}" data-fk="${k}"><label id="${id}-l" for="${id}">${esc(T(f.label))} ${tag}</label>${ctl}${unkBtn}${f.hint ? `<div class="hint">${esc(T(f.hint))}</div>` : ''}${err ? `<div class="err-msg" role="alert">${esc(err)}</div>` : ''}</div>`;
     }
 
     // ---------- الشاشات ----------
     function stepper() {
       const p = (st.step - 1) / 3;
-      return `<div class="route" style="--p:${p}" role="group" aria-label="خطوات التسجيل"><div class="line"></div><div class="fill"></div>${BUS('bus')}<ol>${STEPS.map((t, i) => `<li class="${i + 1 < st.step ? 'done' : ''} ${i + 1 === st.step ? 'cur' : ''}" ${i + 1 === st.step ? 'aria-current="step"' : ''}><i>${i + 1 < st.step ? '✓' : i + 1}</i><span>${t}</span></li>`).join('')}</ol></div>`;
+      return `<div class="route" style="--p:${p}" role="group" aria-label="${esc(T('خطوات التسجيل'))}"><div class="line"></div><div class="fill"></div>${BUS('bus')}<ol>${STEPS.map((label, i) => `<li class="${i + 1 < st.step ? 'done' : ''} ${i + 1 === st.step ? 'cur' : ''}" ${i + 1 === st.step ? 'aria-current="step"' : ''}><i>${i + 1 < st.step ? '✓' : (fancy ? NUM(i + 1) : i + 1)}</i><span>${esc(T(label))}</span></li>`).join('')}</ol></div>`;
     }
     const SHORT = { subscriptions: 'اشتراكات النقل', charter: 'رحلات وحافلات VIP', ads: 'إعلانات الحافلات', towing: 'أوناش ونقل مركبات', workshop: 'ورش وإصلاح', other: 'أي استفسار' };
     const hero = kind => {
-      const t = K.tod();
+      const tod = K.tod();
       const inner = kind === 'mini'
-        ? `<span class="h-eyebrow"><i></i>${esc(cfg.event.name)}</span>`
-        : `<span class="h-eyebrow"><i></i>${esc(cfg.event.name)} · شركة النقل العام الكويتية</span><h1 class="h-title">طلبك معنا</h1>
-           <p class="h-sub">سجّل طلبك مرة واحدة ويتابعه فريقنا معك.<br>نخدمك في <span class="h-words" id="hw">${esc(SHORT[(cfg.services[0] || {}).id] || '')}</span></p>
-           <div class="h-chips"><span>${K.num(cfg.services.length)} خدمات</span><span>بلا مستندات شخصية</span><span>نتابع معك</span></div>
-           ${kind === 'full' ? '<button type="button" class="btn btn-sign h-cta" data-scroll>اختر خدمتك ↓</button>' : ''}`;
-      return `<section class="hero2 tod-${t} ${kind === 'big' ? 'big' : ''} ${kind === 'mini' ? 'mini' : ''}">${K.scene(t)}<div class="buslane">${K.bus()}</div><div class="road"></div><div class="hero2-in">${inner}</div></section>`;
+        ? `<span class="h-eyebrow"><i></i>${esc(T(cfg.event.name))}</span>`
+        : `<span class="h-eyebrow"><i></i>${esc(T(cfg.event.name))} · ${esc(T('شركة النقل العام الكويتية'))}</span><h1 class="h-title">${esc(T('طلبك معنا'))}</h1>
+           <p class="h-sub">${esc(T('سجّل طلبك مرة واحدة ويتابعه فريقنا معك.'))}<br>${esc(T('نخدمك في'))} <span class="h-words" id="hw">${esc(T(SHORT[(cfg.services[0] || {}).id] || ''))}</span></p>
+           <div class="h-chips"><span>${esc(T('{n} خدمات', { n: NUM(cfg.services.length) }))}</span><span>${esc(T('بلا مستندات شخصية'))}</span><span>${esc(T('نتابع معك'))}</span></div>
+           ${kind === 'full' ? `<button type="button" class="btn btn-sign h-cta" data-scroll>${esc(T('اختر خدمتك'))} ↓</button>` : ''}`;
+      return `<section class="hero2 tod-${tod} ${kind === 'big' ? 'big' : ''} ${kind === 'mini' ? 'mini' : ''}">${K.scene(tod)}<div class="buslane">${K.bus()}</div><div class="road"></div><div class="hero2-in">${inner}</div></section>`;
     };
     function errBanner() {
       const n = Object.keys(st.errors).length;
-      return n ? `<div class="notice bad" role="alert"><b>يرجى استكمال ${n === 1 ? 'حقل واحد' : n + ' حقول'} مطلوبة</b> — الحقول المعلَّمة بالأحمر أدناه.</div>` : '';
+      return n ? `<div class="notice bad" role="alert"><b>${esc(n === 1 ? T('يرجى استكمال حقل واحد مطلوب') : T('يرجى استكمال {n} حقول مطلوبة', { n }))}</b> — ${esc(T('الحقول المعلَّمة بالأحمر أدناه.'))}</div>` : '';
     }
     function stepService() {
       if (fancy) {
-        return `<div class="sect-h2"><h2>ما الذي تحتاجه اليوم؟</h2><p>اختر خدمة واحدة للبدء. لا نطلب في هذه المرحلة أي مستندات شخصية.</p></div>
-          <div class="tiles2">${cfg.services.map((s, i) => { const [c1, c2] = K.lineOf(s.id); return `<button type="button" class="tile2" data-tile="${s.id}" aria-pressed="${st.service === s.id}" style="--lc:${c1};--lc2:${c2};--i:${i}"><span class="tart" aria-hidden="true"><span class="tnum">${K.num(i + 1)}</span>${K.icon(s.id)}</span><span class="tbody"><b>${esc(s.label)}</b><small>${esc(s.desc || '')}</small></span><span class="tgo" aria-hidden="true">اختيار ←</span></button>`; }).join('')}</div>${st.errors.service ? `<div class="err-msg" role="alert">${esc(st.errors.service)}</div>` : ''}`;
+        return `<div class="sect-h2"><h2>${esc(T('ما الذي تحتاجه اليوم؟'))}</h2><p>${esc(T('اختر خدمة واحدة للبدء. لا نطلب في هذه المرحلة أي مستندات شخصية.'))}</p></div>
+          <div class="tiles2">${cfg.services.map((s, i) => { const [c1, c2] = K.lineOf(s.id); return `<button type="button" class="tile2" data-tile="${s.id}" aria-pressed="${st.service === s.id}" style="--lc:${c1};--lc2:${c2};--i:${i}"><span class="tart" aria-hidden="true"><span class="tnum">${NUM(i + 1)}</span>${K.icon(s.id)}</span><span class="tbody"><b>${esc(T(s.label))}</b><small>${esc(T(s.desc || ''))}</small></span><span class="tgo" aria-hidden="true">${esc(T('اختيار'))} ${rtlArrow()}</span></button>`; }).join('')}</div>${st.errors.service ? `<div class="err-msg" role="alert">${esc(st.errors.service)}</div>` : ''}`;
       }
       return `<h1>ما الخدمة التي تهمّك؟</h1><p class="lead">اختر خدمة واحدة للبدء. لا تتطلب هذه المرحلة أي مستندات شخصية.</p>
         <div class="tiles">${cfg.services.map(s => `<button type="button" class="tile photo" data-tile="${s.id}" aria-pressed="${st.service === s.id}"><span class="phw"><span class="ph" style="--img:url(${esc(s.img || '')})"></span></span><span class="ic" aria-hidden="true">${s.icon || '•'}</span><span class="tb"><b>${esc(s.label)}</b><small>${esc(s.desc || '')}</small></span></button>`).join('')}</div>${st.errors.service ? `<div class="err-msg" role="alert">${esc(st.errors.service)}</div>` : ''}`;
     }
+    const rtlArrow = () => (fancy && window.I18N && I18N.dir() === 'ltr' ? '→' : '←');
+    const fwdArrow = () => (fancy && window.I18N && I18N.dir() === 'ltr' ? '→' : '←');
+    const backArrow = () => (fancy && window.I18N && I18N.dir() === 'ltr' ? '←' : '→');
     function svcHead() {
       const s = svc(); if (!fancy || !s) return '';
       const [c1, c2] = K.lineOf(s.id);
-      return `<div class="svc-head" style="--lc:${c1};--lc2:${c2}"><span class="art" aria-hidden="true">${K.icon(s.id)}</span><div class="meta"><small>خدمتك</small><b>${esc(s.label)}</b></div><button type="button" class="link" data-goto="1">تغيير</button></div>`;
+      return `<div class="svc-head" style="--lc:${c1};--lc2:${c2}"><span class="art" aria-hidden="true">${K.icon(s.id)}</span><div class="meta"><small>${esc(T('خدمتك'))}</small><b>${esc(T(s.label))}</b></div><button type="button" class="link" data-goto="1">${esc(T('تغيير'))}</button></div>`;
     }
     function stepNeeds() {
       const s = svc();
-      return `<h1>${esc(s.icon || '')} ${esc(s.label)}</h1>
-        ${s.notice ? `<div class="notice warn" role="note"><b>تنبيه:</b> ${esc(s.notice)}${cfg.emergency_number ? ` <br>رقم الطوارئ الرسمي: <b class="ltr">${esc(cfg.emergency_number)}</b>` : ''}</div>` : ''}
-        <p class="lead">عبّئ ما تعرفه الآن. الحقول المعلَّمة بـ <span class="req">*</span> مطلوبة، وإن لم تعرف معلومة اختر «غير محدد حاليًا» وسنستكملها معك.</p>
+      return `<h1>${esc(s.icon || '')} ${esc(T(s.label))}</h1>
+        ${s.notice ? `<div class="notice warn" role="note"><b>${esc(T('تنبيه:'))}</b> ${esc(T(s.notice))}${cfg.emergency_number ? ` <br>${esc(T('رقم الطوارئ الرسمي:'))} <b class="ltr">${esc(cfg.emergency_number)}</b>` : ''}</div>` : ''}
+        <p class="lead">${esc(T('عبّئ ما تعرفه الآن.'))} ${esc(T('الحقول المعلَّمة بـ'))} <span class="req">*</span> ${esc(T('مطلوبة، وإن لم تعرف معلومة اختر «غير محدد حاليًا» وسنستكملها معك.'))}</p>
         ${errBanner()}${step2Fields().map(fieldHtml).join('')}`;
     }
     function stepContact() {
-      return `<h1>بيانات التواصل</h1><p class="lead">نستخدمها للتواصل معك بشأن طلبك فقط.</p>${errBanner()}${contactFields().map(fieldHtml).join('')}`;
+      return `<h1>${esc(T('بيانات التواصل'))}</h1><p class="lead">${esc(T('نستخدمها للتواصل معك بشأن طلبك فقط.'))}</p>${errBanner()}${contactFields().map(fieldHtml).join('')}`;
     }
     function reviewRows(fields, vals) {
       const c = ctx();
       return fields.filter(f => showIf(f, c)).map(f => {
         const v = vals[f.key]; let shown;
-        if (v === UNK) shown = 'غير محدد حاليًا';
+        if (v === UNK) shown = T('غير محدد حاليًا');
         else if (empty(v)) return '';
-        else if (f.options) shown = Array.isArray(v) ? v.map(x => (f.options.find(o => o.v === x) || {}).l || x).join('، ') : ((f.options.find(o => o.v === v) || {}).l || v);
+        else if (f.options) shown = Array.isArray(v) ? v.map(x => T((f.options.find(o => o.v === x) || {}).l || x)).join(L() === 'ar' ? '، ' : ', ') : T((f.options.find(o => o.v === v) || {}).l || v);
         else if (f.type === 'phone') shown = '+' + (st.common.phone_cc === '0' ? '' : st.common.phone_cc) + ' ' + nd(v);
         else shown = nd(v);
-        return `<li class="${v === UNK ? 'miss' : ''}"><b>${esc(f.label)}</b><span>${f.type === 'phone' ? `<bdi dir="ltr">${esc(shown)}</bdi>` : esc(shown)}</span></li>`;
+        return `<li class="${v === UNK ? 'miss' : ''}"><b>${esc(T(f.label))}</b><span>${f.type === 'phone' ? `<bdi dir="ltr">${esc(shown)}</bdi>` : esc(shown)}</span></li>`;
       }).join('');
     }
     function stepReview() {
       const miss = missingForReview();
-      return `<h1>راجع طلبك قبل الإرسال</h1>
-        <div class="card" style="padding:14px 18px"><div class="sect-h"><h3 style="margin:6px 0">الخدمة وتفاصيل الاحتياج</h3><button type="button" class="btn btn-ghost btn-sm" data-goto="2">تعديل</button></div>
-          <ul class="review"><li><b>الخدمة</b><span>${esc(svc().label)}</span></li>${reviewRows(step2Fields(), { ...st.fields, ...st.common })}</ul></div>
-        <div class="card" style="padding:14px 18px"><div class="sect-h"><h3 style="margin:6px 0">بيانات التواصل</h3><button type="button" class="btn btn-ghost btn-sm" data-goto="3">تعديل</button></div>
+      return `<h1>${esc(T('راجع طلبك قبل الإرسال'))}</h1>
+        <div class="card" style="padding:14px 18px"><div class="sect-h"><h3 style="margin:6px 0">${esc(T('الخدمة وتفاصيل الاحتياج'))}</h3><button type="button" class="btn btn-ghost btn-sm" data-goto="2">${esc(T('تعديل'))}</button></div>
+          <ul class="review"><li><b>${esc(T('الخدمة'))}</b><span>${esc(T(svc().label))}</span></li>${reviewRows(step2Fields(), { ...st.fields, ...st.common })}</ul></div>
+        <div class="card" style="padding:14px 18px"><div class="sect-h"><h3 style="margin:6px 0">${esc(T('بيانات التواصل'))}</h3><button type="button" class="btn btn-ghost btn-sm" data-goto="3">${esc(T('تعديل'))}</button></div>
           <ul class="review">${reviewRows(step3Fields(), st.common)}</ul></div>
-        ${miss.length ? `<div class="notice warn" role="note"><b>معلومات يُستحسن استكمالها:</b> ${miss.map(esc).join('، ')}. يمكنك الإرسال الآن وسنتواصل معك لاستكمالها، أو <a href="#" data-goto="2">أضفها الآن</a>.</div>` : '<div class="notice ok">بياناتك مكتملة للمراجعة.</div>'}
-        ${st.netError ? `<div class="notice bad" role="alert"><b>لم يُحفظ طلبك.</b> ${esc(st.netError)}<br>لا يوجد رقم استلام لهذا الطلب حتى يتم الحفظ بنجاح. بياناتك ما زالت محفوظة في هذه الشاشة — اضغط «إعادة المحاولة».</div>` : ''}
+        ${miss.length ? `<div class="notice warn" role="note"><b>${esc(T('معلومات يُستحسن استكمالها:'))}</b> ${miss.map(m => esc(T(m))).join(L() === 'ar' ? '، ' : ', ')}. ${esc(T('يمكنك الإرسال الآن وسنتواصل معك لاستكمالها، أو'))} <a href="#" data-goto="2">${esc(T('أضفها الآن'))}</a>.</div>` : `<div class="notice ok">${esc(T('بياناتك مكتملة للمراجعة.'))}</div>`}
+        ${st.netError ? `<div class="notice bad" role="alert"><b>${esc(T('لم يُحفظ طلبك.'))}</b> ${esc(T(st.netError))}<br>${esc(T('لا يوجد رقم استلام لهذا الطلب حتى يتم الحفظ بنجاح. بياناتك ما زالت محفوظة في هذه الشاشة — اضغط «إعادة المحاولة».'))}</div>` : ''}
         ${mode === 'staff' ? `<label class="chip" style="margin-top:8px"><input type="checkbox" data-test ${st.isTest ? 'checked' : ''} style="width:22px;height:22px"> طلب تجريبي / تدريب (لا يدخل التقارير)</label>` : ''}
-        <p class="hint" style="margin-top:14px">🔒 ${esc(cfg.privacy_text)}</p>`;
+        <p class="hint" style="margin-top:14px">🔒 ${esc(T(cfg.privacy_text))}</p>`;
     }
     function receiptHtml(r) {
       const lc = fancy ? K.lineOf(st.service) : null;
       return `<div class="receipt" id="receipt" ${lc ? `style="--lc:${lc[0]};--lc2:${lc[1]}"` : ''}>
-        <div class="rt"><b>${esc(r.event_name)}</b><p class="lead">شركة النقل العام الكويتية — بطاقة استلام طلب</p><div class="ref" aria-label="رقم الطلب">${esc(r.ref)}</div></div>
-        ${fancy ? `<div class="rline" aria-hidden="true"><span>جناح KPTC</span><span class="tr">${K.bus()}</span><span>فريق المتابعة</span></div>` : ''}
-        <div class="rb"><dl><dt>تاريخ الاستلام</dt><dd>${esc(fmtDate(r.received_at))}</dd><dt>نوع الخدمة</dt><dd>${esc(r.service)}</dd><dt>الاسم</dt><dd>${esc(r.customer)}</dd><dt>الهاتف</dt><dd><bdi dir="ltr">${esc(r.phone_masked)}</bdi></dd>
-        ${r.summary.map(x => `<dt>${esc(x.label)}</dt><dd>${esc(x.value)}</dd>`).join('')}</dl>
-        ${r.incomplete ? '<div class="notice warn" style="margin-top:12px">بعض المعلومات غير مكتملة، وسنتواصل معك لاستكمالها.</div>' : ''}
-        <h3>الخطوة التالية</h3><p style="margin:0">${esc(r.next_step)}</p>
-        ${r.channel_text || r.channel_url ? `<h3>قناة المتابعة الرسمية</h3><p style="margin:0">${esc(r.channel_text)} ${r.channel_url ? `<bdi dir="ltr">${esc(r.channel_url)}</bdi>` : ''}</p>` : ''}
-        ${r.emergency_number ? `<div class="notice warn">هذا النموذج ليس للحالات الطارئة. رقم الطوارئ الرسمي: <b class="ltr">${esc(r.emergency_number)}</b></div>` : ''}</div>
-        <div class="tear"></div><div class="rf"><div class="conf">${esc(r.confirmation)}</div><div class="barcode" aria-hidden="true"></div></div></div>`;
+        <div class="rt">${fancy ? '<img class="rlogo" src="/brand/logo-mark.png" alt="">' : ''}<b>${esc(T(r.event_name))}</b><p class="lead">${esc(T('شركة النقل العام الكويتية — بطاقة استلام طلب'))}</p><div class="ref" aria-label="${esc(T('رقم الطلب'))}">${esc(r.ref)}</div></div>
+        ${fancy ? `<div class="rline" aria-hidden="true"><span>${esc(T('جناح KPTC'))}</span><span class="tr">${K.bus()}</span><span>${esc(T('فريق المتابعة'))}</span></div>` : ''}
+        <div class="rb"><dl><dt>${esc(T('تاريخ الاستلام'))}</dt><dd>${esc(fmtDate(r.received_at))}</dd><dt>${esc(T('نوع الخدمة'))}</dt><dd>${esc(T(r.service))}</dd><dt>${esc(T('الاسم'))}</dt><dd>${esc(r.customer)}</dd><dt>${esc(T('الهاتف'))}</dt><dd><bdi dir="ltr">${esc(r.phone_masked)}</bdi></dd>
+        ${r.summary.map(x => `<dt>${esc(T(x.label))}</dt><dd>${esc(trVal(x.value))}</dd>`).join('')}</dl>
+        ${r.incomplete ? `<div class="notice warn" style="margin-top:12px">${esc(T('بعض المعلومات غير مكتملة، وسنتواصل معك لاستكمالها.'))}</div>` : ''}
+        <h3>${esc(T('الخطوة التالية'))}</h3><p style="margin:0">${esc(trNext(r.next_step))}</p>
+        ${r.channel_text || r.channel_url ? `<h3>${esc(T('قناة المتابعة الرسمية'))}</h3><p style="margin:0">${esc(r.channel_text)} ${r.channel_url ? `<bdi dir="ltr">${esc(r.channel_url)}</bdi>` : ''}</p>` : ''}
+        ${r.emergency_number ? `<div class="notice warn">${esc(T('هذا النموذج ليس للحالات الطارئة. رقم الطوارئ الرسمي:'))} <b class="ltr">${esc(r.emergency_number)}</b></div>` : ''}</div>
+        <div class="tear"></div><div class="rf"><div class="conf">${L() === 'ar' ? esc(r.confirmation) : `${esc(T(CONFIRM, { ref: r.ref }))}<div class="conf-ar" lang="ar" dir="rtl">${esc(r.confirmation)}</div>`}</div><div class="barcode" aria-hidden="true"></div></div></div>`;
     }
     function screenReceipt() {
-      if (fancy) return `<div class="vwrap narrow success-wrap"><div class="drive no-print" aria-hidden="true">${K.bus()}</div><div class="okbar no-print" role="status"><span class="okmark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b>تم حفظ طلبك بنجاح</b> — احتفظ برقم الطلب أدناه.</div></div>${receiptHtml(st.receipt)}${receiptActions()}</div>`;
+      if (fancy) return `<div class="vwrap narrow success-wrap"><div class="drive no-print" aria-hidden="true">${K.bus()}</div><div class="okbar no-print" role="status"><span class="okmark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b>${esc(T('تم حفظ طلبك بنجاح'))}</b> — ${esc(T('احتفظ برقم الطلب أدناه.'))}</div></div>${receiptHtml(st.receipt)}${receiptActions()}</div>`;
       return `<div class="drive no-print" aria-hidden="true">${BUS('')}</div><div class="notice ok no-print" role="status"><span class="okmark">✓</span><b>تم حفظ طلبك بنجاح</b> — احتفظ برقم الطلب أدناه.</div>${receiptHtml(st.receipt)}
         ${receiptActions()}`;
     }
     function receiptActions() {
-      return `<div class="actions no-print"><button class="btn btn-primary" data-print>🖨 طباعة البطاقة</button><button class="btn btn-ghost" data-png>⬇ تنزيل كصورة</button>
-        <span class="grow"></span>${mode === 'staff' ? '<button class="btn btn-sign" data-new>＋ طلب جديد</button>' + (opts.openUrl ? `<a class="btn btn-ghost" href="${opts.openUrl(st.receipt)}">فتح الطلب</a>` : '') : (mode === 'kiosk' ? '<button class="btn btn-sign" data-new>بدء طلب جديد</button>' : '<button class="btn btn-sign" data-new>تقديم طلب آخر</button>')}</div>`;
+      return `<div class="actions no-print"><button class="btn btn-primary" data-print>🖨 ${esc(T('طباعة البطاقة'))}</button><button class="btn btn-ghost" data-png>⬇ ${esc(T('تنزيل كصورة'))}</button>
+        <span class="grow"></span>${mode === 'staff' ? '<button class="btn btn-sign" data-new>＋ طلب جديد</button>' + (opts.openUrl ? `<a class="btn btn-ghost" href="${opts.openUrl(st.receipt)}">فتح الطلب</a>` : '') : (mode === 'kiosk' ? `<button class="btn btn-sign" data-new>${esc(T('بدء طلب جديد'))}</button>` : `<button class="btn btn-sign" data-new>${esc(T('تقديم طلب آخر'))}</button>`)}</div>`;
     }
     function screenWelcome() {
-      if (fancy) return `${hero('big')}<div class="vwrap welcome"><div class="cta"><button class="btn btn-primary big" data-start>ابدأ طلبًا جديدًا ←</button><p class="hint" style="margin-top:14px">أي طلب أو استفسار — سجّله هنا وسيصل مباشرة إلى فريقنا.</p></div></div>`;
+      if (fancy) return `${hero('big')}<div class="vwrap welcome"><div class="cta"><button class="btn btn-primary big" data-start>${esc(T('ابدأ طلبًا جديدًا'))} ${fwdArrow()}</button><p class="hint" style="margin-top:14px">${esc(T('أي طلب أو استفسار — سجّله هنا وسيصل مباشرة إلى فريقنا.'))}</p></div></div>`;
       return `<div class="welcome">${hero(true)}<div class="cta"><button class="btn btn-primary big" data-start>ابدأ طلبًا جديدًا ←</button><p class="hint" style="margin-top:14px">أي طلب أو استفسار — سجّله هنا وسيصل مباشرة إلى فريقنا.</p></div></div>`;
     }
     function screenEdit() {
@@ -216,10 +229,10 @@
     }
 
     function actions() {
-      const back = st.step > 1 ? '<button type="button" class="btn btn-ghost" data-back>→ السابق</button>' : '';
+      const back = st.step > 1 ? `<button type="button" class="btn btn-ghost" data-back>${backArrow()} ${esc(T('السابق'))}</button>` : '';
       if (st.step === 1) return '';
-      if (st.step === 4) return `<div class="actions">${back}<span class="grow"></span><button type="button" class="btn btn-sign" data-submit ${st.submitting ? 'disabled' : ''}>${st.submitting ? '<span class="spinner" style="border-color:rgba(0,0,0,.25);border-top-color:#14133a"></span> جارٍ الحفظ…' : (st.netError ? '↻ إعادة المحاولة' : 'إرسال الطلب')}</button></div>`;
-      return `<div class="actions">${back}<span class="grow"></span><button type="button" class="btn btn-primary" data-next>التالي ←</button></div>`;
+      if (st.step === 4) return `<div class="actions">${back}<span class="grow"></span><button type="button" class="btn btn-sign" data-submit ${st.submitting ? 'disabled' : ''}>${st.submitting ? `<span class="spinner" style="border-color:rgba(0,0,0,.25);border-top-color:#14173f"></span> ${esc(T('جارٍ الحفظ…'))}` : (st.netError ? `↻ ${esc(T('إعادة المحاولة'))}` : esc(T('إرسال الطلب')))}</button></div>`;
+      return `<div class="actions">${back}<span class="grow"></span><button type="button" class="btn btn-primary" data-next>${esc(T('التالي'))} ${fwdArrow()}</button></div>`;
     }
 
     function render(focusSel) {
@@ -235,7 +248,7 @@
           : `<div class="vwrap narrow">${stepper()}<div class="stepbox ${anim}"><div class="card">${svcHead()}${body}</div></div>${actions()}</div>`);
       }
       else html = (st.step === 1 && (mode === 'public' || mode === 'kiosk') ? hero(false) : '') + stepper() + `<div class="card">${st.step === 1 ? stepService() : st.step === 2 ? stepNeeds() : st.step === 3 ? stepContact() : stepReview()}</div>` + actions();
-      const hp = mode === 'public' || mode === 'kiosk' ? '<div class="hp" aria-hidden="true"><label>الموقع<input type="text" name="website" tabindex="-1" autocomplete="off" data-hp></label></div>' : '';
+      const hp = mode === 'public' || mode === 'kiosk' ? `<div class="hp" aria-hidden="true"><label>${esc(T('الموقع'))}<input type="text" name="website" tabindex="-1" autocomplete="off" data-hp></label></div>` : '';
       root.innerHTML = html + hp;
       root.classList.toggle('shake', shake);
       if (fancy) startWords();
@@ -245,13 +258,13 @@
     // كلمات متبدّلة في الشاشة الرئيسية (تجذب الانتباه على الجهاز اللوحي)
     function startWords() {
       clearInterval(wordsTimer); const el = root.querySelector('#hw'); if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const list = cfg.services.map(s => SHORT[s.id] || s.label); let i = 0;
+      const list = cfg.services.map(s => T(SHORT[s.id] || s.label)); let i = 0;
       wordsTimer = setInterval(() => { if (!document.body.contains(el)) return clearInterval(wordsTimer); el.classList.add('out'); setTimeout(() => { i = (i + 1) % list.length; el.textContent = list[i]; el.classList.remove('out'); }, 350); }, 2400);
     }
     // ماسات ملوّنة تتساقط عند نجاح الحفظ
     function celebrate() {
       if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const colors = ['#ffc933', '#2e6fd8', '#ffffff', '#6c47d8', '#17a37b', '#f0901f'], w = innerWidth;
+      const colors = ['#eae71a', '#2e6fd8', '#ffffff', '#6c47d8', '#17a37b', '#f0901f'], w = innerWidth;
       for (let i = 0; i < 46; i++) {
         const d = document.createElement('span'); d.className = 'cf'; d.style.background = colors[i % colors.length]; d.style.left = (w / 2 + (Math.random() - .5) * Math.min(w, 420)) + 'px'; d.style.top = '120px';
         const s = 0.7 + Math.random() * 1.1; d.style.width = d.style.height = (12 * s) + 'px'; document.body.appendChild(d);
@@ -327,34 +340,38 @@
       for (const w of words) { const t = line ? line + ' ' + w : w; if (ctx2.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
       if (line) lines.push(line); return lines;
     }
-    function downloadPng() {
-      const r = st.receipt, W = 1000, M = 50, font = '"Segoe UI","SF Arabic","Geeza Pro","Noto Sans Arabic",Tahoma,sans-serif';
-      const c = document.createElement('canvas'); c.width = W; c.height = 3000; const g = c.getContext('2d'); g.direction = 'rtl'; g.textAlign = 'right';
-      const rows = [{ t: r.event_name, s: 34, b: 1, col: '#14133a' }, { t: 'شركة النقل العام الكويتية — بطاقة استلام طلب', s: 24, col: '#5f5e78' }, { gap: 10 }, { ref: r.ref }, { gap: 6 },
-        { kv: ['تاريخ الاستلام', fmtDate(r.received_at)] }, { kv: ['نوع الخدمة', r.service] }, { kv: ['الاسم', r.customer] }, ...r.summary.map(x => ({ kv: [x.label, x.value] })), { gap: 14 },
-        { t: 'الخطوة التالية', s: 26, b: 1, col: '#2e2c78' }, { t: r.next_step, s: 24 }, ...(r.channel_text ? [{ t: 'قناة المتابعة الرسمية: ' + r.channel_text + ' ' + (r.channel_url || ''), s: 24 }] : []), { gap: 14 }, { box: r.confirmation }];
+    function loadImg(src) { return new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; }); }
+    async function downloadPng() {
+      const r = st.receipt, W = 1000, M = 50, rtl = L() === 'ar' || L() === 'ur', al = rtl ? 'right' : 'left', X0 = rtl ? W - M : M, XV = rtl ? W - M - 270 : M + 270;
+      const font = '"Segoe UI","SF Arabic","Geeza Pro","Noto Sans Arabic","Noto Sans Devanagari","Noto Sans Bengali",Tahoma,sans-serif';
+      const logo = await loadImg('/brand/logo.png');
+      const c = document.createElement('canvas'); c.width = W; c.height = 3000; const g = c.getContext('2d'); g.direction = rtl ? 'rtl' : 'ltr'; g.textAlign = al;
+      const conf = L() === 'ar' ? r.confirmation : T(CONFIRM, { ref: r.ref });
+      const rows = [{ gap: 110 }, { t: T(r.event_name), s: 34, b: 1, col: '#14173f' }, { t: T('شركة النقل العام الكويتية — بطاقة استلام طلب'), s: 24, col: '#5f5e78' }, { gap: 10 }, { ref: r.ref }, { gap: 6 },
+        { kv: [T('تاريخ الاستلام'), fmtDate(r.received_at)] }, { kv: [T('نوع الخدمة'), T(r.service)] }, { kv: [T('الاسم'), r.customer] }, ...r.summary.map(x => ({ kv: [T(x.label), trVal(x.value)] })), { gap: 14 },
+        { t: T('الخطوة التالية'), s: 26, b: 1, col: '#2b338c' }, { t: trNext(r.next_step), s: 24 }, ...(r.channel_text ? [{ t: T('قناة المتابعة الرسمية') + ': ' + r.channel_text + ' ' + (r.channel_url || ''), s: 24 }] : []), { gap: 14 }, { box: conf }];
       let y = 40; const draw = [];
-      g.font = `bold 30px ${font}`;
       for (const row of rows) {
         if (row.gap) { y += row.gap; continue; }
         if (row.ref) { draw.push({ type: 'ref', y, text: row.ref }); y += 100; continue; }
-        if (row.kv) { g.font = `24px ${font}`; const ls = wrap(g, row.kv[1], W - 2 * M - 270); draw.push({ type: 'kv', y, k: row.kv[0], ls }); y += 38 * ls.length + 8; continue; }
+        if (row.kv) { g.font = `24px ${font}`; const stack = g.measureText(row.kv[0]).width > 245; const ls = wrap(g, row.kv[1], stack ? W - 2 * M : W - 2 * M - 270); draw.push({ type: 'kv', y, k: row.kv[0], ls, stack }); y += 38 * ls.length + 8 + (stack ? 38 : 0); continue; }
         if (row.box) { g.font = `24px ${font}`; const ls = wrap(g, row.box, W - 2 * M - 40); draw.push({ type: 'box', y, ls }); y += 38 * ls.length + 40; continue; }
         g.font = `${row.b ? 'bold ' : ''}${row.s}px ${font}`; const ls = wrap(g, row.t, W - 2 * M); draw.push({ type: 't', y, ls, row }); y += (row.s + 14) * ls.length;
       }
-      const H = y + 40; c.height = H; const g2 = c.getContext('2d'); g2.direction = 'rtl'; g2.textAlign = 'right'; g2.textBaseline = 'top';
-      g2.fillStyle = '#fff'; g2.fillRect(0, 0, W, H); g2.fillStyle = '#ffc93c'; g2.fillRect(0, 0, W, 14); g2.strokeStyle = '#2e2c78'; g2.lineWidth = 4; g2.strokeRect(2, 2, W - 4, H - 4);
+      const H = y + 40; c.height = H; const g2 = c.getContext('2d'); g2.direction = rtl ? 'rtl' : 'ltr'; g2.textAlign = al; g2.textBaseline = 'top';
+      g2.fillStyle = '#fff'; g2.fillRect(0, 0, W, H); g2.fillStyle = '#eae71a'; g2.fillRect(0, 0, W, 14); g2.strokeStyle = '#2b338c'; g2.lineWidth = 4; g2.strokeRect(2, 2, W - 4, H - 4);
+      if (logo) { const lh = 84, lw = logo.width / logo.height * lh; g2.drawImage(logo, rtl ? W - M - lw : M, 34, lw, lh); }
       for (const d of draw) {
-        if (d.type === 'ref') { g2.fillStyle = '#f3f2ec'; g2.fillRect(M, d.y, W - 2 * M, 84); g2.fillStyle = '#2e2c78'; g2.font = `bold 46px ${font}`; g2.textAlign = 'center'; g2.fillText(d.text, W / 2, d.y + 18); g2.textAlign = 'right'; }
-        else if (d.type === 'kv') { g2.font = `24px ${font}`; g2.fillStyle = '#5f5e78'; g2.fillText(d.k, W - M, d.y); g2.fillStyle = '#14133a'; g2.font = `bold 24px ${font}`; d.ls.forEach((l, i) => g2.fillText(l, W - M - 270, d.y + i * 38)); }
-        else if (d.type === 'box') { g2.fillStyle = '#e4f4ec'; g2.fillRect(M, d.y, W - 2 * M, d.ls.length * 38 + 28); g2.fillStyle = '#14133a'; g2.font = `24px ${font}`; d.ls.forEach((l, i) => g2.fillText(l, W - M - 20, d.y + 14 + i * 38)); }
-        else { g2.font = `${d.row.b ? 'bold ' : ''}${d.row.s}px ${font}`; g2.fillStyle = d.row.col || '#14133a'; d.ls.forEach((l, i) => g2.fillText(l, W - M, d.y + i * (d.row.s + 14))); }
+        if (d.type === 'ref') { g2.fillStyle = '#f3f2ec'; g2.fillRect(M, d.y, W - 2 * M, 84); g2.fillStyle = '#2b338c'; g2.font = `bold 46px ${font}`; g2.textAlign = 'center'; g2.fillText(d.text, W / 2, d.y + 18); g2.textAlign = al; }
+        else if (d.type === 'kv') { g2.font = `24px ${font}`; g2.fillStyle = '#5f5e78'; g2.fillText(d.k, X0, d.y); g2.fillStyle = '#14173f'; g2.font = `bold 24px ${font}`; d.ls.forEach((l, i) => g2.fillText(l, d.stack ? X0 : XV, d.y + (d.stack ? 38 : 0) + i * 38)); }
+        else if (d.type === 'box') { g2.fillStyle = '#e4f4ec'; g2.fillRect(M, d.y, W - 2 * M, d.ls.length * 38 + 28); g2.fillStyle = '#14173f'; g2.font = `24px ${font}`; d.ls.forEach((l, i) => g2.fillText(l, rtl ? W - M - 20 : M + 20, d.y + 14 + i * 38)); }
+        else { g2.font = `${d.row.b ? 'bold ' : ''}${d.row.s}px ${font}`; g2.fillStyle = d.row.col || '#14173f'; d.ls.forEach((l, i) => g2.fillText(l, X0, d.y + i * (d.row.s + 14))); }
       }
       c.toBlob(b => { const url = URL.createObjectURL(b); const a = document.createElement('a'); a.href = url; a.download = `${r.ref}.png`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); }, 'image/png');
     }
 
     // ---------- وضع الجهاز اللوحي المشترك ----------
-    function wipe() { clearTimeout(idleTimer); clearTimeout(warnTimer); clearInterval(countTimer); const m = document.getElementById('idle-modal'); if (m) m.remove(); st = fresh(); render(); window.scrollTo(0, 0); }
+    function wipe() { clearTimeout(idleTimer); clearTimeout(warnTimer); clearInterval(countTimer); const m = document.getElementById('idle-modal'); if (m) m.remove(); st = fresh(); if (mode === 'kiosk' && fancy && window.I18N && I18N.lang() !== 'ar') { I18N.set('ar', { persist: false }); return; } render(); window.scrollTo(0, 0); }
     function armIdle() {
       if (mode !== 'kiosk' || st.screen === 'welcome') return;
       clearTimeout(idleTimer); clearTimeout(warnTimer);
@@ -370,7 +387,7 @@
       if (document.getElementById('idle-modal')) return;
       const m = document.createElement('div'); m.id = 'idle-modal'; m.className = 'modal-bg';
       let left = Math.ceil(ms / 1000);
-      m.innerHTML = `<div class="modal" role="alertdialog" aria-live="assertive"><h2>هل ما زلت تكتب؟</h2><p>لحماية بياناتك، سيتم مسح هذه الشاشة خلال <b id="idle-left">${left}</b> ثانية.</p><div class="actions"><button class="btn btn-primary grow" id="idle-stay">نعم، أكمل طلبي</button><button class="btn btn-ghost" id="idle-clear">مسح وبدء من جديد</button></div></div>`;
+      m.innerHTML = `<div class="modal" role="alertdialog" aria-live="assertive"><h2>${esc(T('هل ما زلت تكتب؟'))}</h2><p>${esc(T('لحماية بياناتك، سيتم مسح هذه الشاشة خلال')).replace(/\s*$/,'')} <b id="idle-left">${left}</b> ${esc(T('ثانية'))}</p><div class="actions"><button class="btn btn-primary grow" id="idle-stay">${esc(T('نعم، أكمل طلبي'))}</button><button class="btn btn-ghost" id="idle-clear">${esc(T('مسح وبدء من جديد'))}</button></div></div>`;
       document.body.appendChild(m);
       countTimer = setInterval(() => { left--; const e = document.getElementById('idle-left'); if (e) e.textContent = String(Math.max(0, left)); }, 1000);
       m.querySelector('#idle-stay').onclick = () => { clearInterval(countTimer); m.remove(); armIdle(); };
@@ -444,7 +461,7 @@
     root.addEventListener('focusout', e => { const el = e.target; if (el.dataset && el.dataset.num !== undefined) { const v = nd(el.value); if (v !== el.value) { el.value = v; setVal(el.dataset.s, el.dataset.k, v); } } });
 
     render();
-    return { reset: wipe, state: () => st };
+    return { reset: wipe, state: () => st, refresh: () => render() };
   }
 
   window.KForm = { mount, esc, nd, fmtDate };

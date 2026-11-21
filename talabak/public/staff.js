@@ -119,7 +119,7 @@
 
   // ---------- الإطار ----------
   const NAV = [['#/', 'الطلبات'], ['#/new', '＋ تسجيل طلب']];
-  const deptChip = (name, color) => name ? `<span class="dept" style="--dc:${esc(color || '#2e2c78')}">${esc(name)}</span>` : '';
+  const deptChip = (name, color) => name ? `<span class="dept" style="--dc:${esc(color || '#2b338c')}">${esc(name)}</span>` : '';
   ST.deptChip = deptChip;
   const ADMIN_NAV = [['#/admin/reports', 'التقارير'], ['#/admin/kiosks', 'أجهزة الجناح'], ['#/admin/poster', 'ملصق QR'], ['#/admin/departments', 'الإدارات'], ['#/admin/duplicates', 'المكررات'], ['#/admin/users', 'المستخدمون'], ['#/admin/reps', 'المندوبون'], ['#/admin/services', 'الخدمات والحقول'], ['#/admin/settings', 'الإعدادات'], ['#/admin/links', 'الروابط'], ['#/admin/backups', 'النسخ الاحتياطي'], ['#/admin/audit', 'السجل']];
   ST.shell = function () {

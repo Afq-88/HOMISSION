@@ -562,3 +562,8 @@ test('تنبيه الجوال ونبض الحياة: بلا بيانات شخص�
     assert.equal((await submit({ ...common({ phone: '55599779' }), service: 'other', fields: SAMPLES.other })).status, 201);
   } finally { delete process.env.NTFY_URL; delete process.env.NTFY_TOPIC; delete process.env.HEARTBEAT_URL; mock.close(); }
 });
+
+test('i18n: القواميس تغطي كل النصوص العربية في واجهة الزائر', async () => {
+  const { execFileSync } = require('node:child_process');
+  execFileSync(process.execPath, [require('node:path').join(__dirname, '../scripts/i18n-keys.js'), '--check'], { stdio: 'pipe' });
+});

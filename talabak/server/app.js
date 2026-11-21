@@ -152,7 +152,7 @@ function publicConfig() {
   const services = getServices().filter(x => x.active !== false).map(x => ({ ...x, fields: x.fields.filter(f => f.active !== false) }));
   return {
     event: { name: s.event_name, start: s.event_start, end: s.event_end, accepting: s.accepting, closed_message: s.closed_message },
-    privacy_text: s.privacy_text, emergency_number: s.emergency_number, kiosk: { idle: s.kiosk_idle_seconds, warn: s.kiosk_warn_seconds },
+    base_url: s.public_base_url || '', privacy_text: s.privacy_text, emergency_number: s.emergency_number, kiosk: { idle: s.kiosk_idle_seconds, warn: s.kiosk_warn_seconds },
     services, countries: U.COUNTRIES.map(c => ({ cc: c.cc, name: c.name, iso: c.iso, len: c.len, first: c.first.source })), party: S.PARTY, channels: S.CHANNELS, pref_times: S.PREF_TIMES,
     unknown_label: S.UNKNOWN_LABEL, unknown: S.UNKNOWN,
     logo: fs.existsSync(path.join(cfg.PUBLIC_DIR, 'brand', 'logo.png')) ? '/brand/logo.png' : null,

@@ -23,7 +23,7 @@
   R['admin/departments'] = async function () {
     const { departments } = await ST.api('GET', '/api/admin/departments');
     app.innerHTML = `<h1 style="margin-top:0">الإدارات</h1><p class="lead">تُصنَّف الطلبات تلقائيًا إلى إدارة حسب الخدمة (من «الخدمات والحقول»)، ويمكن للموظف تغييرها لكل طلب. الأسماء الافتراضية مقترحة — عدّلها لتطابق هيكل الشركة.</p>
-      <div class="card"><h2>إضافة إدارة</h2><form id="df" class="filters"><div class="field"><label>الاسم</label><input name="name" required></div><div class="field"><label>اللون</label><input name="color" type="color" value="#2e2c78" style="padding:4px"></div><button class="btn btn-primary">إضافة</button></form></div>
+      <div class="card"><h2>إضافة إدارة</h2><form id="df" class="filters"><div class="field"><label>الاسم</label><input name="name" required></div><div class="field"><label>اللون</label><input name="color" type="color" value="#2b338c" style="padding:4px"></div><button class="btn btn-primary">إضافة</button></form></div>
       <div class="card" style="margin-top:12px">${tbl(['الاسم', 'اللون', 'مفعّلة', 'عدد الطلبات', ''], departments.map(d => `<tr data-id="${d.id}"><td><input data-k="name" value="${esc(d.name)}" style="min-height:42px"></td><td><input data-k="color" type="color" value="${esc(d.color)}" style="min-height:42px;padding:3px;width:70px"></td>
         <td><input type="checkbox" data-k="active" ${d.active ? 'checked' : ''} style="width:22px;height:22px"></td><td>${d.requests}</td><td><div class="row-actions"><button class="btn btn-primary btn-sm" data-save>حفظ</button><button class="btn btn-ghost btn-sm" data-del>حذف</button></div></td></tr>`))}</div>`;
     app.querySelector('#df').onsubmit = async e => { e.preventDefault(); try { await ST.api('POST', '/api/admin/departments', { name: e.target.name.value, color: e.target.color.value }); await refreshDepts(); ST.toast('تمت الإضافة'); R['admin/departments'](); } catch (err) { ST.toast(err.message, true); } };
@@ -83,9 +83,11 @@
     };
     app.innerHTML = `<div class="noprint"><h1 style="margin-top:0">ملصق QR لزوار الجناح</h1>
       ${isLocal(base) ? '<div class="notice bad"><b>لا تطبع الملصق الآن.</b> الرابط الحالي محلي أو غير مشفّر. انشر التطبيق على HTTPS واضبط «رابط النشر العام» في الإعدادات، ثم اختبر الرمز بجوال حقيقي.</div>' : '<div class="notice warn">اختبر الرمز بكاميرا جوال وسجّل طلبًا تجريبيًا قبل الطباعة.</div>'}
+      <div class="notice ok"><b>الملصق الحصري الجاهز للطباعة (A4):</b> تصميم بهوية الشركة وشعارها في منتصف الرمز وبعدة لغات. <a class="btn btn-sign btn-sm" href="/poster.html" target="_blank" rel="noopener" id="pfull">فتح الملصق الحصري ←</a> <span class="hint">يستخدم «رابط النشر العام» من الإعدادات تلقائيًا.</span></div>
       <div class="card"><div class="filters"><div class="field"><label>وسم الجناح / الموقع (إنجليزي أو أرقام)</label><input id="ptag" value="${tag}" maxlength="30" dir="ltr"></div><div class="row-actions"><button class="btn btn-primary" id="pprint">🖨 طباعة الملصق (A4)</button><button class="btn btn-ghost" id="pdl">تنزيل الرمز PNG</button></div></div>
       <p class="def-note">الوسم يُسجَّل مع كل طلب ويظهر في التقارير («حسب الوسم») لمعرفة أي جناح/موقع جلب الطلبات. للجناح الواحد: booth1. لمعرض آخر أو موقع خارجي: غيّر الوسم واطبع ملصقًا جديدًا. يصل كل طلب مباشرة إلى لوحة التحكم مع تنبيه فوري.</p><p class="mono" id="purl"></p></div></div><div id="pst" style="margin-top:14px"></div>`;
     app.querySelector('#pprint').onclick = () => window.print();
+    const pf = app.querySelector('#pfull'); if (pf) pf.onclick = () => { pf.href = '/poster.html?b=' + encodeURIComponent(tag || 'booth1'); };
     app.querySelector('#ptag').oninput = e => { const v = e.target.value.replace(/[^A-Za-z0-9_-]/g, ''); tag = v; e.target.value = v; draw(); };
     draw();
   };
