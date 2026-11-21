@@ -9,7 +9,7 @@
   const clean = (v, n) => /^[A-Za-z0-9_-]+$/.test(v || '') ? v.slice(0, n) : '';
   const tag = clean(qs.get('b'), 30), rep = clean(qs.get('rep'), 20);
 
-  function fail(msg) { main.innerHTML = `<div class="card" style="margin-top:20px"><div class="notice bad" role="alert">${KForm.esc(msg)}</div><div class="actions"><button class="btn btn-primary" id="retry">إعادة المحاولة</button></div></div>`; document.getElementById('retry').onclick = load; }
+  function fail(msg) { main.innerHTML = `<div class="vwrap narrow" style="padding-top:130px"><div class="card"><div class="notice bad" role="alert">${KForm.esc(msg)}</div><div class="actions"><button class="btn btn-primary" id="retry">إعادة المحاولة</button></div></div></div>`; document.getElementById('retry').onclick = load; }
   async function load() {
     let cfg;
     try { const r = await fetch('/api/public/config', { cache: 'no-store' }); if (!r.ok) throw 0; cfg = await r.json(); }
@@ -17,7 +17,7 @@
     document.getElementById('evname').textContent = cfg.event.name + ' — شركة النقل العام الكويتية';
     if (cfg.logo) document.getElementById('brand').innerHTML = `<img src="${cfg.logo}" alt="شعار الشركة"><span><b>طلبك معنا</b><small>${KForm.esc(cfg.event.name)}</small></span>`;
     foot.innerHTML = `<p>🔒 ${KForm.esc(cfg.privacy_text)}</p><p>هذا النموذج لتسجيل الاهتمام بالخدمة ومتابعته؛ تسجيل الطلب لا يُعد تأكيدًا للحجز أو تفعيلًا للخدمة، وتخضع الأسعار والتوافر للتأكيد من الجهة المختصة.</p>`;
-    if (!cfg.event.accepting) { main.innerHTML = `<div class="card" style="margin-top:20px"><h1>استقبال الطلبات متوقف</h1><p>${KForm.esc(cfg.event.closed_message)}</p></div>`; return; }
+    if (!cfg.event.accepting) { main.innerHTML = `<div class="vwrap narrow" style="padding-top:130px"><div class="card"><h1>استقبال الطلبات متوقف</h1><p>${KForm.esc(cfg.event.closed_message)}</p></div></div>`; return; }
     main.innerHTML = '<div id="form-root"></div>';
     KForm.mount(document.getElementById('form-root'), { config: cfg, mode: kiosk ? 'kiosk' : 'public', source, tag, rep, url: '/api/public/requests' });
   }

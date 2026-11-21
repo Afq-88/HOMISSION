@@ -15,7 +15,7 @@ const SECRETS = require('./secrets');
 const { HttpError } = U;
 
 const COOKIE = 'tsid', COOKIE_HOST = '__Host-tsid';
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.webp': 'image/webp', '.webmanifest': 'application/manifest+json' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.woff2': 'font/woff2', '.webp': 'image/webp', '.webmanifest': 'application/manifest+json' };
 
 // ---------- تحديد المعدل (في الذاكرة) ----------
 const hits = new Map();
@@ -437,7 +437,7 @@ function serveStatic(req, res, pathname) {
   if (!file.startsWith(cfg.PUBLIC_DIR + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return false;
   const ext = path.extname(file);
   const isHtml = ext === '.html';
-  res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': isHtml || rel === '/sw.js' ? 'no-cache' : 'public, max-age=300', ...(isHtml && rel === '/staff.html' ? { 'Cache-Control': 'no-store' } : {}) });
+  res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': isHtml || rel === '/sw.js' ? 'no-cache' : (rel.startsWith('/fonts/') ? 'public, max-age=31536000, immutable' : 'public, max-age=300'), ...(isHtml && rel === '/staff.html' ? { 'Cache-Control': 'no-store' } : {}) });
   fs.createReadStream(file).pipe(res);
   return true;
 }

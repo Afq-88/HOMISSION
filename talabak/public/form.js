@@ -13,6 +13,8 @@
 
   function mount(root, opts) {
     const cfg = opts.config, mode = opts.mode; // public | kiosk | staff | edit
+    const K = window.KArt, fancy = (mode === 'public' || mode === 'kiosk') && !!K; // «محطة الجناح»: واجهة الزائر فقط (الموظف يبقى بمظهره)
+    let wordsTimer = null;
     let st, idleTimer, warnTimer, countTimer;
     const fresh = () => ({
       screen: mode === 'kiosk' ? 'welcome' : (mode === 'edit' ? 'edit' : 'form'), step: 1, service: opts.service || null,
@@ -120,14 +122,33 @@
       const p = (st.step - 1) / 3;
       return `<div class="route" style="--p:${p}" role="group" aria-label="خطوات التسجيل"><div class="line"></div><div class="fill"></div>${BUS('bus')}<ol>${STEPS.map((t, i) => `<li class="${i + 1 < st.step ? 'done' : ''} ${i + 1 === st.step ? 'cur' : ''}" ${i + 1 === st.step ? 'aria-current="step"' : ''}><i>${i + 1 < st.step ? '✓' : i + 1}</i><span>${t}</span></li>`).join('')}</ol></div>`;
     }
-    const hero = big => `<section class="hero ${big ? 'big' : ''}" style="--hero-img:url(/img/kbus-fleet.jpg)"><div class="in"><h1>${esc(cfg.event.name)} — طلبك معنا</h1><p>اختر ما تحتاجه واترك بياناتك، وسيتابع فريق الشركة طلبك.</p><div class="pills"><span class="pill gold">تعبئة سريعة</span><span class="pill">${cfg.services.length} خدمات</span><span class="pill">بلا مستندات شخصية</span></div></div></section>`;
+    const SHORT = { subscriptions: 'اشتراكات النقل', charter: 'رحلات وحافلات VIP', ads: 'إعلانات الحافلات', towing: 'أوناش ونقل مركبات', workshop: 'ورش وإصلاح', other: 'أي استفسار' };
+    const hero = kind => {
+      const t = K.tod();
+      const inner = kind === 'mini'
+        ? `<span class="h-eyebrow"><i></i>${esc(cfg.event.name)}</span>`
+        : `<span class="h-eyebrow"><i></i>${esc(cfg.event.name)} · شركة النقل العام الكويتية</span><h1 class="h-title">طلبك معنا</h1>
+           <p class="h-sub">سجّل طلبك مرة واحدة ويتابعه فريقنا معك.<br>نخدمك في <span class="h-words" id="hw">${esc(SHORT[(cfg.services[0] || {}).id] || '')}</span></p>
+           <div class="h-chips"><span>${K.num(cfg.services.length)} خدمات</span><span>بلا مستندات شخصية</span><span>نتابع معك</span></div>
+           ${kind === 'full' ? '<button type="button" class="btn btn-sign h-cta" data-scroll>اختر خدمتك ↓</button>' : ''}`;
+      return `<section class="hero2 tod-${t} ${kind === 'big' ? 'big' : ''} ${kind === 'mini' ? 'mini' : ''}">${K.scene(t)}<div class="buslane">${K.bus()}</div><div class="road"></div><div class="hero2-in">${inner}</div></section>`;
+    };
     function errBanner() {
       const n = Object.keys(st.errors).length;
       return n ? `<div class="notice bad" role="alert"><b>يرجى استكمال ${n === 1 ? 'حقل واحد' : n + ' حقول'} مطلوبة</b> — الحقول المعلَّمة بالأحمر أدناه.</div>` : '';
     }
     function stepService() {
+      if (fancy) {
+        return `<div class="sect-h2"><h2>ما الذي تحتاجه اليوم؟</h2><p>اختر خدمة واحدة للبدء. لا نطلب في هذه المرحلة أي مستندات شخصية.</p></div>
+          <div class="tiles2">${cfg.services.map((s, i) => { const [c1, c2] = K.lineOf(s.id); return `<button type="button" class="tile2" data-tile="${s.id}" aria-pressed="${st.service === s.id}" style="--lc:${c1};--lc2:${c2};--i:${i}"><span class="tart" aria-hidden="true"><span class="tnum">${K.num(i + 1)}</span>${K.icon(s.id)}</span><span class="tbody"><b>${esc(s.label)}</b><small>${esc(s.desc || '')}</small></span><span class="tgo" aria-hidden="true">اختيار ←</span></button>`; }).join('')}</div>${st.errors.service ? `<div class="err-msg" role="alert">${esc(st.errors.service)}</div>` : ''}`;
+      }
       return `<h1>ما الخدمة التي تهمّك؟</h1><p class="lead">اختر خدمة واحدة للبدء. لا تتطلب هذه المرحلة أي مستندات شخصية.</p>
         <div class="tiles">${cfg.services.map(s => `<button type="button" class="tile photo" data-tile="${s.id}" aria-pressed="${st.service === s.id}"><span class="phw"><span class="ph" style="--img:url(${esc(s.img || '')})"></span></span><span class="ic" aria-hidden="true">${s.icon || '•'}</span><span class="tb"><b>${esc(s.label)}</b><small>${esc(s.desc || '')}</small></span></button>`).join('')}</div>${st.errors.service ? `<div class="err-msg" role="alert">${esc(st.errors.service)}</div>` : ''}`;
+    }
+    function svcHead() {
+      const s = svc(); if (!fancy || !s) return '';
+      const [c1, c2] = K.lineOf(s.id);
+      return `<div class="svc-head" style="--lc:${c1};--lc2:${c2}"><span class="art" aria-hidden="true">${K.icon(s.id)}</span><div class="meta"><small>خدمتك</small><b>${esc(s.label)}</b></div><button type="button" class="link" data-goto="1">تغيير</button></div>`;
     }
     function stepNeeds() {
       const s = svc();
@@ -164,8 +185,10 @@
         <p class="hint" style="margin-top:14px">🔒 ${esc(cfg.privacy_text)}</p>`;
     }
     function receiptHtml(r) {
-      return `<div class="receipt" id="receipt">
+      const lc = fancy ? K.lineOf(st.service) : null;
+      return `<div class="receipt" id="receipt" ${lc ? `style="--lc:${lc[0]};--lc2:${lc[1]}"` : ''}>
         <div class="rt"><b>${esc(r.event_name)}</b><p class="lead">شركة النقل العام الكويتية — بطاقة استلام طلب</p><div class="ref" aria-label="رقم الطلب">${esc(r.ref)}</div></div>
+        ${fancy ? `<div class="rline" aria-hidden="true"><span>جناح KPTC</span><span class="tr">${K.bus()}</span><span>فريق المتابعة</span></div>` : ''}
         <div class="rb"><dl><dt>تاريخ الاستلام</dt><dd>${esc(fmtDate(r.received_at))}</dd><dt>نوع الخدمة</dt><dd>${esc(r.service)}</dd><dt>الاسم</dt><dd>${esc(r.customer)}</dd><dt>الهاتف</dt><dd><bdi dir="ltr">${esc(r.phone_masked)}</bdi></dd>
         ${r.summary.map(x => `<dt>${esc(x.label)}</dt><dd>${esc(x.value)}</dd>`).join('')}</dl>
         ${r.incomplete ? '<div class="notice warn" style="margin-top:12px">بعض المعلومات غير مكتملة، وسنتواصل معك لاستكمالها.</div>' : ''}
@@ -175,11 +198,16 @@
         <div class="tear"></div><div class="rf"><div class="conf">${esc(r.confirmation)}</div><div class="barcode" aria-hidden="true"></div></div></div>`;
     }
     function screenReceipt() {
+      if (fancy) return `<div class="vwrap narrow success-wrap"><div class="drive no-print" aria-hidden="true">${K.bus()}</div><div class="okbar no-print" role="status"><span class="okmark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b>تم حفظ طلبك بنجاح</b> — احتفظ برقم الطلب أدناه.</div></div>${receiptHtml(st.receipt)}${receiptActions()}</div>`;
       return `<div class="drive no-print" aria-hidden="true">${BUS('')}</div><div class="notice ok no-print" role="status"><span class="okmark">✓</span><b>تم حفظ طلبك بنجاح</b> — احتفظ برقم الطلب أدناه.</div>${receiptHtml(st.receipt)}
-        <div class="actions no-print"><button class="btn btn-primary" data-print>🖨 طباعة البطاقة</button><button class="btn btn-ghost" data-png>⬇ تنزيل كصورة</button>
+        ${receiptActions()}`;
+    }
+    function receiptActions() {
+      return `<div class="actions no-print"><button class="btn btn-primary" data-print>🖨 طباعة البطاقة</button><button class="btn btn-ghost" data-png>⬇ تنزيل كصورة</button>
         <span class="grow"></span>${mode === 'staff' ? '<button class="btn btn-sign" data-new>＋ طلب جديد</button>' + (opts.openUrl ? `<a class="btn btn-ghost" href="${opts.openUrl(st.receipt)}">فتح الطلب</a>` : '') : (mode === 'kiosk' ? '<button class="btn btn-sign" data-new>بدء طلب جديد</button>' : '<button class="btn btn-sign" data-new>تقديم طلب آخر</button>')}</div>`;
     }
     function screenWelcome() {
+      if (fancy) return `${hero('big')}<div class="vwrap welcome"><div class="cta"><button class="btn btn-primary big" data-start>ابدأ طلبًا جديدًا ←</button><p class="hint" style="margin-top:14px">أي طلب أو استفسار — سجّله هنا وسيصل مباشرة إلى فريقنا.</p></div></div>`;
       return `<div class="welcome">${hero(true)}<div class="cta"><button class="btn btn-primary big" data-start>ابدأ طلبًا جديدًا ←</button><p class="hint" style="margin-top:14px">أي طلب أو استفسار — سجّله هنا وسيصل مباشرة إلى فريقنا.</p></div></div>`;
     }
     function screenEdit() {
@@ -195,16 +223,41 @@
     }
 
     function render(focusSel) {
-      const y = window.scrollY;
+      const y = window.scrollY, anim = st.anim || '', shake = !!st.shakeNow; st.anim = ''; st.shakeNow = false;
       let html;
       if (st.screen === 'welcome') html = screenWelcome();
       else if (st.screen === 'receipt') html = screenReceipt();
       else if (st.screen === 'edit') html = screenEdit();
+      else if (fancy) {
+        const body = st.step === 1 ? stepService() : st.step === 2 ? stepNeeds() : st.step === 3 ? stepContact() : stepReview();
+        html = hero(st.step === 1 ? 'full' : 'mini') + (st.step === 1
+          ? `<div class="vwrap">${stepper()}<div class="picker"><div class="picker-card stepbox ${anim}">${body}</div></div></div>`
+          : `<div class="vwrap narrow">${stepper()}<div class="stepbox ${anim}"><div class="card">${svcHead()}${body}</div></div>${actions()}</div>`);
+      }
       else html = (st.step === 1 && (mode === 'public' || mode === 'kiosk') ? hero(false) : '') + stepper() + `<div class="card">${st.step === 1 ? stepService() : st.step === 2 ? stepNeeds() : st.step === 3 ? stepContact() : stepReview()}</div>` + actions();
       const hp = mode === 'public' || mode === 'kiosk' ? '<div class="hp" aria-hidden="true"><label>الموقع<input type="text" name="website" tabindex="-1" autocomplete="off" data-hp></label></div>' : '';
       root.innerHTML = html + hp;
+      root.classList.toggle('shake', shake);
+      if (fancy) startWords();
       window.scrollTo(0, y);
       if (focusSel) { const el = root.querySelector(focusSel); if (el) el.focus({ preventScroll: false }); }
+    }
+    // كلمات متبدّلة في الشاشة الرئيسية (تجذب الانتباه على الجهاز اللوحي)
+    function startWords() {
+      clearInterval(wordsTimer); const el = root.querySelector('#hw'); if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const list = cfg.services.map(s => SHORT[s.id] || s.label); let i = 0;
+      wordsTimer = setInterval(() => { if (!document.body.contains(el)) return clearInterval(wordsTimer); el.classList.add('out'); setTimeout(() => { i = (i + 1) % list.length; el.textContent = list[i]; el.classList.remove('out'); }, 350); }, 2400);
+    }
+    // ماسات ملوّنة تتساقط عند نجاح الحفظ
+    function celebrate() {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const colors = ['#ffc933', '#2e6fd8', '#ffffff', '#6c47d8', '#17a37b', '#f0901f'], w = innerWidth;
+      for (let i = 0; i < 46; i++) {
+        const d = document.createElement('span'); d.className = 'cf'; d.style.background = colors[i % colors.length]; d.style.left = (w / 2 + (Math.random() - .5) * Math.min(w, 420)) + 'px'; d.style.top = '120px';
+        const s = 0.7 + Math.random() * 1.1; d.style.width = d.style.height = (12 * s) + 'px'; document.body.appendChild(d);
+        const dx = (Math.random() - .5) * Math.min(w * 1.1, 900), dy = 260 + Math.random() * 520, rot = (Math.random() - .5) * 900;
+        d.animate([{ transform: 'translate(0,0) rotate(0)', opacity: 1 }, { transform: `translate(${dx * .6}px,${-90 - Math.random() * 120}px) rotate(${rot * .4}deg)`, opacity: 1, offset: .25 }, { transform: `translate(${dx}px,${dy}px) rotate(${rot}deg)`, opacity: 0 }], { duration: 1700 + Math.random() * 1200, easing: 'cubic-bezier(.2,.7,.3,1)', delay: Math.random() * 250 }).onfinish = () => d.remove();
+      }
     }
     function toTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
@@ -212,12 +265,12 @@
     function setVal(scope, key, value) {
       (scope === 'c' ? st.common : st.fields)[key] = value; st.dirty = true; delete st.errors[scope + '.' + key]; st.netError = null; st.idem = null;
     }
-    function go(step) { st.step = step; st.showErr = false; render(); toTop(); }
+    function go(step) { st.anim = step > st.step ? 'fwd' : (step < st.step ? 'back' : ''); st.step = step; st.showErr = false; render(); toTop(); }
     function next() {
       if (st.step === 1) { if (!st.service) { st.errors = { service: 'اختر خدمة للمتابعة' }; return render(); } return go(2); }
       const errs = validate(st.step === 2 ? step2Fields() : step3Fields());
       st.errors = errs;
-      if (Object.keys(errs).length) { render(); const first = root.querySelector('.invalid'); if (first) first.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+      if (Object.keys(errs).length) { st.shakeNow = true; render(); const first = root.querySelector('.invalid'); if (first) first.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
       go(st.step + 1);
     }
     function payload() {
@@ -242,7 +295,7 @@
         if (res.ok && data.receipt && data.receipt.ref) {
           st.receipt = data.receipt; st.receiptId = data.id; st.screen = 'receipt'; st.submitting = false;
           st.fields = {}; st.common = { phone_cc: '965' }; st.errors = {}; // لا نبقي بيانات العميل في الذاكرة بعد النجاح
-          if (opts.onDone) opts.onDone(data); render(); toTop(); return;
+          if (opts.onDone) opts.onDone(data); render(); toTop(); if (fancy) celebrate(); return;
         }
         st.submitting = false;
         if (res.status === 422 && data.fields) {
@@ -353,7 +406,12 @@
     // ---------- الأحداث ----------
     root.addEventListener('click', e => {
       const t = e.target.closest('button, a[data-goto], [data-tile]'); if (!t || !root.contains(t)) return;
-      if (t.dataset.tile) { if (st.service !== t.dataset.tile) { st.service = t.dataset.tile; st.fields = {}; st.errors = {}; st.dirty = true; } st.idem = null; return go(2); }
+      if (t.hasAttribute('data-scroll')) { const pk = root.querySelector('.picker'); if (pk) pk.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+      if (t.dataset.tile) {
+        if (st.service !== t.dataset.tile) { st.service = t.dataset.tile; st.fields = {}; st.errors = {}; st.dirty = true; } st.idem = null;
+        if (fancy && !matchMedia('(prefers-reduced-motion: reduce)').matches) { if (t.classList.contains('picked')) return; t.classList.add('picked'); return void setTimeout(() => go(2), 300); }
+        return go(2);
+      }
       if (t.dataset.radio) { setVal(t.dataset.s, t.dataset.k, t.dataset.v); return render(); }
       if (t.dataset.multi) { const cur = st.fields[t.dataset.k] || []; const v = t.dataset.v; setVal('f', t.dataset.k, cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v]); return render(); }
       if (t.dataset.unk) { const sc = t.dataset.s, k = t.dataset.k; const on = (sc === 'c' ? st.common : st.fields)[k] === UNK; setVal(sc, k, on ? '' : UNK); return render(); }
@@ -367,6 +425,10 @@
       if (t.hasAttribute('data-png')) return downloadPng();
       if (t.hasAttribute('data-start')) { st.screen = 'form'; render(); armIdle(); return; }
       if (t.hasAttribute('data-new')) { const wasKiosk = mode === 'kiosk'; st = fresh(); if (wasKiosk) { st.screen = 'welcome'; clearTimeout(idleTimer); clearTimeout(warnTimer); } render(); toTop(); }
+    });
+    root.addEventListener('pointermove', e => { // بقعة ضوء تتبع الفأرة على بطاقات الخدمات (لا تعمل باللمس)
+      if (!fancy || e.pointerType === 'touch') return; const t = e.target.closest && e.target.closest('.tile2'); if (!t) return;
+      const r = t.getBoundingClientRect(); t.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%'); t.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
     });
     root.addEventListener('input', e => {
       const el = e.target; if (el.dataset.hp !== undefined || el.hasAttribute('data-test')) { if (el.hasAttribute('data-test')) st.isTest = el.checked; return; }
