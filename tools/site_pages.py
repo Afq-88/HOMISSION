@@ -14,7 +14,7 @@ for f in sorted(glob.glob(os.path.join(ROOT, 'src/site/*.html'))):
     title = re.search(r'<!--title:(.*?)-->', s).group(1); admin = '<!--chrome:admin-->' in s
     s = re.sub(r'<!--(title|hero|chrome):.*?-->\n?', '', s)
     own = re.search(r'<style>(.*?)</style>', s, re.S); body = s[own.end():] if own else s
-    out = ('<!DOCTYPE html>\n<html lang="ar" dir="rtl">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+    out = ('<!DOCTYPE html>\n<html lang="ar" dir="rtl">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<link rel="icon" type="image/svg+xml" href="../icons/icon.svg">\n<link rel="apple-touch-icon" href="../apple-touch-icon.png">\n<link rel="manifest" href="../manifest.webmanifest">\n'
            f'<title>{title}</title>\n<style>\n{css}{own.group(1) if own else ""}</style>\n</head>\n<body>\n'
            + ('' if admin else head + '\n') + body.strip() + '\n' + ('' if admin else foot + '\n') + '</body>\n</html>\n')
     open(os.path.join(ROOT, 'pages', name + '.html'), 'w', encoding='utf-8').write(out)
