@@ -70,6 +70,25 @@
       ]
     };
   }
+  function personOf(u, d){
+    if (u.ref){ var b = d.org.board.concat((d.orgDraft || {board:[]}).board).filter(function(x){ return x.id === u.ref; })[0]; if (b) return {n:b.n, t:b.t}; }
+    if (u.sid && d.staff[u.sid]) return {n:d.staff[u.sid].name, t:u.t || ''};
+    return u.who ? {n:u.who, t:u.t || ''} : null; }
+  /* making a snapshot live: employees follow their unit when its name changes, and move up when a unit is removed */
+  function orgApply(d, snap, meta){
+    var key = function(u){ return u.dk || u.n; }, old = {}, nu = {}; d.org.units.forEach(function(u){ old[u.id] = u; }); snap.units.forEach(function(u){ nu[u.id] = u; });
+    var map = {}; Object.keys(old).forEach(function(i){
+      var o = old[i], n = nu[i]; if (n){ if (key(n) !== key(o)) map[key(o)] = key(n); return; }
+      var p = old[o.p]; while (p && !nu[p.id]) p = old[p.o || p.p]; map[key(o)] = p && nu[p.id] && p.lv !== 'board' && p.lv !== 'ceo' ? key(nu[p.id]) : ''; });
+    Object.keys(d.staff || {}).forEach(function(i){ var k = d.staff[i].dept; if (k in map) d.staff[i].dept = map[k]; });
+    Object.keys(map).forEach(function(k){ if (d.deptInfo && d.deptInfo[k]){ if (map[k]) d.deptInfo[map[k]] = d.deptInfo[k]; delete d.deptInfo[k]; } });
+    (d.sections || []).forEach(function(s){ if (s.dept in map) s.dept = map[s.dept]; });
+    d.org = JSON.parse(JSON.stringify(snap)); (d.orgHist = d.orgHist || []).unshift({id:id('H'), at:meta.at, eff:meta.eff, note:meta.note, by:meta.by, snap:JSON.parse(JSON.stringify(snap))}); if (d.orgHist.length > 40) d.orgHist.length = 40; }
+  /* a change scheduled for a date takes effect the first time the site is opened on or after it */
+  function orgQueueRun(d){
+    var q = d.orgQueue; if (!q || !q.length) return; var t = today(), due = q.filter(function(x){ return x.eff <= t; }); if (!due.length) return;
+    due.sort(function(a, b){ return a.eff < b.eff ? -1 : 1; }).forEach(function(x){ orgApply(d, x.snap, {at:t, eff:x.eff, note:x.note + ' (بجدولة مسبقة)', by:x.by}); });
+    d.orgQueue = q.filter(function(x){ return x.eff > t; }); setTimeout(function(){ save(); }, 0); }
   function seed(){
     return {
       pages: {},                                   // id -> false when hidden from visitors
@@ -307,16 +326,49 @@
 
     /* ---- staff, roles, permissions ---- */
     /* ---- organisation: one record behind the chart, the board page, department lists and the staff directory ---- */
-    org: function(){ var d = load(); if (!d.org || !d.org.units) d.org = seedOrg(); return d.org; },
+    /* the live chart is what visitors see. The studio edits a DRAFT of it, then publishes (now, or from a given date) with the decision noted. */
+    orgEditing: false,
+    org: function(){
+      var d = load(); if (!d.org || !d.org.units) d.org = seedOrg(); orgQueueRun(d);
+      var pv = false; try { pv = window.parent !== window && location.hash === '#kpprev' && sessionStorage.getItem('kptc.pvDraft') === '1'; } catch(x){}
+      if (K.orgEditing){ if (!d.orgDraft) d.orgDraft = JSON.parse(JSON.stringify(d.org)); return d.orgDraft; }
+      return pv && d.orgDraft ? d.orgDraft : d.org; },
+    orgDirty: function(){ var d = load(); return !!d.orgDraft && JSON.stringify(d.orgDraft) !== JSON.stringify(d.org); },
+    /* a plain list of what the draft changes compared with what is live */
+    orgDiff: function(){
+      var d = load(), L = d.org, D = d.orgDraft || d.org, out = [], lu = {}, du = {};
+      L.units.forEach(function(u){ lu[u.id] = u; }); D.units.forEach(function(u){ du[u.id] = u; });
+      var nm = function(i, m){ return i && m[i] ? m[i].n : 'أعلى مستوى'; }, per = function(u){ var p = personOf(u, d); return p ? p.n + (p.t ? ' (' + p.t + ')' : '') : 'بلا اسم'; };
+      D.units.forEach(function(u){ var o = lu[u.id];
+        if (!o){ out.push({k:'add', t:'إضافة «' + u.n + '» تحت «' + nm(u.p, du) + '»'}); return; }
+        if (o.n !== u.n) out.push({k:'ren', t:'تغيير الاسم: «' + o.n + '» ← «' + u.n + '»'});
+        if ((o.p || '') !== (u.p || '')) out.push({k:'move', t:'نقل «' + u.n + '» من «' + nm(o.p, lu) + '» إلى «' + nm(u.p, du) + '»'});
+        if (o.lv !== u.lv) out.push({k:'ren', t:'تغيير نوع «' + u.n + '»'});
+        if (per(o, d) !== per(u, d) || !!o.vacant !== !!u.vacant) out.push({k:'who', t:'مسؤول «' + u.n + '»: ' + (u.vacant ? 'المنصب شاغر' : per(u))}); });
+      L.units.forEach(function(u){ if (!du[u.id]) out.push({k:'del', t:'حذف «' + u.n + '»'}); });
+      var lb = {}, db = {}; L.board.forEach(function(b){ lb[b.id] = b; }); D.board.forEach(function(b){ db[b.id] = b; });
+      D.board.forEach(function(b){ var o = lb[b.id]; if (!o) out.push({k:'add', t:'عضو مجلس جديد: ' + b.n}); else if (o.n !== b.n || o.t !== b.t) out.push({k:'who', t:'عضو المجلس: ' + o.n + ' ← ' + b.n + ' (' + b.t + ')'}); });
+      L.board.forEach(function(b){ if (!db[b.id]) out.push({k:'del', t:'خروج عضو من المجلس: ' + b.n}); });
+      if (!out.length && JSON.stringify(D) !== JSON.stringify(L)) out.push({k:'ren', t:'تعديلات في الترتيب أو التفاصيل'});
+      return out; },
+    orgDiscard: function(){ var d = load(); delete d.orgDraft; log('تجاهل مسودة الهيكل'); save(); },
+    orgPublish: function(note, eff){
+      var d = load(); if (!d.orgDraft) return false; var u = K.staffUser(), snap = JSON.parse(JSON.stringify(d.orgDraft));
+      if (eff && eff > today()){ (d.orgQueue = d.orgQueue || []).push({id:id('Q'), eff:eff, note:note || '', by:u ? u.name : '', snap:snap}); delete d.orgDraft; log('جدولة تغيير في الهيكل لتاريخ ' + eff + ': ' + (note || '')); save(); return 'queued'; }
+      orgApply(d, snap, {at:today(), eff:eff || today(), note:note || '', by:u ? u.name : ''}); delete d.orgDraft; log('نشر تغيير في الهيكل: ' + (note || '')); save(); return 'live'; },
+    orgHistory: function(){ return load().orgHist || []; },
+    orgQueue: function(){ return load().orgQueue || []; },
+    orgUnqueue: function(qid){ var d = load(); d.orgQueue = (d.orgQueue || []).filter(function(x){ return x.id !== qid; }); save(); },
+    orgRestore: function(hid){ var d = load(), h = (d.orgHist || []).filter(function(x){ return x.id === hid; })[0]; if (!h) return false; d.orgDraft = JSON.parse(JSON.stringify(h.snap)); log('استعادة نسخة سابقة من الهيكل إلى المسودة'); save(); return true; },
     unit: function(id){ return K.org().units.filter(function(u){ return u.id === id; })[0] || null; },
     kids: function(id){ return K.org().units.filter(function(u){ return (u.p || '') === (id || ''); }); },
     unitKey: function(u){ return u.dk || u.n; },
     /* the person who holds a unit: a board member (ref), a staff account (sid) or a typed name */
     orgPerson: function(u){
       if (!u) return null;
-      if (u.ref){ var b = K.org().board.filter(function(x){ return x.id === u.ref; })[0]; if (b) return {n:b.n, t:b.t, ph:b.ph || '', uid:b.uid || ''}; }
+      if (u.ref){ var b = K.org().board.filter(function(x){ return x.id === u.ref; })[0]; if (b) return {n:b.n, t:b.t, ph:b.ph || '', uid:b.uid || '', since:b.since || ''}; }
       if (u.sid){ var s = load().staff[u.sid]; if (s) return {n:s.name, t:u.t || s.title || '', ph:s.photo || '', uid:''}; }
-      return u.who ? {n:u.who, t:u.t || '', ph:u.ph || '', uid:u.uid || ''} : null; },
+      return u.who ? {n:u.who, t:u.t || '', ph:u.ph || '', uid:u.uid || '', since:u.since || ''} : null; },
     orgImg: function(p, base){ if (!p) return ''; if (p.ph) return p.ph; return p.uid ? (base == null ? '../assets/board/' : base) + p.uid + '.jpg' : ''; },
     /* every unit that can own employees; names already used by accounts stay valid so nobody is orphaned */
     depts: function(){
@@ -327,18 +379,16 @@
     descendants: function(id){ var o = []; (function w(x){ K.kids(x).forEach(function(k){ o.push(k); w(k.id); }); })(id); return o; },
     orgAdd: function(p, n, lv){ var o = K.org(), u = {id:id('U'), p:p || '', n:n, lv:lv || 'unit'}; o.units.push(u); log('إضافة وحدة تنظيمية: ' + n); save(); return u; },
     orgSet: function(uid_, f){
-      var u = K.unit(uid_); if (!u) return; var d = load(), oldKey = K.unitKey(u);
+      var u = K.unit(uid_); if (!u) return;
       Object.keys(f).forEach(function(k){ if (f[k] === '' || f[k] == null) delete u[k]; else u[k] = f[k]; });
-      var nk = K.unitKey(u);
-      if (nk !== oldKey){ Object.keys(d.staff || {}).forEach(function(i){ if (d.staff[i].dept === oldKey) d.staff[i].dept = nk; }); if (d.deptInfo && d.deptInfo[oldKey]){ d.deptInfo[nk] = d.deptInfo[oldKey]; delete d.deptInfo[oldKey]; } (d.sections || []).forEach(function(s){ if (s.dept === oldKey) s.dept = nk; }); }
       log('تعديل وحدة تنظيمية: ' + u.n); save(); },
     /* moving a unit under another one; refuses a move into its own branch */
     orgMove: function(uid_, np){ var u = K.unit(uid_); if (!u || uid_ === np) return false; if (np && K.descendants(uid_).some(function(x){ return x.id === np; })) return false; u.p = np || ''; log('نقل وحدة: ' + u.n); save(); return true; },
     orgOrder: function(uid_, dir){ var o = K.org().units, u = K.unit(uid_); if (!u) return; var sib = o.filter(function(x){ return (x.p || '') === (u.p || ''); }), i = sib.indexOf(u), j = i + dir; if (j < 0 || j >= sib.length) return; var a = o.indexOf(u), b = o.indexOf(sib[j]); o[a] = sib[j]; o[b] = u; save(); },
     /* removing a unit lifts its children one level and moves its employees to the unit above */
     orgDel: function(uid_){
-      var o = K.org(), u = K.unit(uid_); if (!u || !u.p) return false; var par = K.unit(u.p), d = load(), key = K.unitKey(u), to = par && par.lv !== 'board' && par.lv !== 'ceo' ? K.unitKey(par) : '';
-      o.units.forEach(function(x){ if (x.p === uid_) x.p = u.p; }); Object.keys(d.staff || {}).forEach(function(i){ if (d.staff[i].dept === key) d.staff[i].dept = to; });
+      var o = K.org(), u = K.unit(uid_); if (!u || !u.p) return false; 
+      o.units.forEach(function(x){ if (x.p === uid_) x.p = u.p; });
       o.units = o.units.filter(function(x){ return x.id !== uid_; }); log('حذف وحدة تنظيمية: ' + u.n); save(); return true; },
     /* job grades: pick the position, and the system role that normally goes with it is suggested */
     GRADES: [['gm','مدير عام','sup'],['dm','مدير إدارة','sup'],['adm','مساعد مدير إدارة','asst'],['head','رئيس قسم','sup'],['sv','مشرف','emp'],['eng','مهندس','eng'],['spec','أخصائي','emp'],['acc','محاسب','emp'],['tech','فني','emp'],['clerk','موظف','emp'],['driver','سائق','emp'],['other','أخرى (اكتبها)','emp']],
@@ -393,6 +443,7 @@
     log: log
   };
   /* the department list now follows the organisation chart (kept as a property so older code keeps working) */
+  window.addEventListener('message', function(e){ if (e.data && e.data.kpRedraw){ subs.forEach(function(f){ try { f(mem); } catch(x){} }); } });
   Object.defineProperty(K, "DEPTS", {get: function(){ return K.depts(); }});
 })();
 </script><!--/kptc:head-js-->

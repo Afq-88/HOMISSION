@@ -70,6 +70,25 @@
       ]
     };
   }
+  function personOf(u, d){
+    if (u.ref){ var b = d.org.board.concat((d.orgDraft || {board:[]}).board).filter(function(x){ return x.id === u.ref; })[0]; if (b) return {n:b.n, t:b.t}; }
+    if (u.sid && d.staff[u.sid]) return {n:d.staff[u.sid].name, t:u.t || ''};
+    return u.who ? {n:u.who, t:u.t || ''} : null; }
+  /* making a snapshot live: employees follow their unit when its name changes, and move up when a unit is removed */
+  function orgApply(d, snap, meta){
+    var key = function(u){ return u.dk || u.n; }, old = {}, nu = {}; d.org.units.forEach(function(u){ old[u.id] = u; }); snap.units.forEach(function(u){ nu[u.id] = u; });
+    var map = {}; Object.keys(old).forEach(function(i){
+      var o = old[i], n = nu[i]; if (n){ if (key(n) !== key(o)) map[key(o)] = key(n); return; }
+      var p = old[o.p]; while (p && !nu[p.id]) p = old[p.o || p.p]; map[key(o)] = p && nu[p.id] && p.lv !== 'board' && p.lv !== 'ceo' ? key(nu[p.id]) : ''; });
+    Object.keys(d.staff || {}).forEach(function(i){ var k = d.staff[i].dept; if (k in map) d.staff[i].dept = map[k]; });
+    Object.keys(map).forEach(function(k){ if (d.deptInfo && d.deptInfo[k]){ if (map[k]) d.deptInfo[map[k]] = d.deptInfo[k]; delete d.deptInfo[k]; } });
+    (d.sections || []).forEach(function(s){ if (s.dept in map) s.dept = map[s.dept]; });
+    d.org = JSON.parse(JSON.stringify(snap)); (d.orgHist = d.orgHist || []).unshift({id:id('H'), at:meta.at, eff:meta.eff, note:meta.note, by:meta.by, snap:JSON.parse(JSON.stringify(snap))}); if (d.orgHist.length > 40) d.orgHist.length = 40; }
+  /* a change scheduled for a date takes effect the first time the site is opened on or after it */
+  function orgQueueRun(d){
+    var q = d.orgQueue; if (!q || !q.length) return; var t = today(), due = q.filter(function(x){ return x.eff <= t; }); if (!due.length) return;
+    due.sort(function(a, b){ return a.eff < b.eff ? -1 : 1; }).forEach(function(x){ orgApply(d, x.snap, {at:t, eff:x.eff, note:x.note + ' (بجدولة مسبقة)', by:x.by}); });
+    d.orgQueue = q.filter(function(x){ return x.eff > t; }); setTimeout(function(){ save(); }, 0); }
   function seed(){
     return {
       pages: {},                                   // id -> false when hidden from visitors
@@ -307,16 +326,49 @@
 
     /* ---- staff, roles, permissions ---- */
     /* ---- organisation: one record behind the chart, the board page, department lists and the staff directory ---- */
-    org: function(){ var d = load(); if (!d.org || !d.org.units) d.org = seedOrg(); return d.org; },
+    /* the live chart is what visitors see. The studio edits a DRAFT of it, then publishes (now, or from a given date) with the decision noted. */
+    orgEditing: false,
+    org: function(){
+      var d = load(); if (!d.org || !d.org.units) d.org = seedOrg(); orgQueueRun(d);
+      var pv = false; try { pv = window.parent !== window && location.hash === '#kpprev' && sessionStorage.getItem('kptc.pvDraft') === '1'; } catch(x){}
+      if (K.orgEditing){ if (!d.orgDraft) d.orgDraft = JSON.parse(JSON.stringify(d.org)); return d.orgDraft; }
+      return pv && d.orgDraft ? d.orgDraft : d.org; },
+    orgDirty: function(){ var d = load(); return !!d.orgDraft && JSON.stringify(d.orgDraft) !== JSON.stringify(d.org); },
+    /* a plain list of what the draft changes compared with what is live */
+    orgDiff: function(){
+      var d = load(), L = d.org, D = d.orgDraft || d.org, out = [], lu = {}, du = {};
+      L.units.forEach(function(u){ lu[u.id] = u; }); D.units.forEach(function(u){ du[u.id] = u; });
+      var nm = function(i, m){ return i && m[i] ? m[i].n : 'أعلى مستوى'; }, per = function(u){ var p = personOf(u, d); return p ? p.n + (p.t ? ' (' + p.t + ')' : '') : 'بلا اسم'; };
+      D.units.forEach(function(u){ var o = lu[u.id];
+        if (!o){ out.push({k:'add', t:'إضافة «' + u.n + '» تحت «' + nm(u.p, du) + '»'}); return; }
+        if (o.n !== u.n) out.push({k:'ren', t:'تغيير الاسم: «' + o.n + '» ← «' + u.n + '»'});
+        if ((o.p || '') !== (u.p || '')) out.push({k:'move', t:'نقل «' + u.n + '» من «' + nm(o.p, lu) + '» إلى «' + nm(u.p, du) + '»'});
+        if (o.lv !== u.lv) out.push({k:'ren', t:'تغيير نوع «' + u.n + '»'});
+        if (per(o, d) !== per(u, d) || !!o.vacant !== !!u.vacant) out.push({k:'who', t:'مسؤول «' + u.n + '»: ' + (u.vacant ? 'المنصب شاغر' : per(u))}); });
+      L.units.forEach(function(u){ if (!du[u.id]) out.push({k:'del', t:'حذف «' + u.n + '»'}); });
+      var lb = {}, db = {}; L.board.forEach(function(b){ lb[b.id] = b; }); D.board.forEach(function(b){ db[b.id] = b; });
+      D.board.forEach(function(b){ var o = lb[b.id]; if (!o) out.push({k:'add', t:'عضو مجلس جديد: ' + b.n}); else if (o.n !== b.n || o.t !== b.t) out.push({k:'who', t:'عضو المجلس: ' + o.n + ' ← ' + b.n + ' (' + b.t + ')'}); });
+      L.board.forEach(function(b){ if (!db[b.id]) out.push({k:'del', t:'خروج عضو من المجلس: ' + b.n}); });
+      if (!out.length && JSON.stringify(D) !== JSON.stringify(L)) out.push({k:'ren', t:'تعديلات في الترتيب أو التفاصيل'});
+      return out; },
+    orgDiscard: function(){ var d = load(); delete d.orgDraft; log('تجاهل مسودة الهيكل'); save(); },
+    orgPublish: function(note, eff){
+      var d = load(); if (!d.orgDraft) return false; var u = K.staffUser(), snap = JSON.parse(JSON.stringify(d.orgDraft));
+      if (eff && eff > today()){ (d.orgQueue = d.orgQueue || []).push({id:id('Q'), eff:eff, note:note || '', by:u ? u.name : '', snap:snap}); delete d.orgDraft; log('جدولة تغيير في الهيكل لتاريخ ' + eff + ': ' + (note || '')); save(); return 'queued'; }
+      orgApply(d, snap, {at:today(), eff:eff || today(), note:note || '', by:u ? u.name : ''}); delete d.orgDraft; log('نشر تغيير في الهيكل: ' + (note || '')); save(); return 'live'; },
+    orgHistory: function(){ return load().orgHist || []; },
+    orgQueue: function(){ return load().orgQueue || []; },
+    orgUnqueue: function(qid){ var d = load(); d.orgQueue = (d.orgQueue || []).filter(function(x){ return x.id !== qid; }); save(); },
+    orgRestore: function(hid){ var d = load(), h = (d.orgHist || []).filter(function(x){ return x.id === hid; })[0]; if (!h) return false; d.orgDraft = JSON.parse(JSON.stringify(h.snap)); log('استعادة نسخة سابقة من الهيكل إلى المسودة'); save(); return true; },
     unit: function(id){ return K.org().units.filter(function(u){ return u.id === id; })[0] || null; },
     kids: function(id){ return K.org().units.filter(function(u){ return (u.p || '') === (id || ''); }); },
     unitKey: function(u){ return u.dk || u.n; },
     /* the person who holds a unit: a board member (ref), a staff account (sid) or a typed name */
     orgPerson: function(u){
       if (!u) return null;
-      if (u.ref){ var b = K.org().board.filter(function(x){ return x.id === u.ref; })[0]; if (b) return {n:b.n, t:b.t, ph:b.ph || '', uid:b.uid || ''}; }
+      if (u.ref){ var b = K.org().board.filter(function(x){ return x.id === u.ref; })[0]; if (b) return {n:b.n, t:b.t, ph:b.ph || '', uid:b.uid || '', since:b.since || ''}; }
       if (u.sid){ var s = load().staff[u.sid]; if (s) return {n:s.name, t:u.t || s.title || '', ph:s.photo || '', uid:''}; }
-      return u.who ? {n:u.who, t:u.t || '', ph:u.ph || '', uid:u.uid || ''} : null; },
+      return u.who ? {n:u.who, t:u.t || '', ph:u.ph || '', uid:u.uid || '', since:u.since || ''} : null; },
     orgImg: function(p, base){ if (!p) return ''; if (p.ph) return p.ph; return p.uid ? (base == null ? '../assets/board/' : base) + p.uid + '.jpg' : ''; },
     /* every unit that can own employees; names already used by accounts stay valid so nobody is orphaned */
     depts: function(){
@@ -327,18 +379,16 @@
     descendants: function(id){ var o = []; (function w(x){ K.kids(x).forEach(function(k){ o.push(k); w(k.id); }); })(id); return o; },
     orgAdd: function(p, n, lv){ var o = K.org(), u = {id:id('U'), p:p || '', n:n, lv:lv || 'unit'}; o.units.push(u); log('إضافة وحدة تنظيمية: ' + n); save(); return u; },
     orgSet: function(uid_, f){
-      var u = K.unit(uid_); if (!u) return; var d = load(), oldKey = K.unitKey(u);
+      var u = K.unit(uid_); if (!u) return;
       Object.keys(f).forEach(function(k){ if (f[k] === '' || f[k] == null) delete u[k]; else u[k] = f[k]; });
-      var nk = K.unitKey(u);
-      if (nk !== oldKey){ Object.keys(d.staff || {}).forEach(function(i){ if (d.staff[i].dept === oldKey) d.staff[i].dept = nk; }); if (d.deptInfo && d.deptInfo[oldKey]){ d.deptInfo[nk] = d.deptInfo[oldKey]; delete d.deptInfo[oldKey]; } (d.sections || []).forEach(function(s){ if (s.dept === oldKey) s.dept = nk; }); }
       log('تعديل وحدة تنظيمية: ' + u.n); save(); },
     /* moving a unit under another one; refuses a move into its own branch */
     orgMove: function(uid_, np){ var u = K.unit(uid_); if (!u || uid_ === np) return false; if (np && K.descendants(uid_).some(function(x){ return x.id === np; })) return false; u.p = np || ''; log('نقل وحدة: ' + u.n); save(); return true; },
     orgOrder: function(uid_, dir){ var o = K.org().units, u = K.unit(uid_); if (!u) return; var sib = o.filter(function(x){ return (x.p || '') === (u.p || ''); }), i = sib.indexOf(u), j = i + dir; if (j < 0 || j >= sib.length) return; var a = o.indexOf(u), b = o.indexOf(sib[j]); o[a] = sib[j]; o[b] = u; save(); },
     /* removing a unit lifts its children one level and moves its employees to the unit above */
     orgDel: function(uid_){
-      var o = K.org(), u = K.unit(uid_); if (!u || !u.p) return false; var par = K.unit(u.p), d = load(), key = K.unitKey(u), to = par && par.lv !== 'board' && par.lv !== 'ceo' ? K.unitKey(par) : '';
-      o.units.forEach(function(x){ if (x.p === uid_) x.p = u.p; }); Object.keys(d.staff || {}).forEach(function(i){ if (d.staff[i].dept === key) d.staff[i].dept = to; });
+      var o = K.org(), u = K.unit(uid_); if (!u || !u.p) return false; 
+      o.units.forEach(function(x){ if (x.p === uid_) x.p = u.p; });
       o.units = o.units.filter(function(x){ return x.id !== uid_; }); log('حذف وحدة تنظيمية: ' + u.n); save(); return true; },
     /* job grades: pick the position, and the system role that normally goes with it is suggested */
     GRADES: [['gm','مدير عام','sup'],['dm','مدير إدارة','sup'],['adm','مساعد مدير إدارة','asst'],['head','رئيس قسم','sup'],['sv','مشرف','emp'],['eng','مهندس','eng'],['spec','أخصائي','emp'],['acc','محاسب','emp'],['tech','فني','emp'],['clerk','موظف','emp'],['driver','سائق','emp'],['other','أخرى (اكتبها)','emp']],
@@ -393,6 +443,7 @@
     log: log
   };
   /* the department list now follows the organisation chart (kept as a property so older code keeps working) */
+  window.addEventListener('message', function(e){ if (e.data && e.data.kpRedraw){ subs.forEach(function(f){ try { f(mem); } catch(x){} }); } });
   Object.defineProperty(K, "DEPTS", {get: function(){ return K.depts(); }});
 })();
 </script><!--/kptc:head-js-->
@@ -852,62 +903,42 @@ table.t tr:hover td{background:var(--kp-paper-2)}
 .flash.on{opacity:1;translate:-50% 0}
 @media(max-width:920px){.g2,.g3,.g4{grid-template-columns:1fr}.sub{top:66px}.w{padding:0 16px}}
 
-.bd-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
-.bd-nav a{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#fff;border:1.5px solid rgba(255,255,255,.35);border-radius:22px;padding:7px 18px;font:700 14px var(--f-body);transition:.2s}
-.bd-nav a:hover,.bd-nav a.on{background:var(--kp-sign);border-color:var(--kp-sign);color:var(--kp-ink)}
-.bd-sec{padding:8px 0 56px;scroll-margin-top:90px}
-.bd-h{display:flex;align-items:flex-end;gap:16px;margin-bottom:28px}
-.bd-h .no{font:800 64px/0.8 var(--f-display);color:transparent;-webkit-text-stroke:2px var(--kp-sign);letter-spacing:-2px}
-.bd-h h2{font:800 clamp(26px,3.2vw,36px)/1.25 var(--f-display);color:var(--kp-indigo)}
-.bd-h p{color:var(--kp-muted);font-size:14.5px;margin-top:2px}
-.stage{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
-.lead{position:relative;display:grid;grid-template-columns:minmax(150px,38%) 1fr;align-items:stretch;background:linear-gradient(150deg,#2E2C78,#14133A);border-radius:28px;overflow:hidden;color:#fff;text-align:start;border:0;font:inherit;cursor:pointer;min-height:300px;box-shadow:0 30px 50px -34px rgba(20,19,58,.9);transition:translate .3s,box-shadow .3s;padding:0}
-.lead:hover{translate:0 -5px;box-shadow:0 40px 60px -34px rgba(20,19,58,.95)}
-.lead::before{content:"";position:absolute;inset-inline-end:-60px;top:-60px;width:220px;height:220px;border-radius:50%;border:34px solid rgba(255,201,60,.12)}
-.lead .im{position:relative;background:#232168;overflow:hidden}
-.lead .im img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 12%;transition:transform .6s}
-.lead:hover .im img{transform:scale(1.05)}
-.lead .im::after{content:"";position:absolute;inset:0;background:linear-gradient(to left,transparent 60%,rgba(20,19,58,.5))}
-.lead .tx{position:relative;display:grid;align-content:center;gap:10px;padding:30px 30px 30px 26px}
-.lead .rl{display:inline-flex;align-items:center;gap:8px;font:700 12.5px var(--f-body);color:var(--kp-sign)}
-.lead .rl i{width:26px;height:3px;background:var(--kp-sign);border-radius:2px;display:block}
-.lead h3{font:800 clamp(22px,2.4vw,30px)/1.4 var(--f-display)}
-.lead.two{grid-template-columns:1fr;grid-template-rows:200px 1fr;min-height:0;background:linear-gradient(150deg,#3d3a96,#1f1d5c)}
-.lead.two .tx{padding:22px 24px}.lead.two h3{font-size:22px}
-.lead.two .im::after{background:linear-gradient(to top,rgba(31,29,92,.6),transparent 60%)}
-.mem{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;margin-top:18px}
-.mc{position:relative;display:grid;background:#fff;border:1px solid var(--kp-line);border-radius:22px;overflow:hidden;text-align:start;font:inherit;cursor:pointer;padding:0;transition:translate .3s,box-shadow .3s;opacity:0;translate:0 22px}
-.mc.in{opacity:1;translate:0 0;transition:opacity .6s,translate .6s,box-shadow .3s}
-.mc:hover{box-shadow:0 26px 40px -28px rgba(31,29,92,.55);translate:0 -4px}
-.mc .im{position:relative;aspect-ratio:4/4.6;background:var(--kp-paper);overflow:hidden}
-.mc .im img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 14%;filter:grayscale(.55);transition:filter .45s,transform .6s}
-.mc:hover .im img{filter:none;transform:scale(1.04)}
+.bt{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:4px 0 26px}
+.bt .seg2{display:inline-flex;background:#fff;border:1.5px solid var(--kp-line-2);border-radius:14px;padding:4px}
+.bt .seg2 button{border:0;background:none;font:700 14.5px var(--f-body);padding:9px 20px;border-radius:10px;cursor:pointer;color:var(--kp-muted);display:inline-flex;gap:8px;align-items:center}
+.bt .seg2 button em{font-style:normal;font-size:12px;background:var(--kp-paper);border-radius:9px;padding:0 8px;color:var(--kp-indigo)}
+.bt .seg2 button.on{background:var(--kp-indigo);color:#fff}.bt .seg2 button.on em{background:rgba(255,255,255,.18);color:#fff}
+.bt .q{position:relative;flex:1;min-width:220px;max-width:380px;margin-inline-start:auto}
+.bt .q svg{position:absolute;inset-inline-start:14px;top:50%;translate:0 -50%;width:18px;height:18px;color:var(--kp-muted);pointer-events:none}
+.bt .q input{width:100%;border:2px solid var(--kp-line);border-radius:14px;padding:10px 14px;padding-inline-start:42px;font:500 15px var(--f-body);outline:0;background:#fff}.bt .q input:focus{border-color:var(--kp-indigo);box-shadow:0 0 0 4px rgba(46,44,120,.1)}
+.sp{display:grid;grid-template-columns:minmax(0,330px) 1fr;gap:0;background:#fff;border:1px solid var(--kp-line);border-radius:30px;overflow:hidden;margin-bottom:26px;box-shadow:0 30px 50px -40px rgba(31,29,92,.6)}
+.sp .im{position:relative;min-height:340px;background:var(--kp-indigo)}
+.sp .im img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 12%}
+.sp .tx{padding:36px 40px;display:grid;align-content:center;gap:12px;background:linear-gradient(120deg,#fff 55%,#F7F6FD)}
+.sp .rl{justify-self:start;font:800 13px var(--f-body);color:var(--kp-ink);background:var(--kp-sign);border-radius:10px;padding:3px 14px}
+.sp h2{font:800 clamp(28px,3.4vw,42px)/1.35 var(--f-display);color:var(--kp-indigo)}
+.sp p{color:var(--kp-muted);font-size:15px;line-height:1.8;max-width:34em}
+.sp .ac{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:20px}
+.pc{background:#fff;border:1px solid var(--kp-line);border-radius:24px;overflow:hidden;display:grid;grid-template-rows:auto 1fr auto;transition:translate .25s,box-shadow .25s;opacity:0;translate:0 16px}
+.pc.in{opacity:1;translate:0 0;transition:opacity .5s,translate .5s,box-shadow .25s}
+.pc:hover{box-shadow:0 26px 40px -28px rgba(31,29,92,.55);translate:0 -4px}
+.pc .im{position:relative;aspect-ratio:1/1.05;background:var(--kp-paper);overflow:hidden;border:0;padding:0;cursor:pointer;display:block;width:100%}
+.pc .im img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 12%;transition:transform .5s}.pc:hover .im img{transform:scale(1.04)}
 .nopic{position:absolute;inset:0;display:grid;place-items:center;font:800 64px var(--f-display);color:var(--kp-sign);background:var(--kp-indigo)}
-.mc .ix{position:absolute;top:12px;inset-inline-start:12px;font:800 13px var(--f-display);background:var(--kp-sign);color:var(--kp-ink);border-radius:9px;padding:2px 9px;z-index:1}
-.mc .pl{padding:14px 16px 16px;border-top:4px solid var(--kp-sign);display:grid;gap:2px}
-.mc h3{font:800 16.5px/1.5 var(--f-display);color:var(--kp-indigo)}.mc p{font-size:13px;color:var(--kp-muted)}
-.exe{position:relative;display:grid;gap:14px;padding-inline-start:34px;align-content:start}
-.exe:empty{display:none}.exe{max-width:820px}
-.exe::before{content:"";position:absolute;inset-inline-start:11px;top:18px;bottom:18px;width:5px;border-radius:3px;background:var(--kp-sign)}
-.st{position:relative;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;background:#fff;border:1px solid var(--kp-line);border-radius:20px;padding:14px 18px;text-align:start;font:inherit;cursor:pointer;transition:translate .25s,box-shadow .25s,border-color .25s;opacity:0;translate:0 18px}
-.st.in{opacity:1;translate:0 0;transition:opacity .5s,translate .5s,box-shadow .25s,border-color .25s}
-.st::before{content:"";position:absolute;inset-inline-start:-31px;top:50%;translate:0 -50%;width:19px;height:19px;border-radius:50%;background:#fff;border:5px solid var(--kp-indigo);box-shadow:0 0 0 4px var(--kp-paper)}
-.st:hover{border-color:var(--kp-indigo);box-shadow:0 20px 30px -24px rgba(31,29,92,.6)}
-.st .pp{width:76px;height:76px;border-radius:50%;overflow:hidden;background:var(--kp-indigo);border:3px solid var(--kp-sign);position:relative}
-.st .pp img{width:100%;height:100%;object-fit:cover;object-position:center 12%;display:block}
-.st .pp .nopic{font-size:26px}
-.st h3{font:800 17px/1.5 var(--f-display);color:var(--kp-indigo)}.st p{font-size:13.5px;color:var(--kp-muted);line-height:1.6}
-.st.top{background:var(--kp-sign);border-color:var(--kp-sign)}.st.top p{color:var(--kp-ink);opacity:.8}.st.top h3{color:var(--kp-ink)}.st.top::before{border-color:var(--kp-ink)}.st.top .pp{border-color:var(--kp-ink)}
-.exg{display:grid;grid-template-columns:1fr 1fr;gap:0 38px}
-.bd-cta{margin-top:10px;background:var(--kp-ink);color:#fff;border-radius:24px;padding:26px 30px;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}.bd-cta h3{font:800 21px var(--f-display)}.bd-cta p{opacity:.75;font-size:14px;margin-top:4px}
-.lb{position:fixed;inset:0;z-index:3000;background:rgba(14,13,44,.82);display:none;place-items:center;padding:16px}.lb.on{display:grid}
-.lb-c{background:#fff;border-radius:26px;overflow:hidden;max-width:880px;width:100%;display:grid;grid-template-columns:minmax(200px,42%) 1fr;position:relative}
+.pc .bd{padding:16px 18px 6px;display:grid;gap:4px;align-content:start}
+.pc h3{font:800 17px/1.5 var(--f-display);color:var(--kp-indigo)}.pc .t{font-size:13.5px;color:var(--kp-ink);line-height:1.6}.pc .u{font-size:12.5px;color:var(--kp-muted)}
+.pc .ft{padding:10px 18px 16px}.pc .ft a{font:700 13px var(--f-body);color:var(--kp-indigo);text-decoration:none;display:inline-flex;gap:6px;align-items:center;border-bottom:2px solid var(--kp-sign);padding-bottom:1px}.pc .ft a:hover{background:var(--kp-sign)}
+.emp{padding:40px;text-align:center;color:var(--kp-muted);background:#fff;border:1px dashed var(--kp-line-2);border-radius:20px}
+.nt{margin-top:34px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid var(--kp-line);border-radius:22px;padding:18px 22px}.nt p{flex:1;min-width:240px;color:var(--kp-muted);font-size:14px}.nt b{color:var(--kp-ink)}
+.lb{position:fixed;inset:0;z-index:3000;background:rgba(14,13,44,.78);display:none;place-items:center;padding:16px}.lb.on{display:grid}
+.lb-c{background:#fff;border-radius:26px;overflow:hidden;max-width:820px;width:100%;display:grid;grid-template-columns:minmax(200px,42%) 1fr;position:relative}
 .lb-c img{width:100%;height:100%;object-fit:cover;object-position:center 12%;min-height:300px;display:block}
-.lb-t{padding:34px 30px;display:grid;align-content:center;gap:8px}.lb-t small{color:var(--kp-muted);font-weight:700}.lb-t h3{font:800 26px/1.4 var(--f-display);color:var(--kp-indigo)}.lb-t p{font-size:15px;color:var(--kp-ink)}
+.lb-t{padding:34px 30px;display:grid;align-content:center;gap:8px}.lb-t small{color:var(--kp-muted);font-weight:700}.lb-t h3{font:800 26px/1.4 var(--f-display);color:var(--kp-indigo)}.lb-t p{font-size:15px}
 .lb-x{position:absolute;top:12px;inset-inline-end:12px;width:40px;height:40px;border-radius:50%;border:0;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.2);font-size:22px;cursor:pointer;z-index:2}
-@media(max-width:900px){.stage{grid-template-columns:1fr}.exg{grid-template-columns:1fr}}
-@media(max-width:600px){.lead{grid-template-columns:1fr;grid-template-rows:260px 1fr}.lead .tx{padding:22px}.mem{grid-template-columns:1fr 1fr;gap:12px}.mc h3{font-size:14.5px}.st{padding:12px}.st .pp{width:60px;height:60px}.lb-c{grid-template-columns:1fr}.lb-c img{min-height:0;height:300px}.bd-h .no{font-size:48px}}
-@media(prefers-reduced-motion:reduce){.mc,.st{opacity:1;translate:none;transition:none}}
+@media(max-width:820px){.sp{grid-template-columns:1fr}.sp .im{min-height:300px}.sp .tx{padding:24px}.lb-c{grid-template-columns:1fr}.lb-c img{min-height:0;height:300px}.bt .q{max-width:none;margin-inline-start:0;flex-basis:100%}}
+@media(max-width:520px){.grid{grid-template-columns:1fr 1fr;gap:12px}.pc h3{font-size:15px}.pc .bd{padding:12px 12px 4px}.pc .ft{padding:8px 12px 12px}.nopic{font-size:44px}}
+@media(prefers-reduced-motion:reduce){.pc{opacity:1;translate:none;transition:none}}
 </style>
 </head>
 <body>
@@ -919,61 +950,57 @@ table.t tr:hover td{background:var(--kp-paper-2)}
 <script>function k2Drawer(o){var d=document.getElementById('k2Drawer');d.classList.toggle('open',!!o);d.setAttribute('aria-hidden',o?'false':'true');var b=document.querySelector('.k2-menu');if(b)b.setAttribute('aria-expanded',o?'true':'false')}document.addEventListener('keydown',function(e){if(e.key==='Escape')k2Drawer(0)});</script>
 <div class="kp-hero"><div class="w ph">
   <div class="kp-tag">عن الشركة</div>
-  <h1>مجلس الإدارة</h1>
-  <p>الأعضاء الذين يقودون الشركة، والفريق التنفيذي الذي يحوّل توجهاتهم إلى خدمة يومية للركّاب.</p>
-  <nav class="bd-nav" aria-label="أقسام الصفحة"><a href="#board" class="on">مجلس الإدارة</a><a href="#exec">الإدارة التنفيذية</a><a href="KPTC_OrgStructure.html">الهيكل التنظيمي</a></nav>
+  <h1>مجلس الإدارة والإدارة التنفيذية</h1>
+  <p>من يقود الشركة اليوم. تُحدَّث هذه الصفحة مع كل قرار تنظيمي جديد.</p>
 </div></div>
 
 <main><div class="w">
-  <section class="bd-sec" id="board">
-    <div class="bd-h"><span class="no" aria-hidden="true">01</span><div><h2>مجلس الإدارة</h2><p>اضغط أي عضو لعرض بطاقته.</p></div></div>
-    <div class="stage" id="bdTop"></div>
-    <div class="mem" id="bdRow"></div>
-  </section>
-
-  <section class="bd-sec" id="exec">
-    <div class="bd-h"><span class="no" aria-hidden="true">02</span><div><h2>الإدارة التنفيذية</h2><p>الرئيس التنفيذي ونوابه ومديرو القطاعات.</p></div></div>
-    <div class="exe" id="bdEx"></div>
-  </section>
-
-  <div class="bd-cta"><div><h3>كيف تتوزع الإدارات والمهام؟</h3><p>اطّلع على الهيكل التنظيمي للشركة: من يتبع من، والوحدات التابعة لكل نائب ومدير تنفيذي.</p></div><a class="btn y" href="KPTC_OrgStructure.html">عرض الهيكل التنظيمي</a></div>
+  <div class="bt">
+    <div class="seg2" role="tablist" aria-label="القسم"><button type="button" data-t="b" class="on">مجلس الإدارة <em class="num" id="nB">0</em></button><button type="button" data-t="e">الإدارة التنفيذية <em class="num" id="nE">0</em></button></div>
+    <div class="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="m16 16 4 4"/></svg><input id="bdQ" type="search" placeholder="ابحث بالاسم أو المنصب…" autocomplete="off" aria-label="بحث"></div>
+  </div>
+  <div id="bdSp"></div>
+  <div class="grid" id="bdGrid"></div>
+  <div class="nt"><p><b>الهيكل التنظيمي:</b> اطّلع على مخطط الشركة الكامل ومن يتبع من، وابحث عن أي إدارة.</p><a class="btn y" href="KPTC_OrgStructure.html">عرض الهيكل التنظيمي</a></div>
 </div></main>
 
-<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="بطاقة العضو"><div class="lb-c"><button class="lb-x" type="button" data-close aria-label="إغلاق">×</button><img id="lbI" alt=""><div class="lb-t"><small id="lbS"></small><h3 id="lbN"></h3><p id="lbT"></p><a class="btn o sm" href="KPTC_OrgStructure.html" style="justify-self:start;margin-top:8px">الهيكل التنظيمي</a></div></div></div>
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="بطاقة الشخص"><div class="lb-c"><button class="lb-x" type="button" data-close aria-label="إغلاق">×</button><img id="lbI" alt=""><div class="lb-t"><small id="lbS"></small><h3 id="lbN"></h3><p id="lbT"></p><a class="btn o sm" id="lbA" href="KPTC_OrgStructure.html" style="justify-self:start;margin-top:8px">موقعه في الهيكل التنظيمي</a></div></div></div>
 
 <script>
 (function(){
-  /* members and executives are data (studio: الهيكل التنظيمي), starting from what the company publishes on kptc.com.kw */
-  var K = window.KPTC, E = K.esc, BOARD = [], EXEC = [];
+  /* people are data (studio: الهيكل التنظيمي) and change with the company's decisions */
+  var K = window.KPTC, E = K.esc, tab = 'b', q = '', LIST = {b: [], e: []};
+  function root(){ return K.org().units.filter(function(u){ return !u.p; })[0]; }
   function pick(){
-    BOARD = K.org().board.map(function(b){ return [K.orgImg(b), b.n, b.t]; });
-    var us = K.org().units, out = [];
-    (function walk(id){ K.kids(id).forEach(function(u){ if (u.ex){ var p = K.orgPerson(u); if (p && p.n) out.push([K.orgImg(p), p.n, p.t || u.n]); } walk(u.id); }); })((us.filter(function(u){ return !u.p; })[0] || {}).id || '');
-    EXEC = out;
+    var o = K.org(), r = root();
+    LIST.b = o.board.map(function(b){ var u = o.units.filter(function(x){ return x.ref === b.id; })[0]; return {img: K.orgImg(b), n: b.n, t: b.t, unit: u ? u.id : (r ? r.id : ''), uname: u ? u.n : '', since: b.since || ''}; });
+    var out = []; (function walk(id){ K.kids(id).forEach(function(u){ if (u.ex){ var p = K.orgPerson(u); if (p && p.n && !u.vacant) out.push({img: K.orgImg(p), n: p.n, t: p.t || u.n, unit: u.id, uname: u.n, since: p.since || ''}); } walk(u.id); }); })(r ? r.id : '');
+    LIST.e = out;
   }
   var ini = function(n){ return E(String(n).replace(/^[^\/]*\/\s*/, '').charAt(0)); };
-  function img(p){ return p[0] ? '<img src="' + E(p[0]) + '" alt="' + E(p[1]) + '" loading="lazy">' : '<span class="nopic">' + ini(p[1]) + '</span>'; }
-  function lead(p, g, i, two){ return '<button type="button" class="lead' + (two ? ' two' : '') + '" data-g="' + g + '" data-i="' + i + '"><div class="im">' + img(p) + '</div><div class="tx"><span class="rl"><i></i>' + E(p[2]) + '</span><h3>' + E(p[1]) + '</h3></div></button>'; }
-  function mem(p, g, i){ return '<button type="button" class="mc" data-g="' + g + '" data-i="' + i + '"><div class="im">' + img(p) + '<span class="ix num">' + ('0' + (i + 1)).slice(-2) + '</span></div><div class="pl"><h3>' + E(p[1]) + '</h3><p>' + E(p[2]) + '</p></div></button>'; }
-  function stn(p, i, top){ return '<button type="button" class="st' + (top ? ' top' : '') + '" data-g="e" data-i="' + i + '"><div class="pp">' + img(p) + '</div><div><h3>' + E(p[1]) + '</h3><p>' + E(p[2]) + '</p></div></button>'; }
-  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ setTimeout(function(){ e.target.classList.add('in'); }, (e.target.__d || 0)); io.unobserve(e.target); } }); }, {threshold: .12}) : null;
+  var img = function(p){ return p.img ? '<img src="' + E(p.img) + '" alt="' + E(p.n) + '" loading="lazy">' : '<span class="nopic">' + ini(p.n) + '</span>'; };
+  var norm = function(s){ return String(s || '').replace(/[ً-ٟـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي'); };
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ setTimeout(function(){ e.target.classList.add('in'); }, e.target.__d || 0); io.unobserve(e.target); } }); }, {threshold: .1}) : null;
   function draw(){
-    pick(); var q = function(i){ return document.getElementById(i); };
-    q('bdTop').innerHTML = BOARD.slice(0, 2).map(function(p, i){ return lead(p, 'b', i, !!i); }).join('');
-    q('bdRow').innerHTML = BOARD.slice(2).map(function(p, i){ return mem(p, 'b', i + 2); }).join('');
-    q('bdEx').innerHTML = EXEC.map(function(p, i){ return stn(p, i, !i); }).join('');
-    [].forEach.call(document.querySelectorAll('.mc,.st'), function(c, k){ if (io){ c.__d = (k % 4) * 90; io.observe(c); } else c.classList.add('in'); });
+    pick(); var t = norm(q).trim(), L = LIST[tab].filter(function(p){ return !t || norm(p.n + ' ' + p.t + ' ' + p.uname).indexOf(t) > -1; });
+    document.getElementById('nB').textContent = LIST.b.length; document.getElementById('nE').textContent = LIST.e.length;
+    var sp = document.getElementById('bdSp'), grid = document.getElementById('bdGrid'), first = !t && L[0] ? L[0] : null, rest = first ? L.slice(1) : L;
+    sp.innerHTML = first ? '<div class="sp"><div class="im">' + img(first) + '</div><div class="tx"><span class="rl">' + E(first.t) + '</span><h2>' + E(first.n) + '</h2>' + (first.uname && tab === 'e' ? '<p>يقود: ' + E(first.uname) + '</p>' : '') + (first.since ? '<p>منذ ' + E(K.date(first.since)) + '</p>' : '') + '<div class="ac"><a class="btn y sm" data-org="' + first.unit + '" href="KPTC_OrgStructure.html">موقعه في الهيكل التنظيمي</a></div></div></div>' : '';
+    grid.innerHTML = rest.length || first ? rest.map(function(p, i){ return '<article class="pc"><button type="button" class="im" data-i="' + L.indexOf(p) + '" aria-label="' + E(p.n) + '">' + img(p) + '</button><div class="bd"><h3>' + E(p.n) + '</h3><div class="t">' + E(p.t) + '</div>' + (p.uname && p.uname !== p.t ? '<div class="u">' + E(p.uname) + '</div>' : '') + '</div><div class="ft"><a data-org="' + p.unit + '" href="KPTC_OrgStructure.html">في الهيكل التنظيمي ←</a></div></article>'; }).join('') : '<div class="emp" style="grid-column:1/-1">لا نتائج مطابقة.</div>';
+    [].forEach.call(grid.querySelectorAll('.pc'), function(c, k){ if (io){ c.__d = (k % 5) * 70; io.observe(c); } else c.classList.add('in'); });
+    draw.cur = L;
   }
-  draw(); K.onChange(draw);
+  [].forEach.call(document.querySelectorAll('.seg2 button'), function(b){ b.onclick = function(){ tab = b.getAttribute('data-t'); [].forEach.call(document.querySelectorAll('.seg2 button'), function(x){ x.classList.toggle('on', x === b); }); draw(); }; });
+  document.getElementById('bdQ').addEventListener('input', function(){ q = this.value; draw(); });
   var lb = document.getElementById('lb');
   document.addEventListener('click', function(e){
-    var c = e.target.closest('[data-g]');
-    if (c){ var g = c.getAttribute('data-g'), p = (g === 'b' ? BOARD : EXEC)[+c.getAttribute('data-i')]; if (!p) return; var im = document.getElementById('lbI'); if (p[0]){ im.src = p[0]; im.style.display = ''; } else im.style.display = 'none'; im.alt = p[1]; document.getElementById('lbN').textContent = p[1]; document.getElementById('lbT').textContent = p[2]; document.getElementById('lbS').textContent = g === 'b' ? 'مجلس الإدارة' : 'الإدارة التنفيذية'; lb.classList.add('on'); return; }
+    var a = e.target.closest('[data-org]'); if (a){ try { sessionStorage.setItem('kptc.orgFocus', a.getAttribute('data-org')); } catch(x){} return; }
+    var c = e.target.closest('.pc .im'); if (c){ var p = (draw.cur || [])[+c.getAttribute('data-i')]; if (!p) return; var im = document.getElementById('lbI'); if (p.img){ im.src = p.img; im.style.display = ''; } else im.style.display = 'none'; im.alt = p.n; document.getElementById('lbN').textContent = p.n; document.getElementById('lbT').textContent = p.t; document.getElementById('lbS').textContent = tab === 'b' ? 'مجلس الإدارة' : 'الإدارة التنفيذية'; document.getElementById('lbA').setAttribute('data-org', p.unit); lb.classList.add('on'); return; }
     if (e.target === lb || e.target.closest('[data-close]')) lb.classList.remove('on');
   });
+  document.getElementById('lbA').addEventListener('click', function(){ try { sessionStorage.setItem('kptc.orgFocus', this.getAttribute('data-org') || ''); } catch(x){} });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('on'); });
-  var links = [].slice.call(document.querySelectorAll('.bd-nav a[href^="#"]'));
-  window.addEventListener('scroll', function(){ var y = window.scrollY + 160, cur = links[0]; links.forEach(function(a){ var t = document.querySelector(a.getAttribute('href')); if (t && t.offsetTop <= y) cur = a; }); links.forEach(function(a){ a.classList.toggle('on', a === cur); }); }, {passive: true});
+  draw(); K.onChange(draw);
 })();
 </script>
 <footer class="k2-foot"><div class="k2-w"><div class="k2-fg">

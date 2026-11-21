@@ -417,6 +417,7 @@ tr[hidden],.cd[hidden],.sx[hidden],.pg[hidden],.row[hidden]{display:none!importa
   function render(){
     if (!K.staffUser()){ document.body.classList.add('gated'); if (window.KPStudioGate) window.KPStudioGate(); return; } document.body.classList.remove('gated');
     if (tab === 'home'){ tab = 'sections'; selPg = 'home'; } if (tab === 'org') selPg = 'org';
+    (function(){ var was = !!K.orgEditing; K.orgEditing = tab === 'org'; try { if (K.orgEditing) sessionStorage.setItem('kptc.pvDraft', '1'); else sessionStorage.removeItem('kptc.pvDraft'); } catch(x){} if (was !== K.orgEditing) setTimeout(function(){ var f = $('pvF'); if (f && f.contentWindow) try { f.contentWindow.postMessage({kpRedraw: 1}, '*'); } catch(x){} }, 700); })();
     if (!allow(tab)){ var first = null; GROUPS.forEach(function(g){ g[1].forEach(function(k){ if (!first && allow(k)) first = k; }); }); if (!first){ nav(); $('hT').textContent = 'لا صلاحية'; $('hD').textContent = 'مركز التحكم محصور بمسؤول النظام ومدير النظام. إن احتجت دخوله فاطلب من مسؤول النظام منح حسابك صلاحية «دخول مركز التحكم».'; $('hA').innerHTML = '<a class="btn o" href="KPTC_Portal.html">بوابة الموظفين</a>'; $('view').innerHTML = ''; return; } tab = first; }
     $('hA').innerHTML = '';
     nav(); $('hT').textContent = TABS[tab][0]; $('hD').textContent = TABS[tab][1]; var foc = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-f') ? [document.activeElement.getAttribute('data-f'), document.activeElement.getAttribute('data-id')] : null; $('view').innerHTML = V[tab](K.db()); enhance(); mountPreview(); if (window.KPStudio && KPStudio.mountEd) KPStudio.mountEd(); if (foc){ var e2 = document.querySelector('[data-f="' + foc[0] + '"][data-id="' + foc[1] + '"]'); if (e2 && e2.focus){ e2.focus(); try { e2.setSelectionRange(e2.value.length, e2.value.length); } catch(x){} } } }
@@ -1143,6 +1144,13 @@ body.gated .gate{display:grid}
 .or-n em{font-style:normal;background:var(--kp-paper);border:1px solid var(--kp-line);border-radius:10px;padding:0 8px;font-size:11px;margin-inline-start:6px;color:var(--kp-indigo)}
 .or-a{display:flex;gap:4px}.or-a button{width:32px;height:32px;border-radius:9px;border:1.5px solid var(--kp-line-2);background:#fff;cursor:pointer;color:var(--kp-indigo);display:grid;place-items:center;font:700 15px var(--f-body);padding:0}.or-a button:hover{background:var(--kp-indigo);color:#fff}.or-a button.x:hover{background:#B42318;border-color:#B42318}
 .or-a svg{width:15px;height:15px}
+.or-st{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:18px;padding:14px 18px;margin-bottom:14px;border:1.5px solid}
+.or-st b{display:block;font-size:15px}.or-st small{color:var(--kp-muted);font-size:12.5px}.or-sa{display:flex;gap:8px;flex-wrap:wrap}
+.or-st.dirty{background:#FFF6D6;border-color:var(--kp-sign)}.or-st.ok{background:#EAF7EF;border-color:#B7E3C8}
+.or-qd{background:#EFEEFB;border:1.5px dashed #9C9AC9;border-radius:16px;padding:12px 16px;margin-bottom:14px;display:grid;gap:6px;font-size:13.5px}.or-qd small{color:var(--kp-muted)}.or-qd .lk{border:0;background:none;color:#B42318;font:700 12.5px var(--f-body);cursor:pointer;text-decoration:underline}
+.or-hl{display:grid;gap:8px}.or-h{display:flex;gap:12px;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--kp-line);border-radius:16px;padding:12px 16px}.or-h b{display:block;font-size:14.5px}.or-h small{color:var(--kp-muted);font-size:12.5px}
+.or-df{list-style:none;margin:0;padding:0;display:grid;gap:6px;max-height:240px;overflow:auto}.or-df li{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;background:var(--kp-paper);border-radius:10px;padding:6px 10px}.or-df i{width:9px;height:9px;border-radius:50%;margin-top:7px;flex:none;background:var(--kp-indigo)}
+.or-df .k-add i{background:#1F9D55}.or-df .k-del i{background:#B42318}.or-df .k-move i{background:#B7791F}.or-df .k-who i{background:#7C3AED}
 .or-hint{font-size:12.5px;color:var(--kp-muted);margin:0;padding:2px 4px}
 .or-bd{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
 .or-c{background:#fff;border:1px solid var(--kp-line);border-radius:18px;padding:14px;display:grid;justify-items:center;gap:6px;text-align:center}.or-c img,.or-c .or-ph{width:84px;height:84px;border-radius:50%;object-fit:cover;object-position:center 15%;border:3px solid var(--kp-sign);background:var(--kp-paper)}.or-c .or-ph{display:grid;place-items:center;font:800 28px var(--f-display);color:var(--kp-indigo)}.or-c b{font-size:14.5px}.or-c small{color:var(--kp-muted)}
@@ -1158,7 +1166,7 @@ body.gated .gate{display:grid}
   var mode = 'units', sel = '', OQ = '', dragId = '';
   var norm = function(s){ return String(s || '').replace(/[ً-ٟـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي'); };
   var IC = {plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', pen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>', up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>', dn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>', del: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'};
-  T.org = ['الهيكل التنظيمي', 'أضف إدارات ولجاناً وعدّلها أو احذفها، وحدّد تبعية كل وحدة، وأدر أعضاء مجلس الإدارة. تنعكس التغييرات في صفحتي الهيكل والمجلس وفي قوائم الإدارات عند إنشاء الحسابات ودليل الموظفين.'];
+  T.org = ['الهيكل التنظيمي', 'عدّل الهيكل ومجلس الإدارة كمسودة تراها في المعاينة، ثم انشرها بقرار موثّق الآن أو من تاريخ لاحق. كل نسخة منشورة محفوظة ويمكن استعادتها.'];
   var root = function(){ return K.org().units.filter(function(u){ return !u.p; })[0]; };
   function rows(){
     var out = [], q = norm(OQ).trim();
@@ -1184,13 +1192,25 @@ body.gated .gate{display:grid}
     return '<div class="or-bd">' + B.map(function(b, i){ var im = K.orgImg(b); return '<div class="or-c">' + (im ? '<img src="' + E(im) + '" alt="">' : '<div class="or-ph">' + E(b.n.replace(/^[^\/]*\/\s*/, '').charAt(0)) + '</div>') + '<b>' + E(b.n) + '</b><small>' + E(b.t) + '</small><div class="or-a"><button type="button" data-act="orbedit" data-id="' + b.id + '" title="تعديل" aria-label="تعديل">' + IC.pen + '</button>' + (i ? '<button type="button" data-act="orbup" data-id="' + b.id + '" aria-label="تقديم">' + IC.up + '</button>' : '') + (i < B.length - 1 ? '<button type="button" data-act="orbdn" data-id="' + b.id + '" aria-label="تأخير">' + IC.dn + '</button>' : '') + '<button type="button" class="x" data-act="orbdel" data-id="' + b.id + '" aria-label="حذف">' + IC.del + '</button></div></div>'; }).join('') + '</div>';
   }
   V.org = function(){
-    $('hA').innerHTML = mode === 'units' ? '<button class="btn y" data-act="oradd" data-id="' + ((root() || {}).id || '') + '">وحدة جديدة</button>' : '<button class="btn y" data-act="orbnew">عضو مجلس جديد</button>';
+    var dirty = K.orgDirty(), diff = dirty ? K.orgDiff() : [], Q = K.orgQueue(), H = K.orgHistory();
+    $('hA').innerHTML = mode === 'units' ? '<button class="btn y" data-act="oradd" data-id="' + ((root() || {}).id || '') + '">وحدة جديدة</button>' : mode === 'board' ? '<button class="btn y" data-act="orbnew">عضو مجلس جديد</button>' : '';
+    var bar = dirty ? '<div class="or-st dirty"><div><b>' + diff.length + ' تعديل غير منشور</b><small>تظهر في المعاينة فقط. لا يراها الزوار ولا تتغير قوائم الإدارات قبل أن تنشرها.</small></div><div class="or-sa"><button class="btn o" data-act="ordisc">تجاهل المسودة</button><button class="btn y" data-act="orpub">مراجعة ونشر…</button></div></div>' : '<div class="or-st ok"><div><b>لا توجد تعديلات معلّقة</b><small>الصفحات العامة تطابق هذا الهيكل. عدّل ما تشاء وسيُحفظ كمسودة حتى تنشره.</small></div></div>';
+    var qb = Q.length ? '<div class="or-qd"><b>تغييرات مجدولة</b>' + Q.map(function(x){ return '<div><span class="num">' + E(x.eff) + '</span> — ' + E(x.note || 'بدون ملاحظة') + ' <button type="button" class="lk" data-act="orunq" data-id="' + x.id + '">إلغاء الجدولة</button></div>'; }).join('') + '<small>تُطبَّق تلقائياً في أول زيارة للموقع بعد حلول التاريخ.</small></div>' : '';
+    var chips = '<div class="chips scp">' + [['units', 'الوحدات والتبعية'], ['board', 'أعضاء مجلس الإدارة'], ['log', 'القرارات والسجل' + (H.length ? ' (' + H.length + ')' : '')]].map(function(m){ return '<button type="button" data-act="ormode" data-id="' + m[0] + '" class="' + (mode === m[0] ? 'on' : '') + '">' + m[1] + '</button>'; }).join('') + '</div>';
+    var body;
+    if (mode === 'units') body = '<div class="or-bar"><input id="orQ" type="search" data-f="orq" data-id="x" placeholder="ابحث باسم وحدة أو مسؤول…" value="' + E(OQ) + '" autocomplete="off"></div>' + unitRows() + '<p class="or-hint">اسحب أي صف وأفلته على وحدة أخرى لتصبح تابعة لها. الرقم الصغير هو عدد الموظفين المسجلين في الوحدة.</p>';
+    else if (mode === 'board') body = boardCards() + '<p class="or-hint">يظهر الأعضاء بهذا الترتيب في صفحة مجلس الإدارة، والأول هو الرئيس.</p>';
+    else body = '<div class="or-hl">' + (H.length ? H.map(function(h){ return '<div class="or-h"><div><b>' + E(h.note || 'بدون ملاحظة') + '</b><small>نُشر <span class="num">' + E(h.at) + '</span>' + (h.eff && h.eff !== h.at ? ' · يسري من <span class="num">' + E(h.eff) + '</span>' : '') + (h.by ? ' · ' + E(h.by) : '') + '</small></div><button type="button" class="btn o sm" data-act="orrest" data-id="' + h.id + '">استعادة إلى المسودة</button></div>'; }).join('') : '<div class="empty">لا قرارات منشورة بعد. أول تغيير تنشره سيُسجَّل هنا. الهيكل الحالي هو المنقول من الموقع الرسمي.</div>') + '</div><p class="or-hint">الاستعادة تضع النسخة القديمة في المسودة فقط، فتراجعها ثم تنشرها بقرار جديد.</p>';
     var s = stats();
-    return '<div class="chips scp"><button type="button" data-act="ormode" data-id="units" class="' + (mode === 'units' ? 'on' : '') + '">الوحدات والتبعية</button><button type="button" data-act="ormode" data-id="board" class="' + (mode === 'board' ? 'on' : '') + '">أعضاء مجلس الإدارة</button></div>' +
-      '<div class="studio"><div class="orp"><div class="or-k">' + s.map(function(x){ return '<div><b class="num">' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('') + '</div>' +
-      (mode === 'units' ? '<div class="or-bar"><input id="orQ" type="search" data-f="orq" data-id="x" placeholder="ابحث باسم وحدة أو مسؤول…" value="' + E(OQ) + '" autocomplete="off"></div>' + unitRows() + '<p class="or-hint">اسحب أي صف وأفلته على وحدة أخرى لتصبح تابعة لها. الأرقام الصغيرة هي عدد الموظفين المسجلين في الوحدة.</p>' : boardCards() + '<p class="or-hint">يظهر الأعضاء بهذا الترتيب في صفحة مجلس الإدارة، والرئيس هو الأول.</p>') +
-      '</div><aside class="pv-slot" id="pvSlot"></aside></div>';
+    return chips + bar + qb + '<div class="studio"><div class="orp"><div class="or-k">' + s.map(function(x){ return '<div><b class="num">' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('') + '</div>' + body + '</div><aside class="pv-slot" id="pvSlot"></aside></div>';
   };
+  function pubForm(){
+    var diff = K.orgDiff(); if (!diff.length) return flash('لا توجد تعديلات للنشر.');
+    X.dlg('مراجعة ونشر تغييرات الهيكل', '<p style="margin:0;font-size:13px;color:var(--kp-muted)">هذه التغييرات سترى النور في صفحتي الهيكل والمجلس وفي قوائم الإدارات:</p><ul class="or-df">' + diff.map(function(d){ return '<li class="k-' + d.k + '"><i></i>' + E(d.t) + '</li>'; }).join('') + '</ul>' +
+      '<label class="f">سبب التغيير أو رقم القرار<input name="note" placeholder="مثال: قرار مجلس الإدارة رقم 5 لسنة 2026"></label>' +
+      '<label class="f">تاريخ السريان (اتركه فارغاً لينشر الآن)<input type="date" name="eff"></label>',
+      function(f){ var note = f.note.value.trim(); if (!note) return 'اكتب سبب التغيير أو رقم القرار ليبقى في السجل.'; var r = K.orgPublish(note, f.eff.value); flash(r === 'queued' ? 'جُدول التغيير ليُطبَّق في ' + f.eff.value + '.' : 'نُشر التغيير ويظهر الآن للزوار.'); });
+  }
   function ping(id){ var f = $('pvF'); if (f && f.contentWindow && X.tab() === 'org') try { f.contentWindow.postMessage({kpOrg: id}, '*'); } catch(x){} }
   /* the form of one unit */
   function indented(skip){
@@ -1212,15 +1232,16 @@ body.gated .gate{display:grid}
       '<div class="or-g" data-g="board"' + (src === 'board' ? '' : ' hidden') + '><label class="f">العضو<select name="ref">' + opts(o.board.map(function(b){ return [b.id, b.n + ' — ' + b.t]; }), u.ref) + '</select></label></div>' +
       '<div class="or-g" data-g="staff"' + (src === 'staff' ? '' : ' hidden') + '><label class="f">الموظف<select name="sid">' + opts(staff, u.sid) + '</select></label><small style="color:var(--kp-muted)">تؤخذ صورته من حسابه إن وُجدت، ويصبح هو المسؤول المقترح عند إنشاء حسابات موظفي هذه الوحدة.</small></div>' +
       '<div class="or-g" data-g="typed"' + (src === 'typed' ? '' : ' hidden') + '><label class="f">الاسم<input name="who" value="' + E(u.who || '') + '"></label>' + photoField(u.ph || (u.uid ? K.orgImg({uid: u.uid}) : '')) + '</div>' +
-      '<div class="or-g" data-g="title"' + (src === 'none' || src === 'board' ? ' hidden' : '') + '><label class="f">المسمى الوظيفي المعروض<input name="t" value="' + E(u.t || '') + '" placeholder="مثال: مدير الإدارة"></label></div>' +
+      '<div class="or-g" data-g="title"' + (src === 'none' || src === 'board' ? ' hidden' : '') + '><label class="f">المسمى الوظيفي المعروض<input name="t" value="' + E(u.t || '') + '" placeholder="مثال: مدير الإدارة"></label><label class="f">تاريخ التعيين (اختياري)<input type="date" name="since" value="' + E(u.since || '') + '"></label></div>' +
+      '<label class="f" style="grid-auto-flow:column;justify-content:start;align-items:center;gap:8px"><input type="checkbox" name="vac"' + (u.vacant ? ' checked' : '') + '> المنصب شاغر حالياً (يُعرض «شاغر» بدل الاسم)</label>' +
       '<label class="f" style="grid-auto-flow:column;justify-content:start;align-items:center;gap:8px"><input type="checkbox" name="ex"' + (u.ex ? ' checked' : '') + '> يظهر في «الإدارة التنفيذية» بصفحة مجلس الإدارة</label>',
       function(f){
         var n = f.n.value.trim(); if (!n) return 'اكتب اسم الوحدة.';
         if (K.org().units.some(function(x){ return x.id !== id && x.n === n; })) return 'يوجد وحدة بهذا الاسم. اختر اسماً مختلفاً.';
-        var s = f.src.value, v = {n: n, lv: f.lv.value, d: f.d.value.trim(), ex: f.ex.checked ? 1 : '', ref: '', sid: '', who: '', t: '', uid: u.uid || '', ph: u.ph || ''};
+        var s = f.src.value, v = {n: n, lv: f.lv.value, d: f.d.value.trim(), ex: f.ex.checked ? 1 : '', vacant: f.vac.checked ? 1 : '', since: '', ref: '', sid: '', who: '', t: '', uid: u.uid || '', ph: u.ph || ''};
         if (s === 'board'){ v.ref = f.ref.value; v.uid = ''; v.ph = ''; if (!v.ref) return 'اختر العضو.'; }
-        else if (s === 'staff'){ v.sid = f.sid.value; v.t = f.t.value.trim(); v.uid = ''; v.ph = ''; if (!v.sid) return 'اختر الموظف.'; }
-        else if (s === 'typed'){ v.who = f.who.value.trim(); v.t = f.t.value.trim(); if (!v.who) return 'اكتب اسم المسؤول.'; if (f.ph.value){ v.ph = f.ph.value; v.uid = ''; } if (f.phx.checked){ v.ph = ''; v.uid = ''; } }
+        else if (s === 'staff'){ v.sid = f.sid.value; v.t = f.t.value.trim(); v.since = f.since.value; v.uid = ''; v.ph = ''; if (!v.sid) return 'اختر الموظف.'; }
+        else if (s === 'typed'){ v.who = f.who.value.trim(); v.t = f.t.value.trim(); v.since = f.since.value; if (!v.who) return 'اكتب اسم المسؤول.'; if (f.ph.value){ v.ph = f.ph.value; v.uid = ''; } if (f.phx.checked){ v.ph = ''; v.uid = ''; } }
         else { v.uid = ''; v.ph = ''; }
         var par = f.p ? f.p.value : null, nu = id ? u : K.orgAdd(par, n, v.lv);
         K.orgSet(nu.id, v);
@@ -1231,10 +1252,10 @@ body.gated .gate{display:grid}
   /* board member form */
   function bForm(id){
     var b = id ? K.org().board.filter(function(x){ return x.id === id; })[0] : {n: '', t: 'عضو مجلس الإدارة'};
-    X.dlg(id ? 'تعديل عضو المجلس' : 'عضو مجلس جديد', '<label class="f">الاسم (مثال: السيد/ فلان الفلاني)<input name="n" value="' + E(b.n) + '"></label><label class="f">الصفة<input name="t" value="' + E(b.t) + '"></label>' + photoField(K.orgImg(b)), function(f){
+    X.dlg(id ? 'تعديل عضو المجلس' : 'عضو مجلس جديد', '<label class="f">الاسم (مثال: السيد/ فلان الفلاني)<input name="n" value="' + E(b.n) + '"></label><label class="f">الصفة<input name="t" value="' + E(b.t) + '"></label><label class="f">تاريخ التعيين (اختياري)<input type="date" name="since" value="' + E(b.since || '') + '"></label>' + photoField(K.orgImg(b)), function(f){
       var n = f.n.value.trim(), t = f.t.value.trim(); if (!n || !t) return 'اكتب الاسم والصفة.';
-      if (id){ b.n = n; b.t = t; if (f.ph.value){ b.ph = f.ph.value; delete b.uid; } if (f.phx.checked){ delete b.ph; delete b.uid; } K.log('تعديل عضو مجلس: ' + n); }
-      else { b = {id: K.id('B'), n: n, t: t}; if (f.ph.value) b.ph = f.ph.value; K.org().board.push(b); K.log('إضافة عضو مجلس: ' + n); }
+      if (id){ b.n = n; b.t = t; if (f.since.value) b.since = f.since.value; else delete b.since; if (f.ph.value){ b.ph = f.ph.value; delete b.uid; } if (f.phx.checked){ delete b.ph; delete b.uid; } K.log('تعديل عضو مجلس: ' + n); }
+      else { b = {id: K.id('B'), n: n, t: t}; if (f.since.value) b.since = f.since.value; if (f.ph.value) b.ph = f.ph.value; K.org().board.push(b); K.log('إضافة عضو مجلس: ' + n); }
       K.save(); flash('حُفظ. يظهر في صفحة مجلس الإدارة.'); });
   }
   document.addEventListener('change', function(e){
@@ -1260,6 +1281,10 @@ body.gated .gate{display:grid}
     else if (a === 'ordel'){ var u = K.unit(id), n = K.descendants(id).length, st = K.unitStaff(u).length;
       if (b.getAttribute('data-sure')){ K.orgDel(id); flash('حُذفت «' + u.n + '».' + (n ? ' ارتبطت وحداتها التابعة بالمستوى الأعلى.' : '') + (st ? ' انتقل موظفوها إلى الوحدة الأعلى.' : '')); }
       else { b.setAttribute('data-sure', '1'); b.textContent = n || st ? 'تأكيد (' + n + ' تابعة، ' + st + ' موظف)' : 'تأكيد'; b.style.width = 'auto'; b.style.padding = '0 10px'; } }
+    else if (a === 'orpub') pubForm();
+    else if (a === 'ordisc'){ if (b.getAttribute('data-sure')){ K.orgDiscard(); flash('أُلغيت المسودة وعاد الهيكل كما هو منشور.'); } else { b.setAttribute('data-sure', '1'); b.textContent = 'تأكيد التجاهل'; } }
+    else if (a === 'orunq'){ K.orgUnqueue(id); flash('أُلغيت الجدولة.'); }
+    else if (a === 'orrest'){ if (K.orgRestore(id)){ mode = 'units'; flash('وُضعت النسخة في المسودة. راجعها ثم انشرها.'); X.render(); } }
     else if (a === 'orbnew') bForm();
     else if (a === 'orbedit') bForm(id);
     else if (a === 'orbup' || a === 'orbdn'){ var B = K.org().board, i = B.map(function(x){ return x.id; }).indexOf(id), j = i + (a === 'orbup' ? -1 : 1); if (j >= 0 && j < B.length){ var t = B[i]; B[i] = B[j]; B[j] = t; K.save(); } }
