@@ -23,6 +23,7 @@
 .pc .pic::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 -60px 50px -40px rgba(20,19,58,.55);pointer-events:none}
 .pc:hover .ph::before{inset:-14px;border-color:var(--kp-ink)}.pc:hover .ph img{transform:scale(1.05)}
 .pc.big .pic{width:min(100%,280px)}.pc.mid .pic{width:min(100%,240px)}
+.pc .pic .nopic{position:absolute;inset:0;display:grid;place-items:center;font:800 64px var(--f-display);color:var(--kp-sign)}
 .pc h3{font:800 clamp(16px,1.6vw,19px)/1.5 var(--f-display);color:var(--kp-ink);overflow-wrap:anywhere}
 .pc p{display:inline-block;margin-top:6px;font:700 13px/1.5 var(--f-body);color:var(--kp-indigo);background:#fff;border:1px solid var(--kp-line);border-radius:14px;padding:3px 14px;box-shadow:0 6px 14px -10px rgba(31,29,92,.5)}
 .pc.big p{background:var(--kp-ink);color:var(--kp-sign);border-color:var(--kp-ink)}
@@ -66,33 +67,30 @@
 
 <script>
 (function(){
-  /* as published on the company's official website (kptc.com.kw), names cleaned of decorative letter stretching */
-  var BOARD = [
-    ['742b03c3-463f-48a1-9b53-1563fe755626', 'السيد/ عيسى الوقيان', 'رئيس مجلس الإدارة'],
-    ['d43b3c8e-d377-4c1a-9dec-2692904c35d0', 'السيد/ خالد العصفور', 'نائب رئيس مجلس الإدارة'],
-    ['70228d24-9388-45d9-b3cf-3e2ba58fd339', 'السيد/ نزار العواد', 'عضو مجلس الإدارة'],
-    ['d8df04e6-b579-4ffe-be53-401d9244bac9', 'السيدة/ لولوه الذربان', 'عضو مجلس الإدارة'],
-    ['6930a97a-65bf-4915-8f7d-74a1206e61ff', 'السيد/ جاسم الهاجري', 'عضو مجلس الإدارة']
-  ], EXEC = [
-    ['d9405575-38cc-41e4-9320-a3f0a16784f1', 'المهندس/ منصور السعد', 'الرئيس التنفيذي'],
-    ['02ba90d0-fc1b-47fd-96ba-34205b2b6393', 'السيد/ محمد المزيدي', 'نائب الرئيس التنفيذي لشئون الخدمات المساندة'],
-    ['75f24b90-dcf2-43c2-8c28-09bc47b1d38f', 'المهندس/ عبدالله ناصر', 'رئيس المكتب الاستراتيجي وتطوير الأعمال'],
-    ['54b8bb27-ba8c-4342-9b8d-4304aad84952', 'السيد/ محمد الفهيد', 'مدير تنفيذي لشئون النقل'],
-    ['43db1d7b-3772-4508-b757-7cf858a7563e', 'المهندس/ عايد السعيدي', 'مدير تنفيذي لشئون المشاريع والخدمات اللوجستية'],
-    ['9863df3b-1be0-4435-92ea-887a0beb2039', 'السيد/ حمد البدر', 'مدير تنفيذي لشئون الموارد البشرية والإدارية']
-  ];
-  var E = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
-  function card(p, cls, grp){ return '<button type="button" class="pc ' + cls + '" data-g="' + grp + '" data-i="' + p.i + '"><div class="pic"><img src="../assets/board/' + p[0] + '.jpg" alt="' + E(p[1]) + '" loading="lazy"></div><h3>' + E(p[1]) + '</h3><p>' + E(p[2]) + '</p></button>'; }
-  document.getElementById('bdTop').innerHTML = [0, 1].map(function(i){ var p = BOARD[i]; p.i = i; return card(p, i ? 'mid' : 'big', 'b'); }).join('');
-  document.getElementById('bdRow').innerHTML = [2, 3, 4].map(function(i){ var p = BOARD[i]; p.i = i; return card(p, '', 'b'); }).join('');
-  EXEC[0].i = 0; document.getElementById('bdCeo').innerHTML = card(EXEC[0], 'big', 'e');
-  document.getElementById('bdEx').innerHTML = EXEC.slice(1).map(function(p, k){ p.i = k + 1; return card(p, '', 'e'); }).join('');
+  /* members and executives are data (studio: الهيكل التنظيمي), starting from what the company publishes on kptc.com.kw */
+  var K = window.KPTC, E = K.esc, BOARD = [], EXEC = [];
+  function pick(){
+    BOARD = K.org().board.map(function(b){ return [K.orgImg(b), b.n, b.t]; });
+    var us = K.org().units, out = [];
+    (function walk(id){ K.kids(id).forEach(function(u){ if (u.ex){ var p = K.orgPerson(u); if (p && p.n) out.push([K.orgImg(p), p.n, p.t || u.n]); } walk(u.id); }); })((us.filter(function(u){ return !u.p; })[0] || {}).id || '');
+    EXEC = out;
+  }
+  function card(p, cls, grp){ return '<button type="button" class="pc ' + cls + '" data-g="' + grp + '" data-i="' + p.i + '"><div class="pic">' + (p[0] ? '<img src="' + E(p[0]) + '" alt="' + E(p[1]) + '" loading="lazy">' : '<span class="nopic">' + E(p[1].replace(/^[^\/]*\/\s*/, '').charAt(0)) + '</span>') + '</div><h3>' + E(p[1]) + '</h3><p>' + E(p[2]) + '</p></button>'; }
   var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting){ setTimeout(function(){ e.target.classList.add('in'); }, (e.target.__d || 0)); io.unobserve(e.target); } }); }, {threshold: .15}) : null;
-  [].forEach.call(document.querySelectorAll('.pc'), function(c, k){ if (io){ c.__d = (k % 5) * 90; io.observe(c); } else c.classList.add('in'); });
+  function draw(){
+    pick(); var q = function(i){ return document.getElementById(i); };
+    BOARD.forEach(function(p, i){ p.i = i; }); EXEC.forEach(function(p, i){ p.i = i; });
+    q('bdTop').innerHTML = BOARD.slice(0, 2).map(function(p, i){ return card(p, i ? 'mid' : 'big', 'b'); }).join('');
+    q('bdRow').innerHTML = BOARD.slice(2).map(function(p){ return card(p, '', 'b'); }).join('');
+    q('bdCeo').innerHTML = EXEC[0] ? card(EXEC[0], 'big', 'e') : '';
+    q('bdEx').innerHTML = EXEC.slice(1).map(function(p){ return card(p, '', 'e'); }).join('');
+    [].forEach.call(document.querySelectorAll('.pc'), function(c, k){ if (io){ c.__d = (k % 5) * 90; io.observe(c); } else c.classList.add('in'); });
+  }
+  draw(); K.onChange(draw);
   var lb = document.getElementById('lb');
   document.addEventListener('click', function(e){
     var c = e.target.closest('.pc');
-    if (c){ var p = (c.getAttribute('data-g') === 'b' ? BOARD : EXEC)[+c.getAttribute('data-i')]; document.getElementById('lbI').src = '../assets/board/' + p[0] + '.jpg'; document.getElementById('lbI').alt = p[1]; document.getElementById('lbN').textContent = p[1]; document.getElementById('lbT').textContent = p[2]; document.getElementById('lbS').textContent = c.getAttribute('data-g') === 'b' ? 'مجلس الإدارة' : 'الإدارة التنفيذية'; lb.classList.add('on'); return; }
+    if (c){ var p = (c.getAttribute('data-g') === 'b' ? BOARD : EXEC)[+c.getAttribute('data-i')]; document.getElementById('lbI').src = p[0]; document.getElementById('lbI').alt = p[1]; document.getElementById('lbN').textContent = p[1]; document.getElementById('lbT').textContent = p[2]; document.getElementById('lbS').textContent = c.getAttribute('data-g') === 'b' ? 'مجلس الإدارة' : 'الإدارة التنفيذية'; lb.classList.add('on'); return; }
     if (e.target === lb || e.target.closest('[data-close]')) lb.classList.remove('on');
   });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') lb.classList.remove('on'); });

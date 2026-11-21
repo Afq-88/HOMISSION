@@ -29,8 +29,8 @@
 .og-units{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;position:relative;padding:22px 0 0;margin-bottom:0}
 .og-units::before{content:"";position:absolute;top:0;inset-inline:6%;height:22px;border:2px solid var(--ln);border-bottom:0;border-radius:14px 14px 0 0}
 .og-units .nd{min-width:120px;max-width:170px}
-.og-deps{display:grid;grid-template-columns:1fr 1fr;gap:26px;position:relative;padding-top:26px;width:100%;max-width:1100px}
-.og-deps::before{content:"";position:absolute;top:0;left:25%;right:25%;border-top:2px solid var(--ln)}
+.og-deps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:26px;position:relative;padding-top:26px;width:100%;max-width:1100px}.og-deps.one{max-width:560px;grid-template-columns:1fr}.og-att{max-width:760px;background:#EFEEFB}
+.og-deps::before{content:"";position:absolute;top:0;left:25%;right:25%;border-top:2px solid var(--ln)}.og-deps.one::before{display:none}
 .pan{position:relative;border:2px dashed #B9B7DD;border-radius:22px;background:rgba(255,255,255,.7);padding:22px 16px 18px;display:grid;gap:16px;align-content:start;justify-items:center}
 .pan::before{content:"";position:absolute;top:-26px;left:50%;height:26px;border-left:2px solid var(--ln)}
 .pan-s{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:16px;background:var(--kp-paper);position:relative}
@@ -79,59 +79,66 @@
 
 <script>
 (function(){
-  /* transcribed from the company's official organisation chart (kptc.com.kw / structure) */
-  var P = {
-    board: ['742b03c3-463f-48a1-9b53-1563fe755626', 'السيد/ عيسى الوقيان'], ceo: ['d9405575-38cc-41e4-9320-a3f0a16784f1', 'المهندس/ منصور السعد'], sup: ['02ba90d0-fc1b-47fd-96ba-34205b2b6393', 'السيد/ محمد المزيدي'], str: ['75f24b90-dcf2-43c2-8c28-09bc47b1d38f', 'المهندس/ عبدالله ناصر'],
-    trn: ['54b8bb27-ba8c-4342-9b8d-4304aad84952', 'السيد/ محمد الفهيد'], prj: ['43db1d7b-3772-4508-b757-7cf858a7563e', 'المهندس/ عايد السعيدي'], hr: ['9863df3b-1be0-4435-92ea-887a0beb2039', 'السيد/ حمد البدر']
-  };
-  var N = {}, id = 0;
-  function mk(n, lv, o){ o = o || {}; var x = {id: 'n' + (++id), n: n, lv: lv, who: o.who ? P[o.who] : null, role: o.role || '', kids: o.kids || [], parent: null}; N[x.id] = x; x.kids.forEach(function(k){ k.parent = x; }); return x; }
-  var tr = mk('رئيس مجلس الإدارة', 'board', {who: 'board'});
-  var sec = mk('مكتب أمانة السر ومتابعة الحوكمة', 'cmt'), cInv = mk('لجنة الاستثمار', 'cmt'), cAud = mk('لجنة التدقيق والمخاطر', 'cmt'), aud = mk('مكتب التدقيق الداخلي والمخاطر', 'cmt');
-  cAud.kids.push(aud); aud.parent = cAud;
-  var units = [mk('إدارة الأصول العقارية والمنشآت', 'unit'), mk('إدارة الشئون القانونية', 'unit'), mk('إدارة التسويق والعلاقات العامة وخدمة العملاء', 'unit'), mk('مكتب الدراسات الاستراتيجية وتطوير الأعمال', 'unit', {who: 'str', role: 'رئيس المكتب'}), mk('الإدارة البحرية', 'unit')];
-  var fin = mk('مدير تنفيذي للشئون المالية', 'exe', {kids: [mk('إدارة المخازن الفنية', 'unit'), mk('إدارة الشئون المالية', 'unit'), mk('إدارة المشتريات', 'unit')]});
-  var hrx = mk('مدير تنفيذي لشئون الموارد البشرية والإدارية', 'exe', {who: 'hr', kids: [mk('إدارة الموارد البشرية والتدريب', 'unit'), mk('إدارة الشئون الإدارية', 'unit')]});
-  var stf = [mk('مكتب المراجعة المالية', 'stf'), mk('مكتب المناقصات', 'stf'), mk('إدارة تقنية المعلومات', 'stf')];
-  var dSup = mk('نائب الرئيس التنفيذي لشئون الخدمات المساندة', 'dep', {who: 'sup', kids: [fin, hrx]});
-  stf.forEach(function(s){ s.parent = dSup; });
-  var trn = mk('مدير تنفيذي لشئون النقل', 'exe', {who: 'trn', kids: [mk('إدارة النقل العام', 'unit'), mk('إدارة النقل الخاص', 'unit')]});
-  var prj = mk('مدير تنفيذي لشئون إدارة المشاريع والخدمات اللوجستية', 'exe', {who: 'prj', kids: [mk('إدارة العمليات الهندسية والدعم الفني', 'unit'), mk('إدارة المشاريع والخدمات اللوجستية', 'unit')]});
-  var dOps = mk('نائب الرئيس التنفيذي لشئون العمليات والمشاريع', 'dep', {kids: [trn, prj]});
-  var ceo = mk('الرئيس التنفيذي', 'ceo', {who: 'ceo', kids: units.concat([dSup, dOps])});
-  [sec, cInv, cAud].forEach(function(x){ x.parent = tr; }); ceo.parent = tr; tr.kids = [ceo, sec, cInv, cAud];
-  var E = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
-  function node(x){ var w = x.who; return '<button type="button" class="nd ' + ({board: 'board', ceo: 'ceo', dep: 'dep', exe: 'exe', unit: 'unit', cmt: 'cmt', stf: 'stf'}[x.lv]) + '" data-id="' + x.id + '">' + (w ? '<img class="av" src="../assets/board/' + w[0] + '.jpg" alt="">' : '') + '<span>' + E(x.n) + '</span>' + (w ? '<small>' + E(w[1]) + '</small>' : '') + '</button>'; }
-  function tree(x){ return '<ul class="tr"><li>' + node(x) + (x.kids.length ? '<ul>' + x.kids.map(function(k){ return '<li>' + node(k) + (k.kids.length ? '<ul>' + k.kids.map(function(g){ return '<li>' + node(g) + '</li>'; }).join('') + '</ul>' : '') + '</li>'; }).join('') + '</ul>' : '') + '</li></ul>'; }
-  function xb(x){ return '<div class="xb">' + node(x) + '<div class="xu">' + x.kids.map(node).join('') + '</div></div>'; }
-  function pan(d, staff){ return '<div class="pan">' + node(d) + (staff ? '<div class="pan-s"><b>مكاتب وإدارات ملحقة بالنائب</b>' + staff.map(node).join('') + '</div>' : '') + '<div class="pan-x">' + d.kids.map(xb).join('') + '</div></div>'; }
-  var html = '<div class="og-top"><div class="og-side r">' + node(sec) + '</div><div class="og-mid">' + node(tr) + '</div><div class="og-side l">' + node(cInv) + node(cAud) + node(aud) + '</div></div>' +
-    '<div class="og-stem"></div><div>' + node(ceo) + '</div><div class="og-stem"></div>' +
-    '<div class="og-units">' + units.map(node).join('') + '</div><div class="og-stem" style="height:22px"></div>' +
-    '<div class="og-deps">' + pan(dSup, stf) + pan(dOps) + '</div>';
-  var og = document.getElementById('og'); og.innerHTML = html;
-  /* details panel */
-  var dp = document.getElementById('ogDp'), LV = {board: 'مجلس الإدارة', ceo: 'الرئيس التنفيذي', dep: 'نائب الرئيس التنفيذي', exe: 'مدير تنفيذي', unit: 'إدارة / مكتب', cmt: 'لجنة / مكتب على مستوى المجلس', stf: 'مكتب أو إدارة ملحقة'};
-  function all(x){ var o = []; (function w(n){ n.kids.forEach(function(k){ o.push(k); w(k); }); })(x); return o; }
+  /* the chart is data: units and people come from the studio ("الهيكل التنظيمي"), starting from the company's published chart */
+  var K = window.KPTC, E = K.esc, LV = {board: 'مجلس الإدارة', ceo: 'الرئيس التنفيذي', dep: 'نائب الرئيس التنفيذي', exe: 'مدير تنفيذي', unit: 'إدارة / مكتب', cmt: 'لجنة / مكتب على مستوى المجلس', stf: 'مكتب أو إدارة ملحقة'};
+  var og = document.getElementById('og'), dp = document.getElementById('ogDp'), sel = '';
+  function node(x){
+    var p = K.orgPerson(x), im = K.orgImg(p);
+    return '<button type="button" class="nd ' + (LV[x.lv] ? x.lv : 'unit') + '" data-id="' + x.id + '">' + (im ? '<img class="av" src="' + E(im) + '" alt="">' : '') + '<span>' + E(x.n) + '</span>' + (p && p.n ? '<small>' + E(p.n) + '</small>' : '') + '</button>';
+  }
+  var isSide = function(u){ return u.lv === 'cmt' || u.lv === 'stf'; };
+  function leafOrBox(k){ return K.kids(k.id).length ? xb(k) : node(k); }
+  function xb(x){ var ks = K.kids(x.id); return '<div class="xb">' + node(x) + '<div class="xu">' + ks.map(leafOrBox).join('') + '</div></div>'; }
+  function pan(x){
+    var ks = K.kids(x.id), side = ks.filter(isSide), main = ks.filter(function(k){ return !isSide(k); });
+    return '<div class="pan">' + node(x) + (side.length ? '<div class="pan-s"><b>مكاتب وإدارات ملحقة</b>' + side.map(node).join('') + '</div>' : '') + '<div class="pan-x">' + main.map(leafOrBox).join('') + '</div></div>';
+  }
+  function branch(x){
+    var ks = K.kids(x.id), side = ks.filter(isSide), main = ks.filter(function(k){ return !isSide(k); }), leaves = main.filter(function(k){ return !K.kids(k.id).length; }), boxes = main.filter(function(k){ return K.kids(k.id).length; });
+    return '<div>' + node(x) + '</div>' + (ks.length ? '<div class="og-stem"></div>' : '') +
+      (side.length ? '<div class="pan-s og-att"><b>مكاتب ملحقة</b>' + side.map(node).join('') + '</div><div class="og-stem" style="height:16px"></div>' : '') +
+      (leaves.length ? '<div class="og-units">' + leaves.map(node).join('') + '</div>' + (boxes.length ? '<div class="og-stem" style="height:22px"></div>' : '') : '') +
+      (boxes.length ? '<div class="og-deps' + (boxes.length === 1 ? ' one' : '') + '">' + boxes.map(pan).join('') + '</div>' : '');
+  }
+  function draw(){
+    var us = K.org().units, root = us.filter(function(u){ return !u.p; })[0];
+    if (!root){ og.innerHTML = '<p style="text-align:center;color:var(--kp-muted)">لم يُنشأ الهيكل بعد.</p>'; return; }
+    var kids = K.kids(root.id), cm = kids.filter(function(k){ return k.lv === 'cmt'; }), mains = kids.filter(function(k){ return k.lv !== 'cmt'; });
+    var cmFlat = []; cm.forEach(function(c){ cmFlat.push(c); K.descendants(c.id).forEach(function(d){ cmFlat.push(d); }); });
+    var html = '<div class="og-top">' + (cmFlat[0] ? '<div class="og-side r">' + node(cmFlat[0]) + '</div>' : '') + '<div class="og-mid">' + node(root) + '</div>' + (cmFlat.length > 1 ? '<div class="og-side l">' + cmFlat.slice(1).map(node).join('') + '</div>' : '') + '</div>';
+    if (mains.length) html += '<div class="og-stem"></div>' + mains.map(branch).join('<div class="og-stem"></div>');
+    og.innerHTML = html;
+    if (sel && K.unit(sel)) mark(); else if (sel){ sel = ''; reset(); }
+    filter();
+  }
+  function reset(){ dp.innerHTML = dpDefault; }
+  var dpDefault = dp.innerHTML;
+  function mark(){ [].forEach.call(document.querySelectorAll('.nd.sel'), function(b){ b.classList.remove('sel'); }); var b = document.querySelector('.nd[data-id="' + sel + '"]'); if (b) b.classList.add('sel'); }
   function show(x){
-    [].forEach.call(document.querySelectorAll('.nd.sel'), function(b){ b.classList.remove('sel'); }); var b = document.querySelector('.nd[data-id="' + x.id + '"]'); if (b) b.classList.add('sel');
-    var path = [], p = x.parent; while (p){ path.push(p.n); p = p.parent; }
-    var subs = all(x), w = x.who;
-    dp.innerHTML = (w ? '<img src="../assets/board/' + w[0] + '.jpg" alt="' + E(w[1]) + '">' : '<div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/></svg></div>') +
-      '<div><small>' + LV[x.lv] + '</small><h3>' + E(x.n) + '</h3>' + (w ? '<p><b>' + E(w[1]) + '</b>' + (x.role ? ' — ' + E(x.role) : '') + '</p>' : '') + (path.length ? '<p>يتبع: ' + path.map(E).join(' ← ') + '</p>' : '<p>أعلى مستوى في الهيكل.</p>') + (subs.length ? '<p>الوحدات التابعة (' + subs.length + '):</p><ul>' + subs.map(function(s){ return '<li>' + E(s.n) + '</li>'; }).join('') + '</ul>' : '') + '</div>';
+    sel = x.id; mark();
+    var path = [], p = K.unit(x.p); while (p){ path.push(p.n); p = K.unit(p.p); }
+    var subs = K.descendants(x.id), w = K.orgPerson(x), im = K.orgImg(w), cnt = K.unitStaff(x).length;
+    dp.innerHTML = (im ? '<img src="' + E(im) + '" alt="' + E(w.n) + '">' : '<div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/></svg></div>') +
+      '<div><small>' + (LV[x.lv] || LV.unit) + '</small><h3>' + E(x.n) + '</h3>' + (w && w.n ? '<p><b>' + E(w.n) + '</b>' + (w.t && w.t !== x.n ? ' — ' + E(w.t) : '') + '</p>' : '') + (x.d ? '<p>' + E(x.d) + '</p>' : '') +
+      (path.length ? '<p>يتبع: ' + path.map(E).join(' ← ') + '</p>' : '<p>أعلى مستوى في الهيكل.</p>') + (cnt ? '<p>عدد الموظفين المسجلين في هذه الوحدة: <b class="num">' + cnt + '</b></p>' : '') +
+      (subs.length ? '<p>الوحدات التابعة (' + subs.length + '):</p><ul>' + subs.map(function(s){ return '<li>' + E(s.n) + '</li>'; }).join('') + '</ul>' : '') + '</div>';
     if (window.innerWidth <= 820) dp.scrollIntoView({behavior: 'smooth', block: 'nearest'});
   }
-  document.addEventListener('click', function(e){ var b = e.target.closest('.nd'); if (b && N[b.getAttribute('data-id')]) show(N[b.getAttribute('data-id')]); });
-  /* search */
-  document.getElementById('ogQ').addEventListener('input', function(){
-    var q = this.value.replace(/[ً-ٟـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').trim(), first = null;
-    [].forEach.call(document.querySelectorAll('.nd'), function(b){ var x = N[b.getAttribute('data-id')], t = (x.n + ' ' + (x.who ? x.who[1] : '')).replace(/[ً-ٟـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي'), hit = !!q && t.indexOf(q) > -1; b.classList.toggle('hit', hit); b.classList.toggle('dim', !!q && !hit); if (hit && !first) first = b; });
-    if (first) first.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});
-  });
+  document.addEventListener('click', function(e){ var b = e.target.closest('.nd'); if (b){ var u = K.unit(b.getAttribute('data-id')); if (u) show(u); } });
+  var norm = function(s){ return String(s || '').replace(/[ً-ٟـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي'); };
+  function filter(scroll){
+    var q = norm(document.getElementById('ogQ').value).trim(), first = null;
+    [].forEach.call(document.querySelectorAll('.nd'), function(b){ var x = K.unit(b.getAttribute('data-id')), w = K.orgPerson(x), t = norm(x.n + ' ' + (w ? w.n + ' ' + w.t : '')), hit = !!q && t.indexOf(q) > -1; b.classList.toggle('hit', hit); b.classList.toggle('dim', !!q && !hit); if (hit && !first) first = b; });
+    if (first && scroll) first.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});
+  }
+  document.getElementById('ogQ').addEventListener('input', function(){ filter(true); });
   /* original picture */
   var lb = document.getElementById('lb'), li = document.getElementById('lbI');
   document.getElementById('ogOrig').onclick = function(){ lb.classList.add('on'); }; document.getElementById('lbX').onclick = function(){ lb.classList.remove('on'); li.classList.remove('z'); };
   li.onclick = function(){ li.classList.toggle('z'); }; lb.addEventListener('click', function(e){ if (e.target === lb){ lb.classList.remove('on'); li.classList.remove('z'); } });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape'){ lb.classList.remove('on'); li.classList.remove('z'); } });
+  draw(); K.onChange(draw);
+  /* the studio asks the preview to show a unit */
+  window.addEventListener('message', function(e){ var d = e.data || {}; if (d.kpOrg){ var u = K.unit(d.kpOrg); if (u){ show(u); var b = document.querySelector('.nd[data-id="' + u.id + '"]'); if (b) b.scrollIntoView({block: 'center', inline: 'center', behavior: 'smooth'}); } } });
 })();
 </script>
