@@ -1,0 +1,239 @@
+rules_version = '2';
+
+/* =====================================================================
+   KPTC — قواعد أمان Firestore  (الطبقة التي يُفرض عندها الأمان فعلاً)
+   ---------------------------------------------------------------------
+   المبدأ: المتصفح بيئة غير موثوقة. أي فحص صلاحيات في JavaScript هو واجهة فقط؛
+   القرار الحقيقي هنا، على خوادم Google، ولا يستطيع أحد تجاوزه من أدوات المطوّر.
+
+   ما تفرضه هذه القواعد:
+   1. الرفض افتراضياً: أي مسار غير مذكور مغلق بالكامل.
+   2. الهوية: الموظف = حساب Firebase Auth له وثيقة staff/{uid} حالتها active.
+   3. الصلاحيات تُقرأ من الخادم (دور + منح - منع) في كل طلب، فيسري سحب الصلاحية
+      أو إيقاف الحساب فوراً دون انتظار انتهاء الرمز (token).
+   4. لا تصعيد ذاتي للصلاحيات: لا أحد يعدّل حسابه، ولا يمسّ «مسؤول النظام» غير مسؤول نظام،
+      ولا يمنح صلاحيات إدارة النظام إلا مسؤول النظام.
+   5. إعادة التحقق (Step-up): العمليات الحرجة تتطلب تسجيل دخول حديثاً (خلال 5 دقائق)،
+      وجميع عمليات الموظفين تتطلب جلسة عمرها أقل من 8 ساعات.
+   6. المصادقة متعددة العوامل MFA: تُفرض على العمليات الحرجة متى فعّل مسؤول النظام
+      الخيار config/security.mfaRequired = true (بعد تسجيل كل المديرين في MFA).
+   7. فصل المهام: لا يعتمد الموظف طلبه بنفسه.
+   8. سجل التدقيق audit: إضافة فقط؛ لا تعديل ولا حذف لأي أحد، والتوقيت من الخادم.
+   9. المحافظ: لا يعدّلها العميل أبداً. أي تغيير في الرصيد يلزمه قيد ledger مطابق
+      في الدفعة نفسها (getAfter) باسم الموظف المنفّذ. الأرقام بالفلس (عدد صحيح).
+  10. حقول الأوراق الشخصية PII في وثائق منفصلة (staffPrivate) لا يراها إلا صاحبها والإدارة.
+  ===================================================================== */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ------------------------------ الهوية ------------------------------ */
+    function signedIn()   { return request.auth != null; }
+    function staffRef()   { return /databases/$(database)/documents/staff/$(request.auth.uid); }
+    function isStaff()    { return signedIn() && exists(staffRef()) && get(staffRef()).data.status == 'active'; }
+    function me()         { return get(staffRef()).data; }
+    function isOwner()    { return isStaff() && me().role == 'owner'; }
+
+    // الجلسة: عمر تسجيل الدخول بالثواني (auth_time هو لحظة آخر إدخال لكلمة المرور)
+    function authAgeOk(sec) { return request.auth.token.auth_time * 1000 > request.time.toMillis() - sec * 1000; }
+
+    // MFA: لا تُفرض إلا بعد أن يفعّلها مسؤول النظام (وثيقة config/security)
+    function mfaEnforced() { return exists(/databases/$(database)/documents/config/security) && get(/databases/$(database)/documents/config/security).data.get('mfaRequired', false) == true; }
+    function mfaOk()       { return !mfaEnforced() || request.auth.token.firebase.get('sign_in_second_factor', null) != null; }
+
+    /* --------------------------- الصلاحيات ---------------------------- */
+    function rolePerms()  { return get(/databases/$(database)/documents/roles/$(me().role)).data.get('perms', []); }
+    function hasPerm(p)   { return isStaff() && !(p in me().get('deny', [])) && ('*' in rolePerms() || p in rolePerms() || p in me().get('grant', [])); }
+    // كل عمليات الموظف: صلاحية + جلسة أقل من 8 ساعات
+    function can(p)       { return hasPerm(p) && authAgeOk(28800); }
+    // العمليات الحرجة: صلاحية + دخول حديث (5 دقائق) + MFA إن فُعّلت
+    function sensitive(p) { return hasPerm(p) && authAgeOk(300) && mfaOk(); }
+
+    // صلاحيات لا يمنحها إلا مسؤول النظام
+    function adminPerms() { return ['*', 'admin.staff', 'admin.roles', 'admin.accounts', 'admin.backup', 'admin.photos', 'admin.sections', 'studio.access']; }
+
+    /* ----------------------------- التحقق ------------------------------ */
+    function str(v, n)    { return v is string && v.size() <= n; }
+    function keysOnly(k)  { return request.resource.data.keys().hasOnly(k); }
+    function changed()    { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    /* ====================================================================
+       الموظفون: الدليل العام (staff) منفصل عن البيانات الشخصية (staffPrivate)
+       ==================================================================== */
+    function staffWriteOk(uid) {
+      let t = request.resource.data;
+      return sensitive('admin.staff')
+          && request.auth.uid != uid                                           // لا أحد يعدّل حسابه
+          && keysOnly(['name','title','dept','role','status','grant','deny','photo','grade','joined'])
+          && t.role is string && t.status in ['active','suspended']
+          && t.grant is list && t.deny is list
+          && (t.role != 'owner' || isOwner())                                // لا يخلق مسؤول نظام إلا مسؤول نظام
+          && (!t.grant.hasAny(adminPerms()) || isOwner());                   // ولا يمنح صلاحيات الإدارة
+    }
+
+    match /staff/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || (isStaff() && hasPerm('portal.directory')) || hasPerm('admin.staff'));
+      allow create: if staffWriteOk(uid);
+      allow update: if staffWriteOk(uid)
+                    && (resource.data.role != 'owner' || isOwner());        // حساب مسؤول النظام محمي
+      allow delete: if sensitive('admin.staff') && uid != request.auth.uid && resource.data.role != 'owner';
+    }
+
+    match /staffPrivate/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || hasPerm('admin.staff'));
+      allow create, update: if (sensitive('admin.staff') && uid != request.auth.uid)
+                            || (request.auth.uid == uid && isStaff() && changed().hasOnly(['phone','emergency']));
+      allow delete: if sensitive('admin.staff') && resource.data.get('role', '') != 'owner';
+    }
+
+    match /roles/{rid} {
+      allow read: if isStaff();
+      allow create, update: if sensitive('admin.roles')
+          && rid != 'owner' && (rid != 'admin' || isOwner())
+          && request.resource.data.perms is list
+          && (!request.resource.data.perms.hasAny(adminPerms()) || isOwner());
+      allow delete: if sensitive('admin.roles') && rid != 'owner' && rid != 'admin';
+    }
+
+    /* ====================================================================
+       العملاء والمحافظ والحجوزات
+       ==================================================================== */
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || hasPerm('admin.accounts'));
+      allow create: if request.auth.uid == uid && keysOnly(['name','phone','email','civil','joined','photo'])
+                    && str(request.resource.data.name, 80);
+      allow update: if (request.auth.uid == uid && changed().hasOnly(['name','email','photo','civil']))
+                    || (sensitive('admin.accounts') && changed().hasOnly(['suspended','note']));
+      allow delete: if sensitive('admin.accounts');
+    }
+
+    match /wallets/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || hasPerm('ops.wallets'));
+      // فتح محفظة فارغة فقط؛ لا يكتب العميل رصيداً أبداً
+      allow create: if request.auth.uid == uid && keysOnly(['balance','frozen']) && request.resource.data.balance == 0 && request.resource.data.frozen == false;
+      // الموظف: تجميد/إلغاء تجميد، أو تغيير رصيد مقترن بقيد ledger مطابق في الدفعة نفسها
+      allow update: if sensitive('ops.wallets') && (
+            (changed().hasOnly(['frozen']))
+         || (changed().hasOnly(['balance','lastTx'])
+             && request.resource.data.balance >= 0
+             && request.resource.data.balance is int
+             && !exists(/databases/$(database)/documents/wallets/$(uid)/tx/$(request.resource.data.lastTx))
+             && getAfter(/databases/$(database)/documents/wallets/$(uid)/tx/$(request.resource.data.lastTx)).data.a == request.resource.data.balance - resource.data.balance
+             && getAfter(/databases/$(database)/documents/wallets/$(uid)/tx/$(request.resource.data.lastTx)).data.by == request.auth.uid));
+      allow delete: if false;
+
+      // دفتر القيود: إضافة فقط، لا يُعدَّل ولا يُحذف
+      match /tx/{tid} {
+        allow read: if signedIn() && (request.auth.uid == uid || hasPerm('ops.wallets'));
+        allow create: if sensitive('ops.wallets') && request.resource.data.by == request.auth.uid && request.resource.data.a is int
+                      && keysOnly(['a','t','note','by','at']) && request.resource.data.at == request.time;
+        allow update, delete: if false;
+      }
+    }
+
+    match /bookings/{bid} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || hasPerm('ops.bookings'));
+      // العميل (أو الضيف) يفتح طلباً بحالته الأولى فقط؛ لا يحدد حالته ولا مبلغه النهائي
+      allow create: if (request.resource.data.uid == 'guest' || request.resource.data.uid == request.auth.uid)
+                    && request.resource.data.status == 'قيد المعالجة' && request.resource.data.size() < 30
+                    && str(request.resource.data.title, 200);
+      allow update: if can('ops.bookings') && changed().hasOnly(['status','note','amount']);
+      allow delete: if sensitive('ops.bookings');
+    }
+
+    /* ====================================================================
+       المحتوى العام (يقرؤه الزوار) — الكتابة لأصحاب صلاحية المحتوى فقط
+       ==================================================================== */
+    match /news/{id}    { allow read: if resource.data.pub == true || hasPerm('site.news');    allow write: if can('site.news'); }
+    match /tenders/{id} { allow read: if true;                                                  allow write: if can('site.tenders'); }
+    match /jobs/{id}    { allow read: if resource.data.open == true || hasPerm('site.jobs');   allow write: if can('site.jobs'); }
+    match /found/{id}   { allow read: if true;                                                  allow write: if can('ops.bookings'); }
+    match /site/{doc}   { allow read: if true;
+                          allow write: if can('site.pages') || can('site.home') || can('site.texts') || can('site.elements') || can('site.sched') || can('site.marketing'); }
+    match /org/{doc}    { allow read: if true;  allow write: if can('org.manage'); }
+    match /orgDraft/{doc} { allow read, write: if can('org.manage'); }
+
+    // طلبات يرسلها الزائر: إنشاء فقط (مع App Check)، وبياناته الشخصية لا يقرؤها إلا المختص
+    match /applications/{id} {
+      allow create: if keysOnly(['job','name','phone','email','exp','note','d','status','cv'])
+                    && str(request.resource.data.name, 80) && str(request.resource.data.note, 1500) && request.resource.data.status == 'قيد المراجعة';
+      allow read, update: if can('site.jobs');
+      allow delete: if sensitive('site.jobs');
+    }
+    match /bids/{id} {
+      allow create: if str(request.resource.data.name, 120) && request.resource.data.size() < 20;
+      allow read, update: if can('site.tenders');
+      allow delete: if sensitive('site.tenders');
+    }
+    match /pdi/{id} {
+      allow create: if str(request.resource.data.name, 120) && request.resource.data.size() < 25 && request.resource.data.status == 'جديد';
+      allow read, update: if can('ops.pdi');
+      allow delete: if sensitive('ops.pdi');
+    }
+
+    /* ====================================================================
+       البوابة الداخلية — للموظفين فقط
+       ==================================================================== */
+    match /circulars/{id} { allow read: if isStaff(); allow write: if can('portal.admin'); }
+    match /decisions/{id} { allow read: if isStaff(); allow write: if can('portal.admin'); }
+    match /events/{id}    { allow read: if isStaff(); allow write: if can('portal.admin'); }
+    match /library/{id}   { allow read: if isStaff(); allow write: if can('portal.admin'); }
+    match /deptInfo/{id}  { allow read: if isStaff(); allow write: if can('admin.staff') || can('portal.admin'); }
+    match /sections/{id}  { allow read: if isStaff(); allow write: if sensitive('admin.sections'); }
+
+    // المزايا: العرض يراه من وُجّه إليه فقط (تُفرض هنا لا في الواجهة)
+    match /benefits/{id} {
+      allow read: if hasPerm('benefits.manage') || (isStaff() && resource.data.on == true && (
+          resource.data.aud.mode == 'all'
+          || (resource.data.aud.mode == 'depts' && me().dept in resource.data.aud.get('depts', []))
+          || (resource.data.aud.mode == 'staff' && request.auth.uid in resource.data.aud.get('staff', []))));
+      allow write: if can('benefits.manage');
+    }
+    match /claims/{id} {
+      allow read: if isStaff() && (resource.data.staff == request.auth.uid || hasPerm('benefits.claims'));
+      allow create: if isStaff() && request.resource.data.staff == request.auth.uid && request.resource.data.status in ['بانتظار الاعتماد','مقبول'];
+      allow update: if can('benefits.claims') && resource.data.staff != request.auth.uid;     // لا يعتمد طلب نفسه
+    }
+
+    // النماذج الإلكترونية: فصل المهام — صاحب الطلب لا يعتمده
+    function approver() { return hasPerm('approve.leave') || hasPerm('approve.supplies') || hasPerm('approve.invoice') || hasPerm('approve.forms') || hasPerm('approve.hr') || hasPerm('approve.fin') || hasPerm('approve.exec'); }
+    match /requests/{id} {
+      allow read: if isStaff() && (resource.data.staff == request.auth.uid || approver());
+      allow create: if isStaff() && request.resource.data.staff == request.auth.uid && request.resource.data.status == 'قيد الاعتماد';
+      allow update: if approver() && authAgeOk(28800) && resource.data.staff != request.auth.uid && changed().hasOnly(['steps','status']);
+      allow delete: if false;
+    }
+
+    match /occasions/{id} {
+      allow read: if isStaff();
+      allow create: if can('occasions.post') || (isStaff() && request.resource.data.status == 'مقترح' && request.resource.data.by == request.auth.uid);
+      allow update: if can('occasions.moderate') || (isStaff() && changed().hasOnly(['marks','book']));
+      allow delete: if can('occasions.moderate');
+    }
+
+    match /tickets/{id}   { allow read: if isStaff() && (resource.data.from == request.auth.uid || hasPerm('admin.support'));
+                            allow create: if isStaff() && request.resource.data.from == request.auth.uid;
+                            allow update: if can('admin.support') || (isStaff() && resource.data.from == request.auth.uid && changed().hasOnly(['replies'])); }
+    match /ittickets/{id} { allow read: if isStaff() && (resource.data.from == request.auth.uid || hasPerm('it.support'));
+                            allow create: if isStaff() && request.resource.data.from == request.auth.uid;
+                            allow update: if can('it.support') || (isStaff() && resource.data.from == request.auth.uid && changed().hasOnly(['replies'])); }
+
+    /* ====================================================================
+       التدقيق والإعدادات الأمنية
+       ==================================================================== */
+    match /audit/{id} {
+      allow create: if isStaff() && request.resource.data.by == request.auth.uid && request.resource.data.at == request.time
+                    && keysOnly(['by','at','msg','sec','h','prev']) && str(request.resource.data.msg, 400);
+      allow read: if hasPerm('admin.log');
+      allow update, delete: if false;                      // سجل لا يُمحى
+    }
+
+    match /config/security {
+      allow read: if isOwner();
+      allow write: if isOwner() && sensitive('*') ;
+    }
+
+    /* كل ما عدا ذلك مغلق: النسخ الاحتياطي والاستعادة تتم من الخادم (Cloud Functions / gcloud) لا من المتصفح */
+    match /{document=**} { allow read, write: if false; }
+  }
+}

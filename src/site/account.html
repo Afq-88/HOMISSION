@@ -155,7 +155,7 @@
           <label class="f">الاسم الكامل<input id="upName" autocomplete="name"></label>
           <label class="f">رقم الهاتف<input id="upPhone" inputmode="numeric" autocomplete="tel" placeholder="8 أرقام" dir="ltr"></label>
           <label class="f">البريد الإلكتروني (اختياري)<input id="upEmail" type="email" autocomplete="email" dir="ltr"></label>
-          <label class="f">كلمة المرور<input id="upPass" type="password" autocomplete="new-password" dir="ltr" placeholder="6 أحرف على الأقل"></label>
+          <label class="f">كلمة المرور<input id="upPass" type="password" autocomplete="new-password" dir="ltr" placeholder="8 أحرف على الأقل"></label>
           <div class="err" id="upErr"></div>
           <button class="btn y" type="submit">أنشئ حسابي</button>
         </form>
@@ -331,6 +331,7 @@
   $('tabUp').onclick = function(){ $('tabUp').classList.add('on'); $('tabIn').classList.remove('on'); $('fUp').hidden = false; $('fIn').hidden = true; };
   $('fIn').addEventListener('submit', function(e){ e.preventDefault(); var r = K.login($('inPhone').value, $('inPass').value); $('inErr').textContent = r.error || ''; if (!r.error){ render(); flash('أهلاً بعودتك'); } });
   $('demoBtn').onclick = function(){ K.login('55501234', '123456'); render(); flash('دخلت بالحساب التجريبي'); };
+  if (!K.DEMO){ var dm = document.querySelector('p.demo'); if (dm) dm.remove(); }   /* the demo account hint is for localhost only */
   $('fUp').addEventListener('submit', function(e){ e.preventDefault(); var r = K.register({name:$('upName').value, phone:$('upPhone').value, email:$('upEmail').value, pass:$('upPass').value}); $('upErr').textContent = r.error || ''; if (!r.error){ render(); flash('تم إنشاء حسابك'); } });
   $('outBtn').onclick = function(){ K.logout(); render(); };
   $('meAv').onclick = function(){ K.pickPhoto('user', K.user().id, function(err){ if (err) flash(err); else flash('تم تحديث صورتك.'); }); };

@@ -13,17 +13,20 @@ js = open(os.path.join(ROOT, 'src/core.js'), encoding='utf-8').read()
 CSS_BLOCK = '<!--kptc:core-css--><style id="kptc-core">\n' + css + '</style><!--/kptc:core-css-->'
 store = open(os.path.join(ROOT, 'src/store.js'), encoding='utf-8').read()
 HEAD_BLOCK = '<!--kptc:head-js--><script id="kptc-store">\n' + store + '</script><!--/kptc:head-js-->'
+SEC = open(os.path.join(ROOT, 'src/security.js'), encoding='utf-8').read()
+SEC_BLOCK = '<!--kptc:sec-js--><script id="kptc-sec">\n' + SEC + '</script><!--/kptc:sec-js-->'
 JS_BLOCK = '<!--kptc:core-js--><script id="kptc-core-js">\n' + js + '</script><!--/kptc:core-js-->'
 
 def inject(html):
     html = re.sub(r'<!--kptc:core-css-->.*?<!--/kptc:core-css-->\n?', '', html, flags=re.S)
     html = re.sub(r'<!--kptc:core-js-->.*?<!--/kptc:core-js-->\n?', '', html, flags=re.S)
+    html = re.sub(r'<!--kptc:sec-js-->.*?<!--/kptc:sec-js-->\n?', '', html, flags=re.S)
     html = re.sub(r'<!--kptc:head-js-->.*?<!--/kptc:head-js-->\n?', '', html, flags=re.S)
     # core first so each page's own sheet can refine it
     m = re.search(r'<style', html) or re.search(r'</head>', html)
     html = html[:m.start()] + HEAD_BLOCK + '\n' + CSS_BLOCK + '\n' + html[m.start():]
     i = html.rfind('</body>')
-    html = html[:i] + JS_BLOCK + '\n' + html[i:]
+    html = html[:i] + JS_BLOCK + '\n' + SEC_BLOCK + '\n' + html[i:]
     return html
 
 import json

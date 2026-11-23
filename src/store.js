@@ -117,7 +117,7 @@
         'KPTC-0001': {id:'KPTC-0001', email:'owner@kptc.com.kw', name:'مسؤول النظام', title:'مسؤول أنظمة المعلومات', dept:'تقنية المعلومات', role:'owner', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2900)},
         'KPTC-1001': {id:'KPTC-1001', email:'sysadmin@kptc.com.kw', name:'مدير النظام', title:'مدير تقنية المعلومات', dept:'تقنية المعلومات', role:'admin', pass:'12345678', status:'active', grant:[], deny:[], phone:'', joined:today(-2600)}
       },
-      staffSession: null, staffFails: {},
+      staffSession: null, staffAt: 0, staffFails: {}, userFails: {},
       /* benefits and offers: internal or external, for everyone, departments, or named people */
       benefits: [
         {id:'B-103', title:'اشتراك مخفّض في نادٍ صحي', desc:'خصم على الاشتراك السنوي عند إبراز رمز العرض. (عرض تجريبي للتوضيح)', type:'external', partner:'نادٍ صحي شريك', value:'خصم 40%', cat:'صحة ولياقة', aud:{mode:'all'}, approve:false, from:today(-5), until:today(60), limit:0, on:true, by:'KPTC-3310'},
@@ -218,6 +218,9 @@
       } } catch(x){}
     try { if (!mem.mig5){ mem.mig5 = 1; (mem.roles || []).forEach(function(r){ if ((r.id === 'admin' || r.id === 'content') && r.perms.indexOf('*') < 0 && r.perms.indexOf('site.marketing') < 0) r.perms.push('site.marketing'); }); } } catch(x){}
     try { if (!mem.mig3){ mem.mig3 = 1; var add = {sup:['approve.forms'], hr:['approve.hr'], fin:['approve.fin']}; (mem.roles || []).forEach(function(r){ (add[r.id] || []).forEach(function(p){ if (r.perms.indexOf(p) < 0) r.perms.push(p); }); }); if (mem.library && mem.library.length <= 4) mem.library = s.library; } } catch(x){}
+    try { if (!mem.mig8){ mem.mig8 = 1; /* no plaintext passwords stay in storage; factory passwords must be changed at first sign-in */
+        Object.keys(mem.staff || {}).forEach(function(k){ var o = mem.staff[k]; if (typeof o.pass === 'string'){ var def = DEFAULT_PASSES.indexOf(o.pass) > -1; K.setPass(o, o.pass); if (def) o.mustChange = true; } });
+        Object.keys(mem.users || {}).forEach(function(k){ var o = mem.users[k]; if (typeof o.pass === 'string') K.setPass(o, o.pass); }); } } catch(x){}
     try { var EM = {'KPTC-4821':'a.alqattan','KPTC-2891':'dept.manager','KPTC-ENG':'engineer','KPTC-3310':'hr.staff','KPTC-5120':'web.editor','KPTC-1001':'sysadmin'}; for (var ek in EM) if (mem.staff && mem.staff[ek] && !mem.staff[ek].email) mem.staff[ek].email = EM[ek] + '@kptc.com.kw'; } catch(x){}
     try { for (var sk in mem.staff) if (/\u0623\u0648\u0631\u0627\u062f/.test(mem.staff[sk].name)) mem.staff[sk].name = 'مدير الإدارة'; } catch(x){}   // a name removed at the owner's request
     return mem;
@@ -225,30 +228,79 @@
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch(x){} subs.forEach(function(f){ try { f(mem); } catch(x){} }); }
   window.addEventListener('storage', function(e){ if (e.key === KEY){ mem = null; load(); subs.forEach(function(f){ try { f(mem); } catch(x){} }); } });
 
+
+  /* ---- security primitives (local-mode hardening; the real enforcement is firestore.rules) ---- */
+  var SHA_K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  function sha256(msg){
+    var m = new TextEncoder().encode(String(msg)), l = m.length, n = ((l + 9 + 63) >> 6) << 6, w8 = new Uint8Array(n); w8.set(m); w8[l] = 0x80;
+    var dv = new DataView(w8.buffer); dv.setUint32(n - 8, Math.floor(l / 0x20000000)); dv.setUint32(n - 4, (l << 3) >>> 0);
+    var H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19], W = new Array(64), i, j;
+    function R(x, k){ return (x >>> k) | (x << (32 - k)); }
+    for (var o = 0; o < n; o += 64){
+      for (i = 0; i < 16; i++) W[i] = dv.getUint32(o + i * 4);
+      for (i = 16; i < 64; i++){ var s0 = R(W[i-15], 7) ^ R(W[i-15], 18) ^ (W[i-15] >>> 3), s1 = R(W[i-2], 17) ^ R(W[i-2], 19) ^ (W[i-2] >>> 10); W[i] = (W[i-16] + s0 + W[i-7] + s1) | 0; }
+      var a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+      for (j = 0; j < 64; j++){
+        var S1 = R(e, 6) ^ R(e, 11) ^ R(e, 25), ch = (e & f) ^ (~e & g), t1 = (h + S1 + ch + SHA_K[j] + W[j]) | 0, S0 = R(a, 2) ^ R(a, 13) ^ R(a, 22), mj = (a & b) ^ (a & c) ^ (b & c), t2 = (S0 + mj) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0; }
+      H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0; H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0; }
+    return H.map(function(x){ return ('00000000' + (x >>> 0).toString(16)).slice(-8); }).join('');
+  }
+  function rnd(n){ var a = new Uint8Array(n); (window.crypto || window.msCrypto).getRandomValues(a); return Array.prototype.map.call(a, function(x){ return ('0' + x.toString(16)).slice(-2); }).join(''); }
+  function same(a, b){ a = String(a); b = String(b); var r = a.length ^ b.length; for (var i = 0; i < Math.max(a.length, b.length); i++) r |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0); return r === 0; }
+  var HASH_ROUNDS = 8000, DEFAULT_PASSES = ['12345678', '123456'];
+  function hashPass(p, salt){ var h = sha256(salt + '|' + p); for (var i = 0; i < HASH_ROUNDS; i++) h = sha256(h + salt + p); return 'v1$' + h; }
+  /* escalating lock: 30 s, 1 min, 2 min ... up to 15 min, after every 5 wrong tries (the same for existing and unknown names, so nothing leaks) */
+  function lockOf(map, key){ return map[key] || (map[key] = {n:0, until:0, r:0}); }
+  function lockLeft(f){ return Math.max(0, Math.ceil((f.until - Date.now()) / 1000)); }
+  function lockFail(f){ f.n++; if (f.n >= 5){ f.n = 0; f.r = Math.min((f.r || 0) + 1, 5); f.until = Date.now() + Math.min(30000 * Math.pow(2, f.r - 1), 900000); return true; } return false; }
+  function lockMsg(f){ var s = lockLeft(f); return 'الحساب مقفل مؤقتاً بعد محاولات خاطئة. حاول بعد ' + (s > 90 ? Math.ceil(s / 60) + ' دقيقة' : s + ' ثانية') + '.'; }
+
   function id(p){ return p + '-' + String(Date.now()).slice(-6) + Math.floor(Math.random()*90+10); }
   function money(n){ return (Math.round(n*1000)/1000).toFixed(3) + ' د.ك'; }
   function fdate(s){ if (!s) return '—'; var p = String(s).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : s; }
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function log(msg, sec){ var d = load(), u = d.staffSession && d.staff && d.staff[d.staffSession]; d.log.unshift({d:new Date().toISOString(), msg:msg, sec:sec || '', by:u ? u.name : ''}); d.log = d.log.slice(0, 200); }
+  function log(msg, sec){ var d = load(), u = d.staffSession && d.staff && d.staff[d.staffSession], e = {d:new Date().toISOString(), msg:msg, sec:sec || '', by:u ? u.name : ''}; e.prev = d.log.length && d.log[0].h ? d.log[0].h : '0'; e.h = sha256(e.prev + '|' + e.d + '|' + e.msg + '|' + e.sec + '|' + e.by); d.log.unshift(e); d.log = d.log.slice(0, 200); }
 
   var K = window.KPTC = {
     db: load, save: save, seed: seed, id: id, money: money, date: fdate, esc: esc, latin: latin, today: today,
     onChange: function(f){ subs.push(f); },
     reset: function(){ mem = seed(); save(); },
 
+
+    /* ---- credentials ---- */
+    DEMO: (function(){ try { return window.KPTC_DEMO === true || location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname); } catch(x){ return false; } })(),
+    sha256: sha256,
+    setPass: function(o, p){ o.salt = rnd(16); o.ph = hashPass(p, o.salt); delete o.pass; delete o.mustChange; o.pwAt = new Date().toISOString(); return o; },
+    checkPass: function(o, p){
+      if (!o || typeof p !== 'string') return false;
+      if (o.ph) return same(hashPass(p, o.salt || ''), o.ph);
+      if (typeof o.pass === 'string' && same(o.pass, p)){ var def = DEFAULT_PASSES.indexOf(p) > -1; K.setPass(o, p); if (def) o.mustChange = true; return true; }   // an old plaintext record is upgraded on first use
+      return false; },
+    isDefaultPass: function(o){ return !!o && (!!o.mustChange || DEFAULT_PASSES.indexOf(o.pass) > -1); },
+    /* password rules: staff 10+ characters mixing letters and digits (or symbols); customers 8+; never a known factory or trivial password */
+    passPolicy: function(p, staff){
+      p = String(p || ''); var min = staff ? 10 : 8;
+      if (p.length < min) return 'كلمة المرور قصيرة: ' + min + ' أحرف على الأقل.';
+      if (DEFAULT_PASSES.indexOf(p) > -1 || /^(.)\1+$/.test(p) || /^(0123456789|1234567890|123456789|password|qwerty)/i.test(p)) return 'كلمة المرور سهلة التخمين. اختر غيرها.';
+      if (staff && !(/[A-Za-z\u0600-\u06FF]/.test(p) && /[0-9]/.test(p))) return 'استعمل حروفاً وأرقاماً معاً (ويُفضّل رمز).';
+      return ''; },
+    verifyLog: function(){ var L = load().log, bad = -1; for (var i = 0; i < L.length; i++){ var e = L[i]; if (!e.h) continue; if (e.h !== sha256(e.prev + '|' + e.d + '|' + e.msg + '|' + e.sec + '|' + e.by) || (L[i + 1] && L[i + 1].h && e.prev !== L[i + 1].h)){ bad = i; break; } } return {ok:bad < 0, bad:bad, n:L.length}; },
+
     /* accounts (demo: stored in this browser; Firebase Auth replaces this) */
     user: function(){ var d = load(), u = d.session && d.users[d.session] || null; return u && !u.suspended ? u : null; },
     register: function(o){
       var d = load(), phone = latin(o.phone||'').replace(/\D/g,'');
-      if (!o.name || phone.length < 8 || !o.pass || o.pass.length < 6) return {error:'أكمل الاسم ورقم الهاتف (8 أرقام) وكلمة مرور من 6 أحرف على الأقل.'};
+      if (!o.name || phone.length < 8) return {error:'أكمل الاسم ورقم الهاتف (8 أرقام).'}; var pe = K.passPolicy(o.pass || '', false); if (pe) return {error:pe};
       for (var k in d.users) if (d.users[k].phone === phone) return {error:'هذا الرقم مسجّل من قبل. سجّل الدخول.'};
-      var u = {id:id('u'), name:o.name.trim(), phone:phone, email:(o.email||'').trim(), pass:o.pass, civil:'', joined:today()};
+      var u = {id:id('u'), name:o.name.trim(), phone:phone, email:(o.email||'').trim(), civil:'', joined:today()}; K.setPass(u, o.pass);
       d.users[u.id] = u; d.wallets[u.id] = {balance:0, frozen:false, tx:[]}; d.session = u.id; log('حساب جديد: ' + u.name); save(); return {user:u};
     },
     login: function(phone, pass){
-      var d = load(); phone = latin(phone||'').replace(/\D/g,'');
-      for (var k in d.users) if (d.users[k].phone === phone && d.users[k].pass === pass){ if (d.users[k].suspended) return {error:'هذا الحساب موقوف. تواصل مع خدمة العملاء 1880001.'}; d.session = k; save(); return {user:d.users[k]}; }
-      return {error:'رقم الهاتف أو كلمة المرور غير صحيحة.'};
+      var d = load(); phone = latin(phone||'').replace(/\D/g,''); var f = lockOf(d.userFails = d.userFails || {}, phone || '-');
+      if (f.until > Date.now()) return {error:lockMsg(f), locked:true};
+      for (var k in d.users) if (d.users[k].phone === phone && K.checkPass(d.users[k], pass)){ if (d.users[k].suspended) return {error:'هذا الحساب موقوف. تواصل مع خدمة العملاء 1880001.'}; f.n = 0; f.r = 0; d.session = k; save(); return {user:d.users[k]}; }
+      lockFail(f); save(); return {error:'رقم الهاتف أو كلمة المرور غير صحيحة.'};
     },
     logout: function(){ load().session = null; save(); },
 
@@ -413,11 +465,11 @@
         if (/^\d{3,6}$/.test(q) && k.toUpperCase() === 'KPTC-' + q) return u; }   // the number without the prefix
       return null; },
     staffLogin: function(who, pass){
-      var d = load(), now = Date.now(), u = K.findStaff(who), sid = u ? u.id : (latin(who || '').trim().toUpperCase() || '-'), f = d.staffFails[sid] || (d.staffFails[sid] = {n:0, until:0});
-      if (f.until > now) return {error:'الحساب مقفل مؤقتاً بعد محاولات خاطئة. حاول بعد ' + Math.ceil((f.until - now) / 1000) + ' ثانية.', locked:true};
-      if (!u || u.pass !== pass){ f.n++; if (f.n >= 5){ f.until = now + 30000; f.n = 0; log('قفل مؤقت لحساب ' + sid); } save(); return {error:'بيانات الدخول غير صحيحة. استعمل الرقم الوظيفي أو البريد الرسمي أو رقم الجوال.' + (u && f.n >= 3 ? ' بقيت ' + (5 - f.n) + ' محاولة قبل القفل المؤقت.' : '')}; }
+      var d = load(), u = K.findStaff(who), sid = u ? u.id : (latin(who || '').trim().toUpperCase() || '-'), f = lockOf(d.staffFails, sid);
+      if (f.until > Date.now()) return {error:lockMsg(f), locked:true};
+      if (!u || !K.checkPass(u, pass)){ if (lockFail(f)) log('قفل مؤقت لحساب ' + sid); else log('محاولة دخول فاشلة: ' + sid); save(); return {error:'بيانات الدخول غير صحيحة. استعمل الرقم الوظيفي أو البريد الرسمي أو رقم الجوال.'}; }
       if (u.status !== 'active') return {error:'هذا الحساب موقوف. راجع الموارد البشرية.'};
-      f.n = 0; u.prev = u.last || null; u.last = new Date().toISOString(); d.staffSession = u.id; log('دخول موظف: ' + u.name); save(); return {user:u};
+      f.n = 0; f.r = 0; u.prev = u.last || null; u.last = new Date().toISOString(); d.staffSession = u.id; d.staffAt = Date.now(); log('دخول موظف: ' + u.name); save(); return {user:u, mustChange:!!u.mustChange};
     },
     staffLogout: function(){ load().staffSession = null; save(); },
     /* ---- benefits ---- */
